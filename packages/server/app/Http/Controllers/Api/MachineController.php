@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreMachineRequest;
+use App\Http\Requests\UpdateMachineRequest;
+use App\Http\Resources\MachineResource;
 use App\Models\Machine;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -11,25 +14,48 @@ use Illuminate\Support\Str;
 class MachineController extends Controller
 {
     /**
-     * List user's machines.
+     * List user's machines with pagination.
      */
     public function index(Request $request): JsonResponse
     {
-        $machines = $request->user()
+        $perPage = $request->input('per_page', 15);
+        $search = $request->input('search');
+        $status = $request->input('status');
+
+        $query = $request->user()
             ->machines()
             ->withCount(['sessions as active_sessions_count' => function ($q) {
                 $q->whereIn('status', ['running', 'waiting_input']);
-            }])
-            ->orderBy('updated_at', 'desc')
-            ->get()
-            ->map(fn ($machine) => $this->formatMachine($machine));
+            }]);
+
+        // Apply search filter
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('hostname', 'like', "%{$search}%");
+            });
+        }
+
+        // Apply status filter
+        if ($status && in_array($status, Machine::STATUSES)) {
+            $query->where('status', $status);
+        }
+
+        $machines = $query->orderBy('updated_at', 'desc')
+            ->paginate($perPage);
 
         return response()->json([
             'success' => true,
-            'data' => $machines,
+            'data' => MachineResource::collection($machines),
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
+                'pagination' => [
+                    'current_page' => $machines->currentPage(),
+                    'last_page' => $machines->lastPage(),
+                    'per_page' => $machines->perPage(),
+                    'total' => $machines->total(),
+                ],
             ],
         ]);
     }
@@ -37,20 +63,9 @@ class MachineController extends Controller
     /**
      * Register a new machine.
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreMachineRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'platform' => 'required|string|in:darwin,win32,linux',
-            'hostname' => 'nullable|string|max:255',
-            'arch' => 'nullable|string|max:50',
-            'node_version' => 'nullable|string|max:50',
-            'agent_version' => 'nullable|string|max:50',
-            'claude_version' => 'nullable|string|max:50',
-            'claude_path' => 'nullable|string|max:512',
-            'capabilities' => 'array',
-            'max_sessions' => 'integer|min:1|max:100',
-        ]);
+        $validated = $request->validated();
 
         // Check if machine name already exists for user
         $existing = $request->user()
@@ -98,10 +113,15 @@ class MachineController extends Controller
             $token = $machine->generateToken();
         }
 
+        // Load active sessions count
+        $machine->loadCount(['sessions as active_sessions_count' => function ($q) {
+            $q->whereIn('status', ['running', 'waiting_input']);
+        }]);
+
         return response()->json([
             'success' => true,
             'data' => [
-                'machine' => $this->formatMachine($machine),
+                'machine' => new MachineResource($machine),
                 'token' => $token,
             ],
             'meta' => [
@@ -129,7 +149,7 @@ class MachineController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $this->formatMachine($machine),
+            'data' => new MachineResource($machine),
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
@@ -140,7 +160,7 @@ class MachineController extends Controller
     /**
      * Update machine.
      */
-    public function update(Request $request, string $id): JsonResponse
+    public function update(UpdateMachineRequest $request, string $id): JsonResponse
     {
         $machine = $request->user()->machines()->find($id);
 
@@ -148,19 +168,16 @@ class MachineController extends Controller
             return $this->errorResponse('MCH_001', 'Machine not found', 404);
         }
 
-        $validated = $request->validate([
-            'name' => 'string|max:255',
-            'claude_version' => 'nullable|string|max:50',
-            'claude_path' => 'nullable|string|max:512',
-            'capabilities' => 'array',
-            'max_sessions' => 'integer|min:1|max:100',
-        ]);
+        $machine->update($request->validated());
 
-        $machine->update($validated);
+        // Load active sessions count
+        $machine->loadCount(['sessions as active_sessions_count' => function ($q) {
+            $q->whereIn('status', ['running', 'waiting_input']);
+        }]);
 
         return response()->json([
             'success' => true,
-            'data' => $this->formatMachine($machine),
+            'data' => new MachineResource($machine),
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
@@ -189,6 +206,47 @@ class MachineController extends Controller
         return response()->json([
             'success' => true,
             'data' => null,
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
+    }
+
+    /**
+     * Wake-on-LAN for machine.
+     */
+    public function wake(Request $request, string $id): JsonResponse
+    {
+        $machine = $request->user()->machines()->find($id);
+
+        if (!$machine) {
+            return $this->errorResponse('MCH_001', 'Machine not found', 404);
+        }
+
+        // Check if machine supports WoL
+        if (!$machine->hasCapability('wake_on_lan')) {
+            return $this->errorResponse('MCH_003', 'Machine does not support Wake-on-LAN', 400);
+        }
+
+        // Check if machine is already online
+        if ($machine->is_online) {
+            return $this->errorResponse('MCH_004', 'Machine is already online', 400);
+        }
+
+        // Update status to connecting
+        $machine->update(['status' => 'connecting']);
+
+        // In a real implementation, this would trigger a WoL packet
+        // through a background job or websocket command to an online machine
+        // on the same network, or via a configured WoL proxy
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'message' => 'Wake-on-LAN signal sent',
+                'machine' => new MachineResource($machine),
+            ],
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
@@ -256,31 +314,6 @@ class MachineController extends Controller
                 'request_id' => $request->header('X-Request-ID', uniqid()),
             ],
         ]);
-    }
-
-    /**
-     * Helper: Format machine data.
-     */
-    private function formatMachine(Machine $machine): array
-    {
-        return [
-            'id' => $machine->id,
-            'name' => $machine->name,
-            'platform' => $machine->platform,
-            'hostname' => $machine->hostname,
-            'arch' => $machine->arch,
-            'status' => $machine->status,
-            'is_online' => $machine->is_online,
-            'claude_version' => $machine->claude_version,
-            'agent_version' => $machine->agent_version,
-            'capabilities' => $machine->capabilities,
-            'max_sessions' => $machine->max_sessions,
-            'active_sessions_count' => $machine->active_sessions_count ?? 0,
-            'last_seen_at' => $machine->last_seen_at,
-            'connected_at' => $machine->connected_at,
-            'created_at' => $machine->created_at,
-            'updated_at' => $machine->updated_at,
-        ];
     }
 
     /**

@@ -5,11 +5,16 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\PersonalAccessToken;
+use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Password as PasswordRule;
+use Illuminate\Validation\ValidationException;
 use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
@@ -236,6 +241,188 @@ class AuthController extends Controller
             'email_verified_at' => $user->email_verified_at,
             'created_at' => $user->created_at,
         ];
+    }
+
+    /**
+     * Login user with email and password.
+     */
+    public function login(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'email' => 'required|string|email',
+            'password' => 'required|string',
+            'remember' => 'boolean',
+        ]);
+
+        $user = User::where('email', $validated['email'])->first();
+
+        if (!$user || !$user->password) {
+            return $this->errorResponse('AUTH_002', 'Invalid credentials', 401);
+        }
+
+        if (!Hash::check($validated['password'], $user->password)) {
+            return $this->errorResponse('AUTH_002', 'Invalid credentials', 401);
+        }
+
+        // Create API token
+        $tokenResult = PersonalAccessToken::createForUser(
+            $user->id,
+            'API Access Token',
+            ['*'],
+            30 // 30 days
+        );
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'user' => $this->formatUser($user),
+                'token' => $tokenResult['plainTextToken'],
+                'expires_at' => $tokenResult['model']->expires_at,
+            ],
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
+    }
+
+    /**
+     * Register a new user.
+     */
+    public function register(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => ['required', 'confirmed', PasswordRule::defaults()],
+        ]);
+
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        event(new Registered($user));
+
+        // Create API token
+        $tokenResult = PersonalAccessToken::createForUser(
+            $user->id,
+            'API Access Token',
+            ['*'],
+            30 // 30 days
+        );
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'user' => $this->formatUser($user),
+                'token' => $tokenResult['plainTextToken'],
+                'expires_at' => $tokenResult['model']->expires_at,
+            ],
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ], 201);
+    }
+
+    /**
+     * Send password reset link.
+     */
+    public function forgotPassword(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'email' => 'required|string|email',
+        ]);
+
+        $status = Password::sendResetLink($validated);
+
+        if ($status === Password::RESET_LINK_SENT) {
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'message' => 'Password reset link sent to your email.',
+                ],
+                'meta' => [
+                    'timestamp' => now()->toIso8601String(),
+                    'request_id' => $request->header('X-Request-ID', uniqid()),
+                ],
+            ]);
+        }
+
+        return $this->errorResponse('AUTH_003', 'Unable to send reset link', 400);
+    }
+
+    /**
+     * Reset password with token.
+     */
+    public function resetPassword(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'token' => 'required|string',
+            'email' => 'required|string|email',
+            'password' => ['required', 'confirmed', PasswordRule::defaults()],
+        ]);
+
+        $status = Password::reset(
+            $validated,
+            function (User $user, string $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password),
+                ])->save();
+
+                event(new PasswordReset($user));
+            }
+        );
+
+        if ($status === Password::PASSWORD_RESET) {
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'message' => 'Password has been reset successfully.',
+                ],
+                'meta' => [
+                    'timestamp' => now()->toIso8601String(),
+                    'request_id' => $request->header('X-Request-ID', uniqid()),
+                ],
+            ]);
+        }
+
+        return $this->errorResponse('AUTH_004', 'Invalid or expired reset token', 400);
+    }
+
+    /**
+     * Refresh the current token.
+     */
+    public function refresh(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        // Revoke current token
+        if ($request->user()->currentAccessToken()) {
+            $request->user()->currentAccessToken()->delete();
+        }
+
+        // Create new token
+        $tokenResult = PersonalAccessToken::createForUser(
+            $user->id,
+            'API Access Token',
+            ['*'],
+            30 // 30 days
+        );
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'token' => $tokenResult['plainTextToken'],
+                'expires_at' => $tokenResult['model']->expires_at,
+            ],
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
     }
 
     /**

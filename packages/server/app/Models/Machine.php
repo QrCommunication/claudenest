@@ -103,6 +103,21 @@ class Machine extends Model
         return $this->hasMany(ClaudeInstance::class);
     }
 
+    public function skills(): HasMany
+    {
+        return $this->hasMany(Skill::class);
+    }
+
+    public function mcpServers(): HasMany
+    {
+        return $this->hasMany(MCPServer::class);
+    }
+
+    public function discoveredCommands(): HasMany
+    {
+        return $this->hasMany(DiscoveredCommand::class);
+    }
+
     // ==================== SCOPES ====================
 
     public function scopeOnline($query)

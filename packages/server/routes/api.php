@@ -7,8 +7,22 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 | API Routes
 |--------------------------------------------------------------------------
-| All routes require authentication via Sanctum
+| All routes require authentication via Sanctum except public routes below
 */
+
+// ==================== PUBLIC AUTH ROUTES ====================
+Route::prefix('auth')->group(function () {
+    Route::post('/login', [Api\AuthController::class, 'login']);
+    Route::post('/register', [Api\AuthController::class, 'register']);
+    Route::post('/forgot-password', [Api\AuthController::class, 'forgotPassword']);
+    Route::post('/reset-password', [Api\AuthController::class, 'resetPassword']);
+});
+
+// Public OAuth routes
+Route::get('/auth/{provider}/redirect', [Api\AuthController::class, 'redirect'])
+    ->where('provider', 'google|github');
+Route::get('/auth/{provider}/callback', [Api\AuthController::class, 'callback'])
+    ->where('provider', 'google|github');
 
 Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
 
@@ -16,6 +30,7 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::prefix('auth')->group(function () {
         Route::post('/logout', [Api\AuthController::class, 'logout']);
         Route::get('/me', [Api\AuthController::class, 'me']);
+        Route::post('/refresh', [Api\AuthController::class, 'refresh']);
         Route::get('/tokens', [Api\AuthController::class, 'listTokens']);
         Route::post('/tokens', [Api\AuthController::class, 'createToken']);
         Route::delete('/tokens/{id}', [Api\AuthController::class, 'revokeToken']);
@@ -25,6 +40,7 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::apiResource('machines', Api\MachineController::class);
     Route::post('machines/{machine}/regenerate-token', [Api\MachineController::class, 'regenerateToken']);
     Route::get('machines/{machine}/environment', [Api\MachineController::class, 'environment']);
+    Route::post('machines/{machine}/wake', [Api\MachineController::class, 'wake']);
 
     // ==================== SESSIONS ====================
     Route::get('machines/{machine}/sessions', [Api\SessionController::class, 'index']);
@@ -81,13 +97,38 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::get('projects/{project}/activity', [Api\ProjectController::class, 'activity']);
     Route::post('projects/{project}/broadcast', [Api\ProjectController::class, 'broadcast']);
 
-});
+    // ==================== SKILLS ====================
+    Route::get('machines/{machine}/skills', [Api\SkillsController::class, 'index']);
+    Route::get('machines/{machine}/skills/{path}', [Api\SkillsController::class, 'show']);
+    Route::post('machines/{machine}/skills', [Api\SkillsController::class, 'store']);
+    Route::patch('machines/{machine}/skills/{path}', [Api\SkillsController::class, 'update']);
+    Route::post('machines/{machine}/skills/{path}/toggle', [Api\SkillsController::class, 'toggle']);
+    Route::delete('machines/{machine}/skills/{path}', [Api\SkillsController::class, 'destroy']);
+    Route::post('machines/{machine}/skills/bulk', [Api\SkillsController::class, 'bulkUpdate']);
 
-// Public OAuth routes
-Route::get('/auth/{provider}/redirect', [Api\AuthController::class, 'redirect'])
-    ->where('provider', 'google|github');
-Route::get('/auth/{provider}/callback', [Api\AuthController::class, 'callback'])
-    ->where('provider', 'google|github');
+    // ==================== MCP SERVERS ====================
+    Route::get('machines/{machine}/mcp', [Api\MCPController::class, 'index']);
+    Route::get('machines/{machine}/mcp/all-tools', [Api\MCPController::class, 'allTools']);
+    Route::get('machines/{machine}/mcp/{name}', [Api\MCPController::class, 'show']);
+    Route::post('machines/{machine}/mcp', [Api\MCPController::class, 'store']);
+    Route::patch('machines/{machine}/mcp/{name}', [Api\MCPController::class, 'update']);
+    Route::post('machines/{machine}/mcp/{name}/start', [Api\MCPController::class, 'start']);
+    Route::post('machines/{machine}/mcp/{name}/stop', [Api\MCPController::class, 'stop']);
+    Route::get('machines/{machine}/mcp/{name}/tools', [Api\MCPController::class, 'tools']);
+    Route::post('machines/{machine}/mcp/{name}/execute', [Api\MCPController::class, 'executeTool']);
+    Route::delete('machines/{machine}/mcp/{name}', [Api\MCPController::class, 'destroy']);
+
+    // ==================== DISCOVERED COMMANDS ====================
+    Route::get('machines/{machine}/commands', [Api\CommandsController::class, 'index']);
+    Route::get('machines/{machine}/commands/search', [Api\CommandsController::class, 'search']);
+    Route::get('machines/{machine}/commands/{id}', [Api\CommandsController::class, 'show']);
+    Route::post('machines/{machine}/commands', [Api\CommandsController::class, 'store']);
+    Route::post('machines/{machine}/commands/bulk', [Api\CommandsController::class, 'bulkStore']);
+    Route::post('machines/{machine}/commands/{id}/execute', [Api\CommandsController::class, 'execute']);
+    Route::delete('machines/{machine}/commands/{id}', [Api\CommandsController::class, 'destroy']);
+    Route::delete('machines/{machine}/commands', [Api\CommandsController::class, 'clear']);
+
+});
 
 // Health check (public)
 Route::get('/health', function () {
