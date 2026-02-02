@@ -50,7 +50,7 @@ export const useTasksStore = defineStore('tasks', () => {
   );
 
   const blockedTasks = computed(() => 
-    tasks.value.filter(t => t.status === 'blocked')
+    tasks.value.filter(t => t.status === 'blocked' as TaskStatus)
   );
 
   const claimedTasks = computed(() =>
