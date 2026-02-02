@@ -1,0 +1,214 @@
+name: claudenest
+
+services:
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: claudenest-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/ssl:/etc/nginx/ssl:ro
+      - ./packages/server/public:/var/www/html/public:ro
+    depends_on:
+      - server
+      - reverb
+    networks:
+      - claudenest
+    restart: unless-stopped
+
+  # Laravel Application
+  server:
+    build:
+      context: ./packages/server
+      dockerfile: ../../docker/Dockerfile.server
+    container_name: claudenest-server
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - APP_URL=${APP_URL:-http://localhost}
+      - APP_KEY=${APP_KEY}
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=claudenest
+      - DB_USERNAME=claudenest
+      - DB_PASSWORD=${DB_PASSWORD:-claudenest}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REVERB_HOST=0.0.0.0
+      - REVERB_PORT=8080
+      - OLLAMA_HOST=http://ollama:11434
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-mistral:7b}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-bge-small-en-v1.5}
+      - EMBEDDING_DIMENSIONS=${EMBEDDING_DIMENSIONS:-384}
+    volumes:
+      - ./packages/server:/var/www/html
+      - server-storage:/var/www/html/storage
+      - server-cache:/var/www/html/bootstrap/cache
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+    networks:
+      - claudenest
+    restart: unless-stopped
+
+  # Queue Worker
+  queue:
+    build:
+      context: ./packages/server
+      dockerfile: ../../docker/Dockerfile.server
+    container_name: claudenest-queue
+    command: php artisan queue:work --sleep=3 --tries=3
+    environment:
+      - APP_ENV=production
+      - APP_KEY=${APP_KEY}
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - REDIS_HOST=redis
+      - OLLAMA_HOST=http://ollama:11434
+    volumes:
+      - ./packages/server:/var/www/html
+      - server-storage:/var/www/html/storage
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - claudenest
+    restart: unless-stopped
+
+  # Scheduler
+  scheduler:
+    build:
+      context: ./packages/server
+      dockerfile: ../../docker/Dockerfile.server
+    container_name: claudenest-scheduler
+    command: >
+      sh -c "while true; do
+        php artisan schedule:run;
+        sleep 60;
+      done"
+    environment:
+      - APP_ENV=production
+      - APP_KEY=${APP_KEY}
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - REDIS_HOST=redis
+    volumes:
+      - ./packages/server:/var/www/html
+      - server-storage:/var/www/html/storage
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - claudenest
+    restart: unless-stopped
+
+  # Reverb WebSocket Server
+  reverb:
+    build:
+      context: ./packages/server
+      dockerfile: ../../docker/Dockerfile.server
+    container_name: claudenest-reverb
+    command: php artisan reverb:start --host=0.0.0.0 --port=8080
+    environment:
+      - APP_ENV=production
+      - APP_KEY=${APP_KEY}
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - REDIS_HOST=redis
+      - REVERB_HOST=0.0.0.0
+      - REVERB_PORT=8080
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./packages/server:/var/www/html
+      - server-storage:/var/www/html/storage
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - claudenest
+    restart: unless-stopped
+
+  # PostgreSQL with pgvector
+  postgres:
+    image: ankane/pgvector:latest
+    container_name: claudenest-postgres
+    environment:
+      POSTGRES_USER: claudenest
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-claudenest}
+      POSTGRES_DB: claudenest
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U claudenest"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - claudenest
+    restart: unless-stopped
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: claudenest-redis
+    command: redis-server --appendonly yes --maxmemory 2gb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - claudenest
+    restart: unless-stopped
+
+  # Ollama (AI Models)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: claudenest-ollama
+    volumes:
+      - ollama-data:/root/.ollama
+    ports:
+      - "127.0.0.1:11434:11434"
+    environment:
+      - OLLAMA_NUM_THREADS=${OLLAMA_NUM_THREADS:-4}
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+        reservations:
+          memory: 4G
+    networks:
+      - claudenest
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  ollama-data:
+    driver: local
+  server-storage:
+    driver: local
+  server-cache:
+    driver: local
+
+networks:
+  claudenest:
+    driver: bridge

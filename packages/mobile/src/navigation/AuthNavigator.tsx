@@ -1,0 +1,28 @@
+/**
+ * Auth Navigator
+ * Handles authentication flow screens
+ */
+
+import React from 'react';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import type { AuthStackParamList } from './types';
+
+// Screens
+import { OnboardingScreen } from '@/screens/auth/OnboardingScreen';
+import { LoginScreen } from '@/screens/auth/LoginScreen';
+
+const Stack = createNativeStackNavigator<AuthStackParamList>();
+
+export const AuthNavigator: React.FC = () => {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animation: 'slide_from_right',
+      }}
+    >
+      <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+      <Stack.Screen name="Login" component={LoginScreen} />
+    </Stack.Navigator>
+  );
+};

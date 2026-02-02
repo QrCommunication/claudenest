@@ -1,0 +1,448 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\SharedProject;
+use App\Models\ContextChunk;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+
+class ContextController extends Controller
+{
+    /**
+     * Get project context.
+     */
+    public function show(Request $request, string $projectId): JsonResponse
+    {
+        $project = $this->getUserProject($request, $projectId);
+
+        if (!$project) {
+            return $this->errorResponse('CTX_001', 'Project not found', 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'summary' => $project->summary,
+                'architecture' => $project->architecture,
+                'conventions' => $project->conventions,
+                'current_focus' => $project->current_focus,
+                'recent_changes' => $project->recent_changes,
+                'total_tokens' => $project->total_tokens,
+                'max_tokens' => $project->max_tokens,
+                'token_usage_percent' => $project->token_usage_percent,
+            ],
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
+    }
+
+    /**
+     * Update project context.
+     */
+    public function update(Request $request, string $projectId): JsonResponse
+    {
+        $project = $this->getUserProject($request, $projectId);
+
+        if (!$project) {
+            return $this->errorResponse('CTX_001', 'Project not found', 404);
+        }
+
+        $validated = $request->validate([
+            'summary' => 'nullable|string',
+            'architecture' => 'nullable|string',
+            'conventions' => 'nullable|string',
+            'current_focus' => 'nullable|string',
+            'recent_changes' => 'nullable|string',
+        ]);
+
+        $project->updateContext($validated);
+
+        // Log activity
+        $project->logActivity('context_updated', $request->input('instance_id'), [
+            'updated_fields' => array_keys($validated),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'summary' => $project->summary,
+                'architecture' => $project->architecture,
+                'conventions' => $project->conventions,
+                'current_focus' => $project->current_focus,
+                'recent_changes' => $project->recent_changes,
+            ],
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
+    }
+
+    /**
+     * Query context chunks (RAG search).
+     */
+    public function query(Request $request, string $projectId): JsonResponse
+    {
+        $project = $this->getUserProject($request, $projectId);
+
+        if (!$project) {
+            return $this->errorResponse('CTX_001', 'Project not found', 404);
+        }
+
+        $validated = $request->validate([
+            'query' => 'required|string|min:1',
+            'limit' => 'integer|min:1|max:50|default:10',
+            'type' => 'string|in:task_completion,context_update,file_change,decision,summary,broadcast',
+            'min_similarity' => 'numeric|min:0|max:1',
+        ]);
+
+        $query = $validated['query'];
+        $limit = $validated['limit'] ?? 10;
+
+        // Check if we have an embedding service available
+        $ollamaUrl = config('services.ollama.url');
+        $useEmbeddings = !empty($ollamaUrl);
+
+        if ($useEmbeddings) {
+            try {
+                // Get embedding for query
+                $embedding = $this->getEmbedding($query);
+
+                if ($embedding) {
+                    $chunks = ContextChunk::findSimilar(
+                        $projectId,
+                        $embedding,
+                        $limit,
+                        $validated['min_similarity'] ?? 0.7
+                    );
+                } else {
+                    $chunks = ContextChunk::semanticSearch($projectId, $query, $limit);
+                }
+            } catch (\Exception $e) {
+                // Fallback to text search
+                $chunks = ContextChunk::semanticSearch($projectId, $query, $limit);
+            }
+        } else {
+            // Use text search
+            $chunksQuery = ContextChunk::forProject($projectId)
+                ->active()
+                ->where('content', 'ILIKE', '%' . $query . '%');
+
+            if (isset($validated['type'])) {
+                $chunksQuery->byType($validated['type']);
+            }
+
+            $chunks = $chunksQuery
+                ->orderBy('importance_score', 'desc')
+                ->limit($limit)
+                ->get();
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $chunks->map(fn ($chunk) => [
+                'id' => $chunk->id,
+                'content' => $chunk->content,
+                'type' => $chunk->type,
+                'instance_id' => $chunk->instance_id,
+                'task_id' => $chunk->task_id,
+                'files' => $chunk->files,
+                'importance_score' => $chunk->importance_score,
+                'similarity' => $chunk->similarity ?? null,
+                'created_at' => $chunk->created_at,
+            ]),
+            'meta' => [
+                'query' => $query,
+                'result_count' => $chunks->count(),
+                'used_embeddings' => $useEmbeddings,
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
+    }
+
+    /**
+     * List context chunks.
+     */
+    public function chunks(Request $request, string $projectId): JsonResponse
+    {
+        $project = $this->getUserProject($request, $projectId);
+
+        if (!$project) {
+            return $this->errorResponse('CTX_001', 'Project not found', 404);
+        }
+
+        $validated = $request->validate([
+            'type' => 'string|in:task_completion,context_update,file_change,decision,summary,broadcast',
+            'instance_id' => 'string',
+            'limit' => 'integer|min:1|max:100|default:50',
+        ]);
+
+        $query = $project->contextChunks()->active();
+
+        if (isset($validated['type'])) {
+            $query->byType($validated['type']);
+        }
+
+        if (isset($validated['instance_id'])) {
+            $query->byInstance($validated['instance_id']);
+        }
+
+        $chunks = $query
+            ->orderBy('created_at', 'desc')
+            ->paginate($validated['limit'] ?? 50);
+
+        return response()->json([
+            'success' => true,
+            'data' => $chunks->map(fn ($chunk) => [
+                'id' => $chunk->id,
+                'content' => $chunk->getTruncatedContent(500),
+                'type' => $chunk->type,
+                'instance_id' => $chunk->instance_id,
+                'task_id' => $chunk->task_id,
+                'files' => $chunk->files,
+                'importance_score' => $chunk->importance_score,
+                'expires_at' => $chunk->expires_at,
+                'created_at' => $chunk->created_at,
+            ]),
+            'meta' => [
+                'pagination' => [
+                    'current_page' => $chunks->currentPage(),
+                    'per_page' => $chunks->perPage(),
+                    'total' => $chunks->total(),
+                    'last_page' => $chunks->lastPage(),
+                ],
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
+    }
+
+    /**
+     * Create new context chunk.
+     */
+    public function storeChunk(Request $request, string $projectId): JsonResponse
+    {
+        $project = $this->getUserProject($request, $projectId);
+
+        if (!$project) {
+            return $this->errorResponse('CTX_001', 'Project not found', 404);
+        }
+
+        $validated = $request->validate([
+            'content' => 'required|string|min:1',
+            'type' => 'required|string|in:task_completion,context_update,file_change,decision,summary,broadcast',
+            'instance_id' => 'nullable|string',
+            'task_id' => 'nullable|uuid|exists:shared_tasks,id',
+            'files' => 'array',
+            'files.*' => 'string',
+            'importance_score' => 'numeric|min:0|max:1',
+            'generate_embedding' => 'boolean',
+        ]);
+
+        // Get embedding if requested and service available
+        $embedding = null;
+        if ($validated['generate_embedding'] ?? false) {
+            $embedding = $this->getEmbedding($validated['content']);
+        }
+
+        $chunk = ContextChunk::create([
+            'project_id' => $projectId,
+            'content' => $validated['content'],
+            'type' => $validated['type'],
+            'instance_id' => $validated['instance_id'] ?? null,
+            'task_id' => $validated['task_id'] ?? null,
+            'files' => $validated['files'] ?? [],
+            'importance_score' => $validated['importance_score'] ?? 0.5,
+            'expires_at' => now()->addDays($project->getSetting('contextRetentionDays', 30)),
+        ]);
+
+        if ($embedding) {
+            $chunk->setEmbedding($embedding);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id' => $chunk->id,
+                'type' => $chunk->type,
+                'has_embedding' => !empty($embedding),
+                'created_at' => $chunk->created_at,
+            ],
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ], 201);
+    }
+
+    /**
+     * Summarize context chunks.
+     */
+    public function summarize(Request $request, string $projectId): JsonResponse
+    {
+        $project = $this->getUserProject($request, $projectId);
+
+        if (!$project) {
+            return $this->errorResponse('CTX_001', 'Project not found', 404);
+        }
+
+        $validated = $request->validate([
+            'chunk_ids' => 'array',
+            'chunk_ids.*' => 'uuid|exists:context_chunks,id',
+            'max_length' => 'integer|min:100|max:4000|default:1000',
+        ]);
+
+        $chunkIds = $validated['chunk_ids'] ?? [];
+        $maxLength = $validated['max_length'] ?? 1000;
+
+        if (empty($chunkIds)) {
+            // Get recent high-importance chunks
+            $chunks = $project->contextChunks()
+                ->active()
+                ->highImportance(0.6)
+                ->orderBy('created_at', 'desc')
+                ->limit(20)
+                ->pluck('content')
+                ->toArray();
+        } else {
+            $chunks = $project->contextChunks()
+                ->whereIn('id', $chunkIds)
+                ->pluck('content')
+                ->toArray();
+        }
+
+        $combined = implode("\n\n---\n\n", $chunks);
+
+        // Try to use Ollama for summarization
+        $summary = null;
+        $ollamaUrl = config('services.ollama.url');
+        $model = config('services.ollama.model', 'mistral');
+
+        if (!empty($ollamaUrl) && strlen($combined) > 500) {
+            try {
+                $response = Http::timeout(30)->post("{$ollamaUrl}/api/generate", [
+                    'model' => $model,
+                    'prompt' => "Summarize the following context in {$maxLength} characters or less:\n\n{$combined}",
+                    'stream' => false,
+                ]);
+
+                if ($response->successful()) {
+                    $summary = $response->json('response');
+                }
+            } catch (\Exception $e) {
+                // Fall through to simple summary
+            }
+        }
+
+        // Fallback to simple summary if Ollama fails
+        if (empty($summary)) {
+            $summary = substr($combined, 0, $maxLength);
+            if (strlen($combined) > $maxLength) {
+                $summary .= '...';
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'summary' => $summary,
+                'chunks_used' => count($chunks),
+                'total_chars' => strlen($combined),
+                'ai_generated' => !empty($ollamaUrl) && strlen($combined) > 500,
+            ],
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
+    }
+
+    /**
+     * Delete a context chunk.
+     */
+    public function destroyChunk(Request $request, string $projectId, string $chunkId): JsonResponse
+    {
+        $project = $this->getUserProject($request, $projectId);
+
+        if (!$project) {
+            return $this->errorResponse('CTX_001', 'Project not found', 404);
+        }
+
+        $chunk = $project->contextChunks()->find($chunkId);
+
+        if (!$chunk) {
+            return $this->errorResponse('CTX_001', 'Context chunk not found', 404);
+        }
+
+        $chunk->delete();
+
+        return response()->json([
+            'success' => true,
+            'data' => null,
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
+    }
+
+    /**
+     * Helper: Get embedding from Ollama.
+     */
+    private function getEmbedding(string $text): ?array
+    {
+        $ollamaUrl = config('services.ollama.url');
+        $model = config('services.ollama.embedding_model', 'nomic-embed-text');
+
+        if (empty($ollamaUrl)) {
+            return null;
+        }
+
+        try {
+            $response = Http::timeout(30)->post("{$ollamaUrl}/api/embeddings", [
+                'model' => $model,
+                'prompt' => $text,
+            ]);
+
+            if ($response->successful()) {
+                return $response->json('embedding');
+            }
+        } catch (\Exception $e) {
+            report($e);
+        }
+
+        return null;
+    }
+
+    /**
+     * Helper: Get project belonging to authenticated user.
+     */
+    private function getUserProject(Request $request, string $id): ?SharedProject
+    {
+        return SharedProject::forUser($request->user()->id)->find($id);
+    }
+
+    /**
+     * Helper: Error response.
+     */
+    private function errorResponse(string $code, string $message, int $status): JsonResponse
+    {
+        return response()->json([
+            'success' => false,
+            'error' => [
+                'code' => $code,
+                'message' => $message,
+            ],
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => request()->header('X-Request-ID', uniqid()),
+            ],
+        ], $status);
+    }
+}
