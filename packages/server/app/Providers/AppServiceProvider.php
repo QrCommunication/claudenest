@@ -29,7 +29,6 @@ class AppServiceProvider extends ServiceProvider
             Model::shouldBeStrict();
         }
 
-        // Register vector type for PostgreSQL
-        DB::connection()->getSchemaBuilder()->registerCustomDbType('vector', 'vector');
+        // Note: vector type registration is handled automatically by pgvector extension
     }
 }
