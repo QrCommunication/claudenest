@@ -37,7 +37,7 @@ const routes: RouteRecordRaw[] = [
 
     // Protected routes
     {
-        path: '/',
+        path: '/dashboard',
         name: 'dashboard',
         component: Dashboard,
         meta: { requiresAuth: true },
@@ -157,10 +157,84 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true },
     },
 
+    // Documentation routes (public)
+    {
+        path: '/docs',
+        component: () => import('@/layouts/DocsLayout.vue'),
+        meta: { public: true },
+        children: [
+            {
+                path: '',
+                name: 'docs',
+                component: () => import('@/pages/docs/Index.vue'),
+            },
+            {
+                path: 'installation',
+                name: 'docs.installation',
+                component: () => import('@/pages/docs/Installation.vue'),
+            },
+            {
+                path: 'authentication',
+                name: 'docs.authentication',
+                component: () => import('@/pages/docs/Authentication.vue'),
+            },
+            {
+                path: 'quickstart',
+                name: 'docs.quickstart',
+                component: () => import('@/pages/docs/Quickstart.vue'),
+            },
+            {
+                path: 'api/:category',
+                name: 'docs.api',
+                component: () => import('@/pages/docs/ApiReference.vue'),
+            },
+            {
+                path: 'webhooks/websocket',
+                name: 'docs.webhooks.websocket',
+                component: () => import('@/pages/docs/Webhooks.vue'),
+            },
+            {
+                path: 'webhooks/events',
+                name: 'docs.webhooks.events',
+                component: () => import('@/pages/docs/Webhooks.vue'),
+            },
+            {
+                path: 'sdks/:sdk',
+                name: 'docs.sdks',
+                component: () => import('@/pages/docs/SdkDocs.vue'),
+            },
+            {
+                path: 'resources/error-codes',
+                name: 'docs.resources.error-codes',
+                component: () => import('@/pages/docs/ApiReference.vue'),
+            },
+            {
+                path: 'resources/rate-limits',
+                name: 'docs.resources.rate-limits',
+                component: () => import('@/pages/docs/ApiReference.vue'),
+            },
+            {
+                path: 'resources/changelog',
+                name: 'docs.resources.changelog',
+                component: () => import('@/pages/docs/ApiReference.vue'),
+            },
+            {
+                path: 'terms',
+                name: 'docs.terms',
+                component: () => import('@/pages/docs/ApiReference.vue'),
+            },
+            {
+                path: 'privacy',
+                name: 'docs.privacy',
+                component: () => import('@/pages/docs/ApiReference.vue'),
+            },
+        ],
+    },
+
     // Catch-all redirect
     {
         path: '/:pathMatch(.*)*',
-        redirect: '/',
+        redirect: '/dashboard',
     },
 ];
 

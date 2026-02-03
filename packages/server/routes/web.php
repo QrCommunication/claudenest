@@ -10,6 +10,11 @@ use Illuminate\Support\Facades\Route;
 | These routes serve the Vue.js SPA for all non-API routes.
 */
 
+// Landing page (public)
+Route::get('/', function () {
+    return view('welcome');
+});
+
 // API info endpoint (for health checks)
 Route::get('/api-info', function () {
     return response()->json([
@@ -42,9 +47,11 @@ Route::prefix('docs')->group(function () {
     Route::get('/errors', [DocumentationController::class, 'errors']);
     Route::get('/sdks', [DocumentationController::class, 'sdks']);
     Route::get('/changelog', [DocumentationController::class, 'changelog']);
+    Route::get('/terms', [DocumentationController::class, 'index']);
+    Route::get('/privacy', [DocumentationController::class, 'index']);
 });
 
-// Serve Vue SPA for all other routes
+// Serve Vue SPA for all other routes (dashboard, login, etc.)
 Route::get('/{any}', function () {
     return view('app');
 })->where('any', '^(?!api).*$');

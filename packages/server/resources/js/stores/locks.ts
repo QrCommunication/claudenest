@@ -1,10 +1,10 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import api, { getErrorMessage } from '@/utils/api';
+import type { ApiResponse } from '@/types';
 import type { 
   FileLock,
   CreateLockForm,
-  ApiResponse,
 } from '@/types/multiagent';
 
 export const useLocksStore = defineStore('locks', () => {
@@ -180,7 +180,7 @@ export const useLocksStore = defineStore('locks', () => {
       const { locked, failed } = response.data.data;
       
       // Add successful locks
-      locked.forEach(lock => {
+      locked.forEach((lock: FileLock) => {
         const existingIndex = locks.value.findIndex(l => l.path === lock.path);
         if (existingIndex !== -1) {
           locks.value[existingIndex] = lock;

@@ -42,7 +42,8 @@ api.interceptors.response.use(
   (error: AxiosError<ApiResponse<unknown>>) => {
     if (error.response?.status === 401) {
       // Handle unauthorized - redirect to login
-      window.location.href = '/auth/login';
+      localStorage.removeItem('auth_token');
+      window.location.href = '/login';
     }
     return Promise.reject(error);
   }

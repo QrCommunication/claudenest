@@ -65,9 +65,9 @@
               />
               <span class="text-sm text-dark-4">Remember me</span>
             </label>
-            <a href="#" class="text-sm text-brand-purple hover:text-brand-cyan transition-colors">
+            <router-link to="/forgot-password" class="text-sm text-brand-purple hover:text-brand-cyan transition-colors">
               Forgot password?
-            </a>
+            </router-link>
           </div>
 
           <Button
@@ -111,9 +111,9 @@
 
       <p class="text-center mt-6 text-sm text-dark-4">
         Don't have an account?
-        <a href="#" class="text-brand-purple hover:text-brand-cyan transition-colors font-medium">
+        <router-link to="/register" class="text-brand-purple hover:text-brand-cyan transition-colors font-medium">
           Sign up
-        </a>
+        </router-link>
       </p>
     </div>
   </div>
@@ -156,7 +156,7 @@ const handleLogin = async () => {
   try {
     await authStore.login(email.value, password.value);
     toast.success('Welcome back!', 'You have successfully signed in');
-    router.push('/');
+    router.push('/dashboard');
   } catch (error) {
     toast.error('Login failed', 'Invalid email or password');
   } finally {
@@ -165,6 +165,25 @@ const handleLogin = async () => {
 };
 
 const socialLogin = (provider: string) => {
-  toast.info('Coming soon', `${provider} login will be available soon`);
+  const width = 500;
+  const height = 600;
+  const left = window.screenX + (window.outerWidth - width) / 2;
+  const top = window.screenY + (window.outerHeight - height) / 2;
+  
+  const popup = window.open(
+    `/api/auth/${provider}/redirect`,
+    'OAuth',
+    `width=${width},height=${height},left=${left},top=${top}`
+  );
+
+  window.addEventListener('message', (event) => {
+    if (event.data?.type === 'oauth-success' && event.data.token) {
+      authStore.setToken(event.data.token);
+      authStore.fetchUser().then(() => {
+        router.push('/dashboard');
+      });
+    }
+    popup?.close();
+  }, { once: true });
 };
 </script>

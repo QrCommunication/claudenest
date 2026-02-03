@@ -147,7 +147,7 @@ const iconMap = {
 };
 
 const navItemsConfig: Array<NavItem & { iconName: keyof typeof iconMap }> = [
-  { name: 'Dashboard', path: '/', icon: 'home', iconName: 'HomeIcon' },
+  { name: 'Dashboard', path: '/dashboard', icon: 'home', iconName: 'HomeIcon' },
   { name: 'Machines', path: '/machines', icon: 'server', iconName: 'ServerIcon' },
   { name: 'Sessions', path: '/sessions', icon: 'terminal', iconName: 'CommandLineIcon' },
   { name: 'Projects', path: '/projects', icon: 'folder', iconName: 'FolderIcon' },
@@ -166,8 +166,8 @@ const navItems = computed(() => {
 });
 
 const isActive = (path: string) => {
-  if (path === '/') {
-    return route.path === '/';
+  if (path === '/dashboard') {
+    return route.path === '/dashboard';
   }
   return route.path.startsWith(path);
 };

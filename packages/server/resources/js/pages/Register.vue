@@ -57,9 +57,9 @@
                     <input v-model="form.agreeTerms" type="checkbox" required />
                     <span>
                         I agree to the
-                        <router-link to="/terms" class="link">Terms of Service</router-link>
+                        <a href="/docs/terms" class="link" target="_blank">Terms of Service</a>
                         and
-                        <router-link to="/privacy" class="link">Privacy Policy</router-link>
+                        <a href="/docs/privacy" class="link" target="_blank">Privacy Policy</a>
                     </span>
                 </label>
 
@@ -142,7 +142,7 @@ async function handleSubmit(): Promise<void> {
     });
 
     if (success) {
-        router.push('/');
+        router.push('/dashboard');
     }
 }
 
@@ -162,7 +162,7 @@ function registerWithOAuth(provider: 'google' | 'github'): void {
         if (event.data?.type === 'oauth-success' && event.data.token) {
             localStorage.setItem('auth_token', event.data.token);
             authStore.fetchUser().then(() => {
-                router.push('/');
+                router.push('/dashboard');
             });
         }
         popup?.close();
