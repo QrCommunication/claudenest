@@ -22,7 +22,7 @@ return [
             'host' => env('REVERB_HOST', '0.0.0.0'),
             'port' => env('REVERB_PORT', 8080),
             'path' => env('REVERB_PATH', ''),
-            'hostname' => env('REVERB_HOSTNAME', 'localhost'),
+            'hostname' => null,
             'options' => [
                 'tls' => [],
             ],

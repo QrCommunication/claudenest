@@ -13,7 +13,7 @@ class EmbeddingService
     public function __construct()
     {
         $this->baseUrl = config('services.ollama.url', 'http://localhost:11434');
-        $this->model = config('services.ollama.embedding_model', 'nomic-embed-text');
+        $this->model = config('services.ollama.embedding_model', 'qllama/bge-small-en-v1.5');
     }
 
     /**
