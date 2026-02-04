@@ -35,6 +35,7 @@ class User extends Authenticatable
         'google_id',
         'github_id',
         'email_verified_at',
+        'role',
     ];
 
     /**
@@ -131,5 +132,15 @@ class User extends Authenticatable
         $this->forceFill([
             'email_verified_at' => now(),
         ])->save();
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function hasRole(string $role): bool
+    {
+        return $this->role === $role;
     }
 }
