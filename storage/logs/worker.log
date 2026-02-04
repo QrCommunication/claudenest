@@ -1,0 +1,64 @@
+
+
+In Pusher.php line 63:
+                                                                               
+In Pusher.php line 63:
+                                                                               
+  Pusher\Pusher::__construct(): Argument #1 ($auth_key) must be of type strin  
+  g, null given, called in /var/www/claudenest/vendor/laravel/framework/src/I  
+  Pusher\Pusher::__construct(): Argument #1 ($auth_key) must be of type strin  
+  g, null given, called in /var/www/claudenest/vendor/laravel/framework/src/I  
+  lluminate/Broadcasting/BroadcastManager.php on line 341                      
+                                                                               
+
+  lluminate/Broadcasting/BroadcastManager.php on line 341                      
+                                                                               
+
+
+
+In Pusher.php line 63:
+In Pusher.php line 63:
+                                                                               
+  Pusher\Pusher::__construct(): Argument #1 ($auth_key) must be of type strin  
+  g, null given, called in /var/www/claudenest/vendor/laravel/framework/src/I  
+                                                                               
+  Pusher\Pusher::__construct(): Argument #1 ($auth_key) must be of type strin  
+  g, null given, called in /var/www/claudenest/vendor/laravel/framework/src/I  
+  lluminate/Broadcasting/BroadcastManager.php on line 341                      
+  lluminate/Broadcasting/BroadcastManager.php on line 341                      
+                                                                               
+
+                                                                               
+
+
+
+In Pusher.php line 63:
+                                                                               
+In Pusher.php line 63:
+                                                                               
+  Pusher\Pusher::__construct(): Argument #1 ($auth_key) must be of type strin  
+  g, null given, called in /var/www/claudenest/vendor/laravel/framework/src/I  
+  Pusher\Pusher::__construct(): Argument #1 ($auth_key) must be of type strin  
+  g, null given, called in /var/www/claudenest/vendor/laravel/framework/src/I  
+  lluminate/Broadcasting/BroadcastManager.php on line 341                      
+  lluminate/Broadcasting/BroadcastManager.php on line 341                      
+                                                                               
+
+                                                                               
+
+
+
+In Pusher.php line 63:
+                                                                               
+  Pusher\Pusher::__construct(): Argument #1 ($auth_key) must be of type strin  
+In Pusher.php line 63:
+                                                                               
+  Pusher\Pusher::__construct(): Argument #1 ($auth_key) must be of type strin  
+  g, null given, called in /var/www/claudenest/vendor/laravel/framework/src/I  
+  lluminate/Broadcasting/BroadcastManager.php on line 341                      
+                                                                               
+
+  g, null given, called in /var/www/claudenest/vendor/laravel/framework/src/I  
+  lluminate/Broadcasting/BroadcastManager.php on line 341                      
+                                                                               
+
