@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f0f1a"/>
+      <stop offset="50%" style="stop-color:#1a1b26"/>
+      <stop offset="100%" style="stop-color:#24283b"/>
+    </linearGradient>
+    <linearGradient id="nestGradientOG" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#a855f7"/>
+      <stop offset="100%" style="stop-color:#6366f1"/>
+    </linearGradient>
+    <linearGradient id="glowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#a855f7" stop-opacity="0.3"/>
+      <stop offset="100%" style="stop-color:#6366f1" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="glowFilter">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGradient)"/>
+  
+  <!-- Decorative grid pattern -->
+  <g opacity="0.05">
+    <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#ffffff" stroke-width="1"/>
+    </pattern>
+    <rect width="1200" height="630" fill="url(#grid)"/>
+  </g>
+  
+  <!-- Glow effect behind icon -->
+  <ellipse cx="300" cy="315" rx="200" ry="200" fill="url(#glowGrad)"/>
+  
+  <!-- Main icon (larger) -->
+  <g transform="translate(300, 315)" filter="url(#glowFilter)">
+    <!-- Outer nest layer -->
+    <path d="M-60 -30 Q-90 -30 -90 0 Q-90 30 -60 30" 
+          stroke="url(#nestGradientOG)" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <path d="M60 -30 Q90 -30 90 0 Q90 30 60 30" 
+          stroke="url(#nestGradientOG)" stroke-width="12" fill="none" stroke-linecap="round"/>
+    
+    <!-- Middle nest layer -->
+    <path d="M-45 -55 Q-100 -55 -100 0 Q-100 55 -45 55" 
+          stroke="url(#nestGradientOG)" stroke-width="9" fill="none" stroke-linecap="round" opacity="0.7"/>
+    <path d="M45 -55 Q100 -55 100 0 Q100 55 45 55" 
+          stroke="url(#nestGradientOG)" stroke-width="9" fill="none" stroke-linecap="round" opacity="0.7"/>
+    
+    <!-- Inner nest layer -->
+    <path d="M-30 -80 Q-115 -80 -115 0 Q-115 80 -30 80" 
+          stroke="url(#nestGradientOG)" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.4"/>
+    <path d="M30 -80 Q115 -80 115 0 Q115 80 30 80" 
+          stroke="url(#nestGradientOG)" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.4"/>
+    
+    <!-- Center dots -->
+    <circle cx="-28" cy="0" r="14" fill="#22d3ee"/>
+    <circle cx="0" cy="0" r="14" fill="url(#nestGradientOG)"/>
+    <circle cx="28" cy="0" r="14" fill="#22d3ee"/>
+    
+    <!-- Connection lines -->
+    <line x1="-14" y1="0" x2="14" y2="0" stroke="#22d3ee" stroke-width="5" opacity="0.6"/>
+  </g>
+  
+  <!-- Text content -->
+  <g transform="translate(480, 250)">
+    <text font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="72" font-weight="800" fill="#ffffff">
+      Claude<tspan fill="url(#nestGradientOG)">Nest</tspan>
+    </text>
+    
+    <text y="60" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="28" fill="#888888">
+      Remote Claude Code Orchestration
+    </text>
+    
+    <text y="120" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="20" fill="#64748b">
+      Control your Claude Code instances from anywhere
+    </text>
+  </g>
+  
+  <!-- Feature pills -->
+  <g transform="translate(480, 420)">
+    <rect x="0" y="0" width="140" height="36" rx="18" fill="rgba(168, 85, 247, 0.2)" stroke="#a855f7" stroke-width="1"/>
+    <text x="70" y="24" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="#a855f7">🔒 Secure</text>
+    
+    <rect x="160" y="0" width="160" height="36" rx="18" fill="rgba(34, 211, 238, 0.2)" stroke="#22d3ee" stroke-width="1"/>
+    <text x="240" y="24" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="#22d3ee">📱 Mobile App</text>
+    
+    <rect x="340" y="0" width="180" height="36" rx="18" fill="rgba(99, 102, 241, 0.2)" stroke="#6366f1" stroke-width="1"/>
+    <text x="430" y="24" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="#6366f1">⚡ Real-time</text>
+  </g>
+  
+  <!-- Open source badge -->
+  <g transform="translate(480, 500)">
+    <text font-family="system-ui, sans-serif" font-size="16" fill="#64748b">
+      ⭐ Open Source • MIT License • github.com/claudenest
+    </text>
+  </g>
+  
+  <!-- Bottom decorative line -->
+  <rect x="0" y="620" width="1200" height="10" fill="url(#nestGradientOG)"/>
+</svg>

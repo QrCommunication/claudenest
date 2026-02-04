@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 500">
+  <defs>
+    <linearGradient id="bgApp" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f0f1a"/>
+      <stop offset="50%" style="stop-color:#1a1b26"/>
+      <stop offset="100%" style="stop-color:#24283b"/>
+    </linearGradient>
+    <linearGradient id="nestApp" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#a855f7"/>
+      <stop offset="100%" style="stop-color:#6366f1"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1024" height="500" fill="url(#bgApp)"/>
+  
+  <!-- Decorative elements -->
+  <circle cx="900" cy="100" r="200" fill="url(#nestApp)" opacity="0.05"/>
+  <circle cx="100" cy="400" r="150" fill="#22d3ee" opacity="0.05"/>
+  
+  <!-- Phone mockup (simple) -->
+  <g transform="translate(720, 250)" filter="url(#shadow)">
+    <rect x="-90" y="-180" width="180" height="360" rx="24" fill="#24283b" stroke="#3b4261" stroke-width="2"/>
+    <rect x="-75" y="-160" width="150" height="320" rx="4" fill="#1a1b26"/>
+    
+    <!-- Phone screen content (terminal preview) -->
+    <rect x="-75" y="-160" width="150" height="40" fill="#24283b"/>
+    <text x="-65" y="-135" font-family="system-ui, sans-serif" font-size="10" fill="#fff">Terminal</text>
+    <circle cx="55" cy="-140" r="5" fill="#22c55e"/>
+    
+    <text x="-65" y="-100" font-family="monospace" font-size="8" fill="#22d3ee">$ claude</text>
+    <text x="-65" y="-85" font-family="monospace" font-size="8" fill="#888">Starting Claude Code...</text>
+    <text x="-65" y="-70" font-family="monospace" font-size="8" fill="#22c55e">✓ Connected</text>
+    <text x="-65" y="-50" font-family="monospace" font-size="8" fill="#a855f7">Claude &gt;</text>
+    <rect x="-25" y="-58" width="2" height="12" fill="#a855f7">
+      <animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/>
+    </rect>
+  </g>
+  
+  <!-- Main content -->
+  <g transform="translate(80, 150)">
+    <!-- Icon -->
+    <g transform="translate(0, 50)">
+      <path d="M-50 -25 Q-75 -25 -75 0 Q-75 25 -50 25" 
+            stroke="url(#nestApp)" stroke-width="10" fill="none" stroke-linecap="round"/>
+      <path d="M50 -25 Q75 -25 75 0 Q75 25 50 25" 
+            stroke="url(#nestApp)" stroke-width="10" fill="none" stroke-linecap="round"/>
+      <path d="M-35 -45 Q-85 -45 -85 0 Q-85 45 -35 45" 
+            stroke="url(#nestApp)" stroke-width="7" fill="none" stroke-linecap="round" opacity="0.5"/>
+      <path d="M35 -45 Q85 -45 85 0 Q85 45 35 45" 
+            stroke="url(#nestApp)" stroke-width="7" fill="none" stroke-linecap="round" opacity="0.5"/>
+      
+      <circle cx="-22" cy="0" r="11" fill="#22d3ee"/>
+      <circle cx="0" cy="0" r="11" fill="url(#nestApp)"/>
+      <circle cx="22" cy="0" r="11" fill="#22d3ee"/>
+    </g>
+    
+    <!-- Text -->
+    <text x="180" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="48" font-weight="800" fill="#ffffff">
+      Claude<tspan fill="url(#nestApp)">Nest</tspan>
+    </text>
+    
+    <text x="180" y="70" font-family="system-ui, sans-serif" font-size="18" fill="#888888">
+      Remote Claude Code Orchestration
+    </text>
+    
+    <!-- Features -->
+    <g transform="translate(180, 110)">
+      <text y="0" font-family="system-ui, sans-serif" font-size="14" fill="#22d3ee">✓</text>
+      <text x="20" y="0" font-family="system-ui, sans-serif" font-size="14" fill="#a9b1d6">Control multiple instances</text>
+      
+      <text y="30" font-family="system-ui, sans-serif" font-size="14" fill="#22d3ee">✓</text>
+      <text x="20" y="30" font-family="system-ui, sans-serif" font-size="14" fill="#a9b1d6">Real-time terminal access</text>
+      
+      <text y="60" font-family="system-ui, sans-serif" font-size="14" fill="#22d3ee">✓</text>
+      <text x="20" y="60" font-family="system-ui, sans-serif" font-size="14" fill="#a9b1d6">Secure authentication</text>
+      
+      <text y="90" font-family="system-ui, sans-serif" font-size="14" fill="#22d3ee">✓</text>
+      <text x="20" y="90" font-family="system-ui, sans-serif" font-size="14" fill="#a9b1d6">Works from anywhere</text>
+    </g>
+  </g>
+  
+  <!-- Bottom gradient line -->
+  <rect x="0" y="490" width="1024" height="10" fill="url(#nestApp)"/>
+</svg>
