@@ -181,7 +181,7 @@ export const useLocksStore = defineStore('locks', () => {
       
       // Add successful locks
       locked.forEach((lock: FileLock) => {
-        const existingIndex = locks.value.findIndex(l => l.path === lock.path);
+        const existingIndex = locks.value.findIndex((l: FileLock) => l.path === lock.path);
         if (existingIndex !== -1) {
           locks.value[existingIndex] = lock;
         } else {

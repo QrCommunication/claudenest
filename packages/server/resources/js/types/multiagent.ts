@@ -146,7 +146,7 @@ export interface ProjectContext {
   total_tokens: number;
   max_tokens: number;
   token_usage_percent: number;
-  is_token_limit_reached?: boolean;
+  is_token_limit_reached: boolean;
 }
 
 export interface UpdateContextForm {
@@ -259,3 +259,20 @@ export const KANBAN_COLUMNS: KanbanColumn[] = [
   { id: 'review', title: 'Review', color: 'bg-brand-cyan' },
   { id: 'done', title: 'Done', color: 'bg-green-500' },
 ];
+
+// ==================== API RESPONSE TYPES ====================
+
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  meta: {
+    timestamp: string;
+    request_id: string;
+  };
+  error?: {
+    code: string;
+    message: string;
+    errors?: Record<string, string[]>;
+  };
+}
+

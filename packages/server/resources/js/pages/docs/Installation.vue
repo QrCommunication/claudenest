@@ -202,10 +202,10 @@ cp .env.example .env
 php artisan key:generate
 
 # Configure database (PostgreSQL with pgvector)
-sudo -u postgres psql -c "CREATE DATABASE claudenest;"
-sudo -u postgres psql -c "CREATE USER claudenest WITH PASSWORD 'secure-password';"
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE claudenest TO claudenest;"
-sudo -u postgres psql -d claudenest -c "CREATE EXTENSION IF NOT EXISTS vector;"
+sudo -u postgres psql -c 'CREATE DATABASE claudenest;'
+sudo -u postgres psql -c 'CREATE USER claudenest WITH PASSWORD &#39;secure-password&#39;;'
+sudo -u postgres psql -c 'GRANT ALL PRIVILEGES ON DATABASE claudenest TO claudenest;'
+sudo -u postgres psql -d claudenest -c 'CREATE EXTENSION IF NOT EXISTS vector;'
 
 # Run migrations
 php artisan migrate --force

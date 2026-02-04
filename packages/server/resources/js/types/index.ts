@@ -1,7 +1,16 @@
-// ==================== MACHINE TYPES ====================
+// ==================== IMPORTS ====================
+import type { TaskStatus, TaskPriority } from './multiagent';
+
+// ==================== ENUMS & CONSTANTS ====================
 
 export type MachineStatus = 'online' | 'offline' | 'connecting';
 export type MachinePlatform = 'darwin' | 'win32' | 'linux';
+export type SessionStatus = 'created' | 'starting' | 'running' | 'waiting_input' | 'completed' | 'error' | 'terminated';
+export type SessionMode = 'interactive' | 'headless' | 'oneshot';
+export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error' | 'reconnecting';
+export type ToastType = 'success' | 'error' | 'warning' | 'info';
+
+// ==================== MACHINE TYPES ====================
 
 export interface Machine {
   id: string;
@@ -41,9 +50,6 @@ export interface MachineEnvironment {
 }
 
 // ==================== SESSION TYPES ====================
-
-export type SessionStatus = 'created' | 'starting' | 'running' | 'waiting_input' | 'completed' | 'error' | 'terminated';
-export type SessionMode = 'interactive' | 'headless' | 'oneshot';
 
 export interface Session {
   id: string;
@@ -96,8 +102,6 @@ export interface SessionInputPayload {
 }
 
 // ==================== WEBSOCKET TYPES ====================
-
-export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error' | 'reconnecting';
 
 export interface WebSocketConfig {
   session_id: string;
@@ -271,8 +275,6 @@ export interface UpdateMachineForm {
 
 // ==================== TOAST TYPES ====================
 
-export type ToastType = 'success' | 'error' | 'warning' | 'info';
-
 export interface Toast {
   id: string;
   type: ToastType;
@@ -303,11 +305,6 @@ export interface Project {
 }
 
 // ==================== TASK TYPES ====================
-
-// Note: TaskStatus and TaskPriority are re-exported from multiagent.ts
-// These local definitions are for backward compatibility
-export type TaskStatus = 'pending' | 'in_progress' | 'blocked' | 'review' | 'done';
-export type TaskPriority = 'low' | 'medium' | 'high' | 'critical';
 
 export interface Task {
   id: string;

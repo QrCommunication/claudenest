@@ -1,28 +1,50 @@
-/vendor/
-/node_modules/
-/public/build
-/public/hot
-/public/storage
-/storage/*.key
-/storage/pail
+# IDE & Editors
+.claude/
+.qoder/
+.vscode/
+.idea/
+.fleet/
+.nova/
+.zed/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment files
 .env
+.env.local
+.env.*.local
 .env.backup
 .env.production
+
+# Dependencies
+node_modules/
+vendor/
+
+# Build outputs
+dist/
+build/
+public/build
+public/hot
+public/storage
+*.log
+
+# Storage & Cache
+storage/*.key
+storage/pail
+
+# PHP & Laravel
 .phpactor.json
 .phpunit.result.cache
+auth.json
+_ide_helper.php
+_ide_helper_models.php
+.phpstorm.meta.php
 Homestead.json
 Homestead.yaml
 npm-debug.log
 yarn-error.log
-/auth.json
-/.fleet
-/.idea
-/.nova
-/.zed
-_ide_helper.php
-_ide_helper_models.php
-.phpstorm.meta.php
-.DS_Store
-*.swp
-*.swo
-*~
+
+# OS files
+Thumbs.db

@@ -197,7 +197,7 @@
       <h3>Response Format</h3>
       <p>All responses follow a consistent format:</p>
       <CodeBlock 
-        :code="`{\n  \"success\": true,\n  \"data\": { /* response data */ },\n  \"meta\": {\n    \"timestamp\": \"2026-02-02T17:00:00Z\",\n    \"request_id\": \"req_abc123\"\n  }\n}`" 
+        :code="responseFormatExample" 
         language="json" 
       />
     </section>
@@ -230,6 +230,15 @@
 
 <script setup lang="ts">
 import CodeBlock from '@/components/docs/CodeBlock.vue';
+
+const responseFormatExample = `{
+  "success": true,
+  "data": { /* response data */ },
+  "meta": {
+    "timestamp": "2026-02-02T17:00:00Z",
+    "request_id": "req_abc123"
+  }
+}`;
 </script>
 
 <style scoped>
