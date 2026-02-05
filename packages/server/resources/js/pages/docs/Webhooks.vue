@@ -17,15 +17,14 @@
 
       <h3>Connection</h3>
       <CodeBlock 
-        :code="`// Connect to WebSocket server
-const ws = new WebSocket('wss://claudenest.yourdomain.com:8080');\n\nws.onopen = () => {\n  console.log('Connected to ClaudeNest');\n};\n\nws.onclose = () => {\n  console.log('Disconnected from ClaudeNest');\n};\n\nws.onerror = (error) => {\n  console.error('WebSocket error:', error);\n};`" 
+        :code="wsConnectionCode" 
         language="javascript"
       />
 
       <h3>Authentication</h3>
       <p>After connecting, authenticate with your attachment token:</p>
       <CodeBlock 
-        :code="`ws.onopen = () => {\n  // Authenticate\n  ws.send(JSON.stringify({\n    type: 'auth',\n    token: 'ws_token_from_attach_endpoint'\n  }));\n};\n\nws.onmessage = (event) => {\n  const message = JSON.parse(event.data);\n  \n  if (message.type === 'auth_success') {\n    console.log('Authenticated successfully');\n  }\n};`" 
+        :code="wsAuthCode" 
         language="javascript"
       />
 
@@ -35,7 +34,7 @@ const ws = new WebSocket('wss://claudenest.yourdomain.com:8080');\n\nws.onopen =
           <h4>Input</h4>
           <p>Send user input to the session</p>
           <CodeBlock 
-            :code="`{\n  \"type\": \"input\",\n  \"data\": \"Your message here\\n\"\n}`" 
+            :code="msgInputCode" 
             language="json"
           />
         </div>
@@ -44,7 +43,7 @@ const ws = new WebSocket('wss://claudenest.yourdomain.com:8080');\n\nws.onopen =
           <h4>Output</h4>
           <p>Receive terminal output from Claude</p>
           <CodeBlock 
-            :code="`{\n  \"type\": \"output\",\n  \"data\": \"I'll help you with that...\",\n  \"timestamp\": \"2026-02-02T17:00:00Z\"\n}`" 
+            :code="msgOutputCode" 
             language="json"
           />
         </div>
@@ -53,7 +52,7 @@ const ws = new WebSocket('wss://claudenest.yourdomain.com:8080');\n\nws.onopen =
           <h4>Resize</h4>
           <p>Resize the terminal</p>
           <CodeBlock 
-            :code="`{\n  \"type\": \"resize\",\n  \"cols\": 150,\n  \"rows\": 50\n}`" 
+            :code="msgResizeCode" 
             language="json"
           />
         </div>
@@ -62,7 +61,7 @@ const ws = new WebSocket('wss://claudenest.yourdomain.com:8080');\n\nws.onopen =
           <h4>Status</h4>
           <p>Session status updates</p>
           <CodeBlock 
-            :code="`{\n  \"type\": \"status\",\n  \"status\": \"running\",\n  \"message\": \"Session started\"\n}`" 
+            :code="msgStatusCode" 
             language="json"
           />
         </div>
@@ -172,22 +171,21 @@ const ws = new WebSocket('wss://claudenest.yourdomain.com:8080');\n\nws.onopen =
       <h3>Webhook Configuration</h3>
       <p>Set up webhooks in your server configuration or via the API:</p>
       <CodeBlock 
-        :code="`// Example webhook configuration
-{\n  \"url\": \"https://your-app.com/webhooks/claudenest\",\n  \"events\": [\n    \"session.created\",\n    \"session.terminated\",\n    \"task.completed\"\n  ],\n  \"secret\": \"webhook-signing-secret\",\n  \"active\": true\n}`" 
+        :code="webhookConfigCode" 
         language="json"
       />
 
       <h3>Webhook Payload</h3>
       <p>All webhooks follow a consistent format:</p>
       <CodeBlock 
-        :code="`{\n  \"id\": \"evt_1234567890\",\n  \"type\": \"session.created\",\n  \"created_at\": \"2026-02-02T17:00:00Z\",\n  \"data\": {\n    \"id\": \"550e8400-e29b-41d4-a716-446655440002\",\n    \"machine_id\": \"550e8400-e29b-41d4-a716-446655440001\",\n    \"mode\": \"interactive\",\n    \"status\": \"created\"\n  }\n}`" 
+        :code="webhookPayloadCode" 
         language="json"
       />
 
       <h3>Webhook Verification</h3>
       <p>Verify webhook signatures to ensure authenticity:</p>
       <CodeBlock 
-        :code="`const crypto = require('crypto');\n\nfunction verifyWebhook(payload, signature, secret) {\n  const expected = crypto\n    .createHmac('sha256', secret)\n    .update(payload)\n    .digest('hex');\n  \n  return crypto.timingSafeEqual(\n    Buffer.from(signature),\n    Buffer.from(expected)\n  );\n}\n\n// Express example\napp.post('/webhooks/claudenest', (req, res) => {\n  const signature = req.headers['x-claudenest-signature'];\n  const payload = JSON.stringify(req.body);\n  \n  if (!verifyWebhook(payload, signature, WEBHOOK_SECRET)) {\n    return res.status(401).send('Invalid signature');\n  }\n  \n  // Process the webhook\n  handleEvent(req.body);\n  \n  res.status(200).send('OK');\n});`" 
+        :code="webhookVerifyCode" 
         language="javascript"
       />
 
@@ -209,7 +207,7 @@ const ws = new WebSocket('wss://claudenest.yourdomain.com:8080');\n\nws.onopen =
 
       <h3>JavaScript SDK</h3>
       <CodeBlock 
-        :code="`import { ClaudeNestClient } from '@claudenest/sdk';\n\nconst client = new ClaudeNestClient({\n  baseUrl: 'https://claudenest.yourdomain.com',\n  token: 'your-api-token'\n});\n\n// Subscribe to events\nclient.events.on('session.created', (session) => {\n  console.log('New session:', session);\n});\n\nclient.events.on('task.completed', (task) => {\n  console.log('Task completed:', task);\n});\n\n// Connect to WebSocket\nawait client.events.connect();\n\n// Subscribe to specific session\nconst session = await client.sessions.get('session-id');\nsession.onOutput((data) => {\n  console.log('Output:', data);\n});\n\nsession.onStatusChange((status) => {\n  console.log('Status:', status);\n});`" 
+        :code="sdkIntegrationCode" 
         language="javascript"
       />
     </section>
@@ -218,6 +216,142 @@ const ws = new WebSocket('wss://claudenest.yourdomain.com:8080');\n\nws.onopen =
 
 <script setup lang="ts">
 import CodeBlock from '@/components/docs/CodeBlock.vue';
+
+const wsConnectionCode = `// Connect to WebSocket server
+const ws = new WebSocket('wss://claudenest.yourdomain.com:8080');
+
+ws.onopen = () => {
+  console.log('Connected to ClaudeNest');
+};
+
+ws.onclose = () => {
+  console.log('Disconnected from ClaudeNest');
+};
+
+ws.onerror = (error) => {
+  console.error('WebSocket error:', error);
+};`;
+
+const wsAuthCode = `ws.onopen = () => {
+  // Authenticate
+  ws.send(JSON.stringify({
+    type: 'auth',
+    token: 'ws_token_from_attach_endpoint'
+  }));
+};
+
+ws.onmessage = (event) => {
+  const message = JSON.parse(event.data);
+  
+  if (message.type === 'auth_success') {
+    console.log('Authenticated successfully');
+  }
+};`;
+
+const msgInputCode = `{
+  "type": "input",
+  "data": "Your message here\\n"
+}`;
+
+const msgOutputCode = `{
+  "type": "output",
+  "data": "I'll help you with that...",
+  "timestamp": "2026-02-02T17:00:00Z"
+}`;
+
+const msgResizeCode = `{
+  "type": "resize",
+  "cols": 150,
+  "rows": 50
+}`;
+
+const msgStatusCode = `{
+  "type": "status",
+  "status": "running",
+  "message": "Session started"
+}`;
+
+const webhookConfigCode = `// Example webhook configuration
+{
+  "url": "https://your-app.com/webhooks/claudenest",
+  "events": [
+    "session.created",
+    "session.terminated",
+    "task.completed"
+  ],
+  "secret": "webhook-signing-secret",
+  "active": true
+}`;
+
+const webhookPayloadCode = `{
+  "id": "evt_1234567890",
+  "type": "session.created",
+  "created_at": "2026-02-02T17:00:00Z",
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440002",
+    "machine_id": "550e8400-e29b-41d4-a716-446655440001",
+    "mode": "interactive",
+    "status": "created"
+  }
+}`;
+
+const webhookVerifyCode = `const crypto = require('crypto');
+
+function verifyWebhook(payload, signature, secret) {
+  const expected = crypto
+    .createHmac('sha256', secret)
+    .update(payload)
+    .digest('hex');
+  
+  return crypto.timingSafeEqual(
+    Buffer.from(signature),
+    Buffer.from(expected)
+  );
+}
+
+// Express example
+app.post('/webhooks/claudenest', (req, res) => {
+  const signature = req.headers['x-claudenest-signature'];
+  const payload = JSON.stringify(req.body);
+  
+  if (!verifyWebhook(payload, signature, WEBHOOK_SECRET)) {
+    return res.status(401).send('Invalid signature');
+  }
+  
+  // Process the webhook
+  handleEvent(req.body);
+  
+  res.status(200).send('OK');
+});`;
+
+const sdkIntegrationCode = `import { ClaudeNestClient } from '@claudenest/sdk';
+
+const client = new ClaudeNestClient({
+  baseUrl: 'https://claudenest.yourdomain.com',
+  token: 'your-api-token'
+});
+
+// Subscribe to events
+client.events.on('session.created', (session) => {
+  console.log('New session:', session);
+});
+
+client.events.on('task.completed', (task) => {
+  console.log('Task completed:', task);
+});
+
+// Connect to WebSocket
+await client.events.connect();
+
+// Subscribe to specific session
+const session = await client.sessions.get('session-id');
+session.onOutput((data) => {
+  console.log('Output:', data);
+});
+
+session.onStatusChange((status) => {
+  console.log('Status:', status);
+});`;
 </script>
 
 <style scoped>

@@ -119,41 +119,7 @@ docker-compose exec app php artisan user:create --admin"
         <p>Key configuration options in your <code>.env</code> file:</p>
         
         <CodeBlock 
-          :code="`# Application
-APP_NAME=ClaudeNest
-APP_URL=https://claudenest.yourdomain.com
-APP_KEY=your-app-key-here
-
-# Database
-DB_CONNECTION=pgsql
-DB_HOST=postgres
-DB_PORT=5432
-DB_DATABASE=claudenest
-DB_USERNAME=claudenest
-DB_PASSWORD=secure-password
-
-# Redis
-REDIS_HOST=redis
-REDIS_PASSWORD=null
-REDIS_PORT=6379
-
-# WebSocket (Reverb)
-REVERB_APP_ID=claudenest
-REVERB_APP_KEY=your-app-key
-REVERB_APP_SECRET=your-app-secret
-REVERB_HOST=claudenest.yourdomain.com
-REVERB_PORT=8080
-
-# OAuth (Optional)
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-secret
-GITHUB_CLIENT_ID=your-github-client-id
-GITHUB_CLIENT_SECRET=your-github-secret
-
-# AI Models (Optional - for RAG)
-OLLAMA_URL=http://ollama:11434
-OLLAMA_MODEL=mistral
-OLLAMA_EMBEDDING_MODEL=nomic-embed-text`" 
+          :code="envConfigCode" 
           language="bash"
           filename=".env"
         />
@@ -354,6 +320,42 @@ import { ref } from 'vue';
 import CodeBlock from '@/components/docs/CodeBlock.vue';
 
 const activeTab = ref('docker');
+
+const envConfigCode = `# Application
+APP_NAME=ClaudeNest
+APP_URL=https://claudenest.yourdomain.com
+APP_KEY=your-app-key-here
+
+# Database
+DB_CONNECTION=pgsql
+DB_HOST=postgres
+DB_PORT=5432
+DB_DATABASE=claudenest
+DB_USERNAME=claudenest
+DB_PASSWORD=secure-password
+
+# Redis
+REDIS_HOST=redis
+REDIS_PASSWORD=null
+REDIS_PORT=6379
+
+# WebSocket (Reverb)
+REVERB_APP_ID=claudenest
+REVERB_APP_KEY=your-app-key
+REVERB_APP_SECRET=your-app-secret
+REVERB_HOST=claudenest.yourdomain.com
+REVERB_PORT=8080
+
+# OAuth (Optional)
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-secret
+GITHUB_CLIENT_ID=your-github-client-id
+GITHUB_CLIENT_SECRET=your-github-secret
+
+# AI Models (Optional - for RAG)
+OLLAMA_URL=http://ollama:11434
+OLLAMA_MODEL=mistral
+OLLAMA_EMBEDDING_MODEL=nomic-embed-text`;
 </script>
 
 <style scoped>
