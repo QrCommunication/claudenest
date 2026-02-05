@@ -1,0 +1,458 @@
+{
+  "common": {
+    "login": "Connexion",
+    "register": "Inscription",
+    "logout": "Deconnexion",
+    "settings": "Parametres",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "create": "Creer",
+    "search": "Rechercher",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succes",
+    "confirm": "Confirmer",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Precedent",
+    "yes": "Oui",
+    "no": "Non",
+    "close": "Fermer",
+    "refresh": "Actualiser",
+    "copy": "Copier",
+    "copied": "Copie !",
+    "view": "Voir",
+    "download": "Telecharger",
+    "upload": "Envoyer",
+    "all": "Tout",
+    "none": "Aucun",
+    "actions": "Actions",
+    "details": "Details",
+    "status": "Statut",
+    "name": "Nom",
+    "description": "Description",
+    "date": "Date",
+    "time": "Heure",
+    "type": "Type"
+  },
+  "auth": {
+    "welcome": "Bienvenue sur ClaudeNest",
+    "welcome_back": "Bon retour !",
+    "sign_in": "Connectez-vous pour acceder a votre tableau de bord",
+    "sign_in_button": "Se connecter",
+    "sign_up": "Creer un compte",
+    "sign_up_description": "Commencez votre aventure ClaudeNest aujourd'hui",
+    "sign_up_button": "S'inscrire",
+    "email": "Adresse email",
+    "email_placeholder": "vous{'@'}exemple.com",
+    "password": "Mot de passe",
+    "password_placeholder": "••••••••",
+    "password_confirm": "Confirmer le mot de passe",
+    "remember_me": "Se souvenir de moi",
+    "forgot_password": "Mot de passe oublie ?",
+    "forgot_password_title": "Reinitialiser votre mot de passe",
+    "forgot_password_description": "Entrez votre email et nous vous enverrons un lien pour reinitialiser votre mot de passe",
+    "reset_password": "Reinitialiser le mot de passe",
+    "reset_password_title": "Creer un nouveau mot de passe",
+    "reset_password_description": "Entrez votre nouveau mot de passe ci-dessous",
+    "new_password": "Nouveau mot de passe",
+    "send_reset_link": "Envoyer le lien",
+    "back_to_login": "Retour a la connexion",
+    "no_account": "Vous n'avez pas de compte ?",
+    "have_account": "Vous avez deja un compte ?",
+    "or_continue_with": "Ou continuer avec",
+    "terms_agreement": "J'accepte les",
+    "terms_of_service": "Conditions d'utilisation",
+    "privacy_policy": "Politique de confidentialite",
+    "login_success": "Vous etes connecte avec succes",
+    "login_failed": "Email ou mot de passe invalide",
+    "register_success": "Compte cree avec succes",
+    "logout_success": "Vous avez ete deconnecte",
+    "password_reset_sent": "Lien de reinitialisation envoye a votre email",
+    "password_reset_success": "Votre mot de passe a ete reinitialise avec succes",
+    "email_required": "L'email est requis",
+    "password_required": "Le mot de passe est requis",
+    "passwords_not_match": "Les mots de passe ne correspondent pas"
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "welcome": "Bienvenue sur ClaudeNest",
+    "subtitle": "Gerez vos instances Claude Code a distance",
+    "quick_actions": "Actions rapides",
+    "new_session": "Nouvelle session",
+    "new_session_description": "Demarrer une nouvelle session Claude Code",
+    "view_machines": "Voir les machines",
+    "view_machines_description": "Gerer vos machines connectees",
+    "browse_projects": "Parcourir les projets",
+    "browse_projects_description": "Voir les projets multi-agents",
+    "explore_docs": "Explorer la doc",
+    "explore_docs_description": "Apprendre l'API",
+    "stats": {
+      "machines": "Machines",
+      "machines_online": "en ligne",
+      "sessions": "Sessions actives",
+      "projects": "Projets",
+      "tasks": "Taches en attente"
+    }
+  },
+  "machines": {
+    "title": "Machines",
+    "subtitle": "Gerez vos machines connectees",
+    "add_machine": "Ajouter une machine",
+    "no_machines": "Aucune machine connectee",
+    "no_machines_description": "Installez l'agent ClaudeNest sur vos machines pour commencer",
+    "status": {
+      "online": "En ligne",
+      "offline": "Hors ligne",
+      "connecting": "Connexion en cours"
+    },
+    "platform": {
+      "darwin": "macOS",
+      "linux": "Linux",
+      "win32": "Windows"
+    },
+    "details": {
+      "hostname": "Nom d'hote",
+      "platform": "Plateforme",
+      "architecture": "Architecture",
+      "node_version": "Version Node.js",
+      "agent_version": "Version de l'agent",
+      "claude_version": "Version Claude",
+      "max_sessions": "Sessions max",
+      "last_seen": "Derniere connexion",
+      "connected_at": "Connecte le"
+    },
+    "actions": {
+      "connect": "Connecter",
+      "disconnect": "Deconnecter",
+      "wake": "Reveiller",
+      "regenerate_token": "Regenerer le token",
+      "delete": "Supprimer la machine"
+    },
+    "confirm_delete": "Etes-vous sur de vouloir supprimer cette machine ? Cette action est irreversible."
+  },
+  "sessions": {
+    "title": "Sessions",
+    "subtitle": "Voir et gerer les sessions Claude Code",
+    "new_session": "Nouvelle session",
+    "no_sessions": "Aucune session active",
+    "no_sessions_description": "Demarrez une nouvelle session sur une de vos machines",
+    "status": {
+      "active": "Active",
+      "completed": "Terminee",
+      "terminated": "Interrompue",
+      "error": "Erreur"
+    },
+    "mode": {
+      "interactive": "Interactif",
+      "headless": "Sans interface",
+      "oneshot": "Commande unique"
+    },
+    "details": {
+      "machine": "Machine",
+      "project_path": "Chemin du projet",
+      "started_at": "Demarre le",
+      "completed_at": "Termine le",
+      "duration": "Duree",
+      "exit_code": "Code de sortie",
+      "total_tokens": "Tokens totaux",
+      "total_cost": "Cout total"
+    },
+    "actions": {
+      "terminate": "Terminer",
+      "attach": "Attacher",
+      "view_logs": "Voir les logs"
+    },
+    "terminal": {
+      "title": "Terminal",
+      "connecting": "Connexion a la session...",
+      "connected": "Connecte",
+      "disconnected": "Deconnecte",
+      "reconnecting": "Reconnexion..."
+    },
+    "create": {
+      "title": "Creer une nouvelle session",
+      "select_machine": "Selectionner une machine",
+      "select_mode": "Selectionner le mode",
+      "project_path": "Chemin du projet",
+      "project_path_placeholder": "/chemin/vers/votre/projet",
+      "initial_prompt": "Prompt initial (optionnel)",
+      "initial_prompt_placeholder": "Entrez un prompt initial pour Claude..."
+    }
+  },
+  "projects": {
+    "title": "Projets",
+    "subtitle": "Projets de collaboration multi-agents",
+    "new_project": "Nouveau projet",
+    "no_projects": "Aucun projet pour le moment",
+    "no_projects_description": "Creez un projet pour coordonner plusieurs instances Claude",
+    "status": {
+      "active": "Actif",
+      "paused": "En pause",
+      "completed": "Termine"
+    },
+    "details": {
+      "machine": "Machine",
+      "path": "Chemin",
+      "instances": "Instances actives",
+      "tasks": "Taches",
+      "context_tokens": "Tokens de contexte",
+      "created_at": "Cree le"
+    },
+    "tabs": {
+      "overview": "Apercu",
+      "tasks": "Taches",
+      "context": "Contexte",
+      "locks": "Verrous",
+      "activity": "Activite"
+    },
+    "context": {
+      "title": "Contexte RAG",
+      "subtitle": "Fragments de contexte partages pour les agents",
+      "add_chunk": "Ajouter du contexte",
+      "query": "Interroger le contexte",
+      "summarize": "Resumer",
+      "no_chunks": "Aucun fragment de contexte",
+      "chunk_types": {
+        "code": "Code",
+        "documentation": "Documentation",
+        "discussion": "Discussion",
+        "decision": "Decision",
+        "other": "Autre"
+      }
+    },
+    "locks": {
+      "title": "Verrous de fichiers",
+      "subtitle": "Prevenir les conflits entre agents",
+      "no_locks": "Aucun verrou actif",
+      "lock_file": "Verrouiller le fichier",
+      "release": "Liberer",
+      "force_release": "Forcer la liberation",
+      "locked_by": "Verrouille par",
+      "expires_at": "Expire le"
+    }
+  },
+  "tasks": {
+    "title": "Taches",
+    "subtitle": "Taches coordonnees entre projets",
+    "new_task": "Nouvelle tache",
+    "no_tasks": "Aucune tache pour le moment",
+    "no_tasks_description": "Creez des taches pour coordonner le travail entre les instances Claude",
+    "status": {
+      "pending": "En attente",
+      "in_progress": "En cours",
+      "blocked": "Bloquee",
+      "review": "En revue",
+      "done": "Terminee"
+    },
+    "priority": {
+      "low": "Basse",
+      "medium": "Moyenne",
+      "high": "Haute",
+      "critical": "Critique"
+    },
+    "details": {
+      "project": "Projet",
+      "assigned_to": "Assignee a",
+      "claimed_at": "Reclamee le",
+      "completed_at": "Terminee le",
+      "dependencies": "Dependances",
+      "blocked_by": "Bloquee par",
+      "files": "Fichiers associes"
+    },
+    "actions": {
+      "claim": "Reclamer",
+      "release": "Liberer",
+      "complete": "Marquer comme terminee"
+    }
+  },
+  "skills": {
+    "title": "Competences",
+    "subtitle": "Competences Claude Code decouvertes",
+    "no_skills": "Aucune competence decouverte",
+    "no_skills_description": "Les competences apparaitront ici une fois decouvertes sur vos machines",
+    "status": {
+      "enabled": "Activee",
+      "disabled": "Desactivee"
+    },
+    "details": {
+      "path": "Chemin",
+      "description": "Description",
+      "triggers": "Declencheurs",
+      "machine": "Machine"
+    },
+    "actions": {
+      "enable": "Activer",
+      "disable": "Desactiver",
+      "edit": "Modifier"
+    }
+  },
+  "mcp": {
+    "title": "Serveurs MCP",
+    "subtitle": "Serveurs Model Context Protocol",
+    "add_server": "Ajouter un serveur",
+    "no_servers": "Aucun serveur MCP configure",
+    "no_servers_description": "Ajoutez des serveurs MCP pour etendre les capacites de Claude",
+    "all_tools": "Tous les outils",
+    "status": {
+      "running": "En cours",
+      "stopped": "Arrete",
+      "error": "Erreur"
+    },
+    "details": {
+      "command": "Commande",
+      "args": "Arguments",
+      "env": "Environnement",
+      "tools": "Outils"
+    },
+    "actions": {
+      "start": "Demarrer",
+      "stop": "Arreter",
+      "restart": "Redemarrer"
+    }
+  },
+  "commands": {
+    "title": "Commandes",
+    "subtitle": "Commandes slash decouvertes",
+    "no_commands": "Aucune commande decouverte",
+    "no_commands_description": "Les commandes apparaitront ici une fois decouvertes sur vos machines",
+    "details": {
+      "name": "Nom",
+      "description": "Description",
+      "usage": "Utilisation",
+      "machine": "Machine"
+    },
+    "actions": {
+      "execute": "Executer",
+      "copy": "Copier la commande"
+    }
+  },
+  "settings": {
+    "title": "Parametres",
+    "subtitle": "Gerez votre compte et vos preferences",
+    "sections": {
+      "profile": "Profil",
+      "security": "Securite",
+      "preferences": "Preferences",
+      "api_tokens": "Tokens API",
+      "notifications": "Notifications"
+    },
+    "profile": {
+      "avatar": "Avatar",
+      "name": "Nom d'affichage",
+      "email": "Adresse email",
+      "change_password": "Changer le mot de passe",
+      "current_password": "Mot de passe actuel",
+      "new_password": "Nouveau mot de passe",
+      "confirm_password": "Confirmer le mot de passe"
+    },
+    "preferences": {
+      "language": "Langue",
+      "theme": "Theme",
+      "theme_light": "Clair",
+      "theme_dark": "Sombre",
+      "theme_system": "Systeme"
+    },
+    "tokens": {
+      "title": "Tokens d'acces personnels",
+      "description": "Tokens pour l'acces API et l'authentification des agents",
+      "create": "Creer un token",
+      "name": "Nom du token",
+      "expires": "Expire le",
+      "never_expires": "N'expire jamais",
+      "last_used": "Derniere utilisation",
+      "revoke": "Revoquer"
+    }
+  },
+  "docs": {
+    "title": "Documentation",
+    "subtitle": "Reference API et Guides",
+    "sections": {
+      "getting_started": "Demarrage",
+      "api_reference": "Reference API",
+      "webhooks": "Webhooks",
+      "sdks": "SDKs",
+      "resources": "Ressources"
+    },
+    "search_placeholder": "Rechercher dans la documentation..."
+  },
+  "sidebar": {
+    "dashboard": "Tableau de bord",
+    "machines": "Machines",
+    "sessions": "Sessions",
+    "projects": "Projets",
+    "tasks": "Taches",
+    "skills": "Competences",
+    "mcp": "MCP",
+    "commands": "Commandes",
+    "settings": "Parametres",
+    "docs": "Docs API",
+    "collapse": "Reduire"
+  },
+  "header": {
+    "search": "Rechercher",
+    "notifications": "Notifications",
+    "no_notifications": "Aucune nouvelle notification",
+    "profile": "Profil",
+    "logout": "Deconnexion"
+  },
+  "errors": {
+    "generic": "Une erreur s'est produite",
+    "network": "Erreur reseau. Verifiez votre connexion.",
+    "unauthorized": "Vous n'etes pas autorise a effectuer cette action",
+    "not_found": "Ressource introuvable",
+    "server": "Erreur serveur. Veuillez reessayer plus tard.",
+    "validation": "Verifiez vos saisies et reessayez"
+  },
+  "landing": {
+    "hero": {
+      "title": "Claude Code a distance",
+      "title_highlight": "Orchestration",
+      "subtitle": "Controlez vos instances Claude Code de n'importe ou. Coordination multi-agents avec partage de contexte RAG.",
+      "cta_primary": "Commencer",
+      "cta_secondary": "Voir la documentation"
+    },
+    "features": {
+      "title": "Tout ce dont vous avez besoin pour le",
+      "title_highlight": "developpement a distance",
+      "remote_access": {
+        "title": "Acces a distance",
+        "description": "Controlez Claude Code depuis votre navigateur ou mobile, partout dans le monde."
+      },
+      "multi_agent": {
+        "title": "Coordination multi-agents",
+        "description": "Executez plusieurs instances Claude sur le meme projet avec reclamation atomique des taches."
+      },
+      "context_rag": {
+        "title": "Contexte RAG",
+        "description": "Generation augmentee par recuperation avec pgvector pour une comprehension partagee."
+      },
+      "real_time": {
+        "title": "Communication temps reel",
+        "description": "Streaming de terminal base sur WebSocket pour un retour instantane."
+      },
+      "file_locking": {
+        "title": "Verrouillage de fichiers",
+        "description": "Prevenez les conflits lorsque plusieurs agents travaillent sur les memes fichiers."
+      },
+      "mcp_support": {
+        "title": "Support MCP",
+        "description": "Integration complete du Model Context Protocol pour des capacites etendues."
+      }
+    },
+    "open_source": {
+      "title": "Open Source",
+      "description": "ClaudeNest est entierement open source sous licence MIT.",
+      "github": "Voir sur GitHub"
+    },
+    "footer": {
+      "product": "Produit",
+      "resources": "Ressources",
+      "company": "Entreprise",
+      "legal": "Legal",
+      "copyright": "© {year} ClaudeNest. Tous droits reserves."
+    }
+  }
+}

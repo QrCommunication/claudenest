@@ -2,6 +2,7 @@ import { createRouter, createWebHistory, type RouteRecordRaw, type NavigationGua
 import { useAuthStore } from '@/stores/auth';
 
 // Lazy load components
+const Landing = () => import('@/pages/Landing.vue');
 const Login = () => import('@/pages/Login.vue');
 const Register = () => import('@/pages/Register.vue');
 const ForgotPassword = () => import('@/pages/ForgotPassword.vue');
@@ -9,6 +10,14 @@ const ResetPassword = () => import('@/pages/ResetPassword.vue');
 const Dashboard = () => import('@/pages/Dashboard.vue');
 
 const routes: RouteRecordRaw[] = [
+    // Landing page (public)
+    {
+        path: '/',
+        name: 'landing',
+        component: Landing,
+        meta: { public: true },
+    },
+
     // Public routes
     {
         path: '/login',

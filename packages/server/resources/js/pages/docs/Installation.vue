@@ -266,7 +266,29 @@ claudenest-agent start-service"
       <p>The agent configuration file is located at <code>~/.claudenest/config.json</code>:</p>
       
       <CodeBlock 
-        :code="`{\n  \"server\": {\n    \"url\": \"wss://claudenest.yourdomain.com\",\n    \"token\": \"your-machine-token\"\n  },\n  \"machine\": {\n    \"name\": \"MacBook-Pro\",\n    \"maxSessions\": 10,\n    \"capabilities\": [\n      \"claude_code\",\n      \"git\",\n      \"docker\"\n    ]\n  },\n  \"claude\": {\n    \"path\": \"/usr/local/bin/claude\",\n    \"defaultFlags\": [\"--dangerously-skip-permissions\"]\n  },\n  \"logging\": {\n    \"level\": \"info\",\n    \"file\": \"~/.claudenest/agent.log\"\n  }\n}`" 
+        code='{
+  "server": {
+    "url": "wss://claudenest.yourdomain.com",
+    "token": "your-machine-token"
+  },
+  "machine": {
+    "name": "MacBook-Pro",
+    "maxSessions": 10,
+    "capabilities": [
+      "claude_code",
+      "git",
+      "docker"
+    ]
+  },
+  "claude": {
+    "path": "/usr/local/bin/claude",
+    "defaultFlags": ["--dangerously-skip-permissions"]
+  },
+  "logging": {
+    "level": "info",
+    "file": "~/.claudenest/agent.log"
+  }
+}' 
         language="json"
         filename="~/.claudenest/config.json"
       />

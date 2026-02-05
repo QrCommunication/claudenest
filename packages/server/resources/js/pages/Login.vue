@@ -3,24 +3,9 @@
     <div class="w-full max-w-md">
       <!-- Logo -->
       <div class="text-center mb-8">
-        <svg class="w-16 h-16 mx-auto mb-4" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="loginNestGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color:#a855f7"/>
-              <stop offset="100%" style="stop-color:#6366f1"/>
-            </linearGradient>
-          </defs>
-          <rect x="0" y="0" width="512" height="512" rx="96" fill="#1a1b26"/>
-          <g transform="translate(256, 256)">
-            <path d="M-80 -40 Q-120 -40 -120 0 Q-120 40 -80 40" stroke="url(#loginNestGrad)" stroke-width="16" fill="none" stroke-linecap="round"/>
-            <path d="M80 -40 Q120 -40 120 0 Q120 40 80 40" stroke="url(#loginNestGrad)" stroke-width="16" fill="none" stroke-linecap="round"/>
-            <circle cx="-35" cy="0" r="18" fill="#22d3ee"/>
-            <circle cx="0" cy="0" r="18" fill="url(#loginNestGrad)"/>
-            <circle cx="35" cy="0" r="18" fill="#22d3ee"/>
-          </g>
-        </svg>
-        <h1 class="text-2xl font-bold gradient-text">Welcome to ClaudeNest</h1>
-        <p class="text-dark-4 mt-2">Sign in to access your dashboard</p>
+        <Logo variant="icon" size="xl" class="mx-auto mb-4" />
+        <h1 class="text-2xl font-bold gradient-text">{{ $t('auth.welcome') }}</h1>
+        <p class="text-dark-4 mt-2">{{ $t('auth.sign_in') }}</p>
       </div>
 
       <!-- Login Form -->
@@ -29,8 +14,8 @@
           <Input
             v-model="email"
             type="email"
-            label="Email Address"
-            placeholder="you@example.com"
+            :label="$t('auth.email')"
+            :placeholder="$t('auth.email_placeholder')"
             required
             :error="errors.email"
           >
@@ -44,8 +29,8 @@
           <Input
             v-model="password"
             type="password"
-            label="Password"
-            placeholder="••••••••"
+            :label="$t('auth.password')"
+            :placeholder="$t('auth.password_placeholder')"
             required
             :error="errors.password"
           >
@@ -63,10 +48,10 @@
                 type="checkbox"
                 class="w-4 h-4 rounded border-dark-4 bg-dark-3 text-brand-purple focus:ring-brand-purple"
               />
-              <span class="text-sm text-dark-4">Remember me</span>
+              <span class="text-sm text-dark-4">{{ $t('auth.remember_me') }}</span>
             </label>
             <router-link to="/forgot-password" class="text-sm text-brand-purple hover:text-brand-cyan transition-colors">
-              Forgot password?
+              {{ $t('auth.forgot_password') }}
             </router-link>
           </div>
 
@@ -75,7 +60,7 @@
             block
             :loading="isLoading"
           >
-            Sign In
+            {{ $t('auth.sign_in_button') }}
           </Button>
         </form>
 
@@ -85,7 +70,7 @@
               <div class="w-full border-t border-dark-4" />
             </div>
             <div class="relative flex justify-center text-sm">
-              <span class="px-2 bg-dark-2 text-dark-4">Or continue with</span>
+              <span class="px-2 bg-dark-2 text-dark-4">{{ $t('auth.or_continue_with') }}</span>
             </div>
           </div>
 
@@ -110,9 +95,9 @@
       </Card>
 
       <p class="text-center mt-6 text-sm text-dark-4">
-        Don't have an account?
+        {{ $t('auth.no_account') }}
         <router-link to="/register" class="text-brand-purple hover:text-brand-cyan transition-colors font-medium">
-          Sign up
+          {{ $t('auth.sign_up_button') }}
         </router-link>
       </p>
     </div>
@@ -122,15 +107,18 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/stores/auth';
 import { useToast } from '@/composables/useToast';
 import Card from '@/components/common/Card.vue';
 import Button from '@/components/common/Button.vue';
 import Input from '@/components/common/Input.vue';
+import Logo from '@/components/common/Logo.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
 const toast = useToast();
+const { t } = useI18n();
 
 const email = ref('');
 const password = ref('');
@@ -143,11 +131,11 @@ const handleLogin = async () => {
   
   // Basic validation
   if (!email.value) {
-    errors.value.email = 'Email is required';
+    errors.value.email = t('auth.email_required');
     return;
   }
   if (!password.value) {
-    errors.value.password = 'Password is required';
+    errors.value.password = t('auth.password_required');
     return;
   }
 
@@ -155,10 +143,10 @@ const handleLogin = async () => {
 
   try {
     await authStore.login(email.value, password.value);
-    toast.success('Welcome back!', 'You have successfully signed in');
+    toast.success(t('auth.welcome_back'), t('auth.login_success'));
     router.push('/dashboard');
   } catch (error) {
-    toast.error('Login failed', 'Invalid email or password');
+    toast.error(t('common.error'), t('auth.login_failed'));
   } finally {
     isLoading.value = false;
   }

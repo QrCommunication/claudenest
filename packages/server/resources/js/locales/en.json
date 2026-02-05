@@ -1,0 +1,458 @@
+{
+  "common": {
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "settings": "Settings",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "yes": "Yes",
+    "no": "No",
+    "close": "Close",
+    "refresh": "Refresh",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "view": "View",
+    "download": "Download",
+    "upload": "Upload",
+    "all": "All",
+    "none": "None",
+    "actions": "Actions",
+    "details": "Details",
+    "status": "Status",
+    "name": "Name",
+    "description": "Description",
+    "date": "Date",
+    "time": "Time",
+    "type": "Type"
+  },
+  "auth": {
+    "welcome": "Welcome to ClaudeNest",
+    "welcome_back": "Welcome back!",
+    "sign_in": "Sign in to access your dashboard",
+    "sign_in_button": "Sign In",
+    "sign_up": "Create account",
+    "sign_up_description": "Start your ClaudeNest journey today",
+    "sign_up_button": "Sign Up",
+    "email": "Email Address",
+    "email_placeholder": "you{'@'}example.com",
+    "password": "Password",
+    "password_placeholder": "••••••••",
+    "password_confirm": "Confirm Password",
+    "remember_me": "Remember me",
+    "forgot_password": "Forgot password?",
+    "forgot_password_title": "Reset your password",
+    "forgot_password_description": "Enter your email and we'll send you a link to reset your password",
+    "reset_password": "Reset Password",
+    "reset_password_title": "Create new password",
+    "reset_password_description": "Enter your new password below",
+    "new_password": "New Password",
+    "send_reset_link": "Send Reset Link",
+    "back_to_login": "Back to login",
+    "no_account": "Don't have an account?",
+    "have_account": "Already have an account?",
+    "or_continue_with": "Or continue with",
+    "terms_agreement": "I agree to the",
+    "terms_of_service": "Terms of Service",
+    "privacy_policy": "Privacy Policy",
+    "login_success": "You have successfully signed in",
+    "login_failed": "Invalid email or password",
+    "register_success": "Account created successfully",
+    "logout_success": "You have been logged out",
+    "password_reset_sent": "Password reset link sent to your email",
+    "password_reset_success": "Your password has been reset successfully",
+    "email_required": "Email is required",
+    "password_required": "Password is required",
+    "passwords_not_match": "Passwords do not match"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome to ClaudeNest",
+    "subtitle": "Manage your Claude Code instances remotely",
+    "quick_actions": "Quick Actions",
+    "new_session": "New Session",
+    "new_session_description": "Start a new Claude Code session",
+    "view_machines": "View Machines",
+    "view_machines_description": "Manage your connected machines",
+    "browse_projects": "Browse Projects",
+    "browse_projects_description": "View multi-agent projects",
+    "explore_docs": "Explore Docs",
+    "explore_docs_description": "Learn about the API",
+    "stats": {
+      "machines": "Machines",
+      "machines_online": "online",
+      "sessions": "Active Sessions",
+      "projects": "Projects",
+      "tasks": "Pending Tasks"
+    }
+  },
+  "machines": {
+    "title": "Machines",
+    "subtitle": "Manage your connected machines",
+    "add_machine": "Add Machine",
+    "no_machines": "No machines connected",
+    "no_machines_description": "Install the ClaudeNest agent on your machines to get started",
+    "status": {
+      "online": "Online",
+      "offline": "Offline",
+      "connecting": "Connecting"
+    },
+    "platform": {
+      "darwin": "macOS",
+      "linux": "Linux",
+      "win32": "Windows"
+    },
+    "details": {
+      "hostname": "Hostname",
+      "platform": "Platform",
+      "architecture": "Architecture",
+      "node_version": "Node.js Version",
+      "agent_version": "Agent Version",
+      "claude_version": "Claude Version",
+      "max_sessions": "Max Sessions",
+      "last_seen": "Last Seen",
+      "connected_at": "Connected At"
+    },
+    "actions": {
+      "connect": "Connect",
+      "disconnect": "Disconnect",
+      "wake": "Wake Up",
+      "regenerate_token": "Regenerate Token",
+      "delete": "Delete Machine"
+    },
+    "confirm_delete": "Are you sure you want to delete this machine? This action cannot be undone."
+  },
+  "sessions": {
+    "title": "Sessions",
+    "subtitle": "View and manage Claude Code sessions",
+    "new_session": "New Session",
+    "no_sessions": "No active sessions",
+    "no_sessions_description": "Start a new session on one of your machines",
+    "status": {
+      "active": "Active",
+      "completed": "Completed",
+      "terminated": "Terminated",
+      "error": "Error"
+    },
+    "mode": {
+      "interactive": "Interactive",
+      "headless": "Headless",
+      "oneshot": "One-shot"
+    },
+    "details": {
+      "machine": "Machine",
+      "project_path": "Project Path",
+      "started_at": "Started At",
+      "completed_at": "Completed At",
+      "duration": "Duration",
+      "exit_code": "Exit Code",
+      "total_tokens": "Total Tokens",
+      "total_cost": "Total Cost"
+    },
+    "actions": {
+      "terminate": "Terminate",
+      "attach": "Attach",
+      "view_logs": "View Logs"
+    },
+    "terminal": {
+      "title": "Terminal",
+      "connecting": "Connecting to session...",
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "reconnecting": "Reconnecting..."
+    },
+    "create": {
+      "title": "Create New Session",
+      "select_machine": "Select Machine",
+      "select_mode": "Select Mode",
+      "project_path": "Project Path",
+      "project_path_placeholder": "/path/to/your/project",
+      "initial_prompt": "Initial Prompt (optional)",
+      "initial_prompt_placeholder": "Enter an initial prompt for Claude..."
+    }
+  },
+  "projects": {
+    "title": "Projects",
+    "subtitle": "Multi-agent collaboration projects",
+    "new_project": "New Project",
+    "no_projects": "No projects yet",
+    "no_projects_description": "Create a project to coordinate multiple Claude instances",
+    "status": {
+      "active": "Active",
+      "paused": "Paused",
+      "completed": "Completed"
+    },
+    "details": {
+      "machine": "Machine",
+      "path": "Path",
+      "instances": "Active Instances",
+      "tasks": "Tasks",
+      "context_tokens": "Context Tokens",
+      "created_at": "Created At"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "tasks": "Tasks",
+      "context": "Context",
+      "locks": "File Locks",
+      "activity": "Activity"
+    },
+    "context": {
+      "title": "Context RAG",
+      "subtitle": "Shared context chunks for agents",
+      "add_chunk": "Add Context",
+      "query": "Query Context",
+      "summarize": "Summarize",
+      "no_chunks": "No context chunks",
+      "chunk_types": {
+        "code": "Code",
+        "documentation": "Documentation",
+        "discussion": "Discussion",
+        "decision": "Decision",
+        "other": "Other"
+      }
+    },
+    "locks": {
+      "title": "File Locks",
+      "subtitle": "Prevent conflicts between agents",
+      "no_locks": "No active locks",
+      "lock_file": "Lock File",
+      "release": "Release",
+      "force_release": "Force Release",
+      "locked_by": "Locked by",
+      "expires_at": "Expires at"
+    }
+  },
+  "tasks": {
+    "title": "Tasks",
+    "subtitle": "Coordinated tasks across projects",
+    "new_task": "New Task",
+    "no_tasks": "No tasks yet",
+    "no_tasks_description": "Create tasks to coordinate work between Claude instances",
+    "status": {
+      "pending": "Pending",
+      "in_progress": "In Progress",
+      "blocked": "Blocked",
+      "review": "In Review",
+      "done": "Done"
+    },
+    "priority": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "critical": "Critical"
+    },
+    "details": {
+      "project": "Project",
+      "assigned_to": "Assigned To",
+      "claimed_at": "Claimed At",
+      "completed_at": "Completed At",
+      "dependencies": "Dependencies",
+      "blocked_by": "Blocked By",
+      "files": "Related Files"
+    },
+    "actions": {
+      "claim": "Claim",
+      "release": "Release",
+      "complete": "Mark Complete"
+    }
+  },
+  "skills": {
+    "title": "Skills",
+    "subtitle": "Discovered Claude Code skills",
+    "no_skills": "No skills discovered",
+    "no_skills_description": "Skills will appear here once discovered on your machines",
+    "status": {
+      "enabled": "Enabled",
+      "disabled": "Disabled"
+    },
+    "details": {
+      "path": "Path",
+      "description": "Description",
+      "triggers": "Triggers",
+      "machine": "Machine"
+    },
+    "actions": {
+      "enable": "Enable",
+      "disable": "Disable",
+      "edit": "Edit"
+    }
+  },
+  "mcp": {
+    "title": "MCP Servers",
+    "subtitle": "Model Context Protocol servers",
+    "add_server": "Add Server",
+    "no_servers": "No MCP servers configured",
+    "no_servers_description": "Add MCP servers to extend Claude's capabilities",
+    "all_tools": "All Tools",
+    "status": {
+      "running": "Running",
+      "stopped": "Stopped",
+      "error": "Error"
+    },
+    "details": {
+      "command": "Command",
+      "args": "Arguments",
+      "env": "Environment",
+      "tools": "Tools"
+    },
+    "actions": {
+      "start": "Start",
+      "stop": "Stop",
+      "restart": "Restart"
+    }
+  },
+  "commands": {
+    "title": "Commands",
+    "subtitle": "Discovered slash commands",
+    "no_commands": "No commands discovered",
+    "no_commands_description": "Commands will appear here once discovered on your machines",
+    "details": {
+      "name": "Name",
+      "description": "Description",
+      "usage": "Usage",
+      "machine": "Machine"
+    },
+    "actions": {
+      "execute": "Execute",
+      "copy": "Copy Command"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage your account and preferences",
+    "sections": {
+      "profile": "Profile",
+      "security": "Security",
+      "preferences": "Preferences",
+      "api_tokens": "API Tokens",
+      "notifications": "Notifications"
+    },
+    "profile": {
+      "avatar": "Avatar",
+      "name": "Display Name",
+      "email": "Email Address",
+      "change_password": "Change Password",
+      "current_password": "Current Password",
+      "new_password": "New Password",
+      "confirm_password": "Confirm Password"
+    },
+    "preferences": {
+      "language": "Language",
+      "theme": "Theme",
+      "theme_light": "Light",
+      "theme_dark": "Dark",
+      "theme_system": "System"
+    },
+    "tokens": {
+      "title": "Personal Access Tokens",
+      "description": "Tokens for API access and agent authentication",
+      "create": "Create Token",
+      "name": "Token Name",
+      "expires": "Expires At",
+      "never_expires": "Never expires",
+      "last_used": "Last Used",
+      "revoke": "Revoke"
+    }
+  },
+  "docs": {
+    "title": "Documentation",
+    "subtitle": "API Reference and Guides",
+    "sections": {
+      "getting_started": "Getting Started",
+      "api_reference": "API Reference",
+      "webhooks": "Webhooks",
+      "sdks": "SDKs",
+      "resources": "Resources"
+    },
+    "search_placeholder": "Search documentation..."
+  },
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "machines": "Machines",
+    "sessions": "Sessions",
+    "projects": "Projects",
+    "tasks": "Tasks",
+    "skills": "Skills",
+    "mcp": "MCP",
+    "commands": "Commands",
+    "settings": "Settings",
+    "docs": "API Docs",
+    "collapse": "Collapse"
+  },
+  "header": {
+    "search": "Search",
+    "notifications": "Notifications",
+    "no_notifications": "No new notifications",
+    "profile": "Profile",
+    "logout": "Logout"
+  },
+  "errors": {
+    "generic": "Something went wrong",
+    "network": "Network error. Please check your connection.",
+    "unauthorized": "You are not authorized to perform this action",
+    "not_found": "Resource not found",
+    "server": "Server error. Please try again later.",
+    "validation": "Please check your input and try again"
+  },
+  "landing": {
+    "hero": {
+      "title": "Remote Claude Code",
+      "title_highlight": "Orchestration",
+      "subtitle": "Control your Claude Code instances from anywhere. Multi-agent coordination with RAG-powered context sharing.",
+      "cta_primary": "Get Started",
+      "cta_secondary": "View Documentation"
+    },
+    "features": {
+      "title": "Everything you need for",
+      "title_highlight": "remote development",
+      "remote_access": {
+        "title": "Remote Access",
+        "description": "Control Claude Code from your browser or mobile device, anywhere in the world."
+      },
+      "multi_agent": {
+        "title": "Multi-Agent Coordination",
+        "description": "Run multiple Claude instances on the same project with atomic task claiming."
+      },
+      "context_rag": {
+        "title": "Context RAG",
+        "description": "pgvector-powered retrieval augmented generation for shared understanding."
+      },
+      "real_time": {
+        "title": "Real-time Communication",
+        "description": "WebSocket-based terminal streaming for instant feedback."
+      },
+      "file_locking": {
+        "title": "File Locking",
+        "description": "Prevent conflicts when multiple agents work on the same files."
+      },
+      "mcp_support": {
+        "title": "MCP Support",
+        "description": "Full Model Context Protocol integration for extended capabilities."
+      }
+    },
+    "open_source": {
+      "title": "Open Source",
+      "description": "ClaudeNest is fully open source under the MIT license.",
+      "github": "View on GitHub"
+    },
+    "footer": {
+      "product": "Product",
+      "resources": "Resources",
+      "company": "Company",
+      "legal": "Legal",
+      "copyright": "© {year} ClaudeNest. All rights reserved."
+    }
+  }
+}

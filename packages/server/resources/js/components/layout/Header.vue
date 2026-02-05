@@ -19,11 +19,12 @@
     </div>
 
     <!-- Right Section -->
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-2">
       <!-- Search Button -->
       <button
         class="p-2 text-dark-4 hover:text-white rounded-lg hover:bg-dark-3 transition-colors"
         @click="$emit('search')"
+        :title="$t('header.search')"
       >
         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -34,6 +35,7 @@
       <button
         class="relative p-2 text-dark-4 hover:text-white rounded-lg hover:bg-dark-3 transition-colors"
         @click="$emit('notifications')"
+        :title="$t('header.notifications')"
       >
         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -45,29 +47,10 @@
       </button>
 
       <!-- Theme Toggle -->
-      <button
-        class="p-2 text-dark-4 hover:text-white rounded-lg hover:bg-dark-3 transition-colors"
-        @click="toggleTheme"
-      >
-        <svg
-          v-if="isDark"
-          class="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-        </svg>
-        <svg
-          v-else
-          class="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-        </svg>
-      </button>
+      <ThemeToggle variant="ghost" />
+
+      <!-- Language Switcher -->
+      <LanguageSwitcher variant="ghost" :show-label="false" />
 
       <!-- Divider -->
       <div class="w-px h-6 bg-dark-4 mx-1" />
@@ -81,8 +64,10 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
-import { useTheme } from '@/composables/useTheme';
+import { useI18n } from 'vue-i18n';
 import UserMenu from './UserMenu.vue';
+import ThemeToggle from '@/components/common/ThemeToggle.vue';
+import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue';
 import type { User } from '@/types';
 
 interface Props {
@@ -102,20 +87,32 @@ const emit = defineEmits<{
 }>();
 
 const route = useRoute();
-const { isDark, toggleTheme } = useTheme();
+const { t } = useI18n();
 
 const pageTitle = computed(() => {
-  const titles: Record<string, string> = {
-    'dashboard': 'Dashboard',
-    'machines': 'Machines',
-    'sessions': 'Sessions',
-    'projects': 'Projects',
-    'tasks': 'Tasks',
-    'skills': 'Skills',
-    'mcp': 'MCP Connections',
-    'settings': 'Settings',
+  const routeName = route.name as string;
+  const titleKeys: Record<string, string> = {
+    'dashboard': 'sidebar.dashboard',
+    'machines': 'sidebar.machines',
+    'machines.show': 'sidebar.machines',
+    'sessions': 'sidebar.sessions',
+    'session.terminal': 'sidebar.sessions',
+    'sessions.new': 'sidebar.sessions',
+    'projects': 'sidebar.projects',
+    'projects.show': 'sidebar.projects',
+    'projects.tasks': 'tasks.title',
+    'projects.context': 'projects.context.title',
+    'projects.locks': 'projects.locks.title',
+    'tasks': 'sidebar.tasks',
+    'skills': 'sidebar.skills',
+    'skill.detail': 'sidebar.skills',
+    'mcp': 'sidebar.mcp',
+    'mcp.tools': 'mcp.all_tools',
+    'commands': 'sidebar.commands',
+    'settings': 'sidebar.settings',
   };
   
-  return titles[route.name as string] || 'Dashboard';
+  const key = titleKeys[routeName];
+  return key ? t(key) : t('sidebar.dashboard');
 });
 </script>

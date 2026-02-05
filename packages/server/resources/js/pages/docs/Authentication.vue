@@ -79,16 +79,16 @@ GITHUB_REDIRECT_URI=https://claudenest.yourdomain.com/api/auth/github/callback`"
 
       <h3>Step 1: Get OAuth URL</h3>
       <CodeBlock 
-        code="# Get Google OAuth URL
+        code='# Get Google OAuth URL
 curl https://claudenest.yourdomain.com/api/auth/google/redirect
 
 # Response
 {
-  \"success\": true,
-  \"data\": {
-    \"redirect_url\": \"https://accounts.google.com/o/oauth2/auth?...\"
+  "success": true,
+  "data": {
+    "redirect_url": "https://accounts.google.com/o/oauth2/auth?..."
   }
-}" 
+}' 
         language="bash"
       />
 
