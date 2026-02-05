@@ -30,7 +30,7 @@
       />
 
       <CodeBlock 
-        :code="`{\n  \"success\": true,\n  \"data\": {\n    \"status\": \"ok\",\n    \"version\": \"1.0.0\",\n    \"timestamp\": \"2026-02-02T17:00:00Z\"\n  }\n}`" 
+        :code="healthResponse" 
         language="json"
         filename="Response"
       />
@@ -46,14 +46,13 @@
       <p>Now let's see what machines are registered:</p>
       
       <CodeBlock 
-        code="curl https://claudenest.yourdomain.com/api/machines \\
-  -H \"Authorization: Bearer your-api-token\"" 
+        :code="listMachinesCode" 
         language="bash"
         filename="Request"
       />
 
       <CodeBlock 
-        :code="`{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"550e8400-e29b-41d4-a716-446655440001\",\n      \"name\": \"MacBook-Pro-Work\",\n      \"platform\": \"darwin\",\n      \"status\": \"online\",\n      \"is_online\": true,\n      \"active_sessions_count\": 0\n    }\n  ],\n  \"meta\": {\n    \"pagination\": {\n      \"current_page\": 1,\n      \"total\": 1\n    }\n  }\n}`" 
+        :code="listMachinesResponse" 
         language="json"
         filename="Response"
       />
@@ -64,17 +63,13 @@
       <p>Start a Claude Code session on one of your machines:</p>
       
       <CodeBlock 
-        code="curl -X POST https://claudenest.yourdomain.com/api/machines/550e8400-e29b-41d4-a716-446655440001/sessions \\
-  -H \"Authorization: Bearer your-api-token\" \\
-  -H \"Content-Type: application/json\" \\
-  -d '{
-    \"mode\": \"interactive\",\n    \"project_path\": \"/home/user/myproject\",\n    \"initial_prompt\": \"Help me refactor this codebase\",\n    \"pty_size\": {\n      \"cols\": 120,\n      \"rows\": 40\n    }\n  }'" 
+        :code="createSessionCode" 
         language="bash"
         filename="Request"
       />
 
       <CodeBlock 
-        :code="`{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"550e8400-e29b-41d4-a716-446655440002\",\n    \"machine_id\": \"550e8400-e29b-41d4-a716-446655440001\",\n    \"mode\": \"interactive\",\n    \"project_path\": \"/home/user/myproject\",\n    \"status\": \"created\",\n    \"is_running\": false,\n    \"created_at\": \"2026-02-02T17:00:00Z\"\n  }\n}`" 
+        :code="createSessionResponse" 
         language="json"
         filename="Response"
       />
@@ -87,14 +82,13 @@
       <p>To interact with the session, you need a WebSocket token:</p>
       
       <CodeBlock 
-        code="curl -X POST https://claudenest.yourdomain.com/api/sessions/550e8400-e29b-41d4-a716-446655440002/attach \\
-  -H \"Authorization: Bearer your-api-token\"" 
+        :code="attachSessionCode" 
         language="bash"
         filename="Request"
       />
 
       <CodeBlock 
-        :code="`{\n  \"success\": true,\n  \"data\": {\n    \"ws_token\": \"a1b2c3d4e5f6...\",\n    \"session_id\": \"550e8400-e29b-41d4-a716-446655440002\",\n    \"ws_url\": \"wss://claudenest.yourdomain.com:8080\"\n  }\n}`" 
+        :code="attachSessionResponse" 
         language="json"
         filename="Response"
       />
@@ -103,15 +97,7 @@
       <p>Connect to the WebSocket endpoint to receive terminal output and send input:</p>
       
       <CodeBlock 
-        :code="`// JavaScript example using WebSocket
-const ws = new WebSocket('wss://claudenest.yourdomain.com:8080');
-
-ws.onopen = () => {\n  // Authenticate with the token\n  ws.send(JSON.stringify({\n    type: 'auth',\n    token: 'a1b2c3d4e5f6...'\n  }));\n};\n
-ws.onmessage = (event) => {\n  const message = JSON.parse(event.data);\n  console.log('Received:', message);\n};\n
-// Send input to the session
-function sendInput(data) {\n  ws.send(JSON.stringify({\n    type: 'input',\n    data: data\n  }));\n}\n
-// Resize the terminal
-function resize(cols, rows) {\n  ws.send(JSON.stringify({\n    type: 'resize',\n    cols: cols,\n    rows: rows\n  }));\n}`" 
+        :code="websocketCode" 
         language="javascript"
         filename="websocket.js"
       />
@@ -122,18 +108,13 @@ function resize(cols, rows) {\n  ws.send(JSON.stringify({\n    type: 'resize',\n
       <p>For multi-agent collaboration, create a shared project:</p>
       
       <CodeBlock 
-        code="curl -X POST https://claudenest.yourdomain.com/api/machines/550e8400-e29b-41d4-a716-446655440001/projects \\
-  -H \"Authorization: Bearer your-api-token\" \\
-  -H \"Content-Type: application/json\" \\
-  -d '{
-    \"name\": \"My Awesome Project\",\n    \"project_path\": \"/home/user/myproject\",\n    \"summary\": \"A Next.js application with authentication\",\n    \"architecture\": \"Next.js 14, Prisma, PostgreSQL\",\n    \"conventions\": \"Use TypeScript, follow ESLint rules\"
-  }'" 
+        :code="createProjectCode" 
         language="bash"
         filename="Request"
       />
 
       <CodeBlock 
-        :code="`{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"550e8400-e29b-41d4-a716-446655440004\",\n    \"name\": \"My Awesome Project\",\n    \"project_path\": \"/home/user/myproject\",\n    \"summary\": \"A Next.js application with authentication\",\n    \"token_usage_percent\": 0,\n    \"active_instances_count\": 0,\n    \"pending_tasks_count\": 0\n  }\n}`" 
+        :code="createProjectResponse" 
         language="json"
         filename="Response"
       />
@@ -144,17 +125,13 @@ function resize(cols, rows) {\n  ws.send(JSON.stringify({\n    type: 'resize',\n
       <p>Create tasks that can be claimed by different Claude instances:</p>
       
       <CodeBlock 
-        code="curl -X POST https://claudenest.yourdomain.com/api/projects/550e8400-e29b-41d4-a716-446655440004/tasks \\
-  -H \"Authorization: Bearer your-api-token\" \\
-  -H \"Content-Type: application/json\" \\
-  -d '{
-    \"title\": \"Implement user authentication\",\n    \"description\": \"Add JWT-based authentication with login and signup endpoints\",\n    \"priority\": \"high\",\n    \"files\": [\"auth.ts\", \"user.ts\", \"middleware.ts\"],\n    \"estimated_tokens\": 5000\n  }'" 
+        :code="createTaskCode" 
         language="bash"
         filename="Request"
       />
 
       <CodeBlock 
-        :code="`{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"550e8400-e29b-41d4-a716-446655440006\",\n    \"title\": \"Implement user authentication\",\n    \"status\": \"pending\",\n    \"is_claimed\": false,\n    \"priority\": \"high\"\n  }\n}`" 
+        :code="createTaskResponse" 
         language="json"
         filename="Response"
       />
@@ -165,17 +142,13 @@ function resize(cols, rows) {\n  ws.send(JSON.stringify({\n    type: 'resize',\n
       <p>Use RAG to query project context:</p>
       
       <CodeBlock 
-        code="curl -X POST https://claudenest.yourdomain.com/api/projects/550e8400-e29b-41d4-a716-446655440004/context/query \\
-  -H \"Authorization: Bearer your-api-token\" \\
-  -H \"Content-Type: application/json\" \\
-  -d '{
-    \"query\": \"How is authentication implemented?\",\n    \"limit\": 5\n  }'" 
+        :code="queryContextCode" 
         language="bash"
         filename="Request"
       />
 
       <CodeBlock 
-        :code="`{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"...\",\n      \"content\": \"Task completed: Implement user authentication...\",\n      \"type\": \"task_completion\",\n      \"similarity\": 0.92,\n      \"created_at\": \"2026-02-02T17:00:00Z\"\n    }\n  ],\n  \"meta\": {\n    \"query\": \"How is authentication implemented?\",\n    \"result_count\": 1,\n    \"used_embeddings\": true\n  }\n}`" 
+        :code="queryContextResponse" 
         language="json"
         filename="Response"
       />
@@ -191,7 +164,7 @@ function resize(cols, rows) {\n  ws.send(JSON.stringify({\n    type: 'resize',\n
       />
 
       <CodeBlock 
-        :code="`import { ClaudeNestClient } from '@claudenest/sdk';\n\nconst client = new ClaudeNestClient({\n  baseUrl: 'https://claudenest.yourdomain.com',\n  token: 'your-api-token'\n});\n\n// List machines\nconst machines = await client.machines.list();\nconsole.log(machines);\n\n// Create a session\nconst session = await client.sessions.create({\n  machineId: '550e8400-e29b-41d4-a716-446655440001',\n  mode: 'interactive',\n  projectPath: '/home/user/myproject'\n});\n\n// Attach to session\nconst ws = await client.sessions.attach(session.id);\n\nws.onMessage((message) => {\n  console.log('Output:', message.data);\n});\n\n// Send input\nws.sendInput('Hello Claude!');`" 
+        :code="sdkCode" 
         language="javascript"
         filename="example.js"
       />
@@ -223,6 +196,209 @@ function resize(cols, rows) {\n  ws.send(JSON.stringify({\n    type: 'resize',\n
 
 <script setup lang="ts">
 import CodeBlock from '@/components/docs/CodeBlock.vue';
+
+const healthResponse = `{
+  "success": true,
+  "data": {
+    "status": "ok",
+    "version": "1.0.0",
+    "timestamp": "2026-02-02T17:00:00Z"
+  }
+}`;
+
+const listMachinesCode = `curl https://claudenest.yourdomain.com/api/machines \\
+  -H 'Authorization: Bearer your-api-token'`;
+
+const listMachinesResponse = `{
+  "success": true,
+  "data": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440001",
+      "name": "MacBook-Pro-Work",
+      "platform": "darwin",
+      "status": "online",
+      "is_online": true,
+      "active_sessions_count": 0
+    }
+  ],
+  "meta": {
+    "pagination": {
+      "current_page": 1,
+      "total": 1
+    }
+  }
+}`;
+
+const createSessionCode = `curl -X POST https://claudenest.yourdomain.com/api/machines/550e8400-e29b-41d4-a716-446655440001/sessions \\
+  -H 'Authorization: Bearer your-api-token' \\
+  -H 'Content-Type: application/json' \\
+  -d '{
+    "mode": "interactive",
+    "project_path": "/home/user/myproject",
+    "initial_prompt": "Help me refactor this codebase",
+    "pty_size": {
+      "cols": 120,
+      "rows": 40
+    }
+  }'`;
+
+const createSessionResponse = `{
+  "success": true,
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440002",
+    "machine_id": "550e8400-e29b-41d4-a716-446655440001",
+    "mode": "interactive",
+    "project_path": "/home/user/myproject",
+    "status": "created",
+    "is_running": false,
+    "created_at": "2026-02-02T17:00:00Z"
+  }
+}`;
+
+const attachSessionCode = `curl -X POST https://claudenest.yourdomain.com/api/sessions/550e8400-e29b-41d4-a716-446655440002/attach \\
+  -H 'Authorization: Bearer your-api-token'`;
+
+const attachSessionResponse = `{
+  "success": true,
+  "data": {
+    "ws_token": "a1b2c3d4e5f6...",
+    "session_id": "550e8400-e29b-41d4-a716-446655440002",
+    "ws_url": "wss://claudenest.yourdomain.com:8080"
+  }
+}`;
+
+const websocketCode = `// JavaScript example using WebSocket
+const ws = new WebSocket('wss://claudenest.yourdomain.com:8080');
+
+ws.onopen = () => {
+  // Authenticate with the token
+  ws.send(JSON.stringify({
+    type: 'auth',
+    token: 'a1b2c3d4e5f6...'
+  }));
+};
+
+ws.onmessage = (event) => {
+  const message = JSON.parse(event.data);
+  console.log('Received:', message);
+};
+
+// Send input to the session
+function sendInput(data) {
+  ws.send(JSON.stringify({
+    type: 'input',
+    data: data
+  }));
+}
+
+// Resize the terminal
+function resize(cols, rows) {
+  ws.send(JSON.stringify({
+    type: 'resize',
+    cols: cols,
+    rows: rows
+  }));
+}`;
+
+const createProjectCode = `curl -X POST https://claudenest.yourdomain.com/api/machines/550e8400-e29b-41d4-a716-446655440001/projects \\
+  -H 'Authorization: Bearer your-api-token' \\
+  -H 'Content-Type: application/json' \\
+  -d '{
+    "name": "My Awesome Project",
+    "project_path": "/home/user/myproject",
+    "summary": "A Next.js application with authentication",
+    "architecture": "Next.js 14, Prisma, PostgreSQL",
+    "conventions": "Use TypeScript, follow ESLint rules"
+  }'`;
+
+const createProjectResponse = `{
+  "success": true,
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440004",
+    "name": "My Awesome Project",
+    "project_path": "/home/user/myproject",
+    "summary": "A Next.js application with authentication",
+    "token_usage_percent": 0,
+    "active_instances_count": 0,
+    "pending_tasks_count": 0
+  }
+}`;
+
+const createTaskCode = `curl -X POST https://claudenest.yourdomain.com/api/projects/550e8400-e29b-41d4-a716-446655440004/tasks \\
+  -H 'Authorization: Bearer your-api-token' \\
+  -H 'Content-Type: application/json' \\
+  -d '{
+    "title": "Implement user authentication",
+    "description": "Add JWT-based authentication with login and signup endpoints",
+    "priority": "high",
+    "files": ["auth.ts", "user.ts", "middleware.ts"],
+    "estimated_tokens": 5000
+  }'`;
+
+const createTaskResponse = `{
+  "success": true,
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440006",
+    "title": "Implement user authentication",
+    "status": "pending",
+    "is_claimed": false,
+    "priority": "high"
+  }
+}`;
+
+const queryContextCode = `curl -X POST https://claudenest.yourdomain.com/api/projects/550e8400-e29b-41d4-a716-446655440004/context/query \\
+  -H 'Authorization: Bearer your-api-token' \\
+  -H 'Content-Type: application/json' \\
+  -d '{
+    "query": "How is authentication implemented?",
+    "limit": 5
+  }'`;
+
+const queryContextResponse = `{
+  "success": true,
+  "data": [
+    {
+      "id": "...",
+      "content": "Task completed: Implement user authentication...",
+      "type": "task_completion",
+      "similarity": 0.92,
+      "created_at": "2026-02-02T17:00:00Z"
+    }
+  ],
+  "meta": {
+    "query": "How is authentication implemented?",
+    "result_count": 1,
+    "used_embeddings": true
+  }
+}`;
+
+const sdkCode = `import { ClaudeNestClient } from '@claudenest/sdk';
+
+const client = new ClaudeNestClient({
+  baseUrl: 'https://claudenest.yourdomain.com',
+  token: 'your-api-token'
+});
+
+// List machines
+const machines = await client.machines.list();
+console.log(machines);
+
+// Create a session
+const session = await client.sessions.create({
+  machineId: '550e8400-e29b-41d4-a716-446655440001',
+  mode: 'interactive',
+  projectPath: '/home/user/myproject'
+});
+
+// Attach to session
+const ws = await client.sessions.attach(session.id);
+
+ws.onMessage((message) => {
+  console.log('Output:', message.data);
+});
+
+// Send input
+ws.sendInput('Hello Claude!');`;
 </script>
 
 <style scoped>
