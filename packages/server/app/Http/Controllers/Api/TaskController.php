@@ -402,7 +402,7 @@ class TaskController extends Controller
             $data['completion_summary'] = $task->completion_summary;
             $data['files_modified'] = $task->files_modified;
             $data['created_by'] = $task->created_by;
-            $data['duration'] = $task->duration,
+            $data['duration'] = $task->duration;
         }
 
         return $data;
