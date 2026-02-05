@@ -15,7 +15,7 @@
           @click="refreshServers"
           :loading="mcpStore.isLoading"
         >
-          <RefreshIcon class="w-4 h-4 mr-2" />
+          <RefreshCwIcon class="w-4 h-4 mr-2" />
           Refresh
         </Button>
         <Button variant="primary" @click="showAddModal = true">
@@ -230,7 +230,7 @@ import MCPStatusBadge from '@/components/mcp/MCPStatusBadge.vue';
 import {
   PlusIcon,
   ServerIcon,
-  RefreshIcon,
+  RefreshCwIcon,
   XIcon,
   WrenchIcon,
   TrashIcon,

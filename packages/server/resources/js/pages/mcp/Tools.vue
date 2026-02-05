@@ -15,7 +15,7 @@
           @click="refreshTools"
           :loading="mcpStore.isLoadingTools"
         >
-          <RefreshIcon class="w-4 h-4 mr-2" />
+          <RefreshCwIcon class="w-4 h-4 mr-2" />
           Refresh
         </Button>
       </div>
@@ -114,7 +114,7 @@ import Badge from '@/components/common/Badge.vue';
 import Skeleton from '@/components/common/Skeleton.vue';
 import {
   SearchIcon,
-  RefreshIcon,
+  RefreshCwIcon,
   WrenchIcon,
 } from 'lucide-vue-next';
 import type { MCPToolWithServer } from '@/types';

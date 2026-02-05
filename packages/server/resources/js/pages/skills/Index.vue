@@ -15,7 +15,7 @@
           @click="refreshSkills"
           :loading="skillsStore.isLoading"
         >
-          <RefreshIcon class="w-4 h-4 mr-2" />
+          <RefreshCwIcon class="w-4 h-4 mr-2" />
           Refresh
         </Button>
         <Button 
@@ -214,7 +214,7 @@ import Skeleton from '@/components/common/Skeleton.vue';
 import Modal from '@/components/common/Modal.vue';
 import {
   SearchIcon,
-  RefreshIcon,
+  RefreshCwIcon,
   ZapIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
