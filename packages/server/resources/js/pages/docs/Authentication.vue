@@ -95,20 +95,20 @@ curl https://claudenest.yourdomain.com/api/auth/google/redirect
       <h3>Step 2: Handle Callback</h3>
       <p>After the user authorizes, they are redirected to your callback URL with a code. Exchange it for a token:</p>
       <CodeBlock 
-        code="# The callback is handled automatically by the server
+        code='# The callback is handled automatically by the server
 # The user receives an API token in the response
 
 GET /api/auth/google/callback?code=auth-code-from-google
 
 # Response
 {
-  \"success\": true,
-  \"data\": {
-    \"user\": { /* user info */ },
-    \"token\": \"1|laravel_sanctum_token_here\",
-    \"expires_at\": \"2026-03-04T17:00:00Z\"
+  "success": true,
+  "data": {
+    "user": { /* user info */ },
+    "token": "1|laravel_sanctum_token_here",
+    "expires_at": "2026-03-04T17:00:00Z"
   }
-}" 
+}' 
         language="bash"
       />
     </section>
@@ -119,14 +119,7 @@ GET /api/auth/google/callback?code=auth-code-from-google
 
       <h3>Create a Personal Access Token</h3>
       <CodeBlock 
-        code="curl -X POST https://claudenest.yourdomain.com/api/auth/tokens \\
-  -H \"Authorization: Bearer your-existing-token\" \\
-  -H \"Content-Type: application/json\" \\
-  -d '{
-    \"name\": \"CLI Tool Token\",
-    \"abilities\": [\"machines:read\", \"sessions:write\"],
-    \"expires_in_days\": 90
-  }'" 
+        :code="createTokenCode" 
         language="bash"
       />
 
@@ -145,21 +138,13 @@ GET /api/auth/google/callback?code=auth-code-from-google
       <h3>Using Tokens</h3>
       <p>Include the token in the Authorization header:</p>
       <CodeBlock 
-        code="curl https://claudenest.yourdomain.com/api/machines \\
-  -H \"Authorization: Bearer your-api-token\" \\
-  -H \"Accept: application/json\"" 
+        :code="useTokenCode" 
         language="bash"
       />
 
       <h3>List and Revoke Tokens</h3>
       <CodeBlock 
-        code="# List all tokens
-curl https://claudenest.yourdomain.com/api/auth/tokens \\
-  -H \"Authorization: Bearer your-token\"
-
-# Revoke a token
-curl -X DELETE https://claudenest.yourdomain.com/api/auth/tokens/123 \\
-  -H \"Authorization: Bearer your-token\"" 
+        :code="listRevokeTokensCode" 
         language="bash"
       />
     </section>
@@ -170,23 +155,14 @@ curl -X DELETE https://claudenest.yourdomain.com/api/auth/tokens/123 \\
 
       <h3>Register a Machine</h3>
       <CodeBlock 
-        code="curl -X POST https://claudenest.yourdomain.com/api/machines \\
-  -H \"Authorization: Bearer your-user-token\" \\
-  -H \"Content-Type: application/json\" \\
-  -d '{
-    \"name\": \"MacBook-Pro-Work\",
-    \"platform\": \"darwin\",
-    \"hostname\": \"macbook-pro.local\",
-    \"capabilities\": [\"claude_code\", \"git\", \"docker\"]
-  }'" 
+        :code="registerMachineCode" 
         language="bash"
       />
 
       <h3>Regenerate Machine Token</h3>
       <p>If a machine token is compromised, regenerate it:</p>
       <CodeBlock 
-        code="curl -X POST https://claudenest.yourdomain.com/api/machines/123/regenerate-token \\
-  -H \"Authorization: Bearer your-user-token\"" 
+        :code="regenerateTokenCode" 
         language="bash"
       />
     </section>
@@ -233,6 +209,40 @@ curl -X DELETE https://claudenest.yourdomain.com/api/auth/tokens/123 \\
 
 <script setup lang="ts">
 import CodeBlock from '@/components/docs/CodeBlock.vue';
+
+const createTokenCode = `curl -X POST https://claudenest.yourdomain.com/api/auth/tokens \\
+  -H 'Authorization: Bearer your-existing-token' \\
+  -H 'Content-Type: application/json' \\
+  -d '{
+    "name": "CLI Tool Token",
+    "abilities": ["machines:read", "sessions:write"],
+    "expires_in_days": 90
+  }'`;
+
+const useTokenCode = `curl https://claudenest.yourdomain.com/api/machines \\
+  -H 'Authorization: Bearer your-api-token' \\
+  -H 'Accept: application/json'`;
+
+const listRevokeTokensCode = `# List all tokens
+curl https://claudenest.yourdomain.com/api/auth/tokens \\
+  -H 'Authorization: Bearer your-token'
+
+# Revoke a token
+curl -X DELETE https://claudenest.yourdomain.com/api/auth/tokens/123 \\
+  -H 'Authorization: Bearer your-token'`;
+
+const registerMachineCode = `curl -X POST https://claudenest.yourdomain.com/api/machines \\
+  -H 'Authorization: Bearer your-user-token' \\
+  -H 'Content-Type: application/json' \\
+  -d '{
+    "name": "MacBook-Pro-Work",
+    "platform": "darwin",
+    "hostname": "macbook-pro.local",
+    "capabilities": ["claude_code", "git", "docker"]
+  }'`;
+
+const regenerateTokenCode = `curl -X POST https://claudenest.yourdomain.com/api/machines/123/regenerate-token \\
+  -H 'Authorization: Bearer your-user-token'`;
 </script>
 
 <style scoped>
