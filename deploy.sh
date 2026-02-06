@@ -1,36 +1,47 @@
 #!/bin/bash
+set -e
+
 cd /var/www/claudenest
 
-echo "📥 Pulling latest changes..."
+echo "Pulling latest changes..."
 git pull origin main
 
-echo "📦 Installing backend dependencies..."
+echo "Updating infrastructure configs..."
+sudo cp infrastructure/supervisor/claudenest-worker.conf /etc/supervisor/conf.d/claudenest-worker.conf
+sudo cp infrastructure/caddy/Caddyfile /etc/caddy/Caddyfile
+
+echo "Installing backend dependencies..."
 cd packages/server
 composer install --no-dev --optimize-autoloader --no-interaction
 
-echo "🗄️ Running migrations..."
+echo "Running migrations..."
 php artisan migrate --force
 
-echo "🧹 Clearing caches..."
+echo "Clearing caches..."
 php artisan config:clear
 php artisan cache:clear
 php artisan route:clear
 php artisan view:clear
 
-echo "⚡ Optimizing..."
+echo "Optimizing..."
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 php artisan optimize
 
-echo "🎨 Building frontend..."
+echo "Building frontend..."
 npm install
 npm run build
 
-echo "🔄 Restarting services..."
-sudo systemctl restart caddy
-sudo systemctl restart php8.3-fpm
-sudo systemctl restart claudenest-reverb
-sudo supervisorctl restart all
+echo "Linking Vite manifest..."
+ln -sf /var/www/claudenest/packages/server/public/build/.vite/manifest.json /var/www/claudenest/packages/server/public/build/manifest.json
 
-echo "✅ Deployment complete!"
+echo "Restarting services..."
+sudo systemctl restart php8.3-fpm
+sudo systemctl reload caddy
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl restart claudenest-worker:*
+sudo systemctl restart claudenest-reverb
+
+echo "Deployment complete!"

@@ -1,0 +1,44 @@
+# ClaudeNest API and WebSocket
+api.claudenest.io {
+    reverse_proxy localhost:8000
+
+    @websocket {
+        header Connection *Upgrade*
+        header Upgrade websocket
+    }
+    reverse_proxy @websocket localhost:8000
+}
+
+# Main application
+claudenest.io {
+    root * /var/www/claudenest/packages/server/public
+
+    # Try files - SPA fallback via PHP
+    try_files {path} {path}/ /index.php
+
+    # File server for static assets
+    file_server
+
+    # PHP for all routes
+    php_fastcgi unix//run/php/php8.3-fpm.sock
+
+    # Enable compression
+    encode gzip zstd
+
+    # Security headers
+    header {
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+}
+
+# App subdomain
+app.claudenest.io {
+    root * /var/www/claudenest/packages/server/public
+    try_files {path} {path}/ /index.php
+    file_server
+    php_fastcgi unix//run/php/php8.3-fpm.sock
+    encode gzip zstd
+}
