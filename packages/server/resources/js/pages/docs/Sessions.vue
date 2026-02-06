@@ -404,7 +404,7 @@ const logsResponses = {
       {
         id: 'log-2',
         type: 'output',
-        data: 'I'll help you refactor the codebase...',
+        data: "I'll help you refactor the codebase...",
         metadata: { tokens_used: 500 },
         created_at: '2026-02-02T14:00:05Z',
       },

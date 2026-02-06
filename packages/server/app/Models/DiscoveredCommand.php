@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Concerns\HasVersion4Uuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 
 class DiscoveredCommand extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasVersion4Uuids;
 
     /**
      * The primary key type.
@@ -61,7 +61,7 @@ class DiscoveredCommand extends Model
     {
         static::creating(function ($model) {
             if (empty($model->id)) {
-                $model->id = (string) Str::uuid();
+                $model->id = (string) Str::orderedUuid();
             }
             if (empty($model->discovered_at)) {
                 $model->discovered_at = now();

@@ -33,9 +33,6 @@ echo "Building frontend..."
 npm install
 npm run build
 
-echo "Linking Vite manifest..."
-ln -sf /var/www/claudenest/packages/server/public/build/.vite/manifest.json /var/www/claudenest/packages/server/public/build/manifest.json
-
 echo "Restarting services..."
 sudo systemctl restart php8.3-fpm
 sudo systemctl reload caddy
