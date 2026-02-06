@@ -207,6 +207,17 @@ const routes: RouteRecordRaw[] = [
         name: 'docs.resources.changelog',
         component: () => import('./pages/docs/ApiReference.vue'),
       },
+      // Legal pages
+      {
+        path: 'terms',
+        name: 'docs.terms',
+        component: () => import('./pages/docs/TermsOfService.vue'),
+      },
+      {
+        path: 'privacy',
+        name: 'docs.privacy',
+        component: () => import('./pages/docs/PrivacyPolicy.vue'),
+      },
     ],
   },
 ];

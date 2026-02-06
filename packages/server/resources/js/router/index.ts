@@ -235,7 +235,7 @@ const routes: RouteRecordRaw[] = [
             {
                 path: 'privacy',
                 name: 'docs.privacy',
-                component: () => import('@/pages/docs/ApiReference.vue'),
+                component: () => import('@/pages/docs/PrivacyPolicy.vue'),
             },
         ],
     },

@@ -89,7 +89,7 @@ export function useDocs() {
     const colors: Record<string, string> = {
       GET: '#22c55e',    // green
       POST: '#a855f7',   // purple
-      PUT: '#3b82f6',    // blue
+      PUT: '#6366f1',    // indigo (brand)
       PATCH: '#f59e0b',  // amber
       DELETE: '#ef4444'  // red
     };

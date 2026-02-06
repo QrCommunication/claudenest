@@ -194,6 +194,18 @@ export const docsNavigation: NavSection[] = [
         title: 'Changelog',
         path: '/docs/resources/changelog',
         description: 'API version history'
+      },
+      {
+        id: 'terms',
+        title: 'Terms of Service',
+        path: '/docs/terms',
+        description: 'Terms and conditions'
+      },
+      {
+        id: 'privacy',
+        title: 'Privacy Policy',
+        path: '/docs/privacy',
+        description: 'GDPR-compliant privacy policy'
       }
     ]
   }
