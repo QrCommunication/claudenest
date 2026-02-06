@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: 'rgba(59, 66, 97, 0.5)',
+    borderColor: colors.border.default,
     gap: spacing.sm,
   },
   commandText: {

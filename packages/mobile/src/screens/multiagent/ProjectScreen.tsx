@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(59, 66, 97, 0.5)',
+    borderColor: colors.border.default,
   },
   actionIcon: {
     width: 44,

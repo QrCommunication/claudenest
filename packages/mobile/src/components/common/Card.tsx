@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.card,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: 'rgba(59, 66, 97, 0.5)',
+    borderColor: colors.border.default,
   },
   header: {
     flexDirection: 'row',
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(59, 66, 97, 0.3)',
+    borderBottomColor: colors.border.subtle,
   },
   headerText: {
     flex: 1,
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     padding: spacing.md,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(59, 66, 97, 0.3)',
+    borderTopColor: colors.border.subtle,
     gap: spacing.sm,
   },
 });

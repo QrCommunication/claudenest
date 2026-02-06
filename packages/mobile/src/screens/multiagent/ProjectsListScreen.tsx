@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     paddingTop: spacing.md,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(59, 66, 97, 0.3)',
+    borderTopColor: colors.border.subtle,
   },
   stat: {
     flexDirection: 'row',

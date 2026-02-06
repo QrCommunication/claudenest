@@ -76,6 +76,19 @@ export const colors = {
     busy: '#a855f7',
     idle: '#64748b',
   },
+
+  // Border opacity variants
+  border: {
+    default: 'rgba(59, 66, 97, 0.5)',   // dark4 at 50% - standard borders
+    subtle: 'rgba(59, 66, 97, 0.3)',     // dark4 at 30% - dividers, separators
+    strong: 'rgba(59, 66, 97, 0.8)',     // dark4 at 80% - emphasized borders
+  },
+
+  // Shadow colors
+  shadow: {
+    default: 'rgba(0, 0, 0, 0.3)',
+    strong: 'rgba(0, 0, 0, 0.5)',
+  },
 } as const;
 
 // Type export

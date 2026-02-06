@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.card,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: 'rgba(59, 66, 97, 0.5)',
+    borderColor: colors.border.default,
     marginHorizontal: spacing.md,
     marginBottom: spacing.md,
     padding: spacing.md,
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     paddingTop: spacing.md,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(59, 66, 97, 0.3)',
+    borderTopColor: colors.border.subtle,
   },
   currentTaskText: {
     fontSize: typography.size.sm,

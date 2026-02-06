@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.card,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: 'rgba(59, 66, 97, 0.5)',
+    borderColor: colors.border.default,
     marginHorizontal: spacing.md,
     marginBottom: spacing.md,
     overflow: 'hidden',

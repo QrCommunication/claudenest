@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(59, 66, 97, 0.3)',
+    borderBottomColor: colors.border.subtle,
   },
   infoLabel: {
     fontSize: typography.size.base,

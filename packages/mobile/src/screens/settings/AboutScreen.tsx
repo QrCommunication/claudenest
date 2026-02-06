@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
   },
   linkItemBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(59, 66, 97, 0.3)',
+    borderBottomColor: colors.border.subtle,
   },
   linkLabel: {
     flex: 1,

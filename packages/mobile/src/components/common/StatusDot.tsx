@@ -82,7 +82,7 @@ export const StatusDot: React.FC<StatusDotProps> = ({
 
 const styles = StyleSheet.create({
   dot: {
-    shadowColor: '#000',
+    shadowColor: colors.shadow.default,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.3,
     shadowRadius: 2,
