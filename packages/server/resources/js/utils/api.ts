@@ -1,5 +1,17 @@
-import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios';
+import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 import type { ApiResponse, ApiError } from '@/types';
+
+// ============================================================================
+// Configuration
+// ============================================================================
+
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000;
+const RETRYABLE_STATUS_CODES = [408, 429, 500, 502, 503, 504];
+
+// ============================================================================
+// Axios Instance
+// ============================================================================
 
 // Create axios instance with default config
 const api: AxiosInstance = axios.create({
@@ -11,45 +23,84 @@ const api: AxiosInstance = axios.create({
   timeout: 30000,
 });
 
-// Request interceptor - add auth token and request ID
+// ============================================================================
+// Request Interceptor
+// ============================================================================
+
 api.interceptors.request.use(
-  (config) => {
+  (config: InternalAxiosRequestConfig) => {
     // Add auth token
     const token = localStorage.getItem('auth_token');
-    if (token) {
+    if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     
     // Add request ID for tracing
-    config.headers['X-Request-ID'] = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    if (config.headers) {
+      config.headers['X-Request-ID'] = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
     
     // Add CSRF token for Laravel
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-    if (csrfToken) {
+    if (csrfToken && config.headers) {
       config.headers['X-CSRF-TOKEN'] = csrfToken;
     }
     
     return config;
   },
-  (error) => {
+  (error: AxiosError) => {
     return Promise.reject(error);
   }
 );
 
-// Response interceptor - handle common errors
+// ============================================================================
+// Response Interceptor with Retry Logic
+// ============================================================================
+
 api.interceptors.response.use(
-  (response) => response,
-  (error: AxiosError<ApiResponse<unknown>>) => {
+  (response: AxiosResponse) => response,
+  async (error: AxiosError<ApiResponse<unknown>>) => {
+    const config = error.config as InternalAxiosRequestConfig & { _retry?: number };
+    
+    // Handle 401 Unauthorized
     if (error.response?.status === 401) {
-      // Handle unauthorized - redirect to login
       localStorage.removeItem('auth_token');
       window.location.href = '/login';
+      return Promise.reject(error);
     }
+
+    // Retry logic for network errors and specific status codes
+    const shouldRetry = 
+      !config._retry &&
+      config &&
+      (
+        !error.response || 
+        RETRYABLE_STATUS_CODES.includes(error.response.status)
+      );
+
+    if (shouldRetry) {
+      config._retry = (config._retry || 0) + 1;
+
+      if (config._retry <= MAX_RETRIES) {
+        const delay = RETRY_DELAY * Math.pow(2, config._retry - 1);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return api.request(config);
+      }
+    }
+
     return Promise.reject(error);
   }
 );
 
-// Helper function to extract error message
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+/**
+ * Extract error message from error object
+ * @param error - Error object (unknown type)
+ * @returns Human-readable error message
+ */
 export function getErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
     const axiosError = error as AxiosError<ApiResponse<unknown>>;
@@ -63,7 +114,11 @@ export function getErrorMessage(error: unknown): string {
   return 'An unexpected error occurred';
 }
 
-// Helper function to extract error code
+/**
+ * Extract error code from error object
+ * @param error - Error object (unknown type)
+ * @returns Error code string
+ */
 export function getErrorCode(error: unknown): string {
   if (axios.isAxiosError(error)) {
     const axiosError = error as AxiosError<ApiResponse<unknown>>;

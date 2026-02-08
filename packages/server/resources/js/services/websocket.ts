@@ -104,11 +104,15 @@ class WebSocketManager {
     this.echo.connector.pusher.connection.bind('disconnected', () => {
       this.status = 'disconnected';
       this.callbacks.onDisconnect?.();
+      // Auto-reconnect after a delay
+      setTimeout(() => this.handleAutoReconnect(), 1000);
     });
 
     this.echo.connector.pusher.connection.bind('error', (error: Error) => {
       this.status = 'error';
       this.callbacks.onError?.(error);
+      // Auto-reconnect on error
+      setTimeout(() => this.handleAutoReconnect(), 2000);
     });
   }
 
@@ -176,7 +180,7 @@ class WebSocketManager {
   }
 
   /**
-   * Attempt to reconnect
+   * Attempt to reconnect with exponential backoff
    */
   reconnect(): void {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
@@ -188,11 +192,22 @@ class WebSocketManager {
     this.status = 'reconnecting';
     this.reconnectAttempts++;
 
+    const delay = Math.min(this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1), 30000);
+    
     this.reconnectTimer = setTimeout(() => {
       if (this.config) {
         this.connect(this.config, this.callbacks);
       }
-    }, this.reconnectDelay * this.reconnectAttempts);
+    }, delay);
+  }
+
+  /**
+   * Handle automatic reconnection on disconnect
+   */
+  private handleAutoReconnect(): void {
+    if (this.status === 'error' || this.status === 'disconnected') {
+      this.reconnect();
+    }
   }
 }
 

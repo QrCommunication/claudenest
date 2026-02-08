@@ -59,6 +59,7 @@ export const useContextStore = defineStore('context', () => {
 
   /**
    * Fetch project context
+   * @throws {Error} If the fetch operation fails
    */
   async function fetchContext(projectId: string): Promise<ProjectContext> {
     isLoading.value = true;
@@ -68,8 +69,9 @@ export const useContextStore = defineStore('context', () => {
       const response = await api.get<ApiResponse<ProjectContext>>(`/projects/${projectId}/context`);
       projectContext.value = response.data.data;
       return response.data.data;
-    } catch (err: any) {
-      error.value = err.message || 'Failed to fetch context';
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch context';
+      error.value = message;
       throw err;
     } finally {
       isLoading.value = false;
@@ -78,6 +80,7 @@ export const useContextStore = defineStore('context', () => {
 
   /**
    * Update project context
+   * @throws {Error} If the update fails
    */
   async function updateContext(projectId: string, data: UpdateContextForm): Promise<ProjectContext> {
     isLoading.value = true;
@@ -88,8 +91,9 @@ export const useContextStore = defineStore('context', () => {
       const updated = response.data.data;
       projectContext.value = { ...projectContext.value, ...updated };
       return updated;
-    } catch (err: any) {
-      error.value = err.message || 'Failed to update context';
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to update context';
+      error.value = message;
       throw err;
     } finally {
       isLoading.value = false;
@@ -97,7 +101,8 @@ export const useContextStore = defineStore('context', () => {
   }
 
   /**
-   * Query context with RAG search
+   * Query context using RAG (Retrieval-Augmented Generation)
+   * @throws {Error} If the query fails
    */
   async function queryContext(
     projectId: string, 
@@ -119,8 +124,9 @@ export const useContextStore = defineStore('context', () => {
       );
       queryResults.value = response.data.data;
       return response.data.data;
-    } catch (err: any) {
-      error.value = err.message || 'Failed to query context';
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to query context';
+      error.value = message;
       throw err;
     } finally {
       isQuerying.value = false;
@@ -128,7 +134,8 @@ export const useContextStore = defineStore('context', () => {
   }
 
   /**
-   * Fetch context chunks
+   * Fetch context chunks with optional filtering
+   * @throws {Error} If the fetch fails
    */
   async function fetchChunks(
     projectId: string, 
@@ -144,8 +151,9 @@ export const useContextStore = defineStore('context', () => {
       );
       contextChunks.value = response.data.data;
       return response.data.data;
-    } catch (err: any) {
-      error.value = err.message || 'Failed to fetch chunks';
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch chunks';
+      error.value = message;
       throw err;
     } finally {
       isLoading.value = false;
@@ -153,7 +161,8 @@ export const useContextStore = defineStore('context', () => {
   }
 
   /**
-   * Create context chunk
+   * Create a new context chunk
+   * @throws {Error} If creation fails
    */
   async function createChunk(
     projectId: string, 
@@ -175,27 +184,31 @@ export const useContextStore = defineStore('context', () => {
       const chunk = response.data.data;
       contextChunks.value.unshift(chunk);
       return chunk;
-    } catch (err: any) {
-      error.value = err.message || 'Failed to create chunk';
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to create chunk';
+      error.value = message;
       throw err;
     }
   }
 
   /**
-   * Delete context chunk
+   * Delete a context chunk
+   * @throws {Error} If deletion fails
    */
   async function deleteChunk(projectId: string, chunkId: string): Promise<void> {
     try {
       await api.delete(`/projects/${projectId}/context/chunks/${chunkId}`);
       contextChunks.value = contextChunks.value.filter(c => c.id !== chunkId);
-    } catch (err: any) {
-      error.value = err.message || 'Failed to delete chunk';
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to delete chunk';
+      error.value = message;
       throw err;
     }
   }
 
   /**
-   * Summarize context chunks
+   * Summarize context chunks using LLM
+   * @throws {Error} If summarization fails
    */
   async function summarizeContext(
     projectId: string, 
@@ -217,8 +230,9 @@ export const useContextStore = defineStore('context', () => {
       }
       
       return summary;
-    } catch (err: any) {
-      error.value = err.message || 'Failed to summarize context';
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to summarize context';
+      error.value = message;
       throw err;
     } finally {
       isSummarizing.value = false;

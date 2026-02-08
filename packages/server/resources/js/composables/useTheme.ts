@@ -1,4 +1,4 @@
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch, onMounted, onUnmounted } from 'vue';
 
 type Theme = 'dark' | 'light' | 'system';
 
@@ -8,6 +8,9 @@ const theme = ref<Theme>('dark');
 const isDark = ref(true);
 
 export function useTheme() {
+  let mediaQueryListener: ((e: MediaQueryListEvent) => void) | null = null;
+  let mediaQuery: MediaQueryList | null = null;
+
   const applyTheme = (newTheme: Theme) => {
     const root = document.documentElement;
     
@@ -48,13 +51,23 @@ export function useTheme() {
     initTheme();
 
     // Listen for system theme changes
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    mediaQuery.addEventListener('change', (e) => {
+    mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    mediaQueryListener = (e: MediaQueryListEvent) => {
       if (theme.value === 'system') {
         isDark.value = e.matches;
         applyTheme('system');
       }
-    });
+    };
+    mediaQuery.addEventListener('change', mediaQueryListener);
+  });
+
+  onUnmounted(() => {
+    // Cleanup media query listener
+    if (mediaQuery && mediaQueryListener) {
+      mediaQuery.removeEventListener('change', mediaQueryListener);
+      mediaQueryListener = null;
+      mediaQuery = null;
+    }
   });
 
   watch(theme, applyTheme);
