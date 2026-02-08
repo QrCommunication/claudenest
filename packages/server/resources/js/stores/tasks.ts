@@ -77,7 +77,8 @@ export const useTasksStore = defineStore('tasks', () => {
   // ==================== ACTIONS ====================
 
   /**
-   * Fetch tasks for a project
+   * Fetch tasks for a project with optional filtering
+   * @throws {Error} If the fetch operation fails
    */
   async function fetchTasks(
     projectId: string, 
@@ -92,8 +93,9 @@ export const useTasksStore = defineStore('tasks', () => {
       });
       tasks.value = response.data.data;
       return response.data.data;
-    } catch (err: any) {
-      error.value = err.message || 'Failed to fetch tasks';
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch tasks';
+      error.value = message;
       throw err;
     } finally {
       isLoading.value = false;
@@ -101,7 +103,8 @@ export const useTasksStore = defineStore('tasks', () => {
   }
 
   /**
-   * Fetch a single task
+   * Fetch a single task by ID
+   * @throws {Error} If the fetch fails
    */
   async function fetchTask(taskId: string): Promise<SharedTask> {
     isLoading.value = true;
@@ -111,8 +114,9 @@ export const useTasksStore = defineStore('tasks', () => {
       const response = await api.get<ApiResponse<SharedTask>>(`/tasks/${taskId}`);
       selectedTask.value = response.data.data;
       return response.data.data;
-    } catch (err: any) {
-      error.value = err.message || 'Failed to fetch task';
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch task';
+      error.value = message;
       throw err;
     } finally {
       isLoading.value = false;
@@ -121,6 +125,7 @@ export const useTasksStore = defineStore('tasks', () => {
 
   /**
    * Create a new task
+   * @throws {Error} If creation fails
    */
   async function createTask(projectId: string, data: CreateTaskForm): Promise<SharedTask> {
     isCreating.value = true;
@@ -131,8 +136,9 @@ export const useTasksStore = defineStore('tasks', () => {
       const task = response.data.data;
       tasks.value.unshift(task);
       return task;
-    } catch (err: any) {
-      error.value = err.message || 'Failed to create task';
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to create task';
+      error.value = message;
       throw err;
     } finally {
       isCreating.value = false;
@@ -141,6 +147,7 @@ export const useTasksStore = defineStore('tasks', () => {
 
   /**
    * Update a task
+   * @throws {Error} If the update fails
    */
   async function updateTask(taskId: string, data: UpdateTaskForm): Promise<SharedTask> {
     isUpdating.value = true;
@@ -162,8 +169,9 @@ export const useTasksStore = defineStore('tasks', () => {
       }
 
       return updated;
-    } catch (err: any) {
-      error.value = err.message || 'Failed to update task';
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to update task';
+      error.value = message;
       throw err;
     } finally {
       isUpdating.value = false;
@@ -172,6 +180,7 @@ export const useTasksStore = defineStore('tasks', () => {
 
   /**
    * Delete a task
+   * @throws {Error} If deletion fails
    */
   async function deleteTask(taskId: string): Promise<void> {
     isDeleting.value = true;
@@ -184,8 +193,9 @@ export const useTasksStore = defineStore('tasks', () => {
       if (selectedTask.value?.id === taskId) {
         selectedTask.value = null;
       }
-    } catch (err: any) {
-      error.value = err.message || 'Failed to delete task';
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to delete task';
+      error.value = message;
       throw err;
     } finally {
       isDeleting.value = false;
@@ -193,7 +203,8 @@ export const useTasksStore = defineStore('tasks', () => {
   }
 
   /**
-   * Claim a task
+   * Claim a task for an instance (atomic operation)
+   * @throws {Error} If claiming fails
    */
   async function claimTask(taskId: string, instanceId: string): Promise<SharedTask> {
     error.value = null;
@@ -216,14 +227,16 @@ export const useTasksStore = defineStore('tasks', () => {
       }
 
       return updated;
-    } catch (err: any) {
-      error.value = err.message || 'Failed to claim task';
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to claim task';
+      error.value = message;
       throw err;
     }
   }
 
   /**
-   * Release a task
+   * Release a claimed task
+   * @throws {Error} If release fails
    */
   async function releaseTask(taskId: string, reason?: string): Promise<SharedTask> {
     error.value = null;
@@ -246,14 +259,16 @@ export const useTasksStore = defineStore('tasks', () => {
       }
 
       return updated;
-    } catch (err: any) {
-      error.value = err.message || 'Failed to release task';
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to release task';
+      error.value = message;
       throw err;
     }
   }
 
   /**
-   * Complete a task
+   * Complete a task with summary
+   * @throws {Error} If completion fails
    */
   async function completeTask(taskId: string, data: CompleteTaskForm): Promise<SharedTask> {
     error.value = null;
@@ -274,21 +289,24 @@ export const useTasksStore = defineStore('tasks', () => {
       }
 
       return updated;
-    } catch (err: any) {
-      error.value = err.message || 'Failed to complete task';
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to complete task';
+      error.value = message;
       throw err;
     }
   }
 
   /**
-   * Get next available task
+   * Get next available task for claiming
+   * @throws {Error} If fetch fails
    */
   async function getNextAvailable(projectId: string): Promise<SharedTask | null> {
     try {
       const response = await api.get<ApiResponse<SharedTask | null>>(`/projects/${projectId}/tasks/next-available`);
       return response.data.data;
-    } catch (err: any) {
-      error.value = err.message || 'Failed to get next task';
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to get next task';
+      error.value = message;
       throw err;
     }
   }

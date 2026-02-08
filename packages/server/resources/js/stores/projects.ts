@@ -48,6 +48,7 @@ export const useProjectsStore = defineStore('projects', () => {
 
   /**
    * Fetch projects for a machine
+   * @throws {Error} If the fetch operation fails
    */
   async function fetchProjects(machineId: string): Promise<void> {
     isLoading.value = true;
@@ -56,8 +57,9 @@ export const useProjectsStore = defineStore('projects', () => {
     try {
       const response = await api.get<ApiResponse<SharedProject[]>>(`/machines/${machineId}/projects`);
       projects.value = response.data.data;
-    } catch (err: any) {
-      error.value = err.message || 'Failed to fetch projects';
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch projects';
+      error.value = message;
       throw err;
     } finally {
       isLoading.value = false;
@@ -66,6 +68,7 @@ export const useProjectsStore = defineStore('projects', () => {
 
   /**
    * Fetch a single project
+   * @throws {Error} If the fetch operation fails
    */
   async function fetchProject(projectId: string): Promise<SharedProject> {
     isLoading.value = true;
@@ -75,8 +78,9 @@ export const useProjectsStore = defineStore('projects', () => {
       const response = await api.get<ApiResponse<SharedProject>>(`/projects/${projectId}`);
       selectedProject.value = response.data.data;
       return response.data.data;
-    } catch (err: any) {
-      error.value = err.message || 'Failed to fetch project';
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch project';
+      error.value = message;
       throw err;
     } finally {
       isLoading.value = false;
@@ -85,6 +89,7 @@ export const useProjectsStore = defineStore('projects', () => {
 
   /**
    * Create a new project
+   * @throws {Error} If the creation fails
    */
   async function createProject(machineId: string, data: CreateProjectForm): Promise<SharedProject> {
     isCreating.value = true;
@@ -95,8 +100,9 @@ export const useProjectsStore = defineStore('projects', () => {
       const project = response.data.data;
       projects.value.unshift(project);
       return project;
-    } catch (err: any) {
-      error.value = err.message || 'Failed to create project';
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to create project';
+      error.value = message;
       throw err;
     } finally {
       isCreating.value = false;
@@ -105,6 +111,7 @@ export const useProjectsStore = defineStore('projects', () => {
 
   /**
    * Update a project
+   * @throws {Error} If the update fails
    */
   async function updateProject(projectId: string, data: UpdateProjectForm): Promise<SharedProject> {
     isUpdating.value = true;
@@ -126,8 +133,9 @@ export const useProjectsStore = defineStore('projects', () => {
       }
 
       return updated;
-    } catch (err: any) {
-      error.value = err.message || 'Failed to update project';
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to update project';
+      error.value = message;
       throw err;
     } finally {
       isUpdating.value = false;
@@ -136,6 +144,7 @@ export const useProjectsStore = defineStore('projects', () => {
 
   /**
    * Delete a project
+   * @throws {Error} If the deletion fails
    */
   async function deleteProject(projectId: string): Promise<void> {
     isDeleting.value = true;
@@ -148,8 +157,9 @@ export const useProjectsStore = defineStore('projects', () => {
       if (selectedProject.value?.id === projectId) {
         selectedProject.value = null;
       }
-    } catch (err: any) {
-      error.value = err.message || 'Failed to delete project';
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to delete project';
+      error.value = message;
       throw err;
     } finally {
       isDeleting.value = false;
@@ -157,35 +167,40 @@ export const useProjectsStore = defineStore('projects', () => {
   }
 
   /**
-   * Fetch project stats
+   * Fetch project statistics
+   * @throws {Error} If the fetch fails
    */
   async function fetchProjectStats(projectId: string): Promise<ProjectStats> {
     try {
       const response = await api.get<ApiResponse<ProjectStats>>(`/projects/${projectId}/stats`);
       projectStats.value = response.data.data;
       return response.data.data;
-    } catch (err: any) {
-      error.value = err.message || 'Failed to fetch stats';
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch stats';
+      error.value = message;
       throw err;
     }
   }
 
   /**
-   * Fetch project instances
+   * Fetch project instances (active Claude Code instances)
+   * @throws {Error} If the fetch fails
    */
   async function fetchInstances(projectId: string): Promise<ClaudeInstance[]> {
     try {
       const response = await api.get<ApiResponse<ClaudeInstance[]>>(`/projects/${projectId}/instances`);
       instances.value = response.data.data;
       return response.data.data;
-    } catch (err: any) {
-      error.value = err.message || 'Failed to fetch instances';
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch instances';
+      error.value = message;
       throw err;
     }
   }
 
   /**
-   * Fetch activity logs
+   * Fetch activity logs for a project
+   * @throws {Error} If the fetch fails
    */
   async function fetchActivity(projectId: string, limit: number = 50): Promise<ActivityLog[]> {
     try {
@@ -194,14 +209,16 @@ export const useProjectsStore = defineStore('projects', () => {
       });
       activityLogs.value = response.data.data;
       return response.data.data;
-    } catch (err: any) {
-      error.value = err.message || 'Failed to fetch activity';
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch activity';
+      error.value = message;
       throw err;
     }
   }
 
   /**
-   * Broadcast message to project instances
+   * Broadcast message to all instances in a project
+   * @throws {Error} If the broadcast fails
    */
   async function broadcast(projectId: string, message: string, type: string = 'info'): Promise<void> {
     try {
@@ -209,8 +226,9 @@ export const useProjectsStore = defineStore('projects', () => {
         message,
         type,
       });
-    } catch (err: any) {
-      error.value = err.message || 'Failed to broadcast';
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to broadcast';
+      error.value = errorMessage;
       throw err;
     }
   }

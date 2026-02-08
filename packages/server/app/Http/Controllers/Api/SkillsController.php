@@ -17,11 +17,8 @@ class SkillsController extends Controller
      */
     public function index(Request $request, string $machine): JsonResponse
     {
-        $machineModel = $this->getMachine($request, $machine);
-
-        if (!$machineModel) {
-            return $this->errorResponse('SKL_001', 'Machine not found', 404);
-        }
+        $machineModel = Machine::findOrFail($machine);
+        $this->authorize('view', $machineModel);
 
         $perPage = $request->input('per_page', 15);
         $search = $request->input('search');
@@ -78,11 +75,8 @@ class SkillsController extends Controller
      */
     public function show(Request $request, string $machine, string $path): JsonResponse
     {
-        $machineModel = $this->getMachine($request, $machine);
-
-        if (!$machineModel) {
-            return $this->errorResponse('SKL_001', 'Machine not found', 404);
-        }
+        $machineModel = Machine::findOrFail($machine);
+        $this->authorize('view', $machineModel);
 
         $skill = Skill::forMachine($machineModel->id)
             ->byPath($path)
@@ -118,11 +112,8 @@ class SkillsController extends Controller
      */
     public function store(Request $request, string $machine): JsonResponse
     {
-        $machineModel = $this->getMachine($request, $machine);
-
-        if (!$machineModel) {
-            return $this->errorResponse('SKL_001', 'Machine not found', 404);
-        }
+        $machineModel = Machine::findOrFail($machine);
+        $this->authorize('update', $machineModel);
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -167,19 +158,14 @@ class SkillsController extends Controller
      */
     public function update(Request $request, string $machine, string $path): JsonResponse
     {
-        $machineModel = $this->getMachine($request, $machine);
-
-        if (!$machineModel) {
-            return $this->errorResponse('SKL_001', 'Machine not found', 404);
-        }
+        $machineModel = Machine::findOrFail($machine);
+        $this->authorize('update', $machineModel);
 
         $skill = Skill::forMachine($machineModel->id)
             ->byPath($path)
-            ->first();
-
-        if (!$skill) {
-            return $this->errorResponse('SKL_002', 'Skill not found', 404);
-        }
+            ->firstOrFail();
+        
+        $this->authorize('update', $skill);
 
         $validated = $request->validate([
             'enabled' => 'boolean',
@@ -223,19 +209,14 @@ class SkillsController extends Controller
      */
     public function toggle(Request $request, string $machine, string $path): JsonResponse
     {
-        $machineModel = $this->getMachine($request, $machine);
-
-        if (!$machineModel) {
-            return $this->errorResponse('SKL_001', 'Machine not found', 404);
-        }
+        $machineModel = Machine::findOrFail($machine);
+        $this->authorize('update', $machineModel);
 
         $skill = Skill::forMachine($machineModel->id)
             ->byPath($path)
-            ->first();
-
-        if (!$skill) {
-            return $this->errorResponse('SKL_002', 'Skill not found', 404);
-        }
+            ->firstOrFail();
+        
+        $this->authorize('update', $skill);
 
         $skill->toggle();
         $skill->refresh();
@@ -255,19 +236,14 @@ class SkillsController extends Controller
      */
     public function destroy(Request $request, string $machine, string $path): JsonResponse
     {
-        $machineModel = $this->getMachine($request, $machine);
-
-        if (!$machineModel) {
-            return $this->errorResponse('SKL_001', 'Machine not found', 404);
-        }
+        $machineModel = Machine::findOrFail($machine);
+        $this->authorize('update', $machineModel);
 
         $skill = Skill::forMachine($machineModel->id)
             ->byPath($path)
-            ->first();
-
-        if (!$skill) {
-            return $this->errorResponse('SKL_002', 'Skill not found', 404);
-        }
+            ->firstOrFail();
+        
+        $this->authorize('delete', $skill);
 
         $skill->delete();
 
@@ -286,11 +262,8 @@ class SkillsController extends Controller
      */
     public function bulkUpdate(Request $request, string $machine): JsonResponse
     {
-        $machineModel = $this->getMachine($request, $machine);
-
-        if (!$machineModel) {
-            return $this->errorResponse('SKL_001', 'Machine not found', 404);
-        }
+        $machineModel = Machine::findOrFail($machine);
+        $this->authorize('update', $machineModel);
 
         $validated = $request->validate([
             'paths' => 'required|array',

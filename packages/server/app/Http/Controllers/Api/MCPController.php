@@ -17,11 +17,8 @@ class MCPController extends Controller
      */
     public function index(Request $request, string $machine): JsonResponse
     {
-        $machineModel = $this->getMachine($request, $machine);
-
-        if (!$machineModel) {
-            return $this->errorResponse('MCP_001', 'Machine not found', 404);
-        }
+        $machineModel = Machine::findOrFail($machine);
+        $this->authorize('view', $machineModel);
 
         $status = $request->input('status');
         $transport = $request->input('transport');
@@ -65,11 +62,8 @@ class MCPController extends Controller
      */
     public function show(Request $request, string $machine, string $name): JsonResponse
     {
-        $machineModel = $this->getMachine($request, $machine);
-
-        if (!$machineModel) {
-            return $this->errorResponse('MCP_001', 'Machine not found', 404);
-        }
+        $machineModel = Machine::findOrFail($machine);
+        $this->authorize('view', $machineModel);
 
         $server = MCPServer::forMachine($machineModel->id)
             ->where('name', $name)
@@ -94,11 +88,8 @@ class MCPController extends Controller
      */
     public function store(Request $request, string $machine): JsonResponse
     {
-        $machineModel = $this->getMachine($request, $machine);
-
-        if (!$machineModel) {
-            return $this->errorResponse('MCP_001', 'Machine not found', 404);
-        }
+        $machineModel = Machine::findOrFail($machine);
+        $this->authorize('update', $machineModel);
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -149,19 +140,14 @@ class MCPController extends Controller
      */
     public function start(Request $request, string $machine, string $name): JsonResponse
     {
-        $machineModel = $this->getMachine($request, $machine);
-
-        if (!$machineModel) {
-            return $this->errorResponse('MCP_001', 'Machine not found', 404);
-        }
+        $machineModel = Machine::findOrFail($machine);
+        $this->authorize('update', $machineModel);
 
         $server = MCPServer::forMachine($machineModel->id)
             ->where('name', $name)
-            ->first();
-
-        if (!$server) {
-            return $this->errorResponse('MCP_002', 'MCP server not found', 404);
-        }
+            ->firstOrFail();
+        
+        $this->authorize('start', $server);
 
         // Check if already running
         if ($server->is_running) {
@@ -202,19 +188,14 @@ class MCPController extends Controller
      */
     public function stop(Request $request, string $machine, string $name): JsonResponse
     {
-        $machineModel = $this->getMachine($request, $machine);
-
-        if (!$machineModel) {
-            return $this->errorResponse('MCP_001', 'Machine not found', 404);
-        }
+        $machineModel = Machine::findOrFail($machine);
+        $this->authorize('update', $machineModel);
 
         $server = MCPServer::forMachine($machineModel->id)
             ->where('name', $name)
-            ->first();
-
-        if (!$server) {
-            return $this->errorResponse('MCP_002', 'MCP server not found', 404);
-        }
+            ->firstOrFail();
+        
+        $this->authorize('stop', $server);
 
         // Check if already stopped
         if ($server->is_stopped) {
@@ -251,11 +232,8 @@ class MCPController extends Controller
      */
     public function tools(Request $request, string $machine, string $name): JsonResponse
     {
-        $machineModel = $this->getMachine($request, $machine);
-
-        if (!$machineModel) {
-            return $this->errorResponse('MCP_001', 'Machine not found', 404);
-        }
+        $machineModel = Machine::findOrFail($machine);
+        $this->authorize('view', $machineModel);
 
         $server = MCPServer::forMachine($machineModel->id)
             ->where('name', $name)
@@ -287,19 +265,14 @@ class MCPController extends Controller
      */
     public function update(Request $request, string $machine, string $name): JsonResponse
     {
-        $machineModel = $this->getMachine($request, $machine);
-
-        if (!$machineModel) {
-            return $this->errorResponse('MCP_001', 'Machine not found', 404);
-        }
+        $machineModel = Machine::findOrFail($machine);
+        $this->authorize('update', $machineModel);
 
         $server = MCPServer::forMachine($machineModel->id)
             ->where('name', $name)
-            ->first();
-
-        if (!$server) {
-            return $this->errorResponse('MCP_002', 'MCP server not found', 404);
-        }
+            ->firstOrFail();
+        
+        $this->authorize('update', $server);
 
         $validated = $request->validate([
             'display_name' => 'nullable|string|max:255',
@@ -330,19 +303,14 @@ class MCPController extends Controller
      */
     public function destroy(Request $request, string $machine, string $name): JsonResponse
     {
-        $machineModel = $this->getMachine($request, $machine);
-
-        if (!$machineModel) {
-            return $this->errorResponse('MCP_001', 'Machine not found', 404);
-        }
+        $machineModel = Machine::findOrFail($machine);
+        $this->authorize('update', $machineModel);
 
         $server = MCPServer::forMachine($machineModel->id)
             ->where('name', $name)
-            ->first();
-
-        if (!$server) {
-            return $this->errorResponse('MCP_002', 'MCP server not found', 404);
-        }
+            ->firstOrFail();
+        
+        $this->authorize('delete', $server);
 
         // Stop if running
         if ($server->is_running) {
@@ -366,11 +334,8 @@ class MCPController extends Controller
      */
     public function allTools(Request $request, string $machine): JsonResponse
     {
-        $machineModel = $this->getMachine($request, $machine);
-
-        if (!$machineModel) {
-            return $this->errorResponse('MCP_001', 'Machine not found', 404);
-        }
+        $machineModel = Machine::findOrFail($machine);
+        $this->authorize('view', $machineModel);
 
         $servers = MCPServer::forMachine($machineModel->id)
             ->running()
@@ -412,19 +377,14 @@ class MCPController extends Controller
      */
     public function executeTool(Request $request, string $machine, string $name): JsonResponse
     {
-        $machineModel = $this->getMachine($request, $machine);
-
-        if (!$machineModel) {
-            return $this->errorResponse('MCP_001', 'Machine not found', 404);
-        }
+        $machineModel = Machine::findOrFail($machine);
+        $this->authorize('update', $machineModel);
 
         $server = MCPServer::forMachine($machineModel->id)
             ->where('name', $name)
-            ->first();
-
-        if (!$server) {
-            return $this->errorResponse('MCP_002', 'MCP server not found', 404);
-        }
+            ->firstOrFail();
+        
+        $this->authorize('execute', $server);
 
         if (!$server->is_running) {
             return $this->errorResponse('MCP_006', 'MCP server is not running', 400);

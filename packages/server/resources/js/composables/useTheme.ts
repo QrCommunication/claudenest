@@ -1,11 +1,17 @@
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch, onMounted, onUnmounted } from 'vue';
 
 type Theme = 'dark' | 'light' | 'system';
 
 const STORAGE_KEY = 'claudenest-theme';
 
+// Singleton refs shared across all instances of useTheme
 const theme = ref<Theme>('dark');
 const isDark = ref(true);
+
+// Singleton media query listener (one per app)
+let mediaQuery: MediaQueryList | null = null;
+let mediaQueryListener: ((e: MediaQueryListEvent) => void) | null = null;
+let listenerRefCount = 0;
 
 export function useTheme() {
   const applyTheme = (newTheme: Theme) => {
@@ -47,14 +53,30 @@ export function useTheme() {
   onMounted(() => {
     initTheme();
 
-    // Listen for system theme changes
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    mediaQuery.addEventListener('change', (e) => {
-      if (theme.value === 'system') {
-        isDark.value = e.matches;
-        applyTheme('system');
-      }
-    });
+    // Register singleton media query listener (only once globally)
+    if (!mediaQuery) {
+      mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      mediaQueryListener = (e: MediaQueryListEvent) => {
+        if (theme.value === 'system') {
+          isDark.value = e.matches;
+          applyTheme('system');
+        }
+      };
+      mediaQuery.addEventListener('change', mediaQueryListener);
+    }
+    
+    listenerRefCount++;
+  });
+
+  onUnmounted(() => {
+    listenerRefCount--;
+    
+    // Cleanup only when all components using useTheme are unmounted
+    if (listenerRefCount === 0 && mediaQuery && mediaQueryListener) {
+      mediaQuery.removeEventListener('change', mediaQueryListener);
+      mediaQueryListener = null;
+      mediaQuery = null;
+    }
   });
 
   watch(theme, applyTheme);

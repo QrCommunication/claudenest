@@ -43,7 +43,13 @@ class WebSocketManager {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
+  private maxReconnectDelay = 30000;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private autoReconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  
+  // Auto-reconnect delays
+  private readonly AUTO_RECONNECT_DELAY_DISCONNECT = 1000;
+  private readonly AUTO_RECONNECT_DELAY_ERROR = 2000;
 
   /**
    * Initialize Laravel Echo with Reverb configuration
@@ -104,11 +110,15 @@ class WebSocketManager {
     this.echo.connector.pusher.connection.bind('disconnected', () => {
       this.status = 'disconnected';
       this.callbacks.onDisconnect?.();
+      // Auto-reconnect after a delay
+      this.autoReconnectTimer = setTimeout(() => this.handleAutoReconnect(), this.AUTO_RECONNECT_DELAY_DISCONNECT);
     });
 
     this.echo.connector.pusher.connection.bind('error', (error: Error) => {
       this.status = 'error';
       this.callbacks.onError?.(error);
+      // Auto-reconnect on error with slightly longer delay
+      this.autoReconnectTimer = setTimeout(() => this.handleAutoReconnect(), this.AUTO_RECONNECT_DELAY_ERROR);
     });
   }
 
@@ -136,6 +146,11 @@ class WebSocketManager {
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
+    }
+
+    if (this.autoReconnectTimer) {
+      clearTimeout(this.autoReconnectTimer);
+      this.autoReconnectTimer = null;
     }
 
     if (this.echo) {
@@ -176,7 +191,7 @@ class WebSocketManager {
   }
 
   /**
-   * Attempt to reconnect
+   * Attempt to reconnect with exponential backoff
    */
   reconnect(): void {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
@@ -188,11 +203,26 @@ class WebSocketManager {
     this.status = 'reconnecting';
     this.reconnectAttempts++;
 
+    // Exponential backoff with cap at maxReconnectDelay
+    const delay = Math.min(
+      this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1), 
+      this.maxReconnectDelay
+    );
+    
     this.reconnectTimer = setTimeout(() => {
       if (this.config) {
         this.connect(this.config, this.callbacks);
       }
-    }, this.reconnectDelay * this.reconnectAttempts);
+    }, delay);
+  }
+
+  /**
+   * Handle automatic reconnection on disconnect
+   */
+  private handleAutoReconnect(): void {
+    if (this.status === 'error' || this.status === 'disconnected') {
+      this.reconnect();
+    }
   }
 }
 

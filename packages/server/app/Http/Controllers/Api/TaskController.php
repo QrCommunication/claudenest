@@ -15,11 +15,8 @@ class TaskController extends Controller
      */
     public function index(Request $request, string $projectId): JsonResponse
     {
-        $project = $this->getUserProject($request, $projectId);
-
-        if (!$project) {
-            return $this->errorResponse('CTX_001', 'Project not found', 404);
-        }
+        $project = SharedProject::findOrFail($projectId);
+        $this->authorize('view', $project);
 
         $validated = $request->validate([
             'status' => 'string|in:pending,in_progress,blocked,review,done',
@@ -64,11 +61,8 @@ class TaskController extends Controller
      */
     public function store(Request $request, string $projectId): JsonResponse
     {
-        $project = $this->getUserProject($request, $projectId);
-
-        if (!$project) {
-            return $this->errorResponse('CTX_001', 'Project not found', 404);
-        }
+        $project = SharedProject::findOrFail($projectId);
+        $this->authorize('update', $project);
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -110,13 +104,8 @@ class TaskController extends Controller
      */
     public function show(Request $request, string $id): JsonResponse
     {
-        $task = SharedTask::whereHas('project', function ($q) use ($request) {
-            $q->forUser($request->user()->id);
-        })->find($id);
-
-        if (!$task) {
-            return $this->errorResponse('TSK_001', 'Task not found', 404);
-        }
+        $task = SharedTask::with('project')->findOrFail($id);
+        $this->authorize('view', $task);
 
         return response()->json([
             'success' => true,
@@ -133,13 +122,8 @@ class TaskController extends Controller
      */
     public function update(Request $request, string $id): JsonResponse
     {
-        $task = SharedTask::whereHas('project', function ($q) use ($request) {
-            $q->forUser($request->user()->id);
-        })->find($id);
-
-        if (!$task) {
-            return $this->errorResponse('TSK_001', 'Task not found', 404);
-        }
+        $task = SharedTask::with('project')->findOrFail($id);
+        $this->authorize('update', $task);
 
         $validated = $request->validate([
             'title' => 'string|max:255',
@@ -167,13 +151,8 @@ class TaskController extends Controller
      */
     public function destroy(Request $request, string $id): JsonResponse
     {
-        $task = SharedTask::whereHas('project', function ($q) use ($request) {
-            $q->forUser($request->user()->id);
-        })->find($id);
-
-        if (!$task) {
-            return $this->errorResponse('TSK_001', 'Task not found', 404);
-        }
+        $task = SharedTask::with('project')->findOrFail($id);
+        $this->authorize('delete', $task);
 
         // Release any claim before deletion
         if ($task->is_claimed) {
@@ -197,13 +176,8 @@ class TaskController extends Controller
      */
     public function claim(Request $request, string $id): JsonResponse
     {
-        $task = SharedTask::whereHas('project', function ($q) use ($request) {
-            $q->forUser($request->user()->id);
-        })->find($id);
-
-        if (!$task) {
-            return $this->errorResponse('TSK_001', 'Task not found', 404);
-        }
+        $task = SharedTask::with('project')->findOrFail($id);
+        $this->authorize('claim', $task);
 
         $validated = $request->validate([
             'instance_id' => 'required|string',
@@ -241,13 +215,8 @@ class TaskController extends Controller
      */
     public function release(Request $request, string $id): JsonResponse
     {
-        $task = SharedTask::whereHas('project', function ($q) use ($request) {
-            $q->forUser($request->user()->id);
-        })->find($id);
-
-        if (!$task) {
-            return $this->errorResponse('TSK_001', 'Task not found', 404);
-        }
+        $task = SharedTask::with('project')->findOrFail($id);
+        $this->authorize('release', $task);
 
         $validated = $request->validate([
             'reason' => 'nullable|string',
@@ -277,13 +246,8 @@ class TaskController extends Controller
      */
     public function complete(Request $request, string $id): JsonResponse
     {
-        $task = SharedTask::whereHas('project', function ($q) use ($request) {
-            $q->forUser($request->user()->id);
-        })->find($id);
-
-        if (!$task) {
-            return $this->errorResponse('TSK_001', 'Task not found', 404);
-        }
+        $task = SharedTask::with('project')->findOrFail($id);
+        $this->authorize('complete', $task);
 
         $validated = $request->validate([
             'summary' => 'required|string',
@@ -335,11 +299,8 @@ class TaskController extends Controller
      */
     public function nextAvailable(Request $request, string $projectId): JsonResponse
     {
-        $project = $this->getUserProject($request, $projectId);
-
-        if (!$project) {
-            return $this->errorResponse('CTX_001', 'Project not found', 404);
-        }
+        $project = SharedProject::findOrFail($projectId);
+        $this->authorize('view', $project);
 
         $task = SharedTask::getNextAvailable($projectId);
 
