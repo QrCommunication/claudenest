@@ -15,11 +15,8 @@ class FileLockController extends Controller
      */
     public function index(Request $request, string $projectId): JsonResponse
     {
-        $project = $this->getUserProject($request, $projectId);
-
-        if (!$project) {
-            return $this->errorResponse('CTX_001', 'Project not found', 404);
-        }
+        $project = SharedProject::findOrFail($projectId);
+        $this->authorize('view', $project);
 
         $locks = FileLock::getActiveLocks($projectId);
 
@@ -39,11 +36,8 @@ class FileLockController extends Controller
      */
     public function store(Request $request, string $projectId): JsonResponse
     {
-        $project = $this->getUserProject($request, $projectId);
-
-        if (!$project) {
-            return $this->errorResponse('CTX_001', 'Project not found', 404);
-        }
+        $project = SharedProject::findOrFail($projectId);
+        $this->authorize('update', $project);
 
         $validated = $request->validate([
             'path' => 'required|string|max:1024',
@@ -105,11 +99,8 @@ class FileLockController extends Controller
      */
     public function destroy(Request $request, string $projectId): JsonResponse
     {
-        $project = $this->getUserProject($request, $projectId);
-
-        if (!$project) {
-            return $this->errorResponse('CTX_001', 'Project not found', 404);
-        }
+        $project = SharedProject::findOrFail($projectId);
+        $this->authorize('update', $project);
 
         $validated = $request->validate([
             'path' => 'required|string|max:1024',
@@ -144,11 +135,8 @@ class FileLockController extends Controller
      */
     public function forceDestroy(Request $request, string $projectId): JsonResponse
     {
-        $project = $this->getUserProject($request, $projectId);
-
-        if (!$project) {
-            return $this->errorResponse('CTX_001', 'Project not found', 404);
-        }
+        $project = SharedProject::findOrFail($projectId);
+        $this->authorize('forceRelease', [FileLock::class, $project]);
 
         $validated = $request->validate([
             'path' => 'required|string|max:1024',
@@ -178,11 +166,8 @@ class FileLockController extends Controller
      */
     public function check(Request $request, string $projectId): JsonResponse
     {
-        $project = $this->getUserProject($request, $projectId);
-
-        if (!$project) {
-            return $this->errorResponse('CTX_001', 'Project not found', 404);
-        }
+        $project = SharedProject::findOrFail($projectId);
+        $this->authorize('view', $project);
 
         $validated = $request->validate([
             'path' => 'required|string|max:1024',
@@ -209,11 +194,8 @@ class FileLockController extends Controller
      */
     public function extend(Request $request, string $projectId): JsonResponse
     {
-        $project = $this->getUserProject($request, $projectId);
-
-        if (!$project) {
-            return $this->errorResponse('CTX_001', 'Project not found', 404);
-        }
+        $project = SharedProject::findOrFail($projectId);
+        $this->authorize('update', $project);
 
         $validated = $request->validate([
             'path' => 'required|string|max:1024',
@@ -253,11 +235,8 @@ class FileLockController extends Controller
      */
     public function releaseByInstance(Request $request, string $projectId): JsonResponse
     {
-        $project = $this->getUserProject($request, $projectId);
-
-        if (!$project) {
-            return $this->errorResponse('CTX_001', 'Project not found', 404);
-        }
+        $project = SharedProject::findOrFail($projectId);
+        $this->authorize('update', $project);
 
         $validated = $request->validate([
             'instance_id' => 'required|string',
@@ -282,11 +261,8 @@ class FileLockController extends Controller
      */
     public function bulkLock(Request $request, string $projectId): JsonResponse
     {
-        $project = $this->getUserProject($request, $projectId);
-
-        if (!$project) {
-            return $this->errorResponse('CTX_001', 'Project not found', 404);
-        }
+        $project = SharedProject::findOrFail($projectId);
+        $this->authorize('update', $project);
 
         $validated = $request->validate([
             'paths' => 'required|array',

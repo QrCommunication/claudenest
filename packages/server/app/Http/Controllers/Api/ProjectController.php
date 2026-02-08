@@ -15,11 +15,8 @@ class ProjectController extends Controller
      */
     public function index(Request $request, string $machineId): JsonResponse
     {
-        $machine = $request->user()->machines()->find($machineId);
-
-        if (!$machine) {
-            return $this->errorResponse('MCH_001', 'Machine not found', 404);
-        }
+        $machine = Machine::findOrFail($machineId);
+        $this->authorize('view', $machine);
 
         $projects = $machine->sharedProjects()
             ->withCount([
@@ -45,11 +42,8 @@ class ProjectController extends Controller
      */
     public function store(Request $request, string $machineId): JsonResponse
     {
-        $machine = $request->user()->machines()->find($machineId);
-
-        if (!$machine) {
-            return $this->errorResponse('MCH_001', 'Machine not found', 404);
-        }
+        $machine = Machine::findOrFail($machineId);
+        $this->authorize('view', $machine);
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -94,11 +88,8 @@ class ProjectController extends Controller
      */
     public function show(Request $request, string $id): JsonResponse
     {
-        $project = $this->getUserProject($request, $id);
-
-        if (!$project) {
-            return $this->errorResponse('CTX_001', 'Project not found', 404);
-        }
+        $project = SharedProject::findOrFail($id);
+        $this->authorize('view', $project);
 
         return response()->json([
             'success' => true,
@@ -115,11 +106,8 @@ class ProjectController extends Controller
      */
     public function update(Request $request, string $id): JsonResponse
     {
-        $project = $this->getUserProject($request, $id);
-
-        if (!$project) {
-            return $this->errorResponse('CTX_001', 'Project not found', 404);
-        }
+        $project = SharedProject::findOrFail($id);
+        $this->authorize('update', $project);
 
         $validated = $request->validate([
             'name' => 'string|max:255',
@@ -158,11 +146,8 @@ class ProjectController extends Controller
      */
     public function destroy(Request $request, string $id): JsonResponse
     {
-        $project = $this->getUserProject($request, $id);
-
-        if (!$project) {
-            return $this->errorResponse('CTX_001', 'Project not found', 404);
-        }
+        $project = SharedProject::findOrFail($id);
+        $this->authorize('delete', $project);
 
         $project->delete();
 
@@ -181,11 +166,8 @@ class ProjectController extends Controller
      */
     public function instances(Request $request, string $id): JsonResponse
     {
-        $project = $this->getUserProject($request, $id);
-
-        if (!$project) {
-            return $this->errorResponse('CTX_001', 'Project not found', 404);
-        }
+        $project = SharedProject::findOrFail($id);
+        $this->authorize('view', $project);
 
         $instances = $project->claudeInstances()
             ->with('currentTask')
@@ -224,11 +206,8 @@ class ProjectController extends Controller
      */
     public function activity(Request $request, string $id): JsonResponse
     {
-        $project = $this->getUserProject($request, $id);
-
-        if (!$project) {
-            return $this->errorResponse('CTX_001', 'Project not found', 404);
-        }
+        $project = SharedProject::findOrFail($id);
+        $this->authorize('view', $project);
 
         $limit = $request->input('limit', 50);
         $since = $request->input('since');
@@ -265,11 +244,8 @@ class ProjectController extends Controller
      */
     public function broadcast(Request $request, string $id): JsonResponse
     {
-        $project = $this->getUserProject($request, $id);
-
-        if (!$project) {
-            return $this->errorResponse('CTX_001', 'Project not found', 404);
-        }
+        $project = SharedProject::findOrFail($id);
+        $this->authorize('update', $project);
 
         $validated = $request->validate([
             'message' => 'required|string',
@@ -310,11 +286,8 @@ class ProjectController extends Controller
      */
     public function stats(Request $request, string $id): JsonResponse
     {
-        $project = $this->getUserProject($request, $id);
-
-        if (!$project) {
-            return $this->errorResponse('CTX_001', 'Project not found', 404);
-        }
+        $project = SharedProject::findOrFail($id);
+        $this->authorize('view', $project);
 
         $stats = [
             'total_tasks' => $project->tasks()->count(),
