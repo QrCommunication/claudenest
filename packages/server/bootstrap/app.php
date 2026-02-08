@@ -68,14 +68,14 @@ return Application::configure(basePath: dirname(__DIR__))
             }
         });
 
-        // Authorization errors
+        // Authorization errors (403 Forbidden - user authenticated but lacks permission)
         $exceptions->render(function (\Illuminate\Auth\Access\AuthorizationException $e, $request) {
             if ($request->is('api/*')) {
                 return response()->json([
                     'success' => false,
                     'error' => [
                         'code' => 'AUTH_002',
-                        'message' => 'Forbidden', // User authenticated but lacks permission
+                        'message' => 'You do not have permission to access this resource',
                     ],
                     'meta' => [
                         'timestamp' => now()->toIso8601String(),
