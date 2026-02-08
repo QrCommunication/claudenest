@@ -54,10 +54,11 @@ return [
     */
 
     'ollama' => [
-        'url' => env('OLLAMA_URL', 'http://localhost:11434'),
-        'model' => env('OLLAMA_MODEL', 'mistral:7b'),
-        'embedding_model' => env('OLLAMA_EMBEDDING_MODEL', 'qllama/bge-small-en-v1.5'),
+        'url' => env('OLLAMA_HOST', env('OLLAMA_URL', 'http://localhost:11434')),
+        'model' => env('OLLAMA_MODEL', 'mistral'),
+        'embedding_model' => env('OLLAMA_EMBEDDING_MODEL', 'nomic-embed-text'),
         'reranker_model' => env('OLLAMA_RERANKER_MODEL', 'bge-reranker-base'),
+        'embedding_dimensions' => env('EMBEDDING_DIMENSIONS', 768),
     ],
 
 ];
