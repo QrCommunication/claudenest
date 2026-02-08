@@ -43,7 +43,12 @@ class WebSocketManager {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
+  private maxReconnectDelay = 30000;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  
+  // Auto-reconnect delays
+  private readonly AUTO_RECONNECT_DELAY_DISCONNECT = 1000;
+  private readonly AUTO_RECONNECT_DELAY_ERROR = 2000;
 
   /**
    * Initialize Laravel Echo with Reverb configuration
@@ -105,14 +110,14 @@ class WebSocketManager {
       this.status = 'disconnected';
       this.callbacks.onDisconnect?.();
       // Auto-reconnect after a delay
-      setTimeout(() => this.handleAutoReconnect(), 1000);
+      setTimeout(() => this.handleAutoReconnect(), this.AUTO_RECONNECT_DELAY_DISCONNECT);
     });
 
     this.echo.connector.pusher.connection.bind('error', (error: Error) => {
       this.status = 'error';
       this.callbacks.onError?.(error);
-      // Auto-reconnect on error
-      setTimeout(() => this.handleAutoReconnect(), 2000);
+      // Auto-reconnect on error with slightly longer delay
+      setTimeout(() => this.handleAutoReconnect(), this.AUTO_RECONNECT_DELAY_ERROR);
     });
   }
 
@@ -192,7 +197,11 @@ class WebSocketManager {
     this.status = 'reconnecting';
     this.reconnectAttempts++;
 
-    const delay = Math.min(this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1), 30000);
+    // Exponential backoff with cap at maxReconnectDelay
+    const delay = Math.min(
+      this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1), 
+      this.maxReconnectDelay
+    );
     
     this.reconnectTimer = setTimeout(() => {
       if (this.config) {

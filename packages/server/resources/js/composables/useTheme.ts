@@ -4,6 +4,7 @@ type Theme = 'dark' | 'light' | 'system';
 
 const STORAGE_KEY = 'claudenest-theme';
 
+// Singleton refs shared across all instances of useTheme
 const theme = ref<Theme>('dark');
 const isDark = ref(true);
 
