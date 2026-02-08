@@ -100,13 +100,17 @@ const close = () => {
   emit('close');
 };
 
-// Handle escape key with proper cleanup
-watch(() => props.modelValue, (isOpen, wasOpen) => {
-  // Remove previous handler if exists
+const cleanupEscHandler = () => {
   if (escHandlerRef.value) {
     window.removeEventListener('keydown', escHandlerRef.value);
     escHandlerRef.value = null;
   }
+};
+
+// Handle escape key with proper cleanup
+watch(() => props.modelValue, (isOpen) => {
+  // Remove previous handler if exists
+  cleanupEscHandler();
 
   if (isOpen && props.closeOnEsc) {
     const handleEsc = (e: KeyboardEvent) => {
@@ -121,10 +125,7 @@ watch(() => props.modelValue, (isOpen, wasOpen) => {
 
 // Cleanup on unmount
 onUnmounted(() => {
-  if (escHandlerRef.value) {
-    window.removeEventListener('keydown', escHandlerRef.value);
-    escHandlerRef.value = null;
-  }
+  cleanupEscHandler();
 });
 </script>
 

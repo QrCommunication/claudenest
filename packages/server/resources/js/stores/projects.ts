@@ -227,8 +227,8 @@ export const useProjectsStore = defineStore('projects', () => {
         type,
       });
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to broadcast';
-      error.value = message;
+      const errorMessage = err instanceof Error ? err.message : 'Failed to broadcast';
+      error.value = errorMessage;
       throw err;
     }
   }

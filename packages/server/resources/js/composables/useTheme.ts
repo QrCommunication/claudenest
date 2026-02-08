@@ -8,10 +8,12 @@ const STORAGE_KEY = 'claudenest-theme';
 const theme = ref<Theme>('dark');
 const isDark = ref(true);
 
-export function useTheme() {
-  let mediaQueryListener: ((e: MediaQueryListEvent) => void) | null = null;
-  let mediaQuery: MediaQueryList | null = null;
+// Singleton media query listener (one per app)
+let mediaQuery: MediaQueryList | null = null;
+let mediaQueryListener: ((e: MediaQueryListEvent) => void) | null = null;
+let listenerRefCount = 0;
 
+export function useTheme() {
   const applyTheme = (newTheme: Theme) => {
     const root = document.documentElement;
     
@@ -51,20 +53,26 @@ export function useTheme() {
   onMounted(() => {
     initTheme();
 
-    // Listen for system theme changes
-    mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    mediaQueryListener = (e: MediaQueryListEvent) => {
-      if (theme.value === 'system') {
-        isDark.value = e.matches;
-        applyTheme('system');
-      }
-    };
-    mediaQuery.addEventListener('change', mediaQueryListener);
+    // Register singleton media query listener (only once globally)
+    if (!mediaQuery) {
+      mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      mediaQueryListener = (e: MediaQueryListEvent) => {
+        if (theme.value === 'system') {
+          isDark.value = e.matches;
+          applyTheme('system');
+        }
+      };
+      mediaQuery.addEventListener('change', mediaQueryListener);
+    }
+    
+    listenerRefCount++;
   });
 
   onUnmounted(() => {
-    // Cleanup media query listener
-    if (mediaQuery && mediaQueryListener) {
+    listenerRefCount--;
+    
+    // Cleanup only when all components using useTheme are unmounted
+    if (listenerRefCount === 0 && mediaQuery && mediaQueryListener) {
       mediaQuery.removeEventListener('change', mediaQueryListener);
       mediaQueryListener = null;
       mediaQuery = null;

@@ -45,6 +45,7 @@ class WebSocketManager {
   private reconnectDelay = 1000;
   private maxReconnectDelay = 30000;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private autoReconnectTimer: ReturnType<typeof setTimeout> | null = null;
   
   // Auto-reconnect delays
   private readonly AUTO_RECONNECT_DELAY_DISCONNECT = 1000;
@@ -110,14 +111,14 @@ class WebSocketManager {
       this.status = 'disconnected';
       this.callbacks.onDisconnect?.();
       // Auto-reconnect after a delay
-      setTimeout(() => this.handleAutoReconnect(), this.AUTO_RECONNECT_DELAY_DISCONNECT);
+      this.autoReconnectTimer = setTimeout(() => this.handleAutoReconnect(), this.AUTO_RECONNECT_DELAY_DISCONNECT);
     });
 
     this.echo.connector.pusher.connection.bind('error', (error: Error) => {
       this.status = 'error';
       this.callbacks.onError?.(error);
       // Auto-reconnect on error with slightly longer delay
-      setTimeout(() => this.handleAutoReconnect(), this.AUTO_RECONNECT_DELAY_ERROR);
+      this.autoReconnectTimer = setTimeout(() => this.handleAutoReconnect(), this.AUTO_RECONNECT_DELAY_ERROR);
     });
   }
 
@@ -145,6 +146,11 @@ class WebSocketManager {
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
+    }
+
+    if (this.autoReconnectTimer) {
+      clearTimeout(this.autoReconnectTimer);
+      this.autoReconnectTimer = null;
     }
 
     if (this.echo) {

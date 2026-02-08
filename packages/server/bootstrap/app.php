@@ -75,7 +75,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     'success' => false,
                     'error' => [
                         'code' => 'AUTH_002',
-                        'message' => 'Unauthorized',
+                        'message' => 'Forbidden', // User authenticated but lacks permission
                     ],
                     'meta' => [
                         'timestamp' => now()->toIso8601String(),

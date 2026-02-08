@@ -71,21 +71,21 @@ api.interceptors.response.use(
 
     // Retry logic for network errors and specific status codes
     const shouldRetry = 
-      !config._retry &&
       config &&
       (
         !error.response || 
         RETRYABLE_STATUS_CODES.includes(error.response.status)
       );
 
-    if (shouldRetry) {
-      config._retry = (config._retry || 0) + 1;
+    // Initialize retry counter if not exists
+    const retryCount = config._retry || 0;
 
-      if (config._retry <= MAX_RETRIES) {
-        const delay = RETRY_DELAY * Math.pow(2, config._retry - 1);
-        await new Promise(resolve => setTimeout(resolve, delay));
-        return api.request(config);
-      }
+    if (shouldRetry && retryCount < MAX_RETRIES) {
+      config._retry = retryCount + 1;
+
+      const delay = RETRY_DELAY * Math.pow(2, config._retry - 1);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return api.request(config);
     }
 
     return Promise.reject(error);
