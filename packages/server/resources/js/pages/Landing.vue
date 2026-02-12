@@ -228,7 +228,7 @@
       </section>
 
       <!-- ==================== 3. PROBLEM SECTION ==================== -->
-      <section class="py-24 px-4 sm:px-6 lg:px-8 bg-dark-2/50 relative">
+      <section id="problem" class="py-24 px-4 sm:px-6 lg:px-8 bg-dark-2/50 relative">
         <div class="max-w-5xl mx-auto">
           <div class="text-center mb-16">
             <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
@@ -281,7 +281,7 @@
       </section>
 
       <!-- ==================== 4. SOLUTION SECTION ==================== -->
-      <section class="py-24 px-4 sm:px-6 lg:px-8 relative">
+      <section id="solution" class="py-24 px-4 sm:px-6 lg:px-8 relative">
         <div class="max-w-5xl mx-auto">
           <div class="text-center mb-16">
             <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
@@ -547,7 +547,7 @@
           <!-- Desktop comparison table -->
           <div class="hidden lg:block">
             <div class="bg-dark-2/80 backdrop-blur-xl rounded-xl border border-dark-4/50 overflow-hidden">
-              <table class="w-full">
+              <table class="w-full" aria-label="Feature comparison between ClaudeNest and alternatives">
                 <thead>
                   <tr class="border-b border-dark-4/50">
                     <th class="text-left py-4 px-6 text-sm font-medium text-dark-4">{{ $t('landing.comparison.feature_label') }}</th>
@@ -592,7 +592,7 @@
       </section>
 
       <!-- ==================== 8. TESTIMONIALS ==================== -->
-      <section class="py-24 px-4 sm:px-6 lg:px-8 relative">
+      <section id="testimonials" class="py-24 px-4 sm:px-6 lg:px-8 relative">
         <div class="max-w-7xl mx-auto">
           <div class="text-center mb-16">
             <p class="text-sm font-semibold text-brand-purple uppercase tracking-wider mb-3">{{ $t('landing.testimonials.badge') }}</p>
@@ -702,7 +702,7 @@
       </section>
 
       <!-- ==================== 10. FAQ SECTION ==================== -->
-      <section class="py-24 px-4 sm:px-6 lg:px-8 relative">
+      <section id="faq" class="py-24 px-4 sm:px-6 lg:px-8 relative">
         <div class="max-w-3xl mx-auto">
           <div class="text-center mb-16">
             <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
@@ -756,7 +756,7 @@
       </section>
 
       <!-- ==================== 11. OPEN SOURCE SECTION ==================== -->
-      <section class="py-24 px-4 sm:px-6 lg:px-8 bg-dark-2/50">
+      <section id="open-source" class="py-24 px-4 sm:px-6 lg:px-8 bg-dark-2/50">
         <div class="max-w-4xl mx-auto text-center">
           <div class="inline-flex items-center gap-2 px-4 py-2 bg-dark-3/80 rounded-full border border-dark-4/50 mb-6">
             <svg class="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
@@ -785,7 +785,7 @@
       </section>
 
       <!-- ==================== 12. FINAL CTA ==================== -->
-      <section class="py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      <section id="cta" class="py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
         <!-- Background -->
         <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
           <div class="absolute inset-0 bg-gradient-to-br from-brand-purple/10 via-brand-indigo/5 to-brand-cyan/10"></div>
