@@ -1,176 +1,280 @@
 /**
  * PairMachineScreen
- * Screen for pairing a new machine via QR code or token
+ * Screen for pairing a new machine via a 6-character pairing code (XXX-XXX)
+ *
+ * Flow:
+ * 1. User runs `claudenest-agent pair` on their machine
+ * 2. Agent generates a code like ABC-123 and displays it
+ * 3. User enters the code here to complete pairing
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
+  TextInput,
   StyleSheet,
   ScrollView,
   Alert,
-  TouchableOpacity,
+  Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import Clipboard from '@react-native-clipboard/clipboard';
 import { colors, spacing, borderRadius, typography } from '@/theme';
 import { useMachinesStore } from '@/stores/machinesStore';
-import { Button, Input, LoadingSpinner } from '@/components/common';
+import { api } from '@/services/api';
+import { Button, Input } from '@/components/common';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { MachinesStackParamList } from '@/navigation/types';
 
 type Props = NativeStackScreenProps<MachinesStackParamList, 'PairMachine'>;
 
-export const PairMachineScreen: React.FC<Props> = ({ navigation }) => {
-  const [machineName, setMachineName] = useState('');
-  const [token, setToken] = useState('');
-  const [showTokenInput, setShowTokenInput] = useState(false);
-  const { createMachine, isLoading } = useMachinesStore();
+/**
+ * Format a raw alphanumeric string into XXX-XXX pairing code format.
+ * Strips non-alphanumeric characters, uppercases, and inserts dash after 3 chars.
+ */
+function formatPairingCode(raw: string): string {
+  const cleaned = raw.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 6);
+  if (cleaned.length > 3) {
+    return `${cleaned.slice(0, 3)}-${cleaned.slice(3)}`;
+  }
+  return cleaned;
+}
 
-  const handlePasteToken = useCallback(async () => {
-    // In a real app, this would use Clipboard.getString()
-    // For now, we'll just show the input
-    setShowTokenInput(true);
+/**
+ * Extract the raw 6-character code from a formatted pairing code (strip dashes).
+ */
+function extractRawCode(formatted: string): string {
+  return formatted.replace(/-/g, '');
+}
+
+export const PairMachineScreen: React.FC<Props> = ({ navigation }) => {
+  const [pairingCode, setPairingCode] = useState('');
+  const [machineName, setMachineName] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const codeInputRef = useRef<TextInput>(null);
+
+  const rawCode = extractRawCode(pairingCode);
+  const isCodeComplete = rawCode.length === 6;
+
+  const handleCodeChange = useCallback((text: string) => {
+    setPairingCode(formatPairingCode(text));
+  }, []);
+
+  const handlePasteCode = useCallback(async () => {
+    try {
+      const clipboardContent = await Clipboard.getString();
+      if (clipboardContent) {
+        const cleaned = clipboardContent.trim();
+        const formatted = formatPairingCode(cleaned);
+        setPairingCode(formatted);
+      }
+    } catch {
+      Alert.alert('Error', 'Unable to read clipboard content.');
+    }
   }, []);
 
   const handlePair = useCallback(async () => {
-    if (!machineName.trim() || !token.trim()) {
-      Alert.alert('Error', 'Please enter both a name and token');
+    if (!isCodeComplete) {
+      Alert.alert('Invalid Code', 'Please enter a complete 6-character pairing code (e.g. ABC-123).');
       return;
     }
 
+    setIsLoading(true);
+
     try {
-      await createMachine({
-        name: machineName.trim(),
-        token: token.trim(),
-      });
+      const body: Record<string, string> = {};
+      if (machineName.trim()) {
+        body.name = machineName.trim();
+      }
+
+      await api.post(`/pairing/${rawCode}/complete`, body);
+
+      useMachinesStore.getState().fetchMachines();
+
       Alert.alert(
-        'Success',
-        `Machine "${machineName}" has been paired successfully!`,
+        'Machine Paired',
+        machineName.trim()
+          ? `"${machineName.trim()}" has been paired successfully. The agent will connect automatically.`
+          : 'Your machine has been paired successfully. The agent will connect automatically.',
         [{ text: 'OK', onPress: () => navigation.goBack() }]
       );
-    } catch (error) {
-      Alert.alert(
-        'Error',
-        'Failed to pair machine. Please check your token and try again.'
-      );
-    }
-  }, [machineName, token, createMachine, navigation]);
+    } catch (error: unknown) {
+      const apiError = error as { status?: number; message?: string };
 
-  const handleScanQR = useCallback(() => {
-    Alert.alert('QR Scanner', 'QR Code scanning would be implemented here with react-native-qr-code-scanner');
-  }, []);
+      if (apiError.status === 410) {
+        Alert.alert(
+          'Code Expired',
+          'This pairing code has expired. Please run `claudenest-agent pair` again on your machine to generate a new code.'
+        );
+      } else if (apiError.status === 404) {
+        Alert.alert(
+          'Code Not Found',
+          'This pairing code was not found or has already been used. Please check the code and try again.'
+        );
+      } else {
+        Alert.alert(
+          'Pairing Failed',
+          apiError.message || 'An unexpected error occurred. Please try again.'
+        );
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isCodeComplete, rawCode, machineName, navigation]);
 
   return (
-    <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
-      <View style={styles.content}>
+    <KeyboardAvoidingView
+      style={styles.flex}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
         {/* Instructions */}
         <View style={styles.instructions}>
           <Text style={styles.instructionTitle}>
-            How to pair your machine
+            Pair your machine
           </Text>
+
           <View style={styles.step}>
             <View style={styles.stepNumber}>
               <Text style={styles.stepNumberText}>1</Text>
             </View>
             <Text style={styles.stepText}>
-              Install ClaudeNest agent on your machine:{'\n'}
-              <Text style={styles.code}>npm install -g @claude-remote/agent</Text>
+              Install the ClaudeNest agent:{'\n'}
+              <Text style={styles.code}>npm install -g @claudenest/agent</Text>
             </Text>
           </View>
+
           <View style={styles.step}>
             <View style={styles.stepNumber}>
               <Text style={styles.stepNumberText}>2</Text>
             </View>
             <Text style={styles.stepText}>
-              Run the agent and note the pairing token
+              Run the pairing command:{'\n'}
+              <Text style={styles.code}>claudenest-agent pair</Text>
             </Text>
           </View>
+
           <View style={styles.step}>
             <View style={styles.stepNumber}>
               <Text style={styles.stepNumberText}>3</Text>
             </View>
             <Text style={styles.stepText}>
-              Enter the token below to complete pairing
+              Enter the 6-character code displayed in your terminal
             </Text>
           </View>
         </View>
 
-        {/* QR Scan Option */}
-        <TouchableOpacity style={styles.qrButton} onPress={handleScanQR}>
-          <Icon name="qr-code-scanner" size={28} color={colors.primary.purple} />
-          <Text style={styles.qrButtonText}>Scan QR Code</Text>
-        </TouchableOpacity>
-
-        <View style={styles.divider}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>OR</Text>
-          <View style={styles.dividerLine} />
+        {/* Pairing Code Format Visual */}
+        <View style={styles.codeFormatCard}>
+          <Icon name="terminal" size={20} color={colors.text.muted} />
+          <Text style={styles.codeFormatLabel}>Code format</Text>
+          <Text style={styles.codeFormatExample}>ABC-123</Text>
         </View>
 
-        {/* Manual Entry */}
-        <View style={styles.form}>
+        {/* Pairing Code Input */}
+        <View style={styles.codeInputSection}>
+          <Text style={styles.codeInputLabel}>Pairing Code</Text>
+          <View style={styles.codeInputRow}>
+            <View
+              style={[
+                styles.codeInputContainer,
+                isCodeComplete && styles.codeInputContainerValid,
+              ]}
+            >
+              <TextInput
+                ref={codeInputRef}
+                style={styles.codeInput}
+                value={pairingCode}
+                onChangeText={handleCodeChange}
+                placeholder="ABC-123"
+                placeholderTextColor={colors.text.muted}
+                autoCapitalize="characters"
+                autoCorrect={false}
+                maxLength={7}
+                autoFocus
+              />
+              {isCodeComplete && (
+                <Icon
+                  name="check-circle"
+                  size={22}
+                  color={colors.semantic.success}
+                  style={styles.codeCheckIcon}
+                />
+              )}
+            </View>
+            <Button
+              title="Paste"
+              variant="secondary"
+              size="medium"
+              onPress={handlePasteCode}
+              leftIcon={
+                <Icon name="content-paste" size={18} color={colors.text.primary} />
+              }
+              style={styles.pasteButton}
+            />
+          </View>
+        </View>
+
+        {/* Machine Name (optional) */}
+        <View style={styles.nameSection}>
           <Input
-            label="Machine Name"
+            label="Machine Name (optional)"
             placeholder="My MacBook Pro"
             value={machineName}
             onChangeText={setMachineName}
-            leftIcon={<Icon name="computer" size={20} color={colors.text.muted} />}
-          />
-
-          {showTokenInput ? (
-            <Input
-              label="Pairing Token"
-              placeholder="Paste your token here"
-              value={token}
-              onChangeText={setToken}
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-              inputStyle={styles.tokenInput}
-            />
-          ) : (
-            <Button
-              title="Paste Token"
-              onPress={handlePasteToken}
-              variant="secondary"
-              leftIcon={<Icon name="content-paste" size={20} color={colors.text.primary} />}
-            />
-          )}
-
-          <Button
-            title="Pair Machine"
-            onPress={handlePair}
-            loading={isLoading}
-            disabled={!machineName.trim() || !token.trim() || isLoading}
-            size="large"
-            style={styles.pairButton}
+            leftIcon={
+              <Icon name="computer" size={20} color={colors.text.muted} />
+            }
+            helper="Leave empty to use the hostname detected by the agent"
           />
         </View>
 
+        {/* Pair Button */}
+        <Button
+          title="Complete Pairing"
+          onPress={handlePair}
+          loading={isLoading}
+          disabled={!isCodeComplete || isLoading}
+          size="large"
+          style={styles.pairButton}
+        />
+
+        {/* Hint */}
         <Text style={styles.hint}>
-          The pairing token can be found in your agent logs or generated using{'\n'}
-          <Text style={styles.codeHint}>claude-remote --pair</Text>
+          The pairing code expires after 10 minutes.{'\n'}
+          If it has expired, run{' '}
+          <Text style={styles.codeHint}>claudenest-agent pair</Text>
+          {' '}again.
         </Text>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: colors.background.dark2,
   },
-  content: {
+  scrollContent: {
     padding: spacing.xl,
+    paddingBottom: spacing['2xl'],
   },
   instructions: {
     marginBottom: spacing.xl,
   },
   instructionTitle: {
     fontSize: typography.size.lg,
-    fontWeight: '600',
+    fontWeight: typography.weight.semiBold,
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
@@ -191,7 +295,7 @@ const styles = StyleSheet.create({
   },
   stepNumberText: {
     fontSize: typography.size.sm,
-    fontWeight: '600',
+    fontWeight: typography.weight.semiBold,
     color: colors.text.primary,
   },
   stepText: {
@@ -205,45 +309,76 @@ const styles = StyleSheet.create({
     color: colors.primary.purple,
     fontSize: typography.size.sm,
   },
-  qrButton: {
+  codeFormatCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     backgroundColor: colors.background.card,
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.xl,
     borderWidth: 1,
-    borderColor: colors.primary.purple + '30',
-    borderStyle: 'dashed',
+    borderColor: colors.border.subtle,
     gap: spacing.sm,
   },
-  qrButtonText: {
-    fontSize: typography.size.base,
-    fontWeight: '600',
-    color: colors.primary.purple,
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: spacing.lg,
-  },
-  dividerLine: {
+  codeFormatLabel: {
     flex: 1,
-    height: 1,
-    backgroundColor: colors.background.dark4,
-  },
-  dividerText: {
-    marginHorizontal: spacing.md,
     fontSize: typography.size.sm,
     color: colors.text.muted,
   },
-  form: {
-    gap: spacing.md,
-  },
-  tokenInput: {
-    minHeight: 100,
+  codeFormatExample: {
+    fontSize: typography.size.lg,
     fontFamily: typography.fontFamily.mono,
+    fontWeight: typography.weight.bold,
+    color: colors.text.secondary,
+    letterSpacing: 2,
+  },
+  codeInputSection: {
+    marginBottom: spacing.lg,
+  },
+  codeInputLabel: {
     fontSize: typography.size.sm,
+    fontWeight: typography.weight.medium,
+    color: colors.text.secondary,
+    marginBottom: spacing.xs,
+  },
+  codeInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  codeInputContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.background.dark3,
+    borderRadius: borderRadius.md,
+    borderWidth: 1.5,
+    borderColor: colors.border.default,
+    paddingHorizontal: spacing.md,
+  },
+  codeInputContainerValid: {
+    borderColor: colors.semantic.success,
+  },
+  codeInput: {
+    flex: 1,
+    fontSize: typography.size['2xl'],
+    fontFamily: typography.fontFamily.mono,
+    fontWeight: typography.weight.bold,
+    color: colors.text.primary,
+    letterSpacing: 4,
+    textAlign: 'center',
+    paddingVertical: spacing.md,
+  },
+  codeCheckIcon: {
+    marginLeft: spacing.xs,
+  },
+  pasteButton: {
+    alignSelf: 'stretch',
+    justifyContent: 'center',
+  },
+  nameSection: {
+    marginBottom: spacing.sm,
   },
   pairButton: {
     marginTop: spacing.md,

@@ -16,6 +16,8 @@ Route::prefix('auth')->group(function () {
     Route::post('/register', [Api\AuthController::class, 'register']);
     Route::post('/forgot-password', [Api\AuthController::class, 'forgotPassword']);
     Route::post('/reset-password', [Api\AuthController::class, 'resetPassword']);
+    Route::post('/magic-link', [Api\AuthController::class, 'magicLink']);
+    Route::post('/magic-link/verify', [Api\AuthController::class, 'magicLinkVerify']);
 });
 
 // Public OAuth routes
@@ -23,6 +25,14 @@ Route::get('/auth/{provider}/redirect', [Api\AuthController::class, 'redirect'])
     ->where('provider', 'google|github');
 Route::get('/auth/{provider}/callback', [Api\AuthController::class, 'callback'])
     ->where('provider', 'google|github');
+
+// ==================== PAIRING (PUBLIC) ====================
+// Agent initiates pairing by registering its code, then polls for completion.
+// Rate-limited to prevent abuse on unauthenticated endpoints.
+Route::middleware('throttle:10,1')->group(function () {
+    Route::post('/pairing/initiate', [Api\PairingController::class, 'initiate']);
+    Route::get('/pairing/{code}', [Api\PairingController::class, 'poll']);
+});
 
 Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
 
@@ -35,6 +45,9 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
         Route::post('/tokens', [Api\AuthController::class, 'createToken']);
         Route::delete('/tokens/{id}', [Api\AuthController::class, 'revokeToken']);
     });
+
+    // ==================== PAIRING (AUTHENTICATED) ====================
+    Route::post('/pairing/{code}/complete', [Api\PairingController::class, 'complete']);
 
     // ==================== MACHINES ====================
     Route::apiResource('machines', Api\MachineController::class);

@@ -150,6 +150,14 @@ export const machinesApi = {
     api.get<string[]>(`/machines/${id}/commands`),
 };
 
+export const pairingApi = {
+  complete: (code: string, name?: string) =>
+    api.post<{ machine: import('@/types').Machine; pairing: { code: string; completed_at: string } }>(
+      `/pairing/${code}/complete`,
+      name ? { name } : undefined
+    ),
+};
+
 export const sessionsApi = {
   list: (machineId: string) =>
     api.get<import('@/types').Session[]>(`/machines/${machineId}/sessions`),
