@@ -33,6 +33,18 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=jetbrains-mono:400,500,600,700|inter:400,500,600,700&display=swap" rel="stylesheet" />
 
+    <!-- Reverb WebSocket Config -->
+    <script>
+        window.ClaudeNest = {
+            reverb: {
+                key: @json(env('REVERB_APP_KEY', '')),
+                host: @json(env('REVERB_CLIENT_HOST', env('REVERB_HOST', 'localhost'))),
+                port: parseInt(@json(env('REVERB_CLIENT_PORT', env('REVERB_PORT', '8080')))),
+                scheme: @json(env('REVERB_CLIENT_SCHEME', env('REVERB_SCHEME', 'https'))),
+            }
+        };
+    </script>
+
     <!-- Vite -->
     @vite(['resources/css/app.css', 'resources/js/app.ts'])
 </head>
