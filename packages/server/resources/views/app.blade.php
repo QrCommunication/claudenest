@@ -37,10 +37,10 @@
     <script>
         window.ClaudeNest = {
             reverb: {
-                key: @json(env('REVERB_APP_KEY', '')),
-                host: @json(env('REVERB_CLIENT_HOST', env('REVERB_HOST', 'localhost'))),
-                port: parseInt(@json(env('REVERB_CLIENT_PORT', env('REVERB_PORT', '8080')))),
-                scheme: @json(env('REVERB_CLIENT_SCHEME', env('REVERB_SCHEME', 'https'))),
+                key: @json(config('claudenest.reverb_client.key')),
+                host: @json(config('claudenest.reverb_client.host')),
+                port: @json(config('claudenest.reverb_client.port')),
+                scheme: @json(config('claudenest.reverb_client.scheme')),
             }
         };
     </script>

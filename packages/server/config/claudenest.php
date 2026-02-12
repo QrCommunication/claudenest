@@ -24,6 +24,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Reverb Client Configuration (for frontend WebSocket connection)
+    |--------------------------------------------------------------------------
+    | These override the server-side REVERB_* values for the browser client.
+    | Useful when Reverb runs behind a reverse proxy (Caddy/Nginx).
+    */
+
+    'reverb_client' => [
+        'key' => env('REVERB_APP_KEY', ''),
+        'host' => env('REVERB_CLIENT_HOST', env('REVERB_HOST', 'localhost')),
+        'port' => (int) env('REVERB_CLIENT_PORT', env('REVERB_PORT', 8080)),
+        'scheme' => env('REVERB_CLIENT_SCHEME', env('REVERB_SCHEME', 'https')),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Session Configuration
     |--------------------------------------------------------------------------
     */
