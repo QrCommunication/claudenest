@@ -43,7 +43,7 @@
     <meta name="twitter:description" content="ClaudeNest - Remote orchestration platform for Claude Code. Run multiple AI agents simultaneously with shared context, file locking & real-time sync.">
     <meta name="twitter:image" content="{{ config('app.url') }}/twitter-card.svg">
 
-    <!-- Fonts: preconnect + preload (actual loading via @import in app.css) -->
+    <!-- Fonts: preconnect + preload (actual loading via CSS import in app.css) -->
     <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
     <link rel="dns-prefetch" href="https://fonts.bunny.net">
     <link rel="preload" href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" as="style">
