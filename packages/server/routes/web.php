@@ -10,9 +10,9 @@ use Illuminate\Support\Facades\Route;
 | These routes serve the Vue.js SPA for all non-API routes.
 */
 
-// Landing page (public)
+// Landing page (public) - serves Vue SPA
 Route::get('/', function () {
-    return view('welcome');
+    return view('app');
 });
 
 // API info endpoint (for health checks)
