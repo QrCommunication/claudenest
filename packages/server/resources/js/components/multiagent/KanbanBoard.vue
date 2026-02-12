@@ -190,19 +190,19 @@ function onDrop(columnId: TaskStatus, event: DragEvent) {
 }
 
 .column-indicator.bg-gray-500 {
-  @apply bg-gray-500;
+  background-color: #6b7280;
 }
 
 .column-indicator.bg-brand-purple {
-  @apply bg-brand-purple;
+  background-color: #a855f7;
 }
 
 .column-indicator.bg-brand-cyan {
-  @apply bg-brand-cyan;
+  background-color: #22d3ee;
 }
 
 .column-indicator.bg-green-500 {
-  @apply bg-green-500;
+  background-color: #22c55e;
 }
 
 .column-name {
