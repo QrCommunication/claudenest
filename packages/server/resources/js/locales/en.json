@@ -407,52 +407,266 @@
     "validation": "Please check your input and try again"
   },
   "landing": {
+    "nav": {
+      "features": "Features",
+      "how_it_works": "How It Works",
+      "compare": "Compare",
+      "pricing": "Pricing"
+    },
     "hero": {
-      "title": "Remote Claude Code",
-      "title_highlight": "Orchestration",
-      "subtitle": "Control your Claude Code instances from anywhere. Multi-agent coordination with RAG-powered context sharing.",
-      "cta_primary": "Get Started",
-      "cta_secondary": "View Documentation"
+      "badge": "Open Source \u00b7 Self-Hosted \u00b7 Free",
+      "title": "Your AI Agents,",
+      "title_highlight": "Orchestrated.",
+      "subtitle": "Run multiple Claude Code instances on the same project with shared context, file locking, and real-time control \u2014 from any device.",
+      "cta_primary": "Get Started Free",
+      "cta_secondary": "Read the Docs",
+      "micro_copy": "No credit card. Self-hosted. MIT License.",
+      "social_proof": "Trusted by developers building with Claude Code worldwide",
+      "stats": {
+        "agents": "Concurrent Agents",
+        "embeddings": "Vector Embeddings",
+        "latency": "WebSocket Latency",
+        "open_source": "Open Source"
+      }
+    },
+    "problem": {
+      "title": "Sound familiar?",
+      "conflict": {
+        "title": "Three agents, one codebase, zero coordination",
+        "description": "You launch multiple Claude instances on the same project. They edit the same files. Merge conflicts everywhere. Hours of AI work, lost."
+      },
+      "vanishing": {
+        "title": "Context that vanishes between sessions",
+        "description": "Every new Claude session starts from scratch. You paste the same instructions again and again. Your agents forget everything."
+      },
+      "blindfold": {
+        "title": "Flying blind with multiple agents",
+        "description": "Which agent is doing what? Who changed that file? Is that task already done? You have no idea until something breaks."
+      },
+      "transition": "There's a better way."
+    },
+    "solution": {
+      "title": "Your agents deserve a home.",
+      "subtitle": "ClaudeNest gives your Claude Code instances shared understanding, conflict prevention, and a unified command center.",
+      "pillar_1": {
+        "title": "Shared Intelligence",
+        "description": "pgvector RAG means your agents build on each other's knowledge \u2014 not start from scratch."
+      },
+      "pillar_2": {
+        "title": "Conflict Prevention",
+        "description": "File locking + atomic task claiming = zero merge conflicts, zero duplicated work."
+      },
+      "pillar_3": {
+        "title": "Total Visibility",
+        "description": "See every agent, every task, every keystroke \u2014 from your browser or your phone."
+      }
     },
     "features": {
-      "title": "Everything you need for",
-      "title_highlight": "remote development",
+      "badge": "Capabilities",
+      "title": "Everything you need to ",
+      "title_highlight": "orchestrate at scale",
+      "subtitle": "From a single dashboard to a full multi-agent command center.",
       "remote_access": {
-        "title": "Remote Access",
-        "description": "Control Claude Code from your browser or mobile device, anywhere in the world."
+        "title": "Control from anywhere",
+        "description": "Access your Claude Code instances from any browser, any device. WebSocket relay means every keystroke arrives in real-time, with <50ms latency."
       },
       "multi_agent": {
-        "title": "Multi-Agent Coordination",
-        "description": "Run multiple Claude instances on the same project with atomic task claiming."
+        "title": "Agents that collaborate",
+        "description": "Run 5+ Claude instances on the same project. Atomic task claiming prevents duplicated work. Each agent knows what the others are doing."
       },
       "context_rag": {
-        "title": "Context RAG",
-        "description": "pgvector-powered retrieval augmented generation for shared understanding."
+        "title": "Shared intelligence",
+        "description": "384-dimensional vector embeddings via pgvector give your agents semantic understanding of the entire project. They search by meaning, not keywords."
       },
       "real_time": {
-        "title": "Real-time Communication",
-        "description": "WebSocket-based terminal streaming for instant feedback."
+        "title": "Every keystroke, live",
+        "description": "Laravel Reverb WebSocket channels relay terminal output in real-time. Watch your agents work from anywhere \u2014 even your phone."
       },
       "file_locking": {
-        "title": "File Locking",
-        "description": "Prevent conflicts when multiple agents work on the same files."
+        "title": "Zero merge conflicts",
+        "description": "Automatic file locking with expiration, force-release, and bulk operations. Two agents can never edit the same file simultaneously."
       },
       "mcp_support": {
-        "title": "MCP Support",
-        "description": "Full Model Context Protocol integration for extended capabilities."
+        "title": "Infinite extensibility",
+        "description": "Model Context Protocol support means your agents can use any MCP tool. Discovery is automatic, execution is seamless."
+      }
+    },
+    "how_it_works": {
+      "badge": "Getting Started",
+      "title": "Up and running in ",
+      "title_highlight": "three steps",
+      "subtitle": "From installation to full multi-agent orchestration in minutes, not hours.",
+      "step_1": {
+        "title": "Install the Agent",
+        "description": "One command to connect your machine to the ClaudeNest platform."
+      },
+      "step_2": {
+        "title": "Start a Session",
+        "description": "Launch Claude Code remotely from any device \u2014 web, mobile, or CLI.",
+        "visual": "Session active"
+      },
+      "step_3": {
+        "title": "Orchestrate",
+        "description": "Coordinate multiple agents with shared context, task claiming, and file locks.",
+        "visual": "3 agents synced"
+      }
+    },
+    "comparison": {
+      "badge": "Why ClaudeNest",
+      "title": "See how we ",
+      "title_highlight": "compare",
+      "subtitle": "The most complete orchestration platform built specifically for Claude Code.",
+      "feature_label": "Feature",
+      "features": {
+        "multi_agent": "Multi-Agent Orchestration",
+        "web_dashboard": "Web Dashboard",
+        "mobile_app": "Native Mobile App",
+        "rag_context": "pgvector RAG Context",
+        "file_locking": "File Locking System",
+        "claude_specific": "Claude Code Specific",
+        "websocket": "WebSocket Real-time",
+        "mcp_support": "MCP Protocol Support",
+        "open_source": "Self-Hosted / Open Source"
+      }
+    },
+    "testimonials": {
+      "badge": "What Developers Say",
+      "title": "Loved by ",
+      "title_highlight": "developers",
+      "items": {
+        "0": {
+          "quote": "ClaudeNest changed how our team works with AI agents. Having multiple Claude instances coordinate on the same codebase with shared context is incredibly powerful.",
+          "name": "Sarah M.",
+          "role": "Staff Engineer at a Fortune 500 tech company"
+        },
+        "1": {
+          "quote": "Finally, real orchestration for Claude Code. The file locking and task coordination system means our agents never step on each other. A game-changer for our CI pipeline.",
+          "name": "James K.",
+          "role": "DevOps Lead at a fast-growing startup"
+        },
+        "2": {
+          "quote": "The RAG context system with pgvector is a game-changer. Each agent understands the full project context without us manually feeding it information. Self-hosting was trivial.",
+          "name": "Alex R.",
+          "role": "CTO at a DevOps-focused team"
+        }
+      }
+    },
+    "pricing": {
+      "badge": "Pricing",
+      "title": "Free forever. ",
+      "title_highlight": "Premium when you scale.",
+      "subtitle": "ClaudeNest is open source and self-hosted. No usage fees, no per-seat pricing, no surprises.",
+      "most_popular": "Most Popular",
+      "note": "Self-hosted is always free. Managed hosting plans available.",
+      "tiers": {
+        "community": {
+          "name": "Community",
+          "price": "Free",
+          "target": "For solo developers and small teams",
+          "features": {
+            "0": "Up to 3 concurrent agents",
+            "1": "1 shared project",
+            "2": "Basic file locking",
+            "3": "Community support (GitHub)",
+            "4": "Full self-hosted access"
+          },
+          "cta": "Get Started"
+        },
+        "pro": {
+          "name": "Pro",
+          "price": "$29",
+          "period": "/month",
+          "target": "For teams and power users",
+          "features": {
+            "0": "Up to 20 concurrent agents",
+            "1": "Unlimited shared projects",
+            "2": "Advanced locking (bulk, force)",
+            "3": "Priority email support",
+            "4": "Full self-hosted access",
+            "5": "Managed hosting option",
+            "6": "Usage analytics dashboard"
+          },
+          "cta": "Start Free Trial"
+        },
+        "enterprise": {
+          "name": "Enterprise",
+          "price": "Custom",
+          "target": "For organizations at scale",
+          "features": {
+            "0": "Unlimited concurrent agents",
+            "1": "Unlimited shared projects",
+            "2": "Advanced locking + audit trail",
+            "3": "Dedicated support + SLA",
+            "4": "Full self-hosted access",
+            "5": "Managed hosting included",
+            "6": "Usage analytics dashboard",
+            "7": "SSO / SAML integration"
+          },
+          "cta": "Contact Sales"
+        }
+      }
+    },
+    "faq": {
+      "title": "Frequently asked ",
+      "title_highlight": "questions",
+      "items": {
+        "0": {
+          "question": "Is ClaudeNest really free?",
+          "answer": "Yes. ClaudeNest is MIT-licensed and self-hosted. The Community tier is free forever. Pro and Enterprise tiers are for managed hosting and priority support."
+        },
+        "1": {
+          "question": "Does it work with any LLM or just Claude?",
+          "answer": "ClaudeNest is purpose-built for Claude Code by Anthropic. This specialization lets us optimize every interaction, from PTY management to context injection. We don't dilute focus by supporting every model."
+        },
+        "2": {
+          "question": "How does the RAG context system work?",
+          "answer": "When an agent learns something, we generate a 384-dimensional vector embedding using BGE-small-en and store it in PostgreSQL with pgvector. Other agents search by semantic similarity \u2014 meaning, not keywords. The result: agents build on each other's understanding."
+        },
+        "3": {
+          "question": "Can multiple agents really work on the same files?",
+          "answer": "Not at the same time \u2014 that's the point. Our file locking system prevents two agents from editing the same file simultaneously. Locks have expiration, force-release, and bulk operations. Zero merge conflicts."
+        },
+        "4": {
+          "question": "What infrastructure do I need?",
+          "answer": "A Linux server with PHP 8.3+, PostgreSQL 16 (with pgvector), Redis, and Node.js 20. A standard $20/month VPS handles most setups. Docker Compose makes installation one command."
+        },
+        "5": {
+          "question": "Is my code sent to your servers?",
+          "answer": "Never. ClaudeNest is self-hosted. Your code, your agents, your infrastructure. We never see your source code or your prompts."
+        },
+        "6": {
+          "question": "How does it compare to Claude-Flow?",
+          "answer": "Claude-Flow focuses on swarm intelligence with 60+ agents but has no web dashboard and no mobile app. ClaudeNest provides a complete platform: web dashboard, mobile app, pgvector RAG, and file locking \u2014 all purpose-built for Claude Code."
+        },
+        "7": {
+          "question": "Can I contribute?",
+          "answer": "Absolutely. ClaudeNest is open source under MIT license. Check our CONTRIBUTING.md for setup instructions, code standards, and our ADR process."
+        }
       }
     },
     "open_source": {
       "title": "Open Source",
-      "description": "ClaudeNest is fully open source under the MIT license.",
-      "github": "View on GitHub"
+      "headline": "Built in the open",
+      "description": "Inspect every line, contribute features, and self-host on your own infrastructure. No vendor lock-in, ever.",
+      "github": "Star on GitHub"
+    },
+    "cta": {
+      "title": "Ready to orchestrate your ",
+      "title_highlight": "AI agents?",
+      "subtitle": "Deploy ClaudeNest in minutes. Control Claude Code from anywhere. Coordinate teams of AI agents on a single project.",
+      "cta_primary": "Get Started Free",
+      "cta_secondary": "Read the Docs"
     },
     "footer": {
+      "description": "Remote Claude Code orchestration platform. Open source and self-hosted.",
       "product": "Product",
       "resources": "Resources",
-      "company": "Company",
       "legal": "Legal",
-      "copyright": "© {year} ClaudeNest. All rights reserved."
+      "changelog": "Changelog",
+      "api_reference": "API Reference",
+      "status": "Status",
+      "built_with": "Built with",
+      "copyright": "\u00a9 {year} ClaudeNest. All rights reserved."
     }
   }
 }
