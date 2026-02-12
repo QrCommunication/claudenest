@@ -25,7 +25,7 @@ export function createConfigHandlers(context: HandlerContext) {
    * Handle skills:list
    */
   async function handleListSkills(): Promise<void> {
-    logger.debug('Handling skills:list');
+    logger.debug({}, 'Handling skills:list');
 
     try {
       const skills = skillsDiscovery.getAllSkills();
@@ -41,7 +41,7 @@ export function createConfigHandlers(context: HandlerContext) {
         })),
       });
     } catch (error) {
-      logger.error('Failed to list skills', { error });
+      logger.error({ err: error }, 'Failed to list skills');
       wsClient.send('error', {
         originalType: 'skills:list',
         message: error instanceof Error ? error.message : 'Unknown error',
@@ -53,7 +53,7 @@ export function createConfigHandlers(context: HandlerContext) {
    * Handle skills:refresh
    */
   async function handleRefreshSkills(): Promise<void> {
-    logger.debug('Handling skills:refresh');
+    logger.debug({}, 'Handling skills:refresh');
 
     try {
       const skills = await skillsDiscovery.refresh();
@@ -69,7 +69,7 @@ export function createConfigHandlers(context: HandlerContext) {
         })),
       });
     } catch (error) {
-      logger.error('Failed to refresh skills', { error });
+      logger.error({ err: error }, 'Failed to refresh skills');
       wsClient.send('error', {
         originalType: 'skills:refresh',
         message: error instanceof Error ? error.message : 'Unknown error',
@@ -81,7 +81,7 @@ export function createConfigHandlers(context: HandlerContext) {
    * Handle skills:get
    */
   async function handleGetSkill(payload: { path: string }): Promise<void> {
-    logger.debug('Handling skills:get', { path: payload.path });
+    logger.debug({ path: payload.path }, 'Handling skills:get');
 
     try {
       const skill = skillsDiscovery.getSkill(payload.path);
@@ -109,7 +109,7 @@ export function createConfigHandlers(context: HandlerContext) {
         content,
       });
     } catch (error) {
-      logger.error('Failed to get skill', { error });
+      logger.error({ err: error }, 'Failed to get skill');
       wsClient.send('error', {
         originalType: 'skills:get',
         message: error instanceof Error ? error.message : 'Unknown error',
@@ -121,7 +121,7 @@ export function createConfigHandlers(context: HandlerContext) {
    * Handle mcp:list
    */
   function handleListMCP(): void {
-    logger.debug('Handling mcp:list');
+    logger.debug({}, 'Handling mcp:list');
 
     try {
       const servers = mcpManager.getAllServers();
@@ -138,7 +138,7 @@ export function createConfigHandlers(context: HandlerContext) {
         })),
       });
     } catch (error) {
-      logger.error('Failed to list MCP servers', { error });
+      logger.error({ err: error }, 'Failed to list MCP servers');
       wsClient.send('error', {
         originalType: 'mcp:list',
         message: error instanceof Error ? error.message : 'Unknown error',
@@ -150,7 +150,7 @@ export function createConfigHandlers(context: HandlerContext) {
    * Handle mcp:start
    */
   async function handleStartMCP(payload: { name: string }): Promise<void> {
-    logger.debug('Handling mcp:start', { name: payload.name });
+    logger.debug({ name: payload.name }, 'Handling mcp:start');
 
     try {
       const server = await mcpManager.startServer(payload.name);
@@ -161,7 +161,7 @@ export function createConfigHandlers(context: HandlerContext) {
         tools: server.tools?.map(t => t.name),
       });
     } catch (error) {
-      logger.error('Failed to start MCP server', { error });
+      logger.error({ err: error }, 'Failed to start MCP server');
       wsClient.send('error', {
         originalType: 'mcp:start',
         name: payload.name,
@@ -174,7 +174,7 @@ export function createConfigHandlers(context: HandlerContext) {
    * Handle mcp:stop
    */
   async function handleStopMCP(payload: { name: string }): Promise<void> {
-    logger.debug('Handling mcp:stop', { name: payload.name });
+    logger.debug({ name: payload.name }, 'Handling mcp:stop');
 
     try {
       await mcpManager.stopServer(payload.name);
@@ -184,7 +184,7 @@ export function createConfigHandlers(context: HandlerContext) {
         status: 'stopped',
       });
     } catch (error) {
-      logger.error('Failed to stop MCP server', { error });
+      logger.error({ err: error }, 'Failed to stop MCP server');
       wsClient.send('error', {
         originalType: 'mcp:stop',
         name: payload.name,
@@ -197,7 +197,7 @@ export function createConfigHandlers(context: HandlerContext) {
    * Handle mcp:restart
    */
   async function handleRestartMCP(payload: { name: string }): Promise<void> {
-    logger.debug('Handling mcp:restart', { name: payload.name });
+    logger.debug({ name: payload.name }, 'Handling mcp:restart');
 
     try {
       const server = await mcpManager.restartServer(payload.name);
@@ -208,7 +208,7 @@ export function createConfigHandlers(context: HandlerContext) {
         tools: server.tools?.map(t => t.name),
       });
     } catch (error) {
-      logger.error('Failed to restart MCP server', { error });
+      logger.error({ err: error }, 'Failed to restart MCP server');
       wsClient.send('error', {
         originalType: 'mcp:restart',
         name: payload.name,
@@ -220,15 +220,15 @@ export function createConfigHandlers(context: HandlerContext) {
   /**
    * Handle mcp:call_tool
    */
-  async function handleCallMCPTool(payload: { 
+  async function handleCallMCPTool(payload: {
     server: string;
     tool: string;
     args: Record<string, unknown>;
   }): Promise<void> {
-    logger.debug('Handling mcp:call_tool', { 
-      server: payload.server, 
-      tool: payload.tool 
-    });
+    logger.debug({
+      server: payload.server,
+      tool: payload.tool
+    }, 'Handling mcp:call_tool');
 
     try {
       const result = await mcpManager.callTool(
@@ -243,7 +243,7 @@ export function createConfigHandlers(context: HandlerContext) {
         result,
       });
     } catch (error) {
-      logger.error('Failed to call MCP tool', { error });
+      logger.error({ err: error }, 'Failed to call MCP tool');
       wsClient.send('error', {
         originalType: 'mcp:call_tool',
         server: payload.server,
@@ -257,7 +257,7 @@ export function createConfigHandlers(context: HandlerContext) {
    * Handle commands:list
    */
   function handleListCommands(): void {
-    logger.debug('Handling commands:list');
+    logger.debug({}, 'Handling commands:list');
 
     try {
       const commands = skillsDiscovery.getAllCommands();
@@ -267,7 +267,7 @@ export function createConfigHandlers(context: HandlerContext) {
         commands,
       });
     } catch (error) {
-      logger.error('Failed to list commands', { error });
+      logger.error({ err: error }, 'Failed to list commands');
       wsClient.send('error', {
         originalType: 'commands:list',
         message: error instanceof Error ? error.message : 'Unknown error',
@@ -279,7 +279,7 @@ export function createConfigHandlers(context: HandlerContext) {
    * Handle machine:info
    */
   async function handleGetMachineInfo(): Promise<void> {
-    logger.debug('Handling machine:info');
+    logger.debug({}, 'Handling machine:info');
 
     try {
       const version = await getPackageVersion();
@@ -309,7 +309,7 @@ export function createConfigHandlers(context: HandlerContext) {
 
       wsClient.send('machine:info', info);
     } catch (error) {
-      logger.error('Failed to get machine info', { error });
+      logger.error({ err: error }, 'Failed to get machine info');
       wsClient.send('error', {
         originalType: 'machine:info',
         message: error instanceof Error ? error.message : 'Unknown error',

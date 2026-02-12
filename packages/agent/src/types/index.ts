@@ -347,6 +347,16 @@ export interface AgentEvents {
   sessionEnded: (data: { sessionId: string; exitCode: number }) => void;
   output: (data: SessionOutput) => void;
   status: (data: { sessionId: string; status: SessionStatus }) => void;
+  message: (msg: { type: string; payload: unknown }) => void;
+  synced: () => void;
+  taskClaimed: (task: unknown) => void;
+  taskCompleted: (task: unknown) => void;
+  exit: (data: { sessionId: string; exitCode: number }) => void;
+  maxReconnectReached: () => void;
+  projectUpdated: (data: { projectId: string }) => void;
+  fileLocked: (data: { projectId: string; path: string }) => void;
+  fileUnlocked: (data: { projectId: string; path: string }) => void;
+  fullSync: () => void;
 }
 
 // ============================================

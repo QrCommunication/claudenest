@@ -55,11 +55,11 @@ export class ContextClient extends EventEmitter {
    * Initialize the context client
    */
   async initialize(): Promise<void> {
-    this.logger.info('Initializing context client');
-    
+    this.logger.info({}, 'Initializing context client');
+
     // Load cache if exists
     await this.loadCache();
-    
+
     // Start periodic sync
     this.startPeriodicSync();
   }
@@ -68,8 +68,8 @@ export class ContextClient extends EventEmitter {
    * Query context from the server
    */
   async queryContext(query: ContextQuery): Promise<ContextChunk[]> {
-    this.logger.debug('Querying context', { query });
-    
+    this.logger.debug({ query }, 'Querying context');
+
     try {
       const response = await this.fetchApi(`/projects/${query.projectId}/context`, {
         method: 'POST',
@@ -90,8 +90,8 @@ export class ContextClient extends EventEmitter {
 
       return chunks;
     } catch (error) {
-      this.logger.error('Failed to query context', { error });
-      
+      this.logger.error({ err: error }, 'Failed to query context');
+
       // Fall back to local cache
       return this.queryLocalCache(query);
     }
@@ -101,14 +101,14 @@ export class ContextClient extends EventEmitter {
    * Update context on the server
    */
   async updateContext(update: ContextUpdate): Promise<ContextChunk> {
-    this.logger.debug('Updating context', { update });
+    this.logger.debug({ update }, 'Updating context');
 
     // Add to sync queue
     this.syncQueue.push(update);
-    
+
     // Try immediate sync
     this.sync().catch(error => {
-      this.logger.error('Immediate sync failed, queued for later', { error });
+      this.logger.error({ err: error }, 'Immediate sync failed, queued for later');
     });
 
     // Create local chunk immediately
@@ -145,7 +145,7 @@ export class ContextClient extends EventEmitter {
       
       return context;
     } catch (error) {
-      this.logger.error('Failed to get project context', { error, projectId });
+      this.logger.error({ err: error, projectId }, 'Failed to get project context');
       return null;
     }
   }
@@ -165,12 +165,12 @@ export class ContextClient extends EventEmitter {
 
       const context = response.data as ProjectContext;
       this.cache.projects.set(projectId, context);
-      
-      this.emit('projectUpdated', projectId, context);
+
+      this.emit('projectUpdated', { projectId });
       
       return context;
     } catch (error) {
-      this.logger.error('Failed to update project context', { error, projectId });
+      this.logger.error({ err: error, projectId }, 'Failed to update project context');
       throw error;
     }
   }
@@ -189,8 +189,8 @@ export class ContextClient extends EventEmitter {
       
       return tasks;
     } catch (error) {
-      this.logger.error('Failed to get tasks', { error, projectId });
-      
+      this.logger.error({ err: error, projectId }, 'Failed to get tasks');
+
       // Return cached tasks
       return Array.from(this.cache.tasks.values())
         .filter(t => t.projectId === projectId);
@@ -214,7 +214,7 @@ export class ContextClient extends EventEmitter {
       
       return task;
     } catch (error) {
-      this.logger.error('Failed to claim task', { error, taskId });
+      this.logger.error({ err: error, taskId }, 'Failed to claim task');
       throw error;
     }
   }
@@ -249,10 +249,10 @@ export class ContextClient extends EventEmitter {
       });
       
       this.emit('taskCompleted', task);
-      
+
       return task;
     } catch (error) {
-      this.logger.error('Failed to complete task', { error, taskId });
+      this.logger.error({ err: error, taskId }, 'Failed to complete task');
       throw error;
     }
   }
@@ -271,8 +271,8 @@ export class ContextClient extends EventEmitter {
       
       return locks;
     } catch (error) {
-      this.logger.error('Failed to get file locks', { error, projectId });
-      
+      this.logger.error({ err: error, projectId }, 'Failed to get file locks');
+
       // Return cached locks
       return Array.from(this.cache.locks.values())
         .filter(l => l.projectId === projectId);
@@ -304,10 +304,10 @@ export class ContextClient extends EventEmitter {
       this.cache.locks.set(filePath, lock);
       
       this.emit('fileLocked', lock);
-      
+
       return lock;
     } catch (error) {
-      this.logger.error('Failed to lock file', { error, projectId, filePath });
+      this.logger.error({ err: error, projectId, filePath }, 'Failed to lock file');
       throw error;
     }
   }
@@ -322,10 +322,10 @@ export class ContextClient extends EventEmitter {
       });
 
       this.cache.locks.delete(filePath);
-      
-      this.emit('fileUnlocked', projectId, filePath);
+
+      this.emit('fileUnlocked', { projectId, path: filePath });
     } catch (error) {
-      this.logger.error('Failed to unlock file', { error, projectId, filePath });
+      this.logger.error({ err: error, projectId, filePath }, 'Failed to unlock file');
       throw error;
     }
   }
@@ -360,7 +360,7 @@ export class ContextClient extends EventEmitter {
         importanceScore: 0.7,
       });
     } catch (error) {
-      this.logger.error('Failed to broadcast', { error, projectId });
+      this.logger.error({ err: error, projectId }, 'Failed to broadcast');
       throw error;
     }
   }
@@ -378,23 +378,23 @@ export class ContextClient extends EventEmitter {
     this.syncQueue = [];
 
     try {
-      this.logger.debug(`Syncing ${updates.length} context updates`);
+      this.logger.debug({ updateCount: updates.length }, `Syncing ${updates.length} context updates`);
 
-      const response = await this.fetchApi('/context/batch', {
+      await this.fetchApi('/context/batch', {
         method: 'POST',
         body: JSON.stringify({ updates }),
       });
 
       this.cache.lastSync = Date.now();
-      this.emit('synced', updates.length);
-      
-      this.logger.debug('Context sync completed');
+      this.emit('synced');
+
+      this.logger.debug({}, 'Context sync completed');
     } catch (error) {
-      this.logger.error('Context sync failed', { error });
-      
+      this.logger.error({ err: error }, 'Context sync failed');
+
       // Put updates back in queue
       this.syncQueue.unshift(...updates);
-      
+
       throw error;
     } finally {
       this.isSyncing = false;
@@ -405,8 +405,8 @@ export class ContextClient extends EventEmitter {
    * Force full sync - pull all data from server
    */
   async fullSync(): Promise<void> {
-    this.logger.info('Performing full sync');
-    
+    this.logger.info({}, 'Performing full sync');
+
     try {
       // Sync pending updates first
       await this.sync();
@@ -419,10 +419,10 @@ export class ContextClient extends EventEmitter {
       
       // TODO: Implement full sync endpoint
       this.cache.lastSync = Date.now();
-      
+
       this.emit('fullSync');
     } catch (error) {
-      this.logger.error('Full sync failed', { error });
+      this.logger.error({ err: error }, 'Full sync failed');
       throw error;
     }
   }
@@ -431,20 +431,20 @@ export class ContextClient extends EventEmitter {
    * Stop the context client
    */
   async stop(): Promise<void> {
-    this.logger.info('Stopping context client');
-    
+    this.logger.info({}, 'Stopping context client');
+
     if (this.syncInterval) {
       clearInterval(this.syncInterval);
       this.syncInterval = null;
     }
-    
+
     // Final sync attempt
     try {
       await this.sync();
     } catch (error) {
-      this.logger.error('Final sync failed', { error });
+      this.logger.error({ err: error }, 'Final sync failed');
     }
-    
+
     // Save cache
     await this.saveCache();
   }
@@ -486,8 +486,8 @@ export class ContextClient extends EventEmitter {
   }
 
   private queryLocalCache(query: ContextQuery): ContextChunk[] {
-    this.logger.debug('Querying local cache');
-    
+    this.logger.debug({}, 'Querying local cache');
+
     const chunks = Array.from(this.cache.chunks.values())
       .filter(c => c.projectId === query.projectId);
 
@@ -509,7 +509,7 @@ export class ContextClient extends EventEmitter {
   private startPeriodicSync(): void {
     this.syncInterval = setInterval(() => {
       this.sync().catch(error => {
-        this.logger.error('Periodic sync failed', { error });
+        this.logger.error({ err: error }, 'Periodic sync failed');
       });
     }, 30000); // Sync every 30 seconds
   }
@@ -530,11 +530,11 @@ export class ContextClient extends EventEmitter {
       }
       
       this.cache.lastSync = parsed.lastSync || 0;
-      
-      this.logger.debug('Cache loaded');
+
+      this.logger.debug({}, 'Cache loaded');
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
-        this.logger.error('Failed to load cache', { error });
+        this.logger.error({ err: error }, 'Failed to load cache');
       }
     }
   }
@@ -547,17 +547,17 @@ export class ContextClient extends EventEmitter {
       const path = await import('path');
       
       await fs.mkdir(path.dirname(this.options.cachePath), { recursive: true });
-      
+
       const data = {
         projects: Object.fromEntries(this.cache.projects),
         lastSync: this.cache.lastSync,
       };
-      
+
       await fs.writeFile(this.options.cachePath, JSON.stringify(data, null, 2));
-      
-      this.logger.debug('Cache saved');
+
+      this.logger.debug({}, 'Cache saved');
     } catch (error) {
-      this.logger.error('Failed to save cache', { error });
+      this.logger.error({ err: error }, 'Failed to save cache');
     }
   }
 }

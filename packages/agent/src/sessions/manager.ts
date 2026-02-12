@@ -5,12 +5,11 @@
 import { EventEmitter } from 'events';
 import { ClaudeProcess } from './claude-process.js';
 import type { Logger } from '../utils/logger.js';
-import type { 
-  Session, 
-  SessionConfig, 
+import type {
+  Session,
+  SessionConfig,
   SessionStatus,
-  SessionOutput,
-  PTYSize 
+  SessionOutput
 } from '../types/index.js';
 
 interface SessionManagerOptions {
@@ -48,10 +47,10 @@ export class SessionManager extends EventEmitter {
       throw new Error(`Session ${id} already exists`);
     }
 
-    this.logger.info(`Creating session ${id}`, { 
+    this.logger.info({
       projectPath: config.projectPath,
       mode: config.mode || 'interactive'
-    });
+    }, `Creating session ${id}`);
 
     const process = new ClaudeProcess({
       claudePath: this.options.claudePath,
@@ -61,23 +60,19 @@ export class SessionManager extends EventEmitter {
     });
 
     // Setup event forwarding
-    process.on('output', (data) => {
-      this.emit('output', {
-        sessionId: id,
-        type: 'output',
-        ...data,
-      } as SessionOutput);
+    process.on('output', (data: SessionOutput) => {
+      this.emit('output', data);
     });
 
-    process.on('status', (status: SessionStatus) => {
-      this.emit('status', { sessionId: id, status });
+    process.on('status', (data: { sessionId: string; status: SessionStatus }) => {
+      this.emit('status', { sessionId: id, status: data.status });
     });
 
-    process.on('exit', (code: number) => {
-      this.logger.info(`Session ${id} exited with code ${code}`);
+    process.on('exit', (data: { sessionId: string; exitCode: number }) => {
+      this.logger.info({ sessionId: data.sessionId, exitCode: data.exitCode }, `Session ${data.sessionId} exited with code ${data.exitCode}`);
       this.sessions.delete(id);
       this.sessionConfigs.delete(id);
-      this.emit('sessionEnded', { sessionId: id, exitCode: code });
+      this.emit('sessionEnded', { sessionId: data.sessionId, exitCode: data.exitCode });
     });
 
     // Start the process
@@ -112,7 +107,7 @@ export class SessionManager extends EventEmitter {
       throw new Error(`Session ${id} not found`);
     }
 
-    this.logger.info(`Terminating session ${id}${force ? ' (force)' : ''}`);
+    this.logger.info({ sessionId: id, force }, `Terminating session ${id}${force ? ' (force)' : ''}`);
     
     const signal = force ? 'SIGKILL' : 'SIGTERM';
     await process.terminate(signal);
@@ -225,7 +220,7 @@ export class SessionManager extends EventEmitter {
    * Terminate all sessions
    */
   async terminateAll(force = false): Promise<void> {
-    this.logger.info(`Terminating all ${this.sessions.size} sessions`);
+    this.logger.info({ count: this.sessions.size, force }, `Terminating all ${this.sessions.size} sessions`);
 
     const terminations = Array.from(this.sessions.entries()).map(
       async ([id, process]) => {
@@ -233,7 +228,7 @@ export class SessionManager extends EventEmitter {
           const signal = force ? 'SIGKILL' : 'SIGTERM';
           await process.terminate(signal);
         } catch (error) {
-          this.logger.error(`Failed to terminate session ${id}:`, error);
+          this.logger.error({ err: error, sessionId: id }, `Failed to terminate session ${id}`);
         }
       }
     );
@@ -266,7 +261,7 @@ export class SessionManager extends EventEmitter {
       throw new Error(`Session ${id} not found`);
     }
 
-    this.logger.info(`Pausing session ${id}`);
+    this.logger.info({ sessionId: id }, `Pausing session ${id}`);
     await process.terminate('SIGSTOP');
   }
 
@@ -279,7 +274,7 @@ export class SessionManager extends EventEmitter {
       throw new Error(`Session ${id} not found`);
     }
 
-    this.logger.info(`Resuming session ${id}`);
+    this.logger.info({ sessionId: id }, `Resuming session ${id}`);
     await process.terminate('SIGCONT');
   }
 }

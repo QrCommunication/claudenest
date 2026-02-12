@@ -19,7 +19,6 @@ import {
 import type { AgentConfig } from './types/index.js';
 import fs from 'fs/promises';
 import path from 'path';
-import os from 'os';
 import keytar from 'keytar';
 
 const SERVICE_NAME = 'ClaudeNestAgent';
@@ -92,7 +91,7 @@ async function main(): Promise<void> {
 }
 
 async function handleStart(options: CLIOptions): Promise<void> {
-  logger.info('Starting ClaudeNest Agent...');
+  logger.info({}, 'Starting ClaudeNest Agent...');
 
   try {
     // Load configuration
@@ -100,7 +99,7 @@ async function handleStart(options: CLIOptions): Promise<void> {
     
     // Validate configuration
     if (!config.machineToken) {
-      logger.error('No machine token provided. Run "claudenest-agent pair" first.');
+      logger.error({}, 'No machine token provided. Run "claudenest-agent pair" first.');
       process.exit(1);
     }
 
@@ -109,9 +108,9 @@ async function handleStart(options: CLIOptions): Promise<void> {
       const foundPath = await findExecutable('claude');
       if (foundPath) {
         config.claudePath = foundPath;
-        logger.info(`Found Claude Code at: ${foundPath}`);
+        logger.info({ path: foundPath }, `Found Claude Code at: ${foundPath}`);
       } else {
-        logger.error('Claude Code executable not found. Please specify with --claude-path');
+        logger.error({}, 'Claude Code executable not found. Please specify with --claude-path');
         process.exit(1);
       }
     }
@@ -132,52 +131,52 @@ async function handleStart(options: CLIOptions): Promise<void> {
     await agent.initialize();
     await agent.start();
 
-    logger.info('Agent started successfully');
-    logger.info(`Server: ${config.serverUrl}`);
-    logger.info(`Machine ID: ${machineId}`);
+    logger.info({}, 'Agent started successfully');
+    logger.info({ server: config.serverUrl }, `Server: ${config.serverUrl}`);
+    logger.info({ machineId }, `Machine ID: ${machineId}`);
 
     // Keep process alive
     if (options.daemon) {
       // TODO: Implement proper daemonization
-      logger.info('Running in daemon mode');
+      logger.info({}, 'Running in daemon mode');
     }
 
     // Handle graceful shutdown
     process.on('SIGINT', async () => {
-      logger.info('Received SIGINT, shutting down...');
+      logger.info({}, 'Received SIGINT, shutting down...');
       await agent.stop();
       process.exit(0);
     });
 
     process.on('SIGTERM', async () => {
-      logger.info('Received SIGTERM, shutting down...');
+      logger.info({}, 'Received SIGTERM, shutting down...');
       await agent.stop();
       process.exit(0);
     });
 
   } catch (error) {
-    logger.error('Failed to start agent', { error });
+    logger.error({ err: error }, 'Failed to start agent');
     process.exit(1);
   }
 }
 
 async function handleStop(): Promise<void> {
-  logger.info('Stopping agent...');
+  logger.info({}, 'Stopping agent...');
   
   // TODO: Implement proper daemon management with PID file
   // For now, just log that the user should use Ctrl+C
-  logger.info('If running in foreground, press Ctrl+C to stop');
-  logger.info('Daemon mode stop not yet implemented');
+  logger.info({}, 'If running in foreground, press Ctrl+C to stop');
+  logger.info({}, 'Daemon mode stop not yet implemented');
 }
 
 async function handleStatus(): Promise<void> {
   // TODO: Implement status check via IPC or API
-  logger.info('Agent status check not yet implemented');
+  logger.info({}, 'Agent status check not yet implemented');
 }
 
 async function handlePair(options: { server: string }): Promise<void> {
-  logger.info('Pairing with ClaudeNest server...');
-  logger.info(`Server: ${options.server}`);
+  logger.info({}, 'Pairing with ClaudeNest server...');
+  logger.info({ server: options.server }, `Server: ${options.server}`);
 
   // Generate a pairing code
   const pairingCode = generatePairingCode();
@@ -190,7 +189,7 @@ async function handlePair(options: { server: string }): Promise<void> {
   console.log('Enter this code in your ClaudeNest dashboard to complete pairing.\n');
   
   // Poll for pairing completion
-  logger.info('Waiting for pairing completion...');
+  logger.info({}, 'Waiting for pairing completion...');
   
   try {
     const token = await pollForPairing(options.server, pairingCode);
@@ -198,13 +197,13 @@ async function handlePair(options: { server: string }): Promise<void> {
     // Store the token securely
     await keytar.setPassword(SERVICE_NAME, 'machine-token', token);
     
-    logger.info('Pairing successful! Token stored securely.');
+    logger.info({}, 'Pairing successful! Token stored securely.');
     
     // Save server URL to config
     await saveConfigValue('serverUrl', options.server);
     
   } catch (error) {
-    logger.error('Pairing failed', { error });
+    logger.error({ err: error }, 'Pairing failed');
     process.exit(1);
   }
 }
@@ -266,7 +265,7 @@ async function handleConfig(options: {
 
     await ensureDir(path.dirname(configPath));
     await fs.writeFile(configPath, JSON.stringify(config, null, 2));
-    logger.info('Configuration updated');
+    logger.info({}, 'Configuration updated');
   }
 }
 
@@ -282,11 +281,11 @@ async function handleLogs(options: { follow: boolean; lines: string }): Promise<
     
     if (options.follow) {
       // TODO: Implement log following with fs.watch
-      logger.info('Log following not yet implemented');
+      logger.info({}, 'Log following not yet implemented');
     }
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-      logger.info('No log file found');
+      logger.info({}, 'No log file found');
     } else {
       throw error;
     }
@@ -432,7 +431,7 @@ async function getPackageVersion(): Promise<string> {
 
 // Run main
 main().catch(error => {
-  logger.fatal('Unhandled error', { error });
+  logger.fatal({ err: error }, 'Unhandled error');
   process.exit(1);
 });
 

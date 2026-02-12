@@ -33,7 +33,6 @@ interface MCPProcess {
 }
 
 export class MCPManager extends EventEmitter {
-  private options: MCPManagerOptions;
   private logger: Logger;
   private servers = new Map<string, MCPServer>();
   private processes = new Map<string, MCPProcess>();
@@ -41,7 +40,6 @@ export class MCPManager extends EventEmitter {
 
   constructor(options: MCPManagerOptions) {
     super();
-    this.options = options;
     this.logger = options.logger.child({ component: 'MCPManager' });
     
     const { getConfigDir } = require('../utils/index.js');
@@ -81,7 +79,7 @@ export class MCPManager extends EventEmitter {
         // Auto-start if configured
         if (server.autoStart && server.enabled) {
           await this.startServer(name).catch(error => {
-            this.logger.error(`Failed to auto-start MCP server ${name}`, { error });
+            this.logger.error({ err: error }, `Failed to auto-start MCP server ${name}`);
           });
         }
       }
@@ -135,10 +133,10 @@ export class MCPManager extends EventEmitter {
 
     this.logger.info(`Starting MCP server: ${name}`);
     server.status = 'starting';
-    this.emit('statusChange', name, server.status);
+    (this as any).emit('statusChange', name, server.status);
 
     try {
-      const process = spawn(server.command, server.args, {
+      const childProcess = spawn(server.command, server.args, {
         env: {
           ...process.env,
           ...server.env,
@@ -148,34 +146,34 @@ export class MCPManager extends EventEmitter {
 
       const mcpProcess: MCPProcess = {
         server,
-        process,
+        process: childProcess,
         tools: [],
         startTime: new Date(),
       };
 
       // Handle process events
-      process.on('exit', (code) => {
+      childProcess.on('exit', (code: number) => {
         this.logger.warn(`MCP server ${name} exited with code ${code}`);
         this.processes.delete(name);
         server.status = code === 0 ? 'stopped' : 'error';
-        this.emit('statusChange', name, server.status);
-        this.emit('stopped', name, code);
+        (this as any).emit('statusChange', name, server.status);
+        (this as any).emit('stopped', name, code);
       });
 
-      process.on('error', (error) => {
-        this.logger.error(`MCP server ${name} error:`, error);
+      childProcess.on('error', (error: Error) => {
+        this.logger.error({ err: error }, `MCP server ${name} error`);
         server.status = 'error';
-        this.emit('statusChange', name, server.status);
-        this.emit('error', name, error);
+        (this as any).emit('statusChange', name, server.status);
+        (this as any).emit('error', name, error);
       });
 
       // Handle stdout for JSON-RPC communication
       let buffer = '';
-      process.stdout?.on('data', (data: Buffer) => {
+      childProcess.stdout?.on('data', (data: Buffer) => {
         buffer += data.toString();
         const lines = buffer.split('\n');
         buffer = lines.pop() || '';
-        
+
         for (const line of lines) {
           if (line.trim()) {
             this.handleServerMessage(name, line);
@@ -184,7 +182,7 @@ export class MCPManager extends EventEmitter {
       });
 
       // Handle stderr for logging
-      process.stderr?.on('data', (data: Buffer) => {
+      childProcess.stderr?.on('data', (data: Buffer) => {
         this.logger.debug(`[${name}] ${data.toString().trim()}`);
       });
 
@@ -193,9 +191,9 @@ export class MCPManager extends EventEmitter {
 
       this.processes.set(name, mcpProcess);
       server.status = 'running';
-      
-      this.emit('statusChange', name, server.status);
-      this.emit('started', name);
+
+      (this as any).emit('statusChange', name, server.status);
+      (this as any).emit('started', name);
 
       // Discover tools
       await this.discoverTools(name);
@@ -203,7 +201,7 @@ export class MCPManager extends EventEmitter {
       return server;
     } catch (error) {
       server.status = 'error';
-      this.emit('statusChange', name, server.status);
+      (this as any).emit('statusChange', name, server.status);
       throw error;
     }
   }
@@ -250,7 +248,7 @@ export class MCPManager extends EventEmitter {
     });
 
     this.processes.delete(name);
-    this.emit('stopped', name, 0);
+    (this as any).emit('stopped', name, 0);
   }
 
   /**
@@ -312,7 +310,7 @@ export class MCPManager extends EventEmitter {
     this.servers.set(name, server);
     await this.saveConfig();
 
-    this.emit('added', name, server);
+    (this as any).emit('added', name, server);
     return server;
   }
 
@@ -323,7 +321,7 @@ export class MCPManager extends EventEmitter {
     await this.stopServer(name);
     this.servers.delete(name);
     await this.saveConfig();
-    this.emit('removed', name);
+    (this as any).emit('removed', name);
   }
 
   /**
@@ -348,7 +346,7 @@ export class MCPManager extends EventEmitter {
       await this.startServer(name);
     }
 
-    this.emit('updated', name, server);
+    (this as any).emit('updated', name, server);
     return server;
   }
 
@@ -440,9 +438,9 @@ export class MCPManager extends EventEmitter {
   async stopAll(): Promise<void> {
     this.logger.info(`Stopping all ${this.processes.size} MCP servers`);
     
-    const stops = Array.from(this.processes.keys()).map(name => 
+    const stops = Array.from(this.processes.keys()).map(name =>
       this.stopServer(name).catch(error => {
-        this.logger.error(`Failed to stop MCP server ${name}:`, error);
+        this.logger.error({ err: error }, `Failed to stop MCP server ${name}`);
       })
     );
 
@@ -463,14 +461,14 @@ export class MCPManager extends EventEmitter {
         }
       };
 
-      this.on('statusChange', checkReady);
+      (this as any).on('statusChange', checkReady);
     });
   }
 
   private handleServerMessage(serverName: string, message: string): void {
     try {
       const data = JSON.parse(message);
-      this.emit('message', serverName, data);
+      (this as any).emit('message', serverName, data);
 
       // Handle initialize response
       if (data.id === 'init') {
@@ -478,12 +476,12 @@ export class MCPManager extends EventEmitter {
           const mcpProcess = this.processes.get(serverName);
           if (mcpProcess) {
             mcpProcess.tools = data.result.tools;
-            this.emit('toolsDiscovered', serverName, mcpProcess.tools);
+            (this as any).emit('toolsDiscovered', serverName, mcpProcess.tools);
           }
         }
       }
     } catch (error) {
-      this.logger.warn(`Failed to parse MCP message from ${serverName}:`, message);
+      this.logger.warn({ serverName }, `Failed to parse MCP message from ${serverName}`);
     }
   }
 

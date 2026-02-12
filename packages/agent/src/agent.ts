@@ -137,7 +137,7 @@ export class ClaudeNestAgent extends EventEmitter {
 
       this.logger.info('Agent started successfully');
     } catch (error) {
-      this.logger.error('Failed to start agent', { error });
+      this.logger.error({ err: error }, 'Failed to start agent');
       throw error;
     }
   }
@@ -170,7 +170,7 @@ export class ClaudeNestAgent extends EventEmitter {
 
       this.logger.info('Agent stopped');
     } catch (error) {
-      this.logger.error('Error during agent shutdown', { error });
+      this.logger.error({ err: error }, 'Error during agent shutdown');
       throw error;
     }
   }
@@ -243,12 +243,12 @@ export class ClaudeNestAgent extends EventEmitter {
       this.emit('disconnected');
     });
 
-    this.wsClient.on('message', (type: string, payload: unknown) => {
+    this.wsClient.on('message', ({ type, payload }: { type: string; payload: unknown }) => {
       this.handleMessage(type, payload);
     });
 
     this.wsClient.on('error', (error: Error) => {
-      this.logger.error('WebSocket error', { error });
+      this.logger.error({ err: error }, 'WebSocket error');
       this.emit('error', error);
     });
 
@@ -270,8 +270,8 @@ export class ClaudeNestAgent extends EventEmitter {
     });
 
     // Context client events
-    this.contextClient.on('synced', (count: number) => {
-      this.logger.debug(`Context synced: ${count} updates`);
+    this.contextClient.on('synced', () => {
+      this.logger.debug('Context synced');
     });
 
     this.contextClient.on('taskClaimed', (task) => {
@@ -286,11 +286,11 @@ export class ClaudeNestAgent extends EventEmitter {
     process.on('SIGINT', () => this.handleShutdown());
     process.on('SIGTERM', () => this.handleShutdown());
     process.on('uncaughtException', (error) => {
-      this.logger.fatal('Uncaught exception', { error });
+      this.logger.fatal({ err: error }, 'Uncaught exception');
       this.handleShutdown();
     });
     process.on('unhandledRejection', (reason) => {
-      this.logger.error('Unhandled rejection', { reason });
+      this.logger.error({ reason }, 'Unhandled rejection');
     });
   }
 
@@ -322,13 +322,13 @@ export class ClaudeNestAgent extends EventEmitter {
 
     // Register all handlers
     for (const [type, handler] of Object.entries(sessionHandlers)) {
-      this.handlers.set(type, handler);
+      this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
     }
     for (const [type, handler] of Object.entries(configHandlers)) {
-      this.handlers.set(type, handler);
+      this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
     }
     for (const [type, handler] of Object.entries(contextHandlers)) {
-      this.handlers.set(type, handler);
+      this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
     }
 
     // Add ping handler
@@ -338,7 +338,7 @@ export class ClaudeNestAgent extends EventEmitter {
   }
 
   private async handleMessage(type: string, payload: unknown): Promise<void> {
-    this.logger.debug('Received message', { type });
+    this.logger.debug({ type }, 'Received message');
 
     const handler = this.handlers.get(type);
     if (!handler) {
@@ -349,7 +349,7 @@ export class ClaudeNestAgent extends EventEmitter {
     try {
       await handler(payload);
     } catch (error) {
-      this.logger.error(`Handler error for ${type}`, { error });
+      this.logger.error({ err: error }, `Handler error for ${type}`);
       this.wsClient.send('error', {
         originalType: type,
         message: error instanceof Error ? error.message : 'Unknown error',
@@ -377,12 +377,12 @@ export class ClaudeNestAgent extends EventEmitter {
 
   private async handleShutdown(): Promise<void> {
     this.logger.info('Shutdown signal received');
-    
+
     try {
       await this.stop();
       process.exit(0);
     } catch (error) {
-      this.logger.error('Error during shutdown', { error });
+      this.logger.error({ err: error }, 'Error during shutdown');
       process.exit(1);
     }
   }

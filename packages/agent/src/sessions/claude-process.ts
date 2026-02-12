@@ -5,7 +5,7 @@
 import { EventEmitter } from 'events';
 import * as pty from 'node-pty';
 import type { Logger } from '../utils/logger.js';
-import type { SessionConfig, SessionStatus, PTYSize } from '../types/index.js';
+import type { SessionConfig, SessionStatus } from '../types/index.js';
 
 interface ClaudeProcessOptions extends SessionConfig {
   claudePath: string;
@@ -48,12 +48,12 @@ export class ClaudeProcess extends EventEmitter {
     const cwd = this.options.projectPath || process.cwd();
     const ptySize = this.options.ptySize || { cols: 120, rows: 40 };
 
-    this.logger.debug('PTY configuration', { 
-      cwd, 
-      cols: ptySize.cols, 
+    this.logger.debug({
+      cwd,
+      cols: ptySize.cols,
       rows: ptySize.rows,
-      args 
-    });
+      args
+    }, 'PTY configuration');
 
     try {
       // Determine shell based on platform
@@ -91,7 +91,7 @@ export class ClaudeProcess extends EventEmitter {
       }
 
       this.pid = this.process.pid;
-      this.logger.info(`Process started with PID ${this.pid}`);
+      this.logger.info({ pid: this.pid }, `Process started with PID ${this.pid}`);
 
       // Setup event handlers
       this.process.onData((data) => this.onData(data));
@@ -103,7 +103,7 @@ export class ClaudeProcess extends EventEmitter {
       await new Promise((resolve) => setTimeout(resolve, 500));
       
     } catch (error) {
-      this.logger.error('Failed to start process', { error });
+      this.logger.error({ err: error }, 'Failed to start process');
       this.setStatus('error');
       throw error;
     }
@@ -131,7 +131,7 @@ export class ClaudeProcess extends EventEmitter {
 
       // Force kill after timeout
       const timeout = setTimeout(() => {
-        this.logger.warn('Process did not terminate gracefully, forcing kill');
+        this.logger.warn({}, 'Process did not terminate gracefully, forcing kill');
         this.process?.kill('SIGKILL');
         resolve();
       }, 5000);
@@ -152,7 +152,7 @@ export class ClaudeProcess extends EventEmitter {
     }
 
     if (this.status !== 'running' && this.status !== 'waiting_input') {
-      this.logger.warn(`Cannot write to process in status: ${this.status}`);
+      this.logger.warn({ status: this.status }, `Cannot write to process in status: ${this.status}`);
       return;
     }
 
@@ -167,7 +167,7 @@ export class ClaudeProcess extends EventEmitter {
       return;
     }
 
-    this.logger.debug(`Resizing PTY to ${cols}x${rows}`);
+    this.logger.debug({ cols, rows }, `Resizing PTY to ${cols}x${rows}`);
     this.process.resize(cols, rows);
   }
 
@@ -229,24 +229,26 @@ export class ClaudeProcess extends EventEmitter {
 
     // Emit output event
     this.emit('output', {
+      sessionId: this.options.sessionId,
+      type: 'output',
       data,
       timestamp: Date.now(),
     });
   }
 
   private onExit(exitCode: number, signal?: number): void {
-    this.logger.info(`Process exited with code ${exitCode}, signal ${signal}`);
+    this.logger.info({ exitCode, signal }, `Process exited with code ${exitCode}, signal ${signal}`);
     this.exitCode = exitCode;
     this.setStatus(exitCode === 0 ? 'completed' : 'error');
-    this.emit('exit', exitCode, signal);
+    this.emit('exit', { sessionId: this.options.sessionId, exitCode });
     this.process = null;
   }
 
   private setStatus(status: SessionStatus): void {
     if (this.status !== status) {
-      this.logger.debug(`Status changed: ${this.status} → ${status}`);
+      this.logger.debug({ from: this.status, to: status }, `Status changed: ${this.status} → ${status}`);
       this.status = status;
-      this.emit('status', status);
+      this.emit('status', { sessionId: this.options.sessionId, status });
     }
   }
 

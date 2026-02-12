@@ -34,7 +34,6 @@ const DEFAULT_SKILLS_DIRS = [
   'claude-skills',
 ];
 
-const CLAUDE_DIR = '.claude';
 
 export class SkillsDiscovery extends EventEmitter {
   private options: Required<SkillsDiscoveryOptions>;
@@ -72,7 +71,7 @@ export class SkillsDiscovery extends EventEmitter {
         const skills = await this.discoverInPath(projectPath);
         discoveredSkills.push(...skills);
       } catch (error) {
-        this.logger.error(`Failed to discover skills in ${projectPath}`, { error });
+        this.logger.error({ err: error }, `Failed to discover skills in ${projectPath}`);
       }
     }
 
@@ -81,12 +80,12 @@ export class SkillsDiscovery extends EventEmitter {
       const globalSkills = await this.discoverGlobalSkills();
       discoveredSkills.push(...globalSkills);
     } catch (error) {
-      this.logger.error('Failed to discover global skills', { error });
+      this.logger.error({ err: error }, 'Failed to discover global skills');
     }
 
     this.logger.info(`Discovered ${discoveredSkills.length} skills`);
-    this.emit('discovered', discoveredSkills);
-    
+    (this as any).emit('discovered', discoveredSkills);
+
     return discoveredSkills;
   }
 
@@ -162,7 +161,7 @@ export class SkillsDiscovery extends EventEmitter {
           });
         }
       } catch (error) {
-        this.logger.warn(`Failed to load skill manifest at ${manifestPath}`, { error });
+        this.logger.warn({ err: error }, `Failed to load skill manifest at ${manifestPath}`);
       }
     }
 

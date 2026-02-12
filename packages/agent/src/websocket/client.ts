@@ -6,7 +6,7 @@ import { EventEmitter } from 'events';
 import WebSocket from 'ws';
 import type { Logger } from '../utils/logger.js';
 import type { WebSocketConfig, WebSocketMessage } from '../types/index.js';
-import { generateId, delay } from '../utils/index.js';
+import { generateId } from '../utils/index.js';
 
 interface WebSocketClientOptions {
   serverUrl: string;
@@ -55,7 +55,7 @@ export class WebSocketClient extends EventEmitter {
    */
   async connect(): Promise<void> {
     if (this.isConnecting || this.ws?.readyState === WebSocket.OPEN) {
-      this.logger.debug('Already connected or connecting');
+      this.logger.debug({}, 'Already connected or connecting');
       return;
     }
 
@@ -63,7 +63,7 @@ export class WebSocketClient extends EventEmitter {
     this.isConnecting = true;
 
     const wsUrl = this.buildWebSocketUrl();
-    this.logger.info(`Connecting to ${wsUrl}`);
+    this.logger.info({ url: wsUrl }, `Connecting to ${wsUrl}`);
 
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
@@ -114,7 +114,7 @@ export class WebSocketClient extends EventEmitter {
    * Disconnect from the server
    */
   async disconnect(): Promise<void> {
-    this.logger.info('Disconnecting...');
+    this.logger.info({}, 'Disconnecting...');
     this.isIntentionallyClosed = true;
     
     this.clearTimers();
@@ -141,7 +141,7 @@ export class WebSocketClient extends EventEmitter {
    */
   send(type: string, payload: unknown, expectResponse = false): Promise<unknown> | void {
     if (!this.isConnected()) {
-      this.logger.debug(`Queueing message: ${type}`);
+      this.logger.debug({ type }, `Queueing message: ${type}`);
       const message: WebSocketMessage = {
         type,
         payload,
@@ -201,7 +201,7 @@ export class WebSocketClient extends EventEmitter {
   }
 
   private onOpen(): void {
-    this.logger.info('WebSocket connected');
+    this.logger.info({}, 'WebSocket connected');
     this.reconnectAttempts = 0;
     
     this.startHeartbeat();
@@ -213,7 +213,7 @@ export class WebSocketClient extends EventEmitter {
   private onMessage(data: WebSocket.RawData): void {
     try {
       const message = JSON.parse(data.toString()) as WebSocketMessage;
-      this.logger.debug(`Received: ${message.type}`, { messageId: message.id });
+      this.logger.debug({ type: message.type, messageId: message.id }, `Received: ${message.type}`);
 
       // Check if this is a response to a pending message
       const pending = this.pendingMessages.get(message.id);
@@ -225,14 +225,14 @@ export class WebSocketClient extends EventEmitter {
       }
 
       // Emit for general handling
-      this.emit('message', message.type, message.payload);
+      this.emit('message', { type: message.type, payload: message.payload });
     } catch (error) {
-      this.logger.error('Failed to parse message', { error });
+      this.logger.error({ err: error }, 'Failed to parse message');
     }
   }
 
   private onClose(code: number, reason: Buffer): void {
-    this.logger.warn(`WebSocket closed: ${code} - ${reason.toString()}`);
+    this.logger.warn({ code, reason: reason.toString() }, `WebSocket closed: ${code} - ${reason.toString()}`);
     this.clearTimers();
     
     if (!this.isIntentionallyClosed) {
@@ -243,7 +243,7 @@ export class WebSocketClient extends EventEmitter {
   }
 
   private onError(error: Error): void {
-    this.logger.error('WebSocket error', { error: error.message });
+    this.logger.error({ err: error }, 'WebSocket error');
     this.emit('error', error);
   }
 
@@ -254,9 +254,9 @@ export class WebSocketClient extends EventEmitter {
 
     try {
       this.ws.send(JSON.stringify(message));
-      this.logger.debug(`Sent: ${message.type}`, { messageId: message.id });
+      this.logger.debug({ type: message.type, messageId: message.id }, `Sent: ${message.type}`);
     } catch (error) {
-      this.logger.error('Failed to send message', { error, message });
+      this.logger.error({ err: error, messageId: message.id }, 'Failed to send message');
       throw error;
     }
   }
@@ -265,7 +265,7 @@ export class WebSocketClient extends EventEmitter {
     if (this.reconnectTimer) return;
 
     if (this.reconnectAttempts >= this.config.maxReconnectAttempts) {
-      this.logger.error('Max reconnection attempts reached');
+      this.logger.error({ attempts: this.reconnectAttempts }, 'Max reconnection attempts reached');
       this.emit('maxReconnectReached');
       return;
     }
@@ -276,14 +276,14 @@ export class WebSocketClient extends EventEmitter {
     );
 
     this.reconnectAttempts++;
-    this.logger.info(`Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`);
+    this.logger.info({ delayMs: delay, attempt: this.reconnectAttempts }, `Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`);
 
     this.reconnectTimer = setTimeout(async () => {
       this.reconnectTimer = null;
       try {
         await this.connect();
       } catch (error) {
-        this.logger.error('Reconnection failed', { error });
+        this.logger.error({ err: error }, 'Reconnection failed');
       }
     }, delay);
   }
@@ -291,7 +291,7 @@ export class WebSocketClient extends EventEmitter {
   private flushMessageQueue(): void {
     if (this.messageQueue.length === 0) return;
 
-    this.logger.info(`Flushing ${this.messageQueue.length} queued messages`);
+    this.logger.info({ count: this.messageQueue.length }, `Flushing ${this.messageQueue.length} queued messages`);
     
     const queue = [...this.messageQueue];
     this.messageQueue = [];
@@ -300,7 +300,7 @@ export class WebSocketClient extends EventEmitter {
       try {
         this.sendMessage(message);
       } catch (error) {
-        this.logger.error('Failed to flush message', { error, message });
+        this.logger.error({ err: error, messageType: message.type }, 'Failed to flush message');
         // Put it back for next time
         this.messageQueue.push(message);
       }
