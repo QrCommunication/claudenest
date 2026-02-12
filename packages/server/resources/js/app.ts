@@ -1,12 +1,13 @@
-import { createApp } from 'vue';
+import { createApp, h } from 'vue';
 import { createPinia } from 'pinia';
+import { RouterView } from 'vue-router';
 import router from './router/index';
 import i18n from './i18n';
 import './css/app.css';
 
 // Create Vue app
 const app = createApp({
-  template: '<RouterView />',
+  render: () => h(RouterView),
 });
 
 // Use plugins
