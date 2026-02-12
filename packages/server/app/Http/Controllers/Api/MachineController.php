@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreMachineRequest;
 use App\Http\Requests\UpdateMachineRequest;
 use App\Http\Resources\MachineResource;
+use App\Events\MachineCommand;
 use App\Models\Machine;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -237,14 +238,14 @@ class MachineController extends Controller
         // Update status to connecting
         $machine->update(['status' => 'connecting']);
 
-        // In a real implementation, this would trigger a WoL packet
-        // through a background job or websocket command to an online machine
-        // on the same network, or via a configured WoL proxy
+        // Dispatch wake command to the agent via WebSocket broadcast
+        MachineCommand::dispatch($machine->id, 'machine:wake', []);
 
         return response()->json([
             'success' => true,
             'data' => [
-                'message' => 'Wake-on-LAN signal sent',
+                'message' => 'Wake-on-LAN command dispatched',
+                'command_dispatched' => true,
                 'machine' => new MachineResource($machine),
             ],
             'meta' => [
@@ -269,8 +270,11 @@ class MachineController extends Controller
             return $this->errorResponse('MCH_002', 'Machine is offline', 400);
         }
 
-        // This would typically be fetched from the agent via WebSocket
-        // For now, return stored capabilities
+        // Request fresh environment data from the agent via WebSocket broadcast.
+        // The agent will update the machine record asynchronously via REST callback.
+        MachineCommand::dispatch($machine->id, 'machine:get_info', []);
+
+        // Return currently stored data immediately
         return response()->json([
             'success' => true,
             'data' => [
@@ -283,6 +287,7 @@ class MachineController extends Controller
                 'claude_path' => $machine->claude_path,
                 'capabilities' => $machine->capabilities,
                 'max_sessions' => $machine->max_sessions,
+                'fresh_data_requested' => true,
             ],
             'meta' => [
                 'timestamp' => now()->toIso8601String(),

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\MachineCommand;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CommandResource;
 use App\Models\DiscoveredCommand;
@@ -380,8 +381,15 @@ class CommandsController extends Controller
             'options' => 'nullable|array',
         ]);
 
-        // In a real implementation, this would send the command execution request
-        // to the agent via WebSocket
+        $requestId = uniqid('cmd_exec_');
+
+        MachineCommand::dispatch($command->machine_id, 'commands:execute', [
+            'command_name' => $command->name,
+            'command_path' => $command->path,
+            'args' => $validated['args'] ?? [],
+            'options' => $validated['options'] ?? [],
+            'request_id' => $requestId,
+        ]);
 
         return response()->json([
             'success' => true,
@@ -390,7 +398,8 @@ class CommandsController extends Controller
                 'command' => $command->name,
                 'args' => $validated['args'] ?? [],
                 'options' => $validated['options'] ?? [],
-                'status' => 'pending',
+                'status' => 'dispatched',
+                'request_id' => $requestId,
             ],
             'meta' => [
                 'timestamp' => now()->toIso8601String(),

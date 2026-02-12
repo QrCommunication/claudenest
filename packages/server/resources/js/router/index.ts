@@ -1,5 +1,16 @@
 import { createRouter, createWebHistory, type RouteRecordRaw, type NavigationGuardNext, type RouteLocationNormalized } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
+import type { BreadcrumbItem } from '@/components/common/Breadcrumb.vue';
+
+// Augment RouteMeta to include breadcrumb
+declare module 'vue-router' {
+    interface RouteMeta {
+        public?: boolean;
+        guestOnly?: boolean;
+        requiresAuth?: boolean;
+        breadcrumb?: BreadcrumbItem[];
+    }
+}
 
 // Lazy load components
 const Landing = () => import('@/pages/Landing.vue');
@@ -49,37 +60,70 @@ const routes: RouteRecordRaw[] = [
         path: '/dashboard',
         name: 'dashboard',
         component: Dashboard,
-        meta: { requiresAuth: true },
+        meta: {
+            requiresAuth: true,
+            breadcrumb: [
+                { label: 'Dashboard' },
+            ],
+        },
     },
     {
         path: '/machines',
         name: 'machines',
         component: () => import('@/pages/Machines.vue'),
-        meta: { requiresAuth: true },
+        meta: {
+            requiresAuth: true,
+            breadcrumb: [
+                { label: 'Machines' },
+            ],
+        },
     },
     {
         path: '/machines/:id',
         name: 'machines.show',
         component: () => import('@/pages/machines/Show.vue'),
-        meta: { requiresAuth: true },
+        meta: {
+            requiresAuth: true,
+            breadcrumb: [
+                { label: 'Machines', to: '/machines' },
+                { label: 'Details' },
+            ],
+        },
     },
     {
         path: '/sessions',
         name: 'sessions',
         component: () => import('@/pages/sessions/Index.vue'),
-        meta: { requiresAuth: true },
+        meta: {
+            requiresAuth: true,
+            breadcrumb: [
+                { label: 'Sessions' },
+            ],
+        },
     },
     {
         path: '/sessions/:id',
         name: 'session.terminal',
         component: () => import('@/pages/sessions/Terminal.vue'),
-        meta: { requiresAuth: true },
+        meta: {
+            requiresAuth: true,
+            breadcrumb: [
+                { label: 'Sessions', to: '/sessions' },
+                { label: 'Terminal' },
+            ],
+        },
     },
     {
         path: '/sessions/new',
         name: 'sessions.new',
         component: () => import('@/pages/sessions/New.vue'),
-        meta: { requiresAuth: true },
+        meta: {
+            requiresAuth: true,
+            breadcrumb: [
+                { label: 'Sessions', to: '/sessions' },
+                { label: 'New Session' },
+            ],
+        },
     },
 
     // Multi-Agent Project Routes
@@ -87,31 +131,63 @@ const routes: RouteRecordRaw[] = [
         path: '/projects',
         name: 'projects',
         component: () => import('@/pages/projects/Index.vue'),
-        meta: { requiresAuth: true },
+        meta: {
+            requiresAuth: true,
+            breadcrumb: [
+                { label: 'Projects' },
+            ],
+        },
     },
     {
         path: '/projects/:id',
         name: 'projects.show',
         component: () => import('@/pages/projects/Show.vue'),
-        meta: { requiresAuth: true },
+        meta: {
+            requiresAuth: true,
+            breadcrumb: [
+                { label: 'Projects', to: '/projects' },
+                { label: 'Details' },
+            ],
+        },
     },
     {
         path: '/projects/:id/tasks',
         name: 'projects.tasks',
         component: () => import('@/pages/projects/Tasks.vue'),
-        meta: { requiresAuth: true },
+        meta: {
+            requiresAuth: true,
+            breadcrumb: [
+                { label: 'Projects', to: '/projects' },
+                { label: 'Project', to: '/projects/:id' },
+                { label: 'Tasks' },
+            ],
+        },
     },
     {
         path: '/projects/:id/context',
         name: 'projects.context',
         component: () => import('@/pages/projects/Context.vue'),
-        meta: { requiresAuth: true },
+        meta: {
+            requiresAuth: true,
+            breadcrumb: [
+                { label: 'Projects', to: '/projects' },
+                { label: 'Project', to: '/projects/:id' },
+                { label: 'Context' },
+            ],
+        },
     },
     {
         path: '/projects/:id/locks',
         name: 'projects.locks',
         component: () => import('@/pages/projects/Locks.vue'),
-        meta: { requiresAuth: true },
+        meta: {
+            requiresAuth: true,
+            breadcrumb: [
+                { label: 'Projects', to: '/projects' },
+                { label: 'Project', to: '/projects/:id' },
+                { label: 'File Locks' },
+            ],
+        },
     },
 
     // Global Tasks View
@@ -119,7 +195,12 @@ const routes: RouteRecordRaw[] = [
         path: '/tasks',
         name: 'tasks',
         component: () => import('@/pages/tasks/Index.vue'),
-        meta: { requiresAuth: true },
+        meta: {
+            requiresAuth: true,
+            breadcrumb: [
+                { label: 'Tasks' },
+            ],
+        },
     },
 
     // Skills Routes
@@ -127,13 +208,24 @@ const routes: RouteRecordRaw[] = [
         path: '/skills',
         name: 'skills',
         component: () => import('@/pages/skills/Index.vue'),
-        meta: { requiresAuth: true },
+        meta: {
+            requiresAuth: true,
+            breadcrumb: [
+                { label: 'Skills' },
+            ],
+        },
     },
     {
         path: '/skills/:id',
         name: 'skill.detail',
         component: () => import('@/pages/skills/Show.vue'),
-        meta: { requiresAuth: true },
+        meta: {
+            requiresAuth: true,
+            breadcrumb: [
+                { label: 'Skills', to: '/skills' },
+                { label: 'Details' },
+            ],
+        },
     },
 
     // MCP Routes
@@ -141,13 +233,24 @@ const routes: RouteRecordRaw[] = [
         path: '/mcp',
         name: 'mcp',
         component: () => import('@/pages/mcp/Index.vue'),
-        meta: { requiresAuth: true },
+        meta: {
+            requiresAuth: true,
+            breadcrumb: [
+                { label: 'MCP Servers' },
+            ],
+        },
     },
     {
         path: '/mcp/tools',
         name: 'mcp.tools',
         component: () => import('@/pages/mcp/Tools.vue'),
-        meta: { requiresAuth: true },
+        meta: {
+            requiresAuth: true,
+            breadcrumb: [
+                { label: 'MCP Servers', to: '/mcp' },
+                { label: 'Tools' },
+            ],
+        },
     },
 
     // Commands Routes
@@ -155,7 +258,12 @@ const routes: RouteRecordRaw[] = [
         path: '/commands',
         name: 'commands',
         component: () => import('@/pages/commands/Index.vue'),
-        meta: { requiresAuth: true },
+        meta: {
+            requiresAuth: true,
+            breadcrumb: [
+                { label: 'Commands' },
+            ],
+        },
     },
 
     // Settings
@@ -163,7 +271,12 @@ const routes: RouteRecordRaw[] = [
         path: '/settings',
         name: 'settings',
         component: () => import('@/pages/Settings.vue'),
-        meta: { requiresAuth: true },
+        meta: {
+            requiresAuth: true,
+            breadcrumb: [
+                { label: 'Settings' },
+            ],
+        },
     },
 
     // Documentation routes (public)

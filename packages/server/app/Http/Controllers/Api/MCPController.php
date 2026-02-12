@@ -8,6 +8,7 @@ use App\Models\Machine;
 use App\Models\MCPServer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Events\MachineCommand;
 use Illuminate\Support\Facades\Log;
 
 class MCPController extends Controller
@@ -171,13 +172,11 @@ class MCPController extends Controller
         // Mark as starting
         $server->markAsStarting();
 
-        // In a real implementation, this would trigger a WebSocket command to the agent
-        // to actually start the MCP server process
-        // For now, we simulate a successful start
-
-        // Simulate async start - in production, this would be handled by agent
-        // via WebSocket and we'd update the status when the agent reports back
-        $server->markAsRunning();
+        // Dispatch command to the agent via WebSocket broadcast
+        MachineCommand::dispatch($server->machine_id, 'mcp:start', [
+            'server_name' => $name,
+            'config' => $server->toArray(),
+        ]);
 
         Log::info("MCP server '{$server->name}' start requested", [
             'machine_id' => $machineModel->id,
@@ -188,6 +187,7 @@ class MCPController extends Controller
             'success' => true,
             'data' => [
                 'message' => 'MCP server start initiated',
+                'status' => 'starting',
                 'server' => new MCPResource($server),
             ],
             'meta' => [
@@ -224,9 +224,10 @@ class MCPController extends Controller
         // Mark as stopping
         $server->markAsStopping();
 
-        // In a real implementation, this would trigger a WebSocket command to the agent
-        // For now, we simulate a successful stop
-        $server->markAsStopped();
+        // Dispatch command to the agent via WebSocket broadcast
+        MachineCommand::dispatch($server->machine_id, 'mcp:stop', [
+            'server_name' => $name,
+        ]);
 
         Log::info("MCP server '{$server->name}' stop requested", [
             'machine_id' => $machineModel->id,
@@ -236,7 +237,8 @@ class MCPController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'message' => 'MCP server stopped',
+                'message' => 'MCP server stop initiated',
+                'status' => 'stopping',
                 'server' => new MCPResource($server),
             ],
             'meta' => [
@@ -265,8 +267,14 @@ class MCPController extends Controller
             return $this->errorResponse('MCP_002', 'MCP server not found', 404);
         }
 
-        // In a real implementation, this might refresh tools from the running server
-        // via WebSocket call to the agent
+        // Dispatch a fresh tool discovery request to the agent if the server is running.
+        // The cached tools are returned immediately; the agent will update them
+        // asynchronously via WebSocket once discovery completes.
+        if ($server->status === 'running') {
+            MachineCommand::dispatch($server->machine_id, 'mcp:list_tools', [
+                'server_name' => $name,
+            ]);
+        }
 
         return response()->json([
             'success' => true,
@@ -274,6 +282,7 @@ class MCPController extends Controller
                 'server' => new MCPResource($server),
                 'tools' => $server->tools ?? [],
                 'count' => count($server->tools ?? []),
+                'fresh_data_requested' => $server->status === 'running',
             ],
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
@@ -443,14 +452,22 @@ class MCPController extends Controller
             return $this->errorResponse('MCP_007', "Tool '{$toolName}' not found on this server", 404);
         }
 
-        // In a real implementation, this would send the tool execution request
-        // to the agent via WebSocket and wait for the response
+        $requestId = uniqid('mcp_tool_');
+
+        // Dispatch tool execution command to the agent via WebSocket broadcast
+        MachineCommand::dispatch($server->machine_id, 'mcp:call_tool', [
+            'server_name' => $name,
+            'tool_name' => $toolName,
+            'arguments' => $params,
+            'request_id' => $requestId,
+        ]);
 
         Log::info("MCP tool execution requested", [
             'machine_id' => $machineModel->id,
             'server_id' => $server->id,
             'tool' => $toolName,
             'params' => $params,
+            'request_id' => $requestId,
         ]);
 
         return response()->json([
@@ -459,7 +476,8 @@ class MCPController extends Controller
                 'message' => 'Tool execution initiated',
                 'tool' => $toolName,
                 'params' => $params,
-                'status' => 'pending',
+                'status' => 'executing',
+                'request_id' => $requestId,
             ],
             'meta' => [
                 'timestamp' => now()->toIso8601String(),

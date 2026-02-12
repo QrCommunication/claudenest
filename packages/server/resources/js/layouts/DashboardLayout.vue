@@ -24,6 +24,10 @@
 
       <!-- Page Content -->
       <main class="flex-1 p-6">
+        <Breadcrumb
+          v-if="breadcrumbItems.length > 0"
+          :items="breadcrumbItems"
+        />
         <router-view v-slot="{ Component }">
           <Transition
             name="fade"
@@ -114,12 +118,15 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useAuthStore } from '@/stores/auth';
+import { useBreadcrumb } from '@/composables/useBreadcrumb';
 import Sidebar from '@/components/layout/Sidebar.vue';
 import Header from '@/components/layout/Header.vue';
+import Breadcrumb from '@/components/common/Breadcrumb.vue';
 import Modal from '@/components/common/Modal.vue';
 import Input from '@/components/common/Input.vue';
 
 const authStore = useAuthStore();
+const { breadcrumbItems } = useBreadcrumb();
 
 const sidebarCollapsed = ref(false);
 const mobileSidebarOpen = ref(false);
