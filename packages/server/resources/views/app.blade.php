@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -155,6 +155,14 @@
     @endphp
     <script type="application/ld+json">{!! json_encode($jsonLd, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}</script>
 
+    <!-- Instant theme application (prevent FOUC) -->
+    <script>
+        (function(){var t=localStorage.getItem('claudenest-theme');
+        if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme:dark)').matches))
+        document.documentElement.classList.add('dark');
+        else document.documentElement.classList.remove('dark')})();
+    </script>
+
     <!-- Reverb WebSocket Config -->
     <script>
         window.ClaudeNest = {
@@ -170,7 +178,7 @@
     <!-- Vite -->
     @vite(['resources/css/app.css', 'resources/js/app.ts'])
 </head>
-<body class="bg-dark-1 text-white antialiased">
+<body class="antialiased">
     <div id="app"></div>
 </body>
 </html>
