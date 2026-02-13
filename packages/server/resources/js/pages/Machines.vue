@@ -6,7 +6,7 @@
         <h1 class="text-2xl font-bold text-white">Machines</h1>
         <p class="text-dark-4 mt-1">Manage your connected machines and devices</p>
       </div>
-      <Button @click="showAddModal = true">
+      <Button @click="openPairModal">
         <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
@@ -20,7 +20,7 @@
         <div class="flex items-center justify-between">
           <div>
             <p class="text-sm text-dark-4">Total Machines</p>
-            <p class="text-2xl font-bold text-white">{{ machines.length }}</p>
+            <p class="text-2xl font-bold text-white">{{ store.machines.length }}</p>
           </div>
           <div class="w-10 h-10 bg-brand-purple/10 rounded-lg flex items-center justify-center">
             <svg class="w-5 h-5 text-brand-purple" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -33,7 +33,7 @@
         <div class="flex items-center justify-between">
           <div>
             <p class="text-sm text-dark-4">Online</p>
-            <p class="text-2xl font-bold text-green-400">{{ onlineCount }}</p>
+            <p class="text-2xl font-bold text-green-400">{{ store.onlineMachines.length }}</p>
           </div>
           <div class="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
             <svg class="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -46,7 +46,7 @@
         <div class="flex items-center justify-between">
           <div>
             <p class="text-sm text-dark-4">Offline</p>
-            <p class="text-2xl font-bold text-red-400">{{ offlineCount }}</p>
+            <p class="text-2xl font-bold text-red-400">{{ store.offlineMachines.length }}</p>
           </div>
           <div class="w-10 h-10 bg-red-500/10 rounded-lg flex items-center justify-center">
             <svg class="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -63,6 +63,7 @@
         v-model="searchQuery"
         placeholder="Search machines..."
         class="sm:w-64"
+        @update:model-value="handleSearchChange"
       >
         <template #left-icon>
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -78,15 +79,27 @@
           { value: 'offline', label: 'Offline' },
         ]"
         class="sm:w-40"
+        @update:model-value="handleStatusChange"
       />
+    </div>
+
+    <!-- Error Banner -->
+    <div
+      v-if="store.error"
+      class="bg-red-500/10 border border-red-500/30 rounded-lg p-4 flex items-center justify-between"
+    >
+      <p class="text-sm text-red-400">{{ store.error }}</p>
+      <button class="text-red-400 hover:text-red-300 text-sm" @click="store.clearError()">
+        Dismiss
+      </button>
     </div>
 
     <!-- Machines List -->
     <Card>
       <Table
-        :data="filteredMachines"
+        :data="store.filteredMachines"
         :columns="columns"
-        :is-loading="isLoading"
+        :is-loading="store.isLoading"
       >
         <template #row="{ row }">
           <td class="px-6 py-4 whitespace-nowrap">
@@ -102,13 +115,13 @@
                 />
               </div>
               <div>
-                <p class="text-sm font-medium text-white">{{ row.name }}</p>
+                <p class="text-sm font-medium text-white">{{ row.display_name || row.name }}</p>
                 <p class="text-xs text-dark-4">{{ row.id }}</p>
               </div>
             </div>
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-dark-4">
-            {{ row.hostname }}
+            {{ row.hostname || '-' }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-dark-4 capitalize">
             {{ row.platform }}
@@ -123,13 +136,14 @@
             </Badge>
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-dark-4">
-            {{ formatTime(row.last_seen_at) }}
+            {{ row.last_seen_human || formatTime(row.last_seen_at) }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
             <div class="flex items-center justify-end gap-2">
               <Button
                 variant="ghost"
                 size="sm"
+                :disabled="!row.is_online"
                 @click="connect(row)"
               >
                 Connect
@@ -137,7 +151,7 @@
               <Button
                 variant="ghost"
                 size="sm"
-                @click="editMachine(row)"
+                @click="openEditModal(row)"
               >
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -146,7 +160,8 @@
               <Button
                 variant="ghost"
                 size="sm"
-                @click="deleteMachine(row)"
+                :loading="store.isDeleting"
+                @click="handleDelete(row)"
               >
                 <svg class="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -158,37 +173,89 @@
       </Table>
     </Card>
 
-    <!-- Add Machine Modal -->
-    <Modal v-model="showAddModal" title="Add New Machine">
+    <!-- Pair Machine Modal -->
+    <Modal v-model="showPairModal" title="Pair a Machine">
+      <div class="space-y-4">
+        <div class="bg-dark-3/50 rounded-lg p-4 border border-dark-4">
+          <p class="text-sm text-dark-4 leading-relaxed">
+            Run <code class="bg-dark-1 text-brand-cyan px-1.5 py-0.5 rounded text-xs font-mono">claudenest-agent pair</code>
+            on your machine to get a pairing code, then enter it below.
+          </p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-white mb-1.5">Pairing Code</label>
+          <input
+            v-model="pairingCodeDisplay"
+            type="text"
+            class="w-full bg-dark-1 border border-dark-4 rounded-lg px-4 py-3 text-center text-2xl font-mono tracking-[0.3em] text-white placeholder-dark-4 focus:outline-none focus:border-brand-purple focus:ring-1 focus:ring-brand-purple uppercase"
+            placeholder="XXX-XXX"
+            maxlength="7"
+            autocomplete="off"
+            @input="handlePairingCodeInput"
+            @keydown.enter="completePairing"
+          />
+        </div>
+        <Input
+          v-model="pairingMachineName"
+          label="Machine Name (optional)"
+          placeholder="e.g., MacBook Pro"
+        />
+        <p v-if="pairingError" class="text-sm text-red-400">{{ pairingError }}</p>
+        <div class="flex justify-end gap-3 pt-4">
+          <Button variant="secondary" @click="closePairModal">
+            Cancel
+          </Button>
+          <Button
+            :loading="isPairing"
+            :disabled="normalizedPairingCode.length !== 6"
+            @click="completePairing"
+          >
+            Complete Pairing
+          </Button>
+        </div>
+      </div>
+    </Modal>
+
+    <!-- Edit Machine Modal -->
+    <Modal v-model="showEditModal" title="Edit Machine">
       <div class="space-y-4">
         <Input
-          v-model="newMachine.name"
+          v-model="editForm.name"
           label="Machine Name"
           placeholder="e.g., MacBook Pro"
           required
         />
-        <Input
-          v-model="newMachine.hostname"
-          label="Hostname"
-          placeholder="e.g., macbook.local"
-          required
-        />
-        <Select
-          v-model="newMachine.platform"
-          label="Platform"
-          :options="[
-            { value: 'darwin', label: 'macOS' },
-            { value: 'linux', label: 'Linux' },
-            { value: 'win32', label: 'Windows' },
-          ]"
-          required
-        />
+        <p v-if="editError" class="text-sm text-red-400">{{ editError }}</p>
         <div class="flex justify-end gap-3 pt-4">
-          <Button variant="secondary" @click="showAddModal = false">
+          <Button variant="secondary" @click="showEditModal = false">
             Cancel
           </Button>
-          <Button :loading="isSaving" @click="saveMachine">
-            Add Machine
+          <Button :loading="store.isUpdating" @click="saveEdit">
+            Save Changes
+          </Button>
+        </div>
+      </div>
+    </Modal>
+
+    <!-- Delete Confirmation Modal -->
+    <Modal v-model="showDeleteModal" title="Delete Machine" size="sm">
+      <div class="space-y-4">
+        <p class="text-sm text-dark-4">
+          Are you sure you want to remove
+          <span class="text-white font-medium">{{ machineToDelete?.display_name || machineToDelete?.name }}</span>?
+          This action cannot be undone.
+        </p>
+        <div class="flex justify-end gap-3 pt-4">
+          <Button variant="secondary" @click="showDeleteModal = false">
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            class="!bg-red-500 hover:!bg-red-600"
+            :loading="store.isDeleting"
+            @click="confirmDelete"
+          >
+            Delete
           </Button>
         </div>
       </div>
@@ -197,9 +264,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from '@/composables/useToast';
+import { useMachinesStore } from '@/stores/machines';
+import api, { getErrorMessage } from '@/utils/api';
 import Card from '@/components/common/Card.vue';
 import Button from '@/components/common/Button.vue';
 import Input from '@/components/common/Input.vue';
@@ -216,53 +285,38 @@ import {
 
 const router = useRouter();
 const toast = useToast();
+const store = useMachinesStore();
 
-const isLoading = ref(false);
-const isSaving = ref(false);
-const showAddModal = ref(false);
-const searchQuery = ref('');
-const statusFilter = ref('all');
+// ==================== FILTER STATE ====================
 
-const machines = ref<Machine[]>([
-  {
-    id: 'm1',
-    name: 'MacBook Pro',
-    status: 'online',
-    platform: 'darwin',
-    hostname: 'macbook-pro.local',
-    last_seen_at: new Date().toISOString(),
-  },
-  {
-    id: 'm2',
-    name: 'Ubuntu Server',
-    status: 'online',
-    platform: 'linux',
-    hostname: 'ubuntu-server.local',
-    last_seen_at: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-  },
-  {
-    id: 'm3',
-    name: 'Windows PC',
-    status: 'offline',
-    platform: 'win32',
-    hostname: 'windows-pc.local',
-    last_seen_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-  },
-  {
-    id: 'm4',
-    name: 'Raspberry Pi',
-    status: 'online',
-    platform: 'linux',
-    hostname: 'raspberrypi.local',
-    last_seen_at: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-  },
-]);
+const searchQuery = ref(store.filters.search);
+const statusFilter = ref(store.filters.status);
 
-const newMachine = ref({
-  name: '',
-  hostname: '',
-  platform: 'linux',
-});
+// ==================== PAIR MODAL STATE ====================
+
+const showPairModal = ref(false);
+const pairingCodeDisplay = ref('');
+const pairingMachineName = ref('');
+const isPairing = ref(false);
+const pairingError = ref('');
+
+const normalizedPairingCode = computed(() =>
+  pairingCodeDisplay.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase()
+);
+
+// ==================== EDIT MODAL STATE ====================
+
+const showEditModal = ref(false);
+const editError = ref('');
+const editingMachine = ref<Machine | null>(null);
+const editForm = ref({ name: '' });
+
+// ==================== DELETE MODAL STATE ====================
+
+const showDeleteModal = ref(false);
+const machineToDelete = ref<Machine | null>(null);
+
+// ==================== TABLE COLUMNS ====================
 
 const columns: TableColumn<Machine>[] = [
   { key: 'name', label: 'Machine', sortable: true },
@@ -273,26 +327,31 @@ const columns: TableColumn<Machine>[] = [
   { key: 'actions', label: '', sortable: false },
 ];
 
-const filteredMachines = computed(() => {
-  let result = machines.value;
-  
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase();
-    result = result.filter(m =>
-      m.name.toLowerCase().includes(query) ||
-      m.hostname.toLowerCase().includes(query)
-    );
+// ==================== LIFECYCLE ====================
+
+onMounted(async () => {
+  try {
+    await store.fetchMachines();
+  } catch {
+    toast.error('Load Failed', 'Could not fetch machines. Please try again.');
   }
-  
-  if (statusFilter.value !== 'all') {
-    result = result.filter(m => m.status === statusFilter.value);
-  }
-  
-  return result;
 });
 
-const onlineCount = computed(() => machines.value.filter(m => m.status === 'online').length);
-const offlineCount = computed(() => machines.value.filter(m => m.status === 'offline').length);
+// ==================== FILTER HANDLERS ====================
+
+function handleSearchChange(value: string | number) {
+  store.setFilters({ search: String(value) });
+}
+
+function handleStatusChange(value: string | number) {
+  store.setFilters({ status: String(value) } as Parameters<typeof store.setFilters>[0]);
+}
+
+// Keep local refs in sync if store filters change externally
+watch(() => store.filters.search, (val) => { searchQuery.value = val; });
+watch(() => store.filters.status, (val) => { statusFilter.value = val; });
+
+// ==================== PLATFORM HELPERS ====================
 
 const platformIcon = (platform: string) => {
   const icons: Record<string, typeof ComputerDesktopIcon> = {
@@ -321,60 +380,155 @@ const platformColor = (platform: string) => {
   return colors[platform] || 'text-dark-4';
 };
 
-const formatTime = (timestamp: string) => {
+const formatTime = (timestamp: string | null) => {
+  if (!timestamp) return 'Never';
+
   const date = new Date(timestamp);
   const now = new Date();
   const diff = now.getTime() - date.getTime();
-  
+
   const minutes = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
   const days = Math.floor(diff / 86400000);
-  
+
   if (minutes < 1) return 'Just now';
   if (minutes < 60) return `${minutes}m ago`;
   if (hours < 24) return `${hours}h ago`;
   return `${days}d ago`;
 };
 
-const connect = (machine: Machine) => {
-  toast.success('Connecting', `Connecting to ${machine.name}...`);
-  router.push('/sessions');
-};
+// ==================== PAIRING CODE HELPERS ====================
 
-const editMachine = (machine: Machine) => {
-  toast.info('Edit Machine', `Editing ${machine.name} - coming soon`);
-};
-
-const deleteMachine = (machine: Machine) => {
-  if (confirm(`Are you sure you want to remove ${machine.name}?`)) {
-    machines.value = machines.value.filter(m => m.id !== machine.id);
-    toast.success('Machine Removed', `${machine.name} has been removed`);
+function formatPairingCode(raw: string): string {
+  const clean = raw.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 6);
+  if (clean.length > 3) {
+    return clean.slice(0, 3) + '-' + clean.slice(3);
   }
-};
+  return clean;
+}
 
-const saveMachine = () => {
-  if (!newMachine.value.name || !newMachine.value.hostname) {
-    toast.error('Validation Error', 'Please fill in all required fields');
+function handlePairingCodeInput(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const cursorPos = input.selectionStart ?? 0;
+  const rawBefore = pairingCodeDisplay.value;
+  const rawValue = input.value;
+
+  pairingCodeDisplay.value = formatPairingCode(rawValue);
+
+  // Adjust cursor position after formatting
+  const newLength = pairingCodeDisplay.value.length;
+  const oldLength = rawBefore.length;
+  const adjustedPos = cursorPos + (newLength - rawValue.length);
+
+  requestAnimationFrame(() => {
+    input.setSelectionRange(
+      Math.min(adjustedPos, newLength),
+      Math.min(adjustedPos, newLength)
+    );
+  });
+}
+
+// ==================== PAIR MODAL ACTIONS ====================
+
+function openPairModal() {
+  pairingCodeDisplay.value = '';
+  pairingMachineName.value = '';
+  pairingError.value = '';
+  isPairing.value = false;
+  showPairModal.value = true;
+}
+
+function closePairModal() {
+  showPairModal.value = false;
+}
+
+async function completePairing() {
+  const code = normalizedPairingCode.value;
+
+  if (code.length !== 6) {
+    pairingError.value = 'Please enter a valid 6-character pairing code.';
     return;
   }
-  
-  isSaving.value = true;
-  
-  setTimeout(() => {
-    const machine: Machine = {
-      id: `m${Date.now()}`,
-      name: newMachine.value.name,
-      status: 'offline',
-      platform: newMachine.value.platform,
-      hostname: newMachine.value.hostname,
-      last_seen_at: new Date().toISOString(),
-    };
-    
-    machines.value.push(machine);
-    showAddModal.value = false;
-    newMachine.value = { name: '', hostname: '', platform: 'linux' };
-    toast.success('Machine Added', 'New machine has been added successfully');
-    isSaving.value = false;
-  }, 500);
-};
+
+  isPairing.value = true;
+  pairingError.value = '';
+
+  // Format code as XXX-XXX for the API URL
+  const formattedCode = code.slice(0, 3) + '-' + code.slice(3);
+
+  try {
+    const payload: Record<string, string> = {};
+    if (pairingMachineName.value.trim()) {
+      payload.name = pairingMachineName.value.trim();
+    }
+
+    await api.post(`/pairing/${formattedCode}/complete`, payload);
+
+    // Refetch machines to get the newly paired machine
+    await store.fetchMachines();
+
+    showPairModal.value = false;
+    toast.success('Machine Paired', 'The machine has been successfully paired to your account.');
+  } catch (err: unknown) {
+    pairingError.value = getErrorMessage(err);
+  } finally {
+    isPairing.value = false;
+  }
+}
+
+// ==================== EDIT ACTIONS ====================
+
+function openEditModal(machine: Machine) {
+  editingMachine.value = machine;
+  editForm.value.name = machine.display_name || machine.name;
+  editError.value = '';
+  showEditModal.value = true;
+}
+
+async function saveEdit() {
+  if (!editingMachine.value) return;
+
+  const name = editForm.value.name.trim();
+  if (!name) {
+    editError.value = 'Machine name is required.';
+    return;
+  }
+
+  editError.value = '';
+
+  try {
+    await store.updateMachine(editingMachine.value.id, { name });
+    showEditModal.value = false;
+    toast.success('Machine Updated', `${name} has been updated successfully.`);
+  } catch (err: unknown) {
+    editError.value = getErrorMessage(err);
+  }
+}
+
+// ==================== DELETE ACTIONS ====================
+
+function handleDelete(machine: Machine) {
+  machineToDelete.value = machine;
+  showDeleteModal.value = true;
+}
+
+async function confirmDelete() {
+  if (!machineToDelete.value) return;
+
+  const machineName = machineToDelete.value.display_name || machineToDelete.value.name;
+
+  try {
+    await store.deleteMachine(machineToDelete.value.id);
+    showDeleteModal.value = false;
+    toast.success('Machine Removed', `${machineName} has been removed.`);
+  } catch (err: unknown) {
+    toast.error('Delete Failed', getErrorMessage(err));
+  }
+}
+
+// ==================== CONNECT ACTION ====================
+
+function connect(machine: Machine) {
+  router.push(`/sessions/new?machine=${machine.id}`);
+}
 </script>
