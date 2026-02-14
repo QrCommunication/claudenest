@@ -29,7 +29,7 @@
             <li><router-link to="/docs" class="nav-link text-sm cursor-pointer">{{ $t('docs.title') }}</router-link></li>
             <li><router-link to="/docs/api/authentication" class="nav-link text-sm cursor-pointer">{{ $t('landing.footer.api_reference') }}</router-link></li>
             <li><a href="https://github.com/claudenest/claudenest" target="_blank" rel="noopener noreferrer" class="nav-link text-sm cursor-pointer">GitHub</a></li>
-            <li><a href="https://status.claudenest.dev" target="_blank" rel="noopener noreferrer" class="nav-link text-sm cursor-pointer">{{ $t('landing.footer.status') }}</a></li>
+            <li><a href="https://status.claudenest.io" target="_blank" rel="noopener noreferrer" class="nav-link text-sm cursor-pointer">{{ $t('landing.footer.status') }}</a></li>
           </ul>
         </div>
 

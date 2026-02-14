@@ -132,7 +132,7 @@ docker-compose exec app php artisan user:create --admin"
         
         <CodeBlock 
           code="# Download and run the installer
-curl -fsSL https://claudenest.dev/install.sh | bash
+curl -fsSL https://claudenest.io/install.sh | bash
 
 # Or manual installation
 cd /opt

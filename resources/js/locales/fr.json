@@ -1,0 +1,237 @@
+{
+    "landing": {
+        "nav": {
+            "features": "Fonctionnalités",
+            "how_it_works": "Comment ça marche",
+            "compare": "Comparer",
+            "pricing": "Tarifs",
+            "docs": "Docs",
+            "login": "Connexion",
+            "get_started": "Commencer Gratuitement"
+        },
+        "hero": {
+            "badge": "Open Source · Auto-hébergé · Gratuit",
+            "headline": "Vos Agents IA, Orchestrés.",
+            "subheadline": "Exécutez plusieurs instances Claude Code sur le même projet avec contexte partagé, verrouillage de fichiers et contrôle en temps réel — depuis n'importe quel appareil.",
+            "cta_primary": "Commencer Gratuitement",
+            "cta_secondary": "Lire la Doc",
+            "micro_copy": "Pas de carte bancaire. Auto-hébergé. Licence MIT.",
+            "social_proof": "Approuvé par les développeurs utilisant Claude Code dans le monde entier",
+            "stats": {
+                "agents": "Agents Simultanés",
+                "embeddings": "Embeddings Vectoriels",
+                "latency": "Latence WebSocket",
+                "opensource": "Open Source"
+            }
+        },
+        "problem": {
+            "headline": "Ça vous rappelle quelque chose ?",
+            "transition": "Il y a une meilleure façon.",
+            "pain_1": {
+                "title": "Trois agents, une codebase, zéro coordination",
+                "desc": "Vous lancez plusieurs instances Claude sur le même projet. Elles modifient les mêmes fichiers. Conflits de merge partout. Des heures de travail IA perdues."
+            },
+            "pain_2": {
+                "title": "Le contexte disparait entre les sessions",
+                "desc": "Chaque nouvelle session Claude repart de zéro. Vous collez les mêmes instructions encore et encore. Vos agents oublient tout."
+            },
+            "pain_3": {
+                "title": "Naviguer à l'aveugle avec plusieurs agents",
+                "desc": "Quel agent fait quoi ? Qui a modifié ce fichier ? Cette tâche est-elle terminée ? Vous n'en avez aucune idée jusqu'à ce que quelque chose casse."
+            }
+        },
+        "solution": {
+            "headline": "Vos agents méritent une maison.",
+            "subheadline": "ClaudeNest offre à vos instances Claude Code une compréhension partagée, la prévention des conflits et un centre de commande unifié.",
+            "pillar_1": "Le RAG pgvector signifie que vos agents construisent sur les connaissances des autres — et ne repartent pas de zéro.",
+            "pillar_2": "Verrouillage de fichier + attribution atomique des tâches = zéro conflit de merge, zéro travail dupliqué.",
+            "pillar_3": "Voyez chaque agent, chaque tâche, chaque frappe clavier — depuis votre navigateur ou votre téléphone."
+        },
+        "features": {
+            "badge": "Capacités",
+            "headline_prefix": "Tout ce dont vous avez besoin pour",
+            "headline_suffix": "orchestrer à l'échelle",
+            "subheadline": "D'un simple tableau de bord à un centre de commande multi-agents complet.",
+            "remote": {
+                "title": "Contrôle depuis partout",
+                "desc": "Accédez à vos instances Claude Code depuis n'importe quel navigateur ou appareil. Le relais WebSocket transmet chaque frappe en temps réel, avec <50ms de latence."
+            },
+            "multi_agent": {
+                "title": "Agents qui collaborent",
+                "desc": "Exécutez 5+ instances Claude sur le même projet. L'attribution atomique des tâches évite le travail dupliqué. Chaque agent sait ce que font les autres."
+            },
+            "context": {
+                "title": "Intelligence partagée",
+                "desc": "Les embeddings vectoriels 384 dimensions via pgvector donnent à vos agents une compréhension sémantique du projet entier. Ils cherchent par sens, pas par mots-clés."
+            },
+            "realtime": {
+                "title": "Chaque frappe, en direct",
+                "desc": "Les canaux WebSocket Laravel Reverb relaient la sortie du terminal en temps réel. Regardez vos agents travailler depuis partout — même votre téléphone."
+            },
+            "locking": {
+                "title": "Zéro conflit de merge",
+                "desc": "Verrouillage automatique des fichiers avec expiration, libération forcée et opérations en masse. Deux agents ne peuvent jamais modifier le même fichier simultanément."
+            },
+            "mcp": {
+                "title": "Extensibilité infinie",
+                "desc": "Le support du protocole Model Context Protocol signifie que vos agents peuvent utiliser n'importe quel outil MCP. La découverte est automatique, l'exécution est transparente."
+            }
+        },
+        "how_it_works": {
+            "badge": "Démarrage",
+            "headline_prefix": "Opérationnel en",
+            "headline_suffix": "trois étapes",
+            "subheadline": "De l'installation à l'orchestration multi-agents complète en quelques minutes, pas des heures.",
+            "step_1": {
+                "title": "Installer l'Agent",
+                "desc": "npm i -g @claudenest/agent"
+            },
+            "step_2": {
+                "title": "Démarrer une Session",
+                "desc": "Lancez Claude Code à distance depuis n'importe quel appareil"
+            },
+            "step_3": {
+                "title": "Orchestrer",
+                "desc": "Coordonnez plusieurs agents avec un contexte partagé"
+            }
+        },
+        "comparison": {
+            "badge": "Pourquoi ClaudeNest",
+            "headline_prefix": "Voyez comment nous",
+            "headline_suffix": "nous comparons",
+            "subheadline": "La plateforme d'orchestration la plus complète construite spécifiquement pour Claude Code.",
+            "rows": {
+                "multi_agent": "Multi-Agents",
+                "dashboard": "Tableau de Bord Web",
+                "mobile": "App Mobile",
+                "rag": "RAG pgvector",
+                "locking": "Verrouillage Fichiers",
+                "claude_specific": "Spécifique Claude",
+                "websocket": "WebSocket Temps-réel",
+                "mcp": "Protocole MCP",
+                "open_source": "Open Source"
+            }
+        },
+        "testimonials": {
+            "badge": "Ce que disent les développeurs",
+            "headline_prefix": "Aimé par les",
+            "headline_suffix": "développeurs",
+            "t1": {
+                "quote": "ClaudeNest a complètement changé ma façon de travailler. Je peux enfin faire tourner plusieurs agents sans qu'ils se marchent sur les pieds.",
+                "author": "Sarah J.",
+                "role": "Développeur Frontend Senior"
+            },
+            "t2": {
+                "quote": "Le partage de contexte change la donne. Mes agents savent réellement ce qui s'est passé dans les sessions précédentes.",
+                "author": "Mike T.",
+                "role": "Tech Lead"
+            },
+            "t3": {
+                "quote": "Pouvoir vérifier mes agents depuis mon téléphone quand je ne suis pas à mon bureau est incroyable.",
+                "author": "Alex R.",
+                "role": "Développeur Full Stack"
+            }
+        },
+        "pricing": {
+            "badge": "Tarifs",
+            "headline": "Gratuit pour toujours. Premium quand vous scalerez.",
+            "subheadline": "ClaudeNest est open source et auto-hébergé. Pas de frais d'usage, pas de prix par siège, pas de surprises.",
+            "free": {
+                "title": "Community",
+                "price": "Gratuit",
+                "for": "Développeurs solo",
+                "cta": "Commencer"
+            },
+            "pro": {
+                "title": "Pro",
+                "price": "29$/mois",
+                "for": "Équipes & power users",
+                "cta": "Essai Gratuit",
+                "badge": "Plus Populaire"
+            },
+            "enterprise": {
+                "title": "Entreprise",
+                "price": "Sur Mesure",
+                "for": "Organisations",
+                "cta": "Contacter Ventes"
+            },
+            "features": {
+                "agents": "Agents",
+                "rag": "Contexte RAG",
+                "locks": "Verrous Fichiers",
+                "support": "Support",
+                "sso": "SSO/SAML"
+            },
+            "values": {
+                "up_to_3": "Jusqu'à 3",
+                "up_to_20": "Jusqu'à 20",
+                "unlimited": "Illimité",
+                "1_project": "1 projet",
+                "unlimited_projects": "Projets illimités",
+                "priority": "Illimité + priorité",
+                "basic": "Basique",
+                "advanced": "Avancé (masse, force)",
+                "audit": "Avancé + piste d'audit",
+                "community": "Communauté (GitHub)",
+                "priority_email": "Email prioritaire",
+                "dedicated": "Dédié + SLA"
+            }
+        },
+        "faq": {
+            "headline_prefix": "Questions fréquemment",
+            "headline_suffix": "posées",
+            "q1": {
+                "q": "Est-ce que ClaudeNest est vraiment gratuit ?",
+                "a": "Oui. ClaudeNest est sous licence MIT et auto-hébergé. Le niveau Community est gratuit pour toujours. Les niveaux Pro et Enterprise sont pour l'hébergement géré et le support prioritaire."
+            },
+            "q2": {
+                "q": "Cela fonctionne-t-il avec n'importe quel LLM ou juste Claude ?",
+                "a": "ClaudeNest est conçu spécialement pour Claude Code d'Anthropic. Cette spécialisation nous permet d'optimiser chaque interaction, de la gestion PTY à l'injection de contexte. Nous ne diluons pas notre focus en supportant tous les modèles."
+            },
+            "q3": {
+                "q": "Comment fonctionne le système de contexte RAG ?",
+                "a": "Quand un agent apprend quelque chose, nous générons un embedding vectoriel 384 dimensions via BGE-small-en et le stockons dans PostgreSQL avec pgvector. Les autres agents recherchent par similarité sémantique — le sens, pas les mots-clés. Résultat : les agents construisent sur la compréhension les uns des autres."
+            },
+            "q4": {
+                "q": "Plusieurs agents peuvent-ils vraiment travailler sur les mêmes fichiers ?",
+                "a": "Pas en même temps — c'est tout l'intérêt. Notre système de verrouillage de fichiers empêche deux agents d'éditer le même fichier simultanément. Les verrous ont une expiration, une libération forcée et des opérations en masse. Zéro conflit de merge."
+            },
+            "q5": {
+                "q": "De quelle infrastructure ai-je besoin ?",
+                "a": "Un serveur Linux avec PHP 8.3+, PostgreSQL 16 (avec pgvector), Redis, et Node.js 20. Un VPS standard à 20$/mois gère la plupart des configurations. Docker Compose rend l'installation possible en une commande."
+            },
+            "q6": {
+                "q": "Mon code est-il envoyé sur vos serveurs ?",
+                "a": "Jamais. ClaudeNest est auto-hébergé. Votre code, vos agents, votre infrastructure. Nous ne voyons jamais votre code source ou vos prompts."
+            },
+            "q7": {
+                "q": "Comment cela se compare-t-il à Claude-Flow ?",
+                "a": "Claude-Flow se concentre sur l'intelligence en essaim avec 60+ agents mais n'a pas de tableau de bord web ni d'app mobile. ClaudeNest fournit une plateforme complète : dashboard web, app mobile, RAG pgvector et verrouillage de fichiers — tout conçu spécialement pour Claude Code."
+            },
+            "q8": {
+                "q": "Puis-je contribuer ?",
+                "a": "Absolument. ClaudeNest est open source sous licence MIT. Consultez notre CONTRIBUTING.md pour les instructions d'installation, les standards de code et notre processus ADR."
+            }
+        },
+        "opensource": {
+            "headline": "Construit en public",
+            "desc": "Inspectez chaque ligne, contribuez des fonctionnalités et auto-bergez sur votre propre infrastructure. Pas de verrouillage vendeur, jamais.",
+            "cta": "Star sur GitHub"
+        },
+        "final_cta": {
+            "headline_prefix": "Prêt à orchestrer vos",
+            "headline_suffix": "agents IA ?",
+            "subheadline": "Déployez ClaudeNest en quelques minutes. Contrôlez Claude Code de partout. Coordonnez des équipes d'agents IA sur un seul projet.",
+            "cta_primary": "Commencer Gratuitement",
+            "cta_secondary": "Lire la Doc"
+        },
+        "footer": {
+            "desc": "Plateforme d'orchestration à distance pour Claude Code.",
+            "product": "Produit",
+            "resources": "Ressources",
+            "legal": "Légal",
+            "copyright": "© {year} ClaudeNest. Tous droits réservés.",
+            "built_with": "Construit avec"
+        }
+    }
+}

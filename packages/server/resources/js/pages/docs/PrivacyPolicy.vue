@@ -962,7 +962,7 @@
             </svg>
             <div>
               <strong>Email</strong>
-              <p><a href="mailto:dpo@claudenest.dev">dpo@claudenest.dev</a></p>
+              <p><a href="mailto:dpo@claudenest.io">dpo@claudenest.io</a></p>
             </div>
           </div>
 
@@ -972,7 +972,7 @@
             </svg>
             <div>
               <strong>Website</strong>
-              <p><a href="https://claudenest.dev/privacy" target="_blank" rel="noopener">claudenest.dev/privacy</a></p>
+              <p><a href="https://claudenest.io/privacy" target="_blank" rel="noopener">claudenest.io/privacy</a></p>
             </div>
           </div>
 

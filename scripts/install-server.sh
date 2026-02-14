@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # ClaudeNest Server Installation Script
-# Usage: curl -fsSL https://claudenest.dev/install.sh | sudo bash
+# Usage: curl -fsSL https://claudenest.io/install.sh | sudo bash
 #
 
 set -e
@@ -635,7 +635,7 @@ print_finish() {
     echo "  2. Set up your first admin user"
     echo "  3. Install the mobile app"
     echo ""
-    echo "📚 Documentation: https://docs.claudenest.dev"
+    echo "📚 Documentation: https://docs.claudenest.io"
     echo ""
     log_success "Enjoy using ClaudeNest! 🚀"
 }

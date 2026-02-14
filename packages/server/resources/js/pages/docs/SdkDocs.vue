@@ -91,7 +91,7 @@ const installLang = computed(() => currentSdk.value === 'cli' ? 'bash' : 'bash')
 const installCode = computed(() => {
   const codes: Record<string, string> = {
     javascript: 'npm install @claudenest/sdk\n# or\nyarn add @claudenest/sdk',
-    cli: 'npm install -g @claudenest/cli\n# or\ncurl -fsSL https://claudenest.dev/install-cli.sh | bash',
+    cli: 'npm install -g @claudenest/cli\n# or\ncurl -fsSL https://claudenest.io/install-cli.sh | bash',
     php: 'composer require claudenest/sdk',
     python: 'pip install claudenest-sdk'
   };

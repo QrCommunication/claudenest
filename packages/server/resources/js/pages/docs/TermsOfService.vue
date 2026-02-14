@@ -285,7 +285,7 @@
       </div>
       <p>
         To exercise any of these rights, contact us at
-        <a href="mailto:privacy@claudenest.dev">privacy@claudenest.dev</a>. We will
+        <a href="mailto:privacy@claudenest.io">privacy@claudenest.io</a>. We will
         respond to your request within 30 days, as required by the GDPR.
       </p>
 
@@ -403,7 +403,7 @@
       <h3 id="termination-by-you">9.1 Termination by You</h3>
       <p>
         You may terminate your account at any time by contacting us at
-        <a href="mailto:support@claudenest.dev">support@claudenest.dev</a> or through
+        <a href="mailto:support@claudenest.io">support@claudenest.io</a> or through
         the account settings in the dashboard. Upon termination:
       </p>
       <ul>
@@ -537,7 +537,7 @@
           </div>
           <div>
             <h4>General Inquiries</h4>
-            <a href="mailto:contact@claudenest.dev">contact@claudenest.dev</a>
+            <a href="mailto:contact@claudenest.io">contact@claudenest.io</a>
           </div>
         </div>
         <div class="contact-card">
@@ -548,7 +548,7 @@
           </div>
           <div>
             <h4>Data Protection Officer</h4>
-            <a href="mailto:privacy@claudenest.dev">privacy@claudenest.dev</a>
+            <a href="mailto:privacy@claudenest.io">privacy@claudenest.io</a>
           </div>
         </div>
         <div class="contact-card">
@@ -559,7 +559,7 @@
           </div>
           <div>
             <h4>Technical Support</h4>
-            <a href="mailto:support@claudenest.dev">support@claudenest.dev</a>
+            <a href="mailto:support@claudenest.io">support@claudenest.io</a>
           </div>
         </div>
       </div>
