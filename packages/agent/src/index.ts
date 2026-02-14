@@ -23,7 +23,7 @@ import keytar from 'keytar';
 import os from 'os';
 
 const SERVICE_NAME = 'ClaudeNestAgent';
-const DEFAULT_SERVER_URL = 'https://api.claudenest.dev';
+const DEFAULT_SERVER_URL = 'https://api.claudenest.io';
 
 interface CLIOptions {
   server?: string;

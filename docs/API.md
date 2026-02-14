@@ -8,16 +8,20 @@
 
 1. [Overview](#1-overview)
 2. [Authentication](#2-authentication)
-3. [Machines](#3-machines)
-4. [Sessions](#4-sessions)
-5. [Projects](#5-projects)
-6. [Tasks](#6-tasks)
-7. [Context (RAG)](#7-context-rag)
-8. [File Locks](#8-file-locks)
-9. [Skills](#9-skills)
-10. [MCP](#10-mcp)
-11. [WebSocket](#11-websocket)
-12. [Error Reference](#12-error-reference)
+3. [Pairing](#3-pairing)
+4. [Machines](#4-machines)
+5. [Sessions](#5-sessions)
+6. [Projects](#6-projects)
+7. [Tasks](#7-tasks)
+8. [Context (RAG)](#8-context-rag)
+9. [File Locks](#9-file-locks)
+10. [Skills](#10-skills)
+11. [MCP](#11-mcp)
+12. [Discovered Commands](#12-discovered-commands)
+13. [WebSocket](#13-websocket)
+14. [Error Reference](#14-error-reference)
+15. [Rate Limiting](#15-rate-limiting)
+16. [Health Check](#16-health-check)
 
 ---
 
@@ -26,7 +30,7 @@
 ### 1.1 Base URL
 
 ```
-Production:  https://api.claudenest.dev/api
+Production:  https://api.claudenest.io/api
 Development: http://localhost:8000/api
 ```
 
@@ -264,11 +268,218 @@ DELETE /api/auth/tokens/{id}
 Authorization: Bearer {token}
 ```
 
+### 2.7 Magic Link
+
+#### Request Magic Link
+
+```http
+POST /api/auth/magic-link
+```
+
+**Request:**
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "message": "Magic link sent to your email"
+  },
+  "meta": { ... }
+}
+```
+
+> The server always returns a success response regardless of whether the email exists, to prevent user enumeration.
+
+#### Verify Magic Link Token
+
+```http
+POST /api/auth/magic-link/verify
+```
+
+**Request:**
+```json
+{
+  "token": "abc123..."
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": "uuid",
+      "email": "user@example.com",
+      "name": "John Doe",
+      "avatar_url": "https://..."
+    },
+    "tokens": {
+      "access_token": "cn_...",
+      "refresh_token": "cn_rt_..."
+    }
+  },
+  "meta": { ... }
+}
+```
+
+**Errors:**
+- `AUTH_004` (400): Invalid or expired magic link token
+
 ---
 
-## 3. Machines
+## 3. Pairing
 
-### 3.1 List Machines
+The pairing flow allows an agent to register itself as a machine without requiring the user to manually copy tokens. The agent initiates pairing to receive a short code, the user confirms the code in the web dashboard, and the agent receives its machine token.
+
+**Rate limit**: 10 requests per minute (public endpoints, no authentication required).
+
+### 3.1 Initiate Pairing
+
+```http
+POST /api/pairing/initiate
+```
+
+> No authentication required. Rate-limited to 10 requests per minute.
+
+**Request:**
+```json
+{
+  "agent_info": {
+    "platform": "linux",
+    "hostname": "dev-box",
+    "node_version": "20.11.0",
+    "agent_version": "1.0.0"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "code": "ABC-123",
+    "token": "temp_token_for_polling",
+    "expires_at": "2026-02-12T12:10:00Z"
+  },
+  "meta": { ... }
+}
+```
+
+The `code` is a short human-readable string the user enters in the web dashboard. The `token` is a temporary token the agent uses to poll for completion. Pairing codes expire after a few minutes (see `expires_at`).
+
+### 3.2 Poll Pairing Status
+
+```http
+GET /api/pairing/{code}
+```
+
+> No authentication required. The agent polls this endpoint with the temporary token.
+
+**Headers:**
+```
+Authorization: Bearer {temp_token_from_initiate}
+```
+
+**Response (Pending):**
+```json
+{
+  "success": true,
+  "data": {
+    "status": "pending",
+    "expires_at": "2026-02-12T12:10:00Z"
+  },
+  "meta": { ... }
+}
+```
+
+**Response (Completed):**
+```json
+{
+  "success": true,
+  "data": {
+    "status": "completed",
+    "machine": {
+      "id": "uuid",
+      "token": "mn_..."
+    }
+  },
+  "meta": { ... }
+}
+```
+
+**Response (Expired):**
+```
+HTTP 410 Gone
+```
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "PAR_002",
+    "message": "Pairing code has expired"
+  },
+  "meta": { ... }
+}
+```
+
+### 3.3 Complete Pairing
+
+```http
+POST /api/pairing/{code}/complete
+Authorization: Bearer {token}
+```
+
+> Requires user authentication. Called from the web dashboard when the user confirms the pairing code.
+
+**Request:**
+```json
+{
+  "name": "My MacBook Pro"
+}
+```
+
+The `name` field is optional. If omitted, the machine name defaults to the hostname provided by the agent.
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "machine": {
+      "id": "uuid",
+      "name": "My MacBook Pro",
+      "platform": "linux",
+      "hostname": "dev-box",
+      "status": "online"
+    },
+    "pairing": {
+      "code": "ABC-123",
+      "completed_at": "2026-02-12T12:05:30Z"
+    }
+  },
+  "meta": { ... }
+}
+```
+
+**Errors:**
+- `PAR_001` (404): Pairing code not found
+- `PAR_002` (410): Pairing code has expired
+- `PAR_003` (409): Pairing already completed
+
+---
+
+## 4. Machines
+
+### 4.1 List Machines
 
 ```http
 GET /api/machines
@@ -312,7 +523,7 @@ Authorization: Bearer {token}
 }
 ```
 
-### 3.2 Register Machine
+### 4.2 Register Machine
 
 ```http
 POST /api/machines
@@ -347,14 +558,14 @@ Authorization: Bearer {token}
 }
 ```
 
-### 3.3 Get Machine
+### 4.3 Get Machine
 
 ```http
 GET /api/machines/{id}
 Authorization: Bearer {token}
 ```
 
-### 3.4 Update Machine
+### 4.4 Update Machine
 
 ```http
 PATCH /api/machines/{id}
@@ -370,14 +581,14 @@ Authorization: Bearer {token}
 }
 ```
 
-### 3.5 Delete Machine
+### 4.5 Delete Machine
 
 ```http
 DELETE /api/machines/{id}
 Authorization: Bearer {token}
 ```
 
-### 3.6 Regenerate Token
+### 4.6 Regenerate Token
 
 ```http
 POST /api/machines/{id}/regenerate-token
@@ -395,7 +606,7 @@ Authorization: Bearer {token}
 }
 ```
 
-### 3.7 Get Environment
+### 4.7 Get Environment
 
 ```http
 GET /api/machines/{id}/environment
@@ -421,7 +632,7 @@ Authorization: Bearer {token}
 }
 ```
 
-### 3.8 Wake-on-LAN
+### 4.8 Wake-on-LAN
 
 ```http
 POST /api/machines/{id}/wake
@@ -442,9 +653,9 @@ Authorization: Bearer {token}
 
 ---
 
-## 4. Sessions
+## 5. Sessions
 
-### 4.1 List Sessions
+### 5.1 List Sessions
 
 ```http
 GET /api/machines/{machine}/sessions
@@ -478,7 +689,7 @@ Authorization: Bearer {token}
 }
 ```
 
-### 4.2 Create Session
+### 5.2 Create Session
 
 ```http
 POST /api/machines/{machine}/sessions
@@ -514,21 +725,21 @@ Authorization: Bearer {token}
 }
 ```
 
-### 4.3 Get Session
+### 5.3 Get Session
 
 ```http
 GET /api/sessions/{id}
 Authorization: Bearer {token}
 ```
 
-### 4.4 Delete Session
+### 5.4 Delete Session
 
 ```http
 DELETE /api/sessions/{id}
 Authorization: Bearer {token}
 ```
 
-### 4.5 Get Session Logs
+### 5.5 Get Session Logs
 
 ```http
 GET /api/sessions/{id}/logs
@@ -556,7 +767,7 @@ Authorization: Bearer {token}
 }
 ```
 
-### 4.6 Attach to Session
+### 5.6 Attach to Session
 
 ```http
 POST /api/sessions/{id}/attach
@@ -575,7 +786,7 @@ Authorization: Bearer {token}
 }
 ```
 
-### 4.7 Send Input
+### 5.7 Send Input
 
 ```http
 POST /api/sessions/{id}/input
@@ -589,7 +800,7 @@ Authorization: Bearer {token}
 }
 ```
 
-### 4.8 Resize PTY
+### 5.8 Resize PTY
 
 ```http
 POST /api/sessions/{id}/resize
@@ -606,9 +817,9 @@ Authorization: Bearer {token}
 
 ---
 
-## 5. Projects
+## 6. Projects
 
-### 5.1 List Projects
+### 6.1 List Projects
 
 ```http
 GET /api/machines/{machine}/projects
@@ -635,7 +846,7 @@ Authorization: Bearer {token}
 }
 ```
 
-### 5.2 Create Project
+### 6.2 Create Project
 
 ```http
 POST /api/machines/{machine}/projects
@@ -657,14 +868,14 @@ Authorization: Bearer {token}
 }
 ```
 
-### 5.3 Get Project
+### 6.3 Get Project
 
 ```http
 GET /api/projects/{id}
 Authorization: Bearer {token}
 ```
 
-### 5.4 Update Project
+### 6.4 Update Project
 
 ```http
 PATCH /api/projects/{id}
@@ -680,14 +891,14 @@ Authorization: Bearer {token}
 }
 ```
 
-### 5.5 Delete Project
+### 6.5 Delete Project
 
 ```http
 DELETE /api/projects/{id}
 Authorization: Bearer {token}
 ```
 
-### 5.6 Get Project Stats
+### 6.6 Get Project Stats
 
 ```http
 GET /api/projects/{id}/stats
@@ -713,7 +924,7 @@ Authorization: Bearer {token}
 }
 ```
 
-### 5.7 Get Instances
+### 6.7 Get Instances
 
 ```http
 GET /api/projects/{id}/instances
@@ -738,7 +949,7 @@ Authorization: Bearer {token}
 }
 ```
 
-### 5.8 Get Activity Log
+### 6.8 Get Activity Log
 
 ```http
 GET /api/projects/{id}/activity
@@ -768,7 +979,7 @@ Authorization: Bearer {token}
 }
 ```
 
-### 5.9 Broadcast Message
+### 6.9 Broadcast Message
 
 ```http
 POST /api/projects/{id}/broadcast
@@ -786,9 +997,9 @@ Authorization: Bearer {token}
 
 ---
 
-## 6. Tasks
+## 7. Tasks
 
-### 6.1 List Tasks
+### 7.1 List Tasks
 
 ```http
 GET /api/projects/{project}/tasks
@@ -822,7 +1033,7 @@ Authorization: Bearer {token}
 }
 ```
 
-### 6.2 Create Task
+### 7.2 Create Task
 
 ```http
 POST /api/projects/{project}/tasks
@@ -843,7 +1054,7 @@ Authorization: Bearer {token}
 
 **Priorities:** `low`, `medium`, `high`, `critical`
 
-### 6.3 Get Next Available Task
+### 7.3 Get Next Available Task
 
 ```http
 GET /api/projects/{project}/tasks/next-available
@@ -852,28 +1063,28 @@ Authorization: Bearer {token}
 
 Returns the highest priority unclaimed task with no uncompleted dependencies.
 
-### 6.4 Get Task
+### 7.4 Get Task
 
 ```http
 GET /api/tasks/{id}
 Authorization: Bearer {token}
 ```
 
-### 6.5 Update Task
+### 7.5 Update Task
 
 ```http
 PATCH /api/tasks/{id}
 Authorization: Bearer {token}
 ```
 
-### 6.6 Delete Task
+### 7.6 Delete Task
 
 ```http
 DELETE /api/tasks/{id}
 Authorization: Bearer {token}
 ```
 
-### 6.7 Claim Task
+### 7.7 Claim Task
 
 ```http
 POST /api/tasks/{id}/claim
@@ -911,7 +1122,7 @@ Authorization: Bearer {token}
 }
 ```
 
-### 6.8 Release Task
+### 7.8 Release Task
 
 ```http
 POST /api/tasks/{id}/release
@@ -925,7 +1136,7 @@ Authorization: Bearer {token}
 }
 ```
 
-### 6.9 Complete Task
+### 7.9 Complete Task
 
 ```http
 POST /api/tasks/{id}/complete
@@ -942,9 +1153,9 @@ Authorization: Bearer {token}
 
 ---
 
-## 7. Context (RAG)
+## 8. Context (RAG)
 
-### 7.1 Get Project Context
+### 8.1 Get Project Context
 
 ```http
 GET /api/projects/{project}/context
@@ -972,7 +1183,7 @@ Authorization: Bearer {token}
 }
 ```
 
-### 7.2 Query Context (RAG Search)
+### 8.2 Query Context (RAG Search)
 
 ```http
 POST /api/projects/{project}/context/query
@@ -1011,7 +1222,7 @@ Authorization: Bearer {token}
 }
 ```
 
-### 7.3 Update Context
+### 8.3 Update Context
 
 ```http
 PATCH /api/projects/{project}/context
@@ -1029,7 +1240,7 @@ Authorization: Bearer {token}
 }
 ```
 
-### 7.4 Summarize Context
+### 8.4 Summarize Context
 
 ```http
 POST /api/projects/{project}/context/summarize
@@ -1051,7 +1262,7 @@ Triggers AI summarization of recent context chunks.
 }
 ```
 
-### 7.5 List Context Chunks
+### 8.5 List Context Chunks
 
 ```http
 GET /api/projects/{project}/context/chunks
@@ -1062,7 +1273,7 @@ Authorization: Bearer {token}
 - `type` (optional): Filter by type
 - `instance_id` (optional): Filter by instance
 
-### 7.6 Add Context Chunk
+### 8.6 Add Context Chunk
 
 ```http
 POST /api/projects/{project}/context/chunks
@@ -1084,7 +1295,7 @@ Authorization: Bearer {token}
 
 **Types:** `task_completion`, `context_update`, `file_change`, `decision`, `summary`, `broadcast`
 
-### 7.7 Delete Context Chunk
+### 8.7 Delete Context Chunk
 
 ```http
 DELETE /api/projects/{project}/context/chunks/{chunkId}
@@ -1093,9 +1304,9 @@ Authorization: Bearer {token}
 
 ---
 
-## 8. File Locks
+## 9. File Locks
 
-### 8.1 List Locks
+### 9.1 List Locks
 
 ```http
 GET /api/projects/{project}/locks
@@ -1120,7 +1331,7 @@ Authorization: Bearer {token}
 }
 ```
 
-### 8.2 Acquire Lock
+### 9.2 Acquire Lock
 
 ```http
 POST /api/projects/{project}/locks
@@ -1137,7 +1348,7 @@ Authorization: Bearer {token}
 }
 ```
 
-### 8.3 Check Lock Status
+### 9.3 Check Lock Status
 
 ```http
 POST /api/projects/{project}/locks/check
@@ -1165,7 +1376,7 @@ Authorization: Bearer {token}
 }
 ```
 
-### 8.4 Extend Lock
+### 9.4 Extend Lock
 
 ```http
 POST /api/projects/{project}/locks/extend
@@ -1181,7 +1392,7 @@ Authorization: Bearer {token}
 }
 ```
 
-### 8.5 Bulk Lock
+### 9.5 Bulk Lock
 
 ```http
 POST /api/projects/{project}/locks/bulk
@@ -1216,7 +1427,7 @@ Authorization: Bearer {token}
 }
 ```
 
-### 8.6 Release Lock
+### 9.6 Release Lock
 
 ```http
 POST /api/projects/{project}/locks/release
@@ -1231,7 +1442,7 @@ Authorization: Bearer {token}
 }
 ```
 
-### 8.7 Force Release (Admin)
+### 9.7 Force Release (Admin)
 
 ```http
 POST /api/projects/{project}/locks/force-release
@@ -1245,7 +1456,7 @@ Authorization: Bearer {token}
 }
 ```
 
-### 8.8 Release by Instance
+### 9.8 Release by Instance
 
 ```http
 POST /api/projects/{project}/locks/release-by-instance
@@ -1261,9 +1472,9 @@ Authorization: Bearer {token}
 
 ---
 
-## 9. Skills
+## 10. Skills
 
-### 9.1 List Skills
+### 10.1 List Skills
 
 ```http
 GET /api/machines/{machine}/skills
@@ -1290,7 +1501,7 @@ Authorization: Bearer {token}
 }
 ```
 
-### 9.2 Get Skill
+### 10.2 Get Skill
 
 ```http
 GET /api/machines/{machine}/skills/{path}
@@ -1316,7 +1527,7 @@ Authorization: Bearer {token}
 }
 ```
 
-### 9.3 Create/Update Skill
+### 10.3 Create/Update Skill
 
 ```http
 POST /api/machines/{machine}/skills
@@ -1337,14 +1548,14 @@ Authorization: Bearer {token}
 }
 ```
 
-### 9.4 Update Skill
+### 10.4 Update Skill
 
 ```http
 PATCH /api/machines/{machine}/skills/{path}
 Authorization: Bearer {token}
 ```
 
-### 9.5 Toggle Skill
+### 10.5 Toggle Skill
 
 ```http
 POST /api/machines/{machine}/skills/{path}/toggle
@@ -1363,14 +1574,14 @@ Authorization: Bearer {token}
 }
 ```
 
-### 9.6 Delete Skill
+### 10.6 Delete Skill
 
 ```http
 DELETE /api/machines/{machine}/skills/{path}
 Authorization: Bearer {token}
 ```
 
-### 9.7 Bulk Update
+### 10.7 Bulk Update
 
 ```http
 POST /api/machines/{machine}/skills/bulk
@@ -1389,9 +1600,9 @@ Authorization: Bearer {token}
 
 ---
 
-## 10. MCP
+## 11. MCP
 
-### 10.1 List MCP Servers
+### 11.1 List MCP Servers
 
 ```http
 GET /api/machines/{machine}/mcp
@@ -1419,14 +1630,14 @@ Authorization: Bearer {token}
 }
 ```
 
-### 10.2 Get MCP Server
+### 11.2 Get MCP Server
 
 ```http
 GET /api/machines/{machine}/mcp/{name}
 Authorization: Bearer {token}
 ```
 
-### 10.3 Add MCP Server
+### 11.3 Add MCP Server
 
 ```http
 POST /api/machines/{machine}/mcp
@@ -1447,28 +1658,28 @@ Authorization: Bearer {token}
 }
 ```
 
-### 10.4 Update MCP Server
+### 11.4 Update MCP Server
 
 ```http
 PATCH /api/machines/{machine}/mcp/{name}
 Authorization: Bearer {token}
 ```
 
-### 10.5 Start MCP Server
+### 11.5 Start MCP Server
 
 ```http
 POST /api/machines/{machine}/mcp/{name}/start
 Authorization: Bearer {token}
 ```
 
-### 10.6 Stop MCP Server
+### 11.6 Stop MCP Server
 
 ```http
 POST /api/machines/{machine}/mcp/{name}/stop
 Authorization: Bearer {token}
 ```
 
-### 10.7 List Tools
+### 11.7 List Tools
 
 ```http
 GET /api/machines/{machine}/mcp/{name}/tools
@@ -1496,7 +1707,7 @@ Authorization: Bearer {token}
 }
 ```
 
-### 10.8 Execute Tool
+### 11.8 Execute Tool
 
 ```http
 POST /api/machines/{machine}/mcp/{name}/execute
@@ -1525,7 +1736,7 @@ Authorization: Bearer {token}
 }
 ```
 
-### 10.9 Get All Tools
+### 11.9 Get All Tools
 
 ```http
 GET /api/machines/{machine}/mcp/all-tools
@@ -1534,7 +1745,7 @@ Authorization: Bearer {token}
 
 Returns aggregated tools from all running MCP servers.
 
-### 10.10 Delete MCP Server
+### 11.10 Delete MCP Server
 
 ```http
 DELETE /api/machines/{machine}/mcp/{name}
@@ -1543,16 +1754,227 @@ Authorization: Bearer {token}
 
 ---
 
-## 11. WebSocket
+## 12. Discovered Commands
 
-### 11.1 Connection
+Discovered commands are shell commands, scripts, and Artisan/NPM commands that the agent detects on the host machine. They can be browsed, searched, and executed remotely.
+
+### 12.1 List Commands
+
+```http
+GET /api/machines/{machine}/commands
+Authorization: Bearer {token}
+```
+
+**Query Parameters:**
+- `per_page` (optional): Items per page (default: 50)
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "name": "php artisan migrate",
+      "type": "artisan",
+      "description": "Run database migrations",
+      "command": "php artisan migrate",
+      "category": "database",
+      "is_dangerous": false,
+      "created_at": "2026-02-10T09:00:00Z"
+    }
+  ],
+  "meta": { ... }
+}
+```
+
+### 12.2 Search Commands
+
+```http
+GET /api/machines/{machine}/commands/search?q={term}
+Authorization: Bearer {token}
+```
+
+**Query Parameters:**
+- `q` (required): Search term
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "name": "php artisan migrate:fresh",
+      "type": "artisan",
+      "description": "Drop all tables and re-run all migrations",
+      "command": "php artisan migrate:fresh",
+      "category": "database",
+      "is_dangerous": true
+    }
+  ],
+  "meta": { ... }
+}
+```
+
+### 12.3 Get Command
+
+```http
+GET /api/machines/{machine}/commands/{id}
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "name": "php artisan migrate",
+    "type": "artisan",
+    "description": "Run database migrations",
+    "command": "php artisan migrate",
+    "category": "database",
+    "is_dangerous": false,
+    "arguments": [],
+    "options": ["--force", "--seed", "--step"],
+    "created_at": "2026-02-10T09:00:00Z"
+  },
+  "meta": { ... }
+}
+```
+
+### 12.4 Register Command
+
+```http
+POST /api/machines/{machine}/commands
+Authorization: Bearer {token}
+```
+
+**Request:**
+```json
+{
+  "name": "npm run build",
+  "type": "npm",
+  "description": "Build production assets",
+  "command": "npm run build",
+  "category": "build",
+  "is_dangerous": false,
+  "arguments": [],
+  "options": []
+}
+```
+
+### 12.5 Bulk Register
+
+```http
+POST /api/machines/{machine}/commands/bulk
+Authorization: Bearer {token}
+```
+
+**Request:**
+```json
+{
+  "commands": [
+    {
+      "name": "npm run dev",
+      "type": "npm",
+      "description": "Start development server",
+      "command": "npm run dev",
+      "category": "development",
+      "is_dangerous": false
+    },
+    {
+      "name": "npm run build",
+      "type": "npm",
+      "description": "Build production assets",
+      "command": "npm run build",
+      "category": "build",
+      "is_dangerous": false
+    }
+  ]
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "registered": 2,
+    "skipped": 0
+  },
+  "meta": { ... }
+}
+```
+
+### 12.6 Execute Command
+
+```http
+POST /api/machines/{machine}/commands/{id}/execute
+Authorization: Bearer {token}
+```
+
+**Request:**
+```json
+{
+  "arguments": [],
+  "options": ["--force"],
+  "cwd": "/home/user/project"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "execution_id": "uuid",
+    "status": "queued",
+    "command": "php artisan migrate --force",
+    "queued_at": "2026-02-12T10:00:00Z"
+  },
+  "meta": { ... }
+}
+```
+
+### 12.7 Delete Command
+
+```http
+DELETE /api/machines/{machine}/commands/{id}
+Authorization: Bearer {token}
+```
+
+### 12.8 Clear All Commands
+
+```http
+DELETE /api/machines/{machine}/commands
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "deleted": 42
+  },
+  "meta": { ... }
+}
+```
+
+---
+
+## 13. WebSocket
+
+### 13.1 Connection
 
 ```javascript
 // Connect to Laravel Reverb
-const ws = new WebSocket('wss://api.claudenest.dev:8080/app/{app_key}');
+const ws = new WebSocket('wss://api.claudenest.io:8080/app/{app_key}');
 ```
 
-### 11.2 Authentication
+### 13.2 Authentication
 
 ```javascript
 // Subscribe to private channel
@@ -1569,7 +1991,7 @@ ws.send(JSON.stringify({
 }));
 ```
 
-### 11.3 Events
+### 13.3 Events
 
 #### Session Events
 
@@ -1596,14 +2018,14 @@ ws.send(JSON.stringify({
 | `file:locked` | Server → Client | `{path, lockedBy, reason}` |
 | `file:unlocked` | Server → Client | `{path}` |
 
-### 11.4 Example: Terminal Session
+### 13.4 Example: Terminal Session
 
 ```javascript
 const sessionId = 'uuid';
 const wsToken = 'ws_...';
 
 // Connect
-const ws = new WebSocket(`wss://api.claudenest.dev:8080/app/${appKey}`);
+const ws = new WebSocket(`wss://api.claudenest.io:8080/app/${appKey}`);
 
 ws.onopen = () => {
   // Authenticate
@@ -1636,9 +2058,9 @@ function sendInput(input) {
 
 ---
 
-## 12. Error Reference
+## 14. Error Reference
 
-### 12.1 Error Codes
+### 14.1 Error Codes
 
 | Code | Description | HTTP Status |
 |------|-------------|-------------|
@@ -1646,6 +2068,9 @@ function sendInput(input) {
 | `AUTH_002` | Invalid credentials | 401 |
 | `AUTH_003` | Unable to send reset link | 400 |
 | `AUTH_004` | Invalid or expired reset token | 400 |
+| `PAR_001` | Pairing code not found | 404 |
+| `PAR_002` | Pairing code expired | 410 |
+| `PAR_003` | Pairing already completed | 409 |
 | `MCH_001` | Machine not found | 404 |
 | `MCH_002` | Machine is offline | 400 |
 | `MCH_003` | Machine does not support Wake-on-LAN | 400 |
@@ -1663,11 +2088,13 @@ function sendInput(input) {
 | `MCP_001` | MCP server not found | 404 |
 | `MCP_002` | MCP server failed to start | 500 |
 | `MCP_003` | Tool execution failed | 500 |
+| `CMD_001` | Command not found | 404 |
+| `CMD_002` | Command execution failed | 500 |
 | `VAL_001` | Validation error | 422 |
 | `RTE_001` | Rate limit exceeded | 429 |
 | `SRV_001` | Internal server error | 500 |
 
-### 12.2 Validation Errors
+### 14.2 Validation Errors
 
 ```json
 {
@@ -1686,11 +2113,12 @@ function sendInput(input) {
 
 ---
 
-## 13. Rate Limiting
+## 15. Rate Limiting
 
 | Endpoint Group | Limit |
 |----------------|-------|
 | Authentication | 10 requests/minute |
+| Pairing (public) | 10 requests/minute |
 | API (authenticated) | 1000 requests/minute |
 | WebSocket connections | 10 connections/minute |
 
@@ -1704,7 +2132,7 @@ X-RateLimit-Reset: 1706880000
 
 ---
 
-## 14. Health Check
+## 16. Health Check
 
 ```http
 GET /api/health
@@ -1724,4 +2152,4 @@ GET /api/health
 
 ---
 
-*API Version: 1.0.0 | Last Updated: 2026-02-02*
+*API Version: 1.0.0 | Last Updated: 2026-02-12*

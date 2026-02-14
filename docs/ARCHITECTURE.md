@@ -36,7 +36,7 @@ flowchart TB
 
     subgraph Server["🖥️ ClaudeNest Server"]
         Nginx["NGINX<br/>Reverse Proxy"]
-        Laravel["Laravel API<br/>PHP 8.3+"]
+        Laravel["Laravel API<br/>PHP 8.3+ / Laravel 12"]
         Reverb["Laravel Reverb<br/>WebSocket Server"]
         VueAssets["Vue.js SPA<br/>Static Assets"]
     end
@@ -95,7 +95,54 @@ sequenceDiagram
     end
 ```
 
-### 1.3 Data Flow
+### 1.3 Machine Pairing Flow
+
+When an agent is installed on a new machine, it must be paired with a user account. ClaudeNest uses a 6-character pairing code (XXX-XXX format) with a 10-minute TTL, eliminating the need to handle credentials on the agent side.
+
+```mermaid
+sequenceDiagram
+    participant Agent as Agent (CLI)
+    participant API as Laravel API
+    participant DB as PostgreSQL
+    participant User as User (Dashboard/Mobile)
+
+    Note over Agent,User: Step 1 - Agent initiates pairing
+    Agent->>API: POST /api/pairing/initiate (public, rate-limited)
+    API->>DB: Generate 6-char code (XXX-XXX), store with 10min TTL
+    DB-->>API: pairing_code record
+    API-->>Agent: {code: "A7K-M2X", expires_at}
+
+    Note over Agent,User: Step 2 - Agent polls for completion
+    loop Every 3 seconds until paired or expired
+        Agent->>API: GET /api/pairing/A7K-M2X
+        API->>DB: Check pairing status
+        alt Not yet completed
+            DB-->>API: status: pending
+            API-->>Agent: {status: "pending"}
+        else Expired
+            DB-->>API: expired
+            API-->>Agent: {status: "expired"}
+        end
+    end
+
+    Note over Agent,User: Step 3 - User enters code
+    User->>API: POST /api/pairing/A7K-M2X/complete (authenticated)
+    API->>DB: Create machine, link to user, store agent token hash
+    DB-->>API: machine record
+    API-->>User: {machine_id, machine_name}
+
+    Note over Agent,User: Step 4 - Agent receives token
+    Agent->>API: GET /api/pairing/A7K-M2X
+    API->>DB: Check pairing status
+    DB-->>API: status: completed
+    API-->>Agent: {status: "completed", machine_token: "mn_..."}
+
+    Note over Agent,User: Step 5 - Agent connects
+    Agent->>API: WebSocket connect (machine_token)
+    API-->>Agent: Connection established
+```
+
+### 1.4 Data Flow
 
 ```mermaid
 flowchart LR
@@ -241,6 +288,7 @@ Controllers handle HTTP requests and delegate business logic to Services:
 | `FileLockController` | Distributed file locking |
 | `SkillsController` | Skill management |
 | `MCPController` | MCP server management |
+| `PairingController` | Machine pairing via 6-char codes |
 
 ```php
 // Example: MachineController flow
@@ -752,6 +800,18 @@ erDiagram
         timestamps
     }
 
+    PAIRING_CODES {
+        uuid id PK
+        string code UK
+        uuid machine_id FK nullable
+        uuid user_id FK nullable
+        string agent_token_hash
+        json agent_info
+        timestamp expires_at
+        timestamp completed_at
+        timestamps
+    }
+
     USERS ||--o{ MACHINES : owns
     USERS ||--o{ CLAUDE_SESSIONS : creates
     USERS ||--o{ PERSONAL_ACCESS_TOKENS : has
@@ -770,6 +830,9 @@ erDiagram
     CLAUDE_SESSIONS ||--o{ SESSION_LOGS : generates
     CLAUDE_SESSIONS ||--o| CLAUDE_INSTANCES : spawns
     SHARED_TASKS ||--o| CLAUDE_INSTANCES : assigned_to
+
+    USERS ||--o{ PAIRING_CODES : initiates
+    MACHINES ||--o| PAIRING_CODES : created_via
 ```
 
 ### 4.2 Table Descriptions
@@ -1010,6 +1073,20 @@ sequenceDiagram
         API-->>Client: {user, token, expires_at}
         Client->>Client: Store token securely
     
+    else Magic Link Authentication
+        User->>Client: Enter email address
+        Client->>API: POST /api/auth/magic-link {email}
+        API->>API: Generate token, send email with link
+        API-->>Client: {message: "Email sent"}
+        User->>User: Click magic link in email
+        User->>Client: Redirect with token
+        Client->>API: POST /api/auth/magic-link/verify {token}
+        API->>API: Validate token, find user
+        API->>Token: Create PersonalAccessToken
+        Token-->>API: Token + expiry
+        API-->>Client: {user, token, expires_at}
+        Client->>Client: Store token securely
+
     else Machine Authentication
         Agent->>API: WebSocket connect
         API->>API: Validate machine token
@@ -1065,7 +1142,7 @@ return [
     'allowed_methods' => ['*'],
     'allowed_origins' => [
         env('FRONTEND_URL', 'http://localhost:5173'),
-        'https://app.claudenest.dev',
+        'https://app.claudenest.io',
     ],
     'allowed_origins_patterns' => [],
     'allowed_headers' => ['*'],
@@ -1228,7 +1305,7 @@ APP_NAME=ClaudeNest
 APP_ENV=production
 APP_KEY=base64:...
 APP_DEBUG=false
-APP_URL=https://api.claudenest.dev
+APP_URL=https://api.claudenest.io
 CLAUDENEST_VERSION=1.0.0
 
 # Database
@@ -1267,8 +1344,8 @@ OLLAMA_MODEL=mistral
 VECTOR_DIMENSION=384
 
 # Security
-SANCTUM_STATEFUL_DOMAINS=api.claudenest.dev,app.claudenest.dev
-SESSION_DOMAIN=.claudenest.dev
+SANCTUM_STATEFUL_DOMAINS=api.claudenest.io,app.claudenest.io
+SESSION_DOMAIN=.claudenest.io
 ```
 
 ---
@@ -1340,4 +1417,4 @@ sequenceDiagram
 
 ---
 
-*This architecture documentation is maintained alongside the codebase. Last updated: 2026-02-02*
+*This architecture documentation is maintained alongside the codebase. Last updated: 2026-02-12*
