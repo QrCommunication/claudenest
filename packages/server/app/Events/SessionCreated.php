@@ -16,13 +16,15 @@ class SessionCreated implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public Session $session;
+    public array $credentialEnv;
 
     /**
      * Create a new event instance.
      */
-    public function __construct(Session $session)
+    public function __construct(Session $session, array $credentialEnv = [])
     {
         $this->session = $session;
+        $this->credentialEnv = $credentialEnv;
     }
 
     /**
@@ -53,7 +55,7 @@ class SessionCreated implements ShouldBroadcast
      */
     public function broadcastWith(): array
     {
-        return [
+        $data = [
             'session_id' => $this->session->id,
             'machine_id' => $this->session->machine_id,
             'mode' => $this->session->mode,
@@ -62,5 +64,11 @@ class SessionCreated implements ShouldBroadcast
             'pty_size' => $this->session->pty_size,
             'created_at' => $this->session->created_at->toIso8601String(),
         ];
+
+        if (!empty($this->credentialEnv)) {
+            $data['credentialEnv'] = $this->credentialEnv;
+        }
+
+        return $data;
     }
 }

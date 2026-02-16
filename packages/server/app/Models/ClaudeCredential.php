@@ -1,0 +1,177 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Concerns\HasVersion4Uuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Str;
+
+class ClaudeCredential extends Model
+{
+    use HasFactory, HasVersion4Uuids;
+
+    protected $table = 'claude_credentials';
+    protected $keyType = 'string';
+    public $incrementing = false;
+
+    protected $fillable = [
+        'user_id', 'name', 'auth_type',
+        'api_key_enc', 'access_token_enc', 'refresh_token_enc',
+        'expires_at', 'claude_dir_mode', 'is_default', 'last_used_at',
+    ];
+
+    protected $hidden = [
+        'api_key_enc', 'access_token_enc', 'refresh_token_enc',
+    ];
+
+    protected $casts = [
+        'expires_at' => 'datetime',
+        'last_used_at' => 'datetime',
+        'is_default' => 'boolean',
+    ];
+
+    // ==================== CONSTANTS ====================
+
+    public const AUTH_TYPES = ['api_key', 'oauth'];
+    public const DIR_MODES = ['shared', 'isolated'];
+
+    // ==================== RELATIONSHIPS ====================
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function sessions(): HasMany
+    {
+        return $this->hasMany(Session::class, 'credential_id');
+    }
+
+    // ==================== ENCRYPTION HELPERS ====================
+
+    public function setApiKey(string $key): void
+    {
+        $this->api_key_enc = Crypt::encryptString($key);
+        $this->save();
+    }
+
+    public function getApiKey(): ?string
+    {
+        return $this->api_key_enc ? Crypt::decryptString($this->api_key_enc) : null;
+    }
+
+    public function setAccessToken(string $token): void
+    {
+        $this->access_token_enc = Crypt::encryptString($token);
+        $this->save();
+    }
+
+    public function getAccessToken(): ?string
+    {
+        return $this->access_token_enc ? Crypt::decryptString($this->access_token_enc) : null;
+    }
+
+    public function setRefreshToken(string $token): void
+    {
+        $this->refresh_token_enc = Crypt::encryptString($token);
+        $this->save();
+    }
+
+    public function getRefreshToken(): ?string
+    {
+        return $this->refresh_token_enc ? Crypt::decryptString($this->refresh_token_enc) : null;
+    }
+
+    // ==================== SCOPES ====================
+
+    public function scopeForUser($query, string $userId)
+    {
+        return $query->where('user_id', $userId);
+    }
+
+    public function scopeDefault($query)
+    {
+        return $query->where('is_default', true);
+    }
+
+    public function scopeApiKey($query)
+    {
+        return $query->where('auth_type', 'api_key');
+    }
+
+    public function scopeOAuth($query)
+    {
+        return $query->where('auth_type', 'oauth');
+    }
+
+    // ==================== ACCESSORS ====================
+
+    public function getMaskedKeyAttribute(): ?string
+    {
+        if ($this->auth_type === 'api_key' && $this->api_key_enc) {
+            $key = $this->getApiKey();
+            return $key ? 'sk-ant-...' . substr($key, -6) : null;
+        }
+        if ($this->auth_type === 'oauth' && $this->access_token_enc) {
+            $token = $this->getAccessToken();
+            return $token ? 'oat01-...' . substr($token, -6) : null;
+        }
+        return null;
+    }
+
+    public function getIsExpiredAttribute(): bool
+    {
+        if ($this->auth_type !== 'oauth' || !$this->expires_at) {
+            return false;
+        }
+        return now()->isAfter($this->expires_at);
+    }
+
+    public function getTokenStatusAttribute(): string
+    {
+        if ($this->auth_type === 'api_key') {
+            return $this->api_key_enc ? 'ok' : 'missing';
+        }
+        if (!$this->access_token_enc) {
+            return 'needs_login';
+        }
+        if ($this->is_expired) {
+            return 'expired';
+        }
+        return 'ok';
+    }
+
+    public function getHasRefreshTokenAttribute(): bool
+    {
+        return (bool) $this->refresh_token_enc;
+    }
+
+    // ==================== HELPERS ====================
+
+    public function markUsed(): void
+    {
+        $this->update(['last_used_at' => now()]);
+    }
+
+    public function setAsDefault(): void
+    {
+        static::where('user_id', $this->user_id)
+            ->where('id', '!=', $this->id)
+            ->update(['is_default' => false]);
+
+        $this->update(['is_default' => true]);
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function ($model) {
+            if (empty($model->id)) {
+                $model->id = (string) Str::orderedUuid();
+            }
+        });
+    }
+}

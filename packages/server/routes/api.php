@@ -49,6 +49,19 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     // ==================== PAIRING (AUTHENTICATED) ====================
     Route::post('/pairing/{code}/complete', [Api\PairingController::class, 'complete']);
 
+    // ==================== CREDENTIALS ====================
+    Route::prefix('credentials')->group(function () {
+        Route::get('/', [Api\CredentialController::class, 'index']);
+        Route::post('/', [Api\CredentialController::class, 'store']);
+        Route::get('/{id}', [Api\CredentialController::class, 'show']);
+        Route::patch('/{id}', [Api\CredentialController::class, 'update']);
+        Route::delete('/{id}', [Api\CredentialController::class, 'destroy']);
+        Route::post('/{id}/test', [Api\CredentialController::class, 'test']);
+        Route::post('/{id}/refresh', [Api\CredentialController::class, 'refresh']);
+        Route::post('/{id}/capture', [Api\CredentialController::class, 'capture']);
+        Route::patch('/{id}/default', [Api\CredentialController::class, 'setDefault']);
+    });
+
     // ==================== MACHINES ====================
     Route::apiResource('machines', Api\MachineController::class);
     Route::post('machines/{machine}/regenerate-token', [Api\MachineController::class, 'regenerateToken']);

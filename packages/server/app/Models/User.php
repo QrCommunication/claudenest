@@ -96,6 +96,11 @@ class User extends Authenticatable
         return $this->hasMany(PushToken::class);
     }
 
+    public function credentials(): HasMany
+    {
+        return $this->hasMany(ClaudeCredential::class);
+    }
+
     // ==================== SCOPES ====================
 
     public function scopeByGoogleId($query, string $googleId)

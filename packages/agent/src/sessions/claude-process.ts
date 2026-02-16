@@ -70,6 +70,7 @@ export class ClaudeProcess extends EventEmitter {
           env: {
             ...process.env,
             ...this.options.env,
+            ...(this.options.credentialEnv || {}),
             CLAUDE_SESSION_ID: this.options.sessionId,
             FORCE_COLOR: '1',
           },
@@ -84,6 +85,7 @@ export class ClaudeProcess extends EventEmitter {
           env: {
             ...process.env,
             ...this.options.env,
+            ...(this.options.credentialEnv || {}),
             CLAUDE_SESSION_ID: this.options.sessionId,
             FORCE_COLOR: '1',
           },

@@ -100,6 +100,7 @@ export interface SessionConfig {
   mode?: SessionMode;
   ptySize?: PTYSize;
   env?: Record<string, string>;
+  credentialEnv?: Record<string, string>;
 }
 
 export type SessionStatus = 

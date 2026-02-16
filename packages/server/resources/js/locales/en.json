@@ -170,16 +170,52 @@
       "connecting": "Connecting to session...",
       "connected": "Connected",
       "disconnected": "Disconnected",
-      "reconnecting": "Reconnecting..."
+      "reconnecting": "Reconnecting...",
+      "loading_session": "Loading session...",
+      "retry": "Retry",
+      "back_to_sessions": "Back to Sessions",
+      "session_status": "Session {status}",
+      "not_running": "This session is not currently running.",
+      "mode_label": "Mode:",
+      "duration_label": "Duration:",
+      "exit_code_label": "Exit Code:",
+      "reconnect_now": "Reconnect Now",
+      "connection_lost": "Connection lost. Reconnecting...",
+      "connection_failed": "Connection failed after multiple attempts. Please try again later.",
+      "terminate_failed": "Failed to terminate session. Please try again."
     },
     "create": {
       "title": "Create New Session",
+      "page_title": "New Session",
+      "subtitle": "Start a new session",
+      "machine_description": "Create a new Claude session on machine:",
       "select_machine": "Select Machine",
+      "select_machine_placeholder": "Select a machine",
+      "loading_machines": "Loading machines...",
+      "no_online_machines": "No online machines available. The session may fail to start.",
       "select_mode": "Select Mode",
+      "session_mode": "Session Mode",
+      "mode_interactive_desc": "Full interactive terminal session",
+      "mode_headless_desc": "Run without terminal UI",
+      "mode_oneshot_desc": "Execute a single prompt and exit",
       "project_path": "Project Path",
+      "project_path_optional": "Project Path (optional)",
       "project_path_placeholder": "/path/to/your/project",
-      "initial_prompt": "Initial Prompt (optional)",
-      "initial_prompt_placeholder": "Enter an initial prompt for Claude..."
+      "initial_prompt": "Initial Prompt",
+      "initial_prompt_placeholder": "Enter your initial prompt...",
+      "prompt_required": "(required)",
+      "prompt_optional": "(optional)",
+      "credential": "Credential",
+      "credential_default": "Default",
+      "start_session": "Start Session",
+      "starting": "Starting...",
+      "none_selected": "None selected",
+      "session_started": "Session started",
+      "session_created_on": "Session created successfully on {machine}.",
+      "failed_start": "Failed to start session",
+      "failed_load_machines": "Failed to load machines",
+      "failed_load_machines_desc": "Could not fetch the list of available machines.",
+      "expired_credentials_warning": "{count} credential(s) expired — refresh them in Settings."
     }
   },
   "projects": {
@@ -329,6 +365,58 @@
       "copy": "Copy Command"
     }
   },
+  "credentials": {
+    "title": "Credentials",
+    "subtitle": "Manage your Claude API keys and OAuth tokens",
+    "add_credential": "Add Credential",
+    "no_credentials": "No credentials configured",
+    "no_credentials_description": "Add an API key or OAuth token to start sessions",
+    "auth_type": {
+      "api_key": "API Key",
+      "oauth": "OAuth Token"
+    },
+    "claude_dir_mode": {
+      "shared": "Shared",
+      "isolated": "Isolated"
+    },
+    "token_status": {
+      "ok": "Valid",
+      "missing": "Missing",
+      "needs_login": "Needs Login",
+      "expired": "Expired"
+    },
+    "fields": {
+      "name": "Credential Name",
+      "name_placeholder": "my-api-key",
+      "auth_type": "Authentication Type",
+      "api_key": "API Key",
+      "api_key_placeholder": "sk-ant-...",
+      "access_token": "Access Token",
+      "refresh_token": "Refresh Token",
+      "expires_at": "Expires At",
+      "claude_dir_mode": "Claude Directory Mode",
+      "is_default": "Default Credential"
+    },
+    "actions": {
+      "test": "Test",
+      "refresh": "Refresh Token",
+      "capture": "Capture from CLI",
+      "set_default": "Set as Default",
+      "delete": "Delete Credential"
+    },
+    "messages": {
+      "created": "Credential created successfully",
+      "updated": "Credential updated successfully",
+      "deleted": "Credential deleted successfully",
+      "test_success": "Credential is valid",
+      "test_failed": "Credential test failed",
+      "refreshed": "Token refreshed successfully",
+      "captured": "OAuth token captured from CLI",
+      "set_default": "Default credential updated",
+      "expired_warning": "{count} credential(s) expired — refresh them in Settings"
+    },
+    "confirm_delete": "Are you sure you want to delete this credential? Sessions using it will no longer authenticate."
+  },
   "settings": {
     "title": "Settings",
     "subtitle": "Manage your account and preferences",
@@ -387,6 +475,7 @@
     "skills": "Skills",
     "mcp": "MCP",
     "commands": "Commands",
+    "credentials": "Credentials",
     "settings": "Settings",
     "docs": "API Docs",
     "collapse": "Collapse"

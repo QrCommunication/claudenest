@@ -266,6 +266,19 @@ const routes: RouteRecordRaw[] = [
         },
     },
 
+    // Credentials
+    {
+        path: '/credentials',
+        name: 'credentials',
+        component: () => import('@/pages/credentials/Index.vue'),
+        meta: {
+            requiresAuth: true,
+            breadcrumb: [
+                { label: 'Credentials' },
+            ],
+        },
+    },
+
     // Settings
     {
         path: '/settings',
@@ -277,6 +290,20 @@ const routes: RouteRecordRaw[] = [
                 { label: 'Settings' },
             ],
         },
+    },
+
+    // Public pages
+    {
+        path: '/pricing',
+        name: 'pricing',
+        component: () => import('@/pages/Pricing.vue'),
+        meta: { public: true },
+    },
+    {
+        path: '/changelog',
+        name: 'changelog',
+        component: () => import('@/pages/Changelog.vue'),
+        meta: { public: true },
     },
 
     // Documentation routes (public)

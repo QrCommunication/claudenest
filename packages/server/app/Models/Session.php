@@ -41,6 +41,7 @@ class Session extends Model
         'total_cost',
         'started_at',
         'completed_at',
+        'credential_id',
     ];
 
     /**
@@ -99,6 +100,11 @@ class Session extends Model
     public function claudeInstance(): HasOne
     {
         return $this->hasOne(ClaudeInstance::class);
+    }
+
+    public function credential(): BelongsTo
+    {
+        return $this->belongsTo(ClaudeCredential::class, 'credential_id');
     }
 
     // ==================== SCOPES ====================

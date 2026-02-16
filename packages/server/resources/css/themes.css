@@ -1,0 +1,129 @@
+/* ====================== THEME VARIABLES ====================== */
+
+/* Dark Theme (Default) */
+[data-theme="dark"] {
+  /* Backgrounds */
+  --bg-primary: #0f0f1a;
+  --bg-secondary: #1a1b26;
+  --bg-card: #24283b;
+  --bg-hover: #2a2e42;
+  --bg-input: #1a1b26;
+
+  /* Borders */
+  --border-color: #3b3f54;
+  --border-hover: #4a4e64;
+
+  /* Text */
+  --text-primary: #ffffff;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --text-disabled: #4b5563;
+
+  /* Accent Colors */
+  --accent-purple: #a855f7;
+  --accent-indigo: #6366f1;
+  --accent-cyan: #22d3ee;
+
+  /* Status Colors */
+  --status-success: #22c55e;
+  --status-warning: #fbbf24;
+  --status-error: #ef4444;
+  --status-info: #3b82f6;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+  --shadow-purple: 0 0 20px rgba(168, 85, 247, 0.1);
+
+  /* Special */
+  --glass-bg: rgba(15, 15, 26, 0.7);
+  --overlay-bg: rgba(0, 0, 0, 0.6);
+}
+
+/* Light Theme */
+[data-theme="light"] {
+  /* Backgrounds */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-hover: #f1f5f9;
+  --bg-input: #f8fafc;
+
+  /* Borders */
+  --border-color: #e2e8f0;
+  --border-hover: #cbd5e1;
+
+  /* Text */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --text-disabled: #cbd5e1;
+
+  /* Accent Colors */
+  --accent-purple: #9333ea;
+  --accent-indigo: #4f46e5;
+  --accent-cyan: #0891b2;
+
+  /* Status Colors */
+  --status-success: #16a34a;
+  --status-warning: #ca8a04;
+  --status-error: #dc2626;
+  --status-info: #2563eb;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-purple: 0 0 20px rgba(147, 51, 234, 0.15);
+
+  /* Special */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --overlay-bg: rgba(0, 0, 0, 0.3);
+}
+
+/* ====================== UTILITIES ====================== */
+
+.bg-primary {
+  background-color: var(--bg-primary);
+}
+
+.bg-secondary {
+  background-color: var(--bg-secondary);
+}
+
+.bg-card {
+  background-color: var(--bg-card);
+}
+
+.bg-hover {
+  background-color: var(--bg-hover);
+}
+
+.border-default {
+  border-color: var(--border-color);
+}
+
+.text-primary {
+  color: var(--text-primary);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+/* ====================== SMOOTH TRANSITIONS ====================== */
+
+[data-theme] {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+[data-theme] * {
+  transition-property: background-color, color, border-color;
+  transition-duration: 0.2s;
+  transition-timing-function: ease;
+}

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Machine;
 use App\Models\Session;
+use App\Services\CredentialService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -60,6 +61,7 @@ class SessionController extends Controller
             'mode' => 'string|in:interactive,headless,oneshot|default:interactive',
             'project_path' => 'nullable|string|max:512',
             'initial_prompt' => 'nullable|string',
+            'credential_id' => 'nullable|uuid|exists:claude_credentials,id',
             'pty_size' => 'array',
             'pty_size.cols' => 'integer|min:20|max:500',
             'pty_size.rows' => 'integer|min:10|max:200',
@@ -70,12 +72,23 @@ class SessionController extends Controller
             'mode' => $validated['mode'] ?? 'interactive',
             'project_path' => $validated['project_path'] ?? null,
             'initial_prompt' => $validated['initial_prompt'] ?? null,
+            'credential_id' => $validated['credential_id'] ?? null,
             'status' => 'created',
             'pty_size' => $validated['pty_size'] ?? ['cols' => 120, 'rows' => 40],
         ]);
 
-        // Broadcast session creation to agent
-        broadcast(new \App\Events\SessionCreated($session))->toOthers();
+        // Resolve credential env vars if a credential is attached
+        $credentialEnv = [];
+        if ($session->credential_id) {
+            $credential = $request->user()->credentials()->find($session->credential_id);
+            if ($credential) {
+                $credentialService = app(CredentialService::class);
+                $credentialEnv = $credentialService->getSessionEnv($credential);
+            }
+        }
+
+        // Broadcast session creation to agent (include credential env)
+        broadcast(new \App\Events\SessionCreated($session, $credentialEnv))->toOthers();
 
         return response()->json([
             'success' => true,

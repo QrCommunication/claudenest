@@ -170,16 +170,52 @@
       "connecting": "Connexion a la session...",
       "connected": "Connecte",
       "disconnected": "Deconnecte",
-      "reconnecting": "Reconnexion..."
+      "reconnecting": "Reconnexion...",
+      "loading_session": "Chargement de la session...",
+      "retry": "Reessayer",
+      "back_to_sessions": "Retour aux sessions",
+      "session_status": "Session {status}",
+      "not_running": "Cette session n'est pas en cours d'execution.",
+      "mode_label": "Mode :",
+      "duration_label": "Duree :",
+      "exit_code_label": "Code de sortie :",
+      "reconnect_now": "Reconnecter maintenant",
+      "connection_lost": "Connexion perdue. Reconnexion...",
+      "connection_failed": "La connexion a echoue apres plusieurs tentatives. Veuillez reessayer plus tard.",
+      "terminate_failed": "Impossible de terminer la session. Veuillez reessayer."
     },
     "create": {
       "title": "Creer une nouvelle session",
+      "page_title": "Nouvelle session",
+      "subtitle": "Demarrer une nouvelle session",
+      "machine_description": "Creer une nouvelle session Claude sur la machine :",
       "select_machine": "Selectionner une machine",
+      "select_machine_placeholder": "Selectionner une machine",
+      "loading_machines": "Chargement des machines...",
+      "no_online_machines": "Aucune machine en ligne disponible. La session pourrait ne pas demarrer.",
       "select_mode": "Selectionner le mode",
+      "session_mode": "Mode de session",
+      "mode_interactive_desc": "Session terminal interactive complete",
+      "mode_headless_desc": "Executer sans interface terminal",
+      "mode_oneshot_desc": "Executer un seul prompt et quitter",
       "project_path": "Chemin du projet",
+      "project_path_optional": "Chemin du projet (optionnel)",
       "project_path_placeholder": "/chemin/vers/votre/projet",
-      "initial_prompt": "Prompt initial (optionnel)",
-      "initial_prompt_placeholder": "Entrez un prompt initial pour Claude..."
+      "initial_prompt": "Prompt initial",
+      "initial_prompt_placeholder": "Entrez votre prompt initial...",
+      "prompt_required": "(requis)",
+      "prompt_optional": "(optionnel)",
+      "credential": "Identifiant",
+      "credential_default": "Par defaut",
+      "start_session": "Demarrer la session",
+      "starting": "Demarrage...",
+      "none_selected": "Aucune selectionnee",
+      "session_started": "Session demarree",
+      "session_created_on": "Session creee avec succes sur {machine}.",
+      "failed_start": "Echec du demarrage de la session",
+      "failed_load_machines": "Echec du chargement des machines",
+      "failed_load_machines_desc": "Impossible de recuperer la liste des machines disponibles.",
+      "expired_credentials_warning": "{count} identifiant(s) expire(s) — rafraichissez-les dans les Parametres."
     }
   },
   "projects": {
@@ -329,6 +365,58 @@
       "copy": "Copier la commande"
     }
   },
+  "credentials": {
+    "title": "Identifiants",
+    "subtitle": "Gerez vos cles API Claude et tokens OAuth",
+    "add_credential": "Ajouter un identifiant",
+    "no_credentials": "Aucun identifiant configure",
+    "no_credentials_description": "Ajoutez une cle API ou un token OAuth pour demarrer des sessions",
+    "auth_type": {
+      "api_key": "Cle API",
+      "oauth": "Token OAuth"
+    },
+    "claude_dir_mode": {
+      "shared": "Partage",
+      "isolated": "Isole"
+    },
+    "token_status": {
+      "ok": "Valide",
+      "missing": "Manquant",
+      "needs_login": "Connexion requise",
+      "expired": "Expire"
+    },
+    "fields": {
+      "name": "Nom de l'identifiant",
+      "name_placeholder": "ma-cle-api",
+      "auth_type": "Type d'authentification",
+      "api_key": "Cle API",
+      "api_key_placeholder": "sk-ant-...",
+      "access_token": "Token d'acces",
+      "refresh_token": "Token de rafraichissement",
+      "expires_at": "Expire le",
+      "claude_dir_mode": "Mode repertoire Claude",
+      "is_default": "Identifiant par defaut"
+    },
+    "actions": {
+      "test": "Tester",
+      "refresh": "Rafraichir le token",
+      "capture": "Capturer depuis le CLI",
+      "set_default": "Definir par defaut",
+      "delete": "Supprimer l'identifiant"
+    },
+    "messages": {
+      "created": "Identifiant cree avec succes",
+      "updated": "Identifiant mis a jour avec succes",
+      "deleted": "Identifiant supprime avec succes",
+      "test_success": "L'identifiant est valide",
+      "test_failed": "Le test de l'identifiant a echoue",
+      "refreshed": "Token rafraichi avec succes",
+      "captured": "Token OAuth capture depuis le CLI",
+      "set_default": "Identifiant par defaut mis a jour",
+      "expired_warning": "{count} identifiant(s) expire(s) — rafraichissez-les dans les Parametres"
+    },
+    "confirm_delete": "Etes-vous sur de vouloir supprimer cet identifiant ? Les sessions qui l'utilisent ne pourront plus s'authentifier."
+  },
   "settings": {
     "title": "Parametres",
     "subtitle": "Gerez votre compte et vos preferences",
@@ -387,6 +475,7 @@
     "skills": "Competences",
     "mcp": "MCP",
     "commands": "Commandes",
+    "credentials": "Identifiants",
     "settings": "Parametres",
     "docs": "Docs API",
     "collapse": "Reduire"

@@ -30,9 +30,9 @@
       <!-- Loading State -->
       <div v-if="isLoading" class="loading-overlay">
         <div class="loading-spinner"></div>
-        <span>Loading session...</span>
+        <span>{{ $t('sessions.terminal.loading_session') }}</span>
       </div>
-      
+
       <!-- Error State -->
       <div v-else-if="error" class="error-overlay">
         <svg class="error-icon" viewBox="0 0 20 20" fill="currentColor">
@@ -40,38 +40,38 @@
         </svg>
         <p>{{ error }}</p>
         <button class="retry-btn" @click="loadSession">
-          Retry
+          {{ $t('sessions.terminal.retry') }}
         </button>
         <button class="back-btn" @click="handleBack">
-          Back to Sessions
+          {{ $t('sessions.terminal.back_to_sessions') }}
         </button>
       </div>
-      
+
       <!-- Session Not Running -->
       <div v-else-if="session && !session.is_running && !hasConnected" class="not-running-overlay">
         <svg class="info-icon" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
         </svg>
-        <h3>Session {{ session.status }}</h3>
-        <p>This session is not currently running.</p>
+        <h3>{{ $t('sessions.terminal.session_status', { status: session.status }) }}</h3>
+        <p>{{ $t('sessions.terminal.not_running') }}</p>
         <div class="session-details">
           <div class="detail-item">
-            <span class="detail-label">Mode:</span>
+            <span class="detail-label">{{ $t('sessions.terminal.mode_label') }}</span>
             <span class="detail-value">{{ session.mode }}</span>
           </div>
           <div v-if="session.formatted_duration" class="detail-item">
-            <span class="detail-label">Duration:</span>
+            <span class="detail-label">{{ $t('sessions.terminal.duration_label') }}</span>
             <span class="detail-value">{{ session.formatted_duration }}</span>
           </div>
           <div v-if="session.exit_code !== null" class="detail-item">
-            <span class="detail-label">Exit Code:</span>
+            <span class="detail-label">{{ $t('sessions.terminal.exit_code_label') }}</span>
             <span class="detail-value" :class="{ 'text-error': session.exit_code !== 0 }">
               {{ session.exit_code }}
             </span>
           </div>
         </div>
         <button class="back-btn" @click="handleBack">
-          Back to Sessions
+          {{ $t('sessions.terminal.back_to_sessions') }}
         </button>
       </div>
       
@@ -91,9 +91,9 @@
     <!-- Reconnect Toast -->
     <Transition name="slide-up">
       <div v-if="showReconnectToast" class="reconnect-toast">
-        <span>Connection lost. Reconnecting...</span>
+        <span>{{ $t('sessions.terminal.connection_lost') }}</span>
         <button class="reconnect-btn" @click="handleManualReconnect">
-          Reconnect Now
+          {{ $t('sessions.terminal.reconnect_now') }}
         </button>
       </div>
     </Transition>
@@ -103,9 +103,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import XtermTerminal from '@/components/terminal/XtermTerminal.vue';
 import TerminalHeader from '@/components/terminal/TerminalHeader.vue';
 import { useSessionsStore } from '@/stores/sessions';
+import { useTabs } from '@/composables/useTabs';
 import type { Session } from '@/types';
 
 // ============================================================================
@@ -114,7 +116,9 @@ import type { Session } from '@/types';
 
 const route = useRoute();
 const router = useRouter();
+const { t } = useI18n();
 const sessionsStore = useSessionsStore();
+const { openTab } = useTabs();
 
 // ============================================================================
 // State
@@ -156,7 +160,7 @@ async function loadSession(): Promise<void> {
       // Logs are already in the session object
     }
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Failed to load session';
+    error.value = err instanceof Error ? err.message : t('sessions.terminal.loading_session');
   } finally {
     isLoading.value = false;
   }
@@ -173,7 +177,7 @@ async function handleTerminate(): Promise<void> {
     await sessionsStore.terminateSession(sessionId.value);
   } catch (err) {
     console.error('Failed to terminate session:', err);
-    alert('Failed to terminate session. Please try again.');
+    alert(t('sessions.terminal.terminate_failed'));
   }
 }
 
@@ -223,7 +227,7 @@ function handleTerminalError(err: Error): void {
     showReconnectToast.value = true;
     reconnectAttempts.value++;
   } else {
-    error.value = 'Connection failed after multiple attempts. Please try again later.';
+    error.value = t('sessions.terminal.connection_failed');
   }
 }
 
@@ -243,7 +247,17 @@ function handleStatusChange(status: string): void {
 
 onMounted(() => {
   loadSession();
-  
+
+  // Register as a terminal tab in the IDE tab bar
+  openTab({
+    type: 'terminal',
+    label: `Terminal ${sessionId.value.slice(0, 8)}`,
+    icon: 'terminal',
+    path: `/sessions/${sessionId.value}`,
+    closable: true,
+    meta: { sessionId: sessionId.value },
+  });
+
   // Poll for session status updates
   const interval = setInterval(async () => {
     if (session.value?.is_running) {

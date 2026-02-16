@@ -89,6 +89,7 @@ export interface CreateSessionPayload {
   mode?: SessionMode;
   project_path?: string;
   initial_prompt?: string;
+  credential_id?: string;
   pty_size?: { cols: number; rows: number };
 }
 
@@ -252,6 +253,49 @@ export interface ResetPasswordData {
   email: string;
   password: string;
   password_confirmation: string;
+}
+
+// ==================== CREDENTIALS ====================
+
+export type AuthType = 'api_key' | 'oauth';
+export type ClaudeDirMode = 'shared' | 'isolated';
+export type TokenStatus = 'ok' | 'missing' | 'needs_login' | 'expired';
+
+export interface Credential {
+  id: string;
+  name: string;
+  auth_type: AuthType;
+  claude_dir_mode: ClaudeDirMode;
+  is_default: boolean;
+  masked_key: string | null;
+  token_status: TokenStatus;
+  is_expired: boolean;
+  has_refresh_token: boolean;
+  expires_at: string | null;
+  last_used_at: string | null;
+  created_at: string;
+  updated_at: string;
+  sessions_count?: number;
+}
+
+export interface CreateCredentialForm {
+  name: string;
+  auth_type: AuthType;
+  api_key?: string;
+  access_token?: string;
+  refresh_token?: string;
+  expires_at?: number;
+  claude_dir_mode?: ClaudeDirMode;
+}
+
+export interface UpdateCredentialForm {
+  name?: string;
+  auth_type?: AuthType;
+  api_key?: string;
+  access_token?: string;
+  refresh_token?: string;
+  expires_at?: number;
+  claude_dir_mode?: ClaudeDirMode;
 }
 
 // ==================== FORM TYPES ====================
