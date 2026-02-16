@@ -305,7 +305,7 @@ const emit = defineEmits<{
 }
 
 .form-input {
-  @apply w-full px-3 py-2 rounded-lg text-white bg-brand-dark-1 border border-gray-700;
+  @apply w-full px-3 py-2 rounded-lg text-white bg-dark-1 border border-gray-700;
   @apply focus:outline-none focus:border-brand-purple focus:ring-1 focus:ring-brand-purple;
   @apply transition-colors;
 }
@@ -319,7 +319,7 @@ const emit = defineEmits<{
 }
 
 .tabs {
-  @apply flex gap-2 p-1 rounded-lg bg-brand-dark-1;
+  @apply flex gap-2 p-1 rounded-lg bg-dark-1;
 }
 
 .tab {
@@ -348,7 +348,7 @@ const emit = defineEmits<{
 }
 
 .manual-tokens {
-  @apply rounded-lg bg-brand-dark-1/50 border border-gray-800;
+  @apply rounded-lg bg-dark-1/50 border border-gray-800;
 }
 
 .manual-tokens-toggle {
@@ -366,7 +366,7 @@ const emit = defineEmits<{
 
 .toggle-btn {
   @apply flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg;
-  @apply text-sm font-medium text-gray-400 bg-brand-dark-1 border border-gray-700;
+  @apply text-sm font-medium text-gray-400 bg-dark-1 border border-gray-700;
   @apply hover:border-gray-600 transition-all;
 }
 
@@ -388,7 +388,7 @@ const emit = defineEmits<{
 
 .btn-secondary {
   @apply px-6 py-2.5 rounded-lg font-medium text-gray-300;
-  @apply bg-brand-dark-3 hover:text-white;
+  @apply bg-dark-3 hover:text-white;
   @apply disabled:opacity-50 disabled:cursor-not-allowed;
   @apply transition-colors;
 }

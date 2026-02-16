@@ -163,7 +163,7 @@ async function handleDelete(id: string): Promise<void> {
 }
 
 .btn-secondary {
-  @apply px-4 py-2 rounded-lg font-medium text-gray-300 bg-brand-dark-3 hover:text-white transition-colors;
+  @apply px-4 py-2 rounded-lg font-medium text-gray-300 bg-dark-3 hover:text-white transition-colors;
 }
 
 .credentials-grid {

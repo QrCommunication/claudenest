@@ -294,13 +294,13 @@ const lastUsedText = computed(() => {
 }
 
 .card-footer {
-  @apply flex items-center gap-2 p-3 bg-brand-dark-1/50 border-t border-gray-800;
+  @apply flex items-center gap-2 p-3 bg-dark-1/50 border-t border-gray-800;
   @apply flex-wrap;
 }
 
 .action-btn {
   @apply flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium;
-  @apply text-gray-300 bg-brand-dark-3 hover:bg-brand-purple/20 hover:text-brand-purple;
+  @apply text-gray-300 bg-dark-3 hover:bg-brand-purple/20 hover:text-brand-purple;
   @apply transition-all duration-200;
 }
 
