@@ -192,10 +192,6 @@ interface CredentialForm {
   claude_dir_mode: 'shared' | 'isolated';
 }
 
-defineEmits<{
-  (e: 'close'): void;
-  (e: 'created'): void;
-}>();
 
 const store = useCredentialsStore();
 const toast = useToast();
