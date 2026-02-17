@@ -9,13 +9,14 @@
 import { Command } from 'commander';
 import { ClaudeNestAgent, generateMachineId } from './agent.js';
 import { createLogger, getLogLevelFromEnv } from './utils/logger.js';
-import { 
-  getConfigDir, 
-  getCacheDir, 
+import {
+  getConfigDir,
+  getCacheDir,
   ensureDir,
   safeJsonParse,
   findExecutable,
 } from './utils/index.js';
+import { checkForUpdate, promptAutoUpdate } from './utils/update-checker.js';
 import type { AgentConfig } from './types/index.js';
 import fs from 'fs/promises';
 import path from 'path';
@@ -93,6 +94,21 @@ async function main(): Promise<void> {
 
 async function handleStart(options: CLIOptions): Promise<void> {
   logger.info({}, 'Starting ClaudeNest Agent...');
+
+  // Check for updates (non-blocking, 5s timeout, 24h cache)
+  try {
+    const pkgVer = await getPackageVersion();
+    const updateInfo = await checkForUpdate(pkgVer);
+    const updated = await promptAutoUpdate(updateInfo);
+    if (updated) {
+      // Re-exec after update using execFileSync (safe, no shell injection)
+      const { execFileSync } = await import('child_process');
+      execFileSync(process.argv[0], process.argv.slice(1), { stdio: 'inherit' });
+      process.exit(0);
+    }
+  } catch {
+    // Update check is non-critical, continue startup
+  }
 
   try {
     // Load configuration

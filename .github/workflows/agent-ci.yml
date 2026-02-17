@@ -180,7 +180,7 @@ jobs:
         id: check
         run: |
           LOCAL_VERSION=$(node -p "require('./package.json').version")
-          NPM_VERSION=$(npm view @claude-remote/agent version 2>/dev/null || echo "0.0.0")
+          NPM_VERSION=$(npm view @claudenest/agent version 2>/dev/null || echo "0.0.0")
           if [ "$LOCAL_VERSION" != "$NPM_VERSION" ]; then
             echo "changed=true" >> $GITHUB_OUTPUT
             echo "version=$LOCAL_VERSION" >> $GITHUB_OUTPUT
@@ -207,7 +207,7 @@ jobs:
             
             ### Installation
             ```bash
-            npm install -g @claude-remote/agent@${{ steps.check.outputs.version }}
+            npm install -g @claudenest/agent@${{ steps.check.outputs.version }}
             ```
             
             See [CHANGELOG.md](packages/agent/CHANGELOG.md) for details.

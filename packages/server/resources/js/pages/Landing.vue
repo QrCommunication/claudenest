@@ -271,7 +271,7 @@
                   <div class="terminal-dot terminal-dot--yellow"></div>
                   <div class="terminal-dot terminal-dot--green"></div>
                 </div>
-                <span class="text-sm font-mono ml-2" style="color: var(--text-muted)">install.sh</span>
+                <span class="text-sm font-mono ml-2" style="color: var(--text-muted)">install-agent.sh</span>
                 <button
                   class="ml-auto px-3 py-1 text-xs bg-brand-purple/10 hover:bg-brand-purple/20 text-brand-purple rounded transition-colors cursor-pointer"
                   @click="copyInstallCommand"
@@ -280,7 +280,7 @@
                 </button>
               </div>
               <div class="terminal-content font-mono text-sm">
-                <code class="text-brand-cyan">curl -fsSL https://claudenest.io/install.sh | bash</code>
+                <code class="text-brand-cyan">curl -fsSL https://claudenest.io/install-agent.sh | bash</code>
               </div>
             </div>
           </div>
@@ -441,7 +441,7 @@ const howItWorksSteps: HowItWorksStep[] = [
 ];
 
 function copyInstallCommand(): void {
-  navigator.clipboard.writeText('curl -fsSL https://claudenest.io/install.sh | bash');
+  navigator.clipboard.writeText('curl -fsSL https://claudenest.io/install-agent.sh | bash');
   copied.value = true;
   setTimeout(() => {
     copied.value = false;
