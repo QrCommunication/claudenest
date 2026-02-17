@@ -51,6 +51,27 @@ Route::prefix('docs')->group(function () {
     Route::get('/privacy', [DocumentationController::class, 'index']);
 });
 
+// Serve agent installer scripts (must be before SPA catch-all)
+Route::get('/install-agent.sh', function () {
+    $path = base_path('../../scripts/install-agent.sh');
+    if (!file_exists($path)) {
+        abort(404);
+    }
+    return response()->file($path, [
+        'Content-Type' => 'text/plain; charset=utf-8',
+    ]);
+});
+
+Route::get('/install-agent.ps1', function () {
+    $path = base_path('../../scripts/install-agent.ps1');
+    if (!file_exists($path)) {
+        abort(404);
+    }
+    return response()->file($path, [
+        'Content-Type' => 'text/plain; charset=utf-8',
+    ]);
+});
+
 // Serve Vue SPA for all other routes (dashboard, login, etc.)
 Route::get('/{any}', function () {
     return view('app');
