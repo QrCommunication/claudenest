@@ -15,6 +15,11 @@ class Session extends Model
     use HasFactory, HasVersion4Uuids;
 
     /**
+     * The table associated with the model.
+     */
+    protected $table = 'claude_sessions';
+
+    /**
      * The primary key type.
      */
     protected $keyType = 'string';
