@@ -60,16 +60,16 @@ const getStatusClass = (status: string): string => {
   margin: 1rem 0;
   border-radius: 12px;
   overflow: hidden;
-  background: #0d1117;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-code, var(--bg-primary, #0f0f1a));
+  border: 1px solid var(--border-color, var(--border));
 }
 
 .response-tabs {
   display: flex;
   gap: 0.25rem;
   padding: 0.5rem;
-  background: rgba(255, 255, 255, 0.03);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--text-primary) 5%, transparent);
   overflow-x: auto;
 }
 
@@ -77,7 +77,7 @@ const getStatusClass = (status: string): string => {
   padding: 0.4rem 0.8rem;
   border: none;
   background: transparent;
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;
@@ -87,12 +87,12 @@ const getStatusClass = (status: string): string => {
 }
 
 .response-tab:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: #e2e8f0;
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
+  color: var(--text-primary);
 }
 
 .response-tab.active {
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .response-tab.active.success {

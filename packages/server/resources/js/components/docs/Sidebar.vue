@@ -169,12 +169,12 @@ const isActive = (path: string) => {
 .logo-title {
   font-weight: 700;
   font-size: 1.1rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .logo-subtitle {
   font-size: 0.8rem;
-  color: #a9b1d6;
+  color: var(--text-secondary);
 }
 
 /* Search Trigger */
@@ -183,10 +183,10 @@ const isActive = (path: string) => {
   align-items: center;
   gap: 0.75rem;
   padding: 0.625rem 0.875rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 10px;
-  color: #a9b1d6;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.2s;
@@ -195,8 +195,8 @@ const isActive = (path: string) => {
 }
 
 .search-trigger:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.15);
+  background: color-mix(in srgb, var(--text-primary) 6%, transparent);
+  border-color: color-mix(in srgb, var(--text-primary) 15%, transparent);
 }
 
 .search-trigger svg {
@@ -214,9 +214,9 @@ const isActive = (path: string) => {
   font-family: inherit;
   font-size: 0.75rem;
   padding: 0.2rem 0.4rem;
-  background: rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--text-primary) 10%, transparent);
   border-radius: 4px;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 /* Version Selector */
@@ -227,17 +227,17 @@ const isActive = (path: string) => {
 .version-selector select {
   width: 100%;
   padding: 0.5rem 0.75rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 8px;
-  color: #a9b1d6;
+  color: var(--text-secondary);
   font-size: 0.85rem;
   cursor: pointer;
   outline: none;
 }
 
 .version-selector select:focus {
-  border-color: #a855f7;
+  border-color: var(--accent-purple, #a855f7);
 }
 
 /* Navigation */
@@ -258,7 +258,7 @@ const isActive = (path: string) => {
   background: transparent;
   border: none;
   border-radius: 8px;
-  color: #a9b1d6;
+  color: var(--text-secondary);
   font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
@@ -268,8 +268,8 @@ const isActive = (path: string) => {
 }
 
 .nav-section-header:hover {
-  background: rgba(255, 255, 255, 0.03);
-  color: #ffffff;
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  color: var(--text-primary);
 }
 
 .nav-icon {
@@ -305,21 +305,21 @@ const isActive = (path: string) => {
   margin: 0.125rem 0;
   border-radius: 8px;
   text-decoration: none;
-  color: #a9b1d6;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   transition: all 0.15s;
   border-left: 2px solid transparent;
 }
 
 .nav-link:hover {
-  background: rgba(255, 255, 255, 0.03);
-  color: #ffffff;
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  color: var(--text-primary);
 }
 
 .nav-link.is-active {
-  background: rgba(168, 85, 247, 0.1);
-  color: #a855f7;
-  border-left-color: #a855f7;
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
+  color: var(--accent-purple, #a855f7);
+  border-left-color: var(--accent-purple, #a855f7);
   font-weight: 500;
 }
 
@@ -329,7 +329,7 @@ const isActive = (path: string) => {
 
 .nav-link-desc {
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--text-muted);
   margin-top: 0.125rem;
   white-space: nowrap;
   overflow: hidden;
@@ -346,7 +346,7 @@ const isActive = (path: string) => {
 .sidebar-footer {
   margin-top: auto;
   padding-top: 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--border-color, var(--border));
 }
 
 .back-link {
@@ -354,7 +354,7 @@ const isActive = (path: string) => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
-  color: #a9b1d6;
+  color: var(--text-secondary);
   text-decoration: none;
   font-size: 0.85rem;
   border-radius: 8px;
@@ -362,8 +362,8 @@ const isActive = (path: string) => {
 }
 
 .back-link:hover {
-  background: rgba(255, 255, 255, 0.03);
-  color: #ffffff;
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  color: var(--text-primary);
 }
 
 .back-link svg {

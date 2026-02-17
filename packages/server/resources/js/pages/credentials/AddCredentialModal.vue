@@ -264,14 +264,14 @@ const emit = defineEmits<{
 <style scoped>
 .modal-overlay {
   @apply fixed inset-0 z-50 flex items-center justify-center p-4;
-  background: rgba(15, 15, 26, 0.8);
+  background: color-mix(in srgb, var(--bg-primary, var(--surface-1)) 80%, transparent);
   backdrop-filter: blur(4px);
 }
 
 .modal-card {
   @apply w-full max-w-lg rounded-xl shadow-2xl;
-  background: linear-gradient(135deg, #1a1b26 0%, #24283b 100%);
-  border: 1px solid rgba(168, 85, 247, 0.2);
+  background: linear-gradient(135deg, var(--bg-secondary, var(--surface-2)) 0%, var(--bg-tertiary, var(--surface-3)) 100%);
+  border: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
   max-height: 90vh;
   overflow-y: auto;
 }

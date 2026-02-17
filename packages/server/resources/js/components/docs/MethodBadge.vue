@@ -40,32 +40,32 @@ const methodClass = computed(() => {
 }
 
 .method-badge.get {
-  background: rgba(34, 197, 94, 0.2);
-  color: #4ade80;
+  background: color-mix(in srgb, var(--status-success, #22c55e) 20%, transparent);
+  color: var(--status-success-light, #4ade80);
 }
 
 .method-badge.post {
-  background: rgba(59, 130, 246, 0.2);
-  color: #60a5fa;
+  background: color-mix(in srgb, var(--accent-blue, #3b82f6) 20%, transparent);
+  color: var(--accent-blue-light, #60a5fa);
 }
 
 .method-badge.put {
-  background: rgba(245, 158, 11, 0.2);
-  color: #fbbf24;
+  background: color-mix(in srgb, var(--status-warning, #f59e0b) 20%, transparent);
+  color: var(--status-warning-light, #fbbf24);
 }
 
 .method-badge.patch {
-  background: rgba(168, 85, 247, 0.2);
-  color: #c084fc;
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
+  color: var(--accent-purple-light, #c084fc);
 }
 
 .method-badge.delete {
-  background: rgba(239, 68, 68, 0.2);
-  color: #f87171;
+  background: color-mix(in srgb, var(--status-error, #ef4444) 20%, transparent);
+  color: var(--status-error-light, #f87171);
 }
 
 .method-badge.default {
-  background: rgba(148, 163, 184, 0.2);
-  color: #cbd5e1;
+  background: color-mix(in srgb, var(--text-muted) 20%, transparent);
+  color: var(--text-secondary);
 }
 </style>

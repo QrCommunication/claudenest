@@ -1008,14 +1008,14 @@
 .doc-header {
   margin-bottom: 3rem;
   padding-bottom: 2rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-color, var(--border));
 }
 
 .doc-header h1 {
   font-size: 2.5rem;
   font-weight: 800;
   margin: 0 0 1rem;
-  background: linear-gradient(135deg, #a855f7, #22d3ee);
+  background: linear-gradient(135deg, var(--accent-purple, #a855f7), var(--accent-cyan, #22d3ee));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -1023,21 +1023,21 @@
 
 .lead {
   font-size: 1.25rem;
-  color: #a9b1d6;
+  color: var(--text-secondary);
   line-height: 1.6;
   margin: 0 0 1rem;
 }
 
 .last-updated {
   font-size: 0.9rem;
-  color: #64748b;
+  color: var(--text-muted);
   margin: 0;
 }
 
 /* Table of Contents */
 .policy-toc {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color, var(--border)) 50%, transparent);
   border-radius: 12px;
   padding: 1.5rem 1.5rem 1.5rem 2rem;
   margin-bottom: 3rem;
@@ -1046,7 +1046,7 @@
 .policy-toc h2 {
   font-size: 1.1rem;
   margin: 0 0 1rem;
-  color: #a9b1d6;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -1062,13 +1062,13 @@
 }
 
 .policy-toc a {
-  color: #a9b1d6;
+  color: var(--text-secondary);
   text-decoration: none;
   transition: color 0.2s;
 }
 
 .policy-toc a:hover {
-  color: #a855f7;
+  color: var(--accent-purple, #a855f7);
 }
 
 /* Sections */
@@ -1080,31 +1080,31 @@ h2 {
   font-size: 1.75rem;
   font-weight: 700;
   margin: 0 0 1rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 h3 {
   font-size: 1.25rem;
   font-weight: 600;
   margin: 1.5rem 0 0.75rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 h4 {
   font-size: 1.1rem;
   font-weight: 600;
   margin: 0 0 0.5rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 p {
-  color: #a9b1d6;
+  color: var(--text-secondary);
   line-height: 1.7;
   margin: 0 0 1rem;
 }
 
 ul, ol {
-  color: #a9b1d6;
+  color: var(--text-secondary);
   margin: 0 0 1rem;
   padding-left: 1.5rem;
 }
@@ -1115,7 +1115,7 @@ li {
 }
 
 a {
-  color: #a855f7;
+  color: var(--accent-purple, #a855f7);
   text-decoration: none;
 }
 
@@ -1126,21 +1126,21 @@ a:hover {
 code {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.9em;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--border-color, var(--border));
   padding: 0.2rem 0.4rem;
   border-radius: 4px;
-  color: #22d3ee;
+  color: var(--accent-cyan, #22d3ee);
 }
 
 strong {
-  color: #e2e8f0;
+  color: var(--text-primary);
 }
 
 /* Data Tables */
 .data-table-wrapper {
   overflow-x: auto;
   margin: 1rem 0 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid color-mix(in srgb, var(--border-color, var(--border)) 50%, transparent);
   border-radius: 12px;
 }
 
@@ -1151,22 +1151,22 @@ strong {
 }
 
 .data-table thead {
-  background: rgba(168, 85, 247, 0.08);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 8%, transparent);
 }
 
 .data-table th {
   padding: 0.75rem 1rem;
   text-align: left;
   font-weight: 600;
-  color: #a855f7;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--accent-purple, #a855f7);
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color, var(--border)) 50%, transparent);
   white-space: nowrap;
 }
 
 .data-table td {
   padding: 0.75rem 1rem;
-  color: #a9b1d6;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  color: var(--text-secondary);
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color, var(--border)) 50%, transparent);
   vertical-align: top;
 }
 
@@ -1175,7 +1175,7 @@ strong {
 }
 
 .data-table tbody tr:hover {
-  background: rgba(255, 255, 255, 0.02);
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
 }
 
 /* Info Card */
@@ -1183,8 +1183,8 @@ strong {
   display: flex;
   gap: 1rem;
   padding: 1.25rem;
-  background: rgba(99, 102, 241, 0.06);
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  background: color-mix(in srgb, var(--accent-indigo, #6366f1) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-indigo, #6366f1) 20%, transparent);
   border-radius: 12px;
   margin: 1.5rem 0;
 }
@@ -1193,12 +1193,12 @@ strong {
   width: 40px;
   height: 40px;
   min-width: 40px;
-  background: rgba(99, 102, 241, 0.15);
+  background: color-mix(in srgb, var(--accent-indigo, #6366f1) 15%, transparent);
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #6366f1;
+  color: var(--accent-indigo, #6366f1);
 }
 
 .info-icon svg {
@@ -1268,8 +1268,8 @@ strong {
 }
 
 .legal-basis-card {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color, var(--border)) 50%, transparent);
   border-radius: 12px;
   padding: 1.5rem;
 }
@@ -1282,8 +1282,8 @@ strong {
   display: inline-block;
   font-size: 0.75rem;
   font-weight: 700;
-  color: #a855f7;
-  background: rgba(168, 85, 247, 0.12);
+  color: var(--accent-purple, #a855f7);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 12%, transparent);
   padding: 0.2rem 0.6rem;
   border-radius: 4px;
   margin-bottom: 0.5rem;
@@ -1311,27 +1311,27 @@ strong {
   display: flex;
   gap: 1rem;
   padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color, var(--border)) 50%, transparent);
   border-radius: 12px;
   transition: all 0.2s;
 }
 
 .use-case:hover {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(255, 255, 255, 0.12);
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  border-color: var(--border-color, var(--border));
 }
 
 .use-icon {
   width: 40px;
   height: 40px;
   min-width: 40px;
-  background: rgba(168, 85, 247, 0.1);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #a855f7;
+  color: var(--accent-purple, #a855f7);
 }
 
 .use-icon svg {
@@ -1358,8 +1358,8 @@ strong {
 }
 
 .third-party-card {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color, var(--border)) 50%, transparent);
   border-radius: 12px;
   padding: 1.25rem;
 }
@@ -1407,8 +1407,8 @@ strong {
 }
 
 .right-card {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color, var(--border)) 50%, transparent);
   border-radius: 12px;
   padding: 1.5rem;
 }
@@ -1424,8 +1424,8 @@ strong {
   display: inline-block;
   font-size: 0.75rem;
   font-weight: 700;
-  color: #22d3ee;
-  background: rgba(34, 211, 238, 0.12);
+  color: var(--accent-cyan, #22d3ee);
+  background: color-mix(in srgb, var(--accent-cyan, #22d3ee) 12%, transparent);
   padding: 0.2rem 0.6rem;
   border-radius: 4px;
   text-transform: uppercase;
@@ -1443,14 +1443,14 @@ strong {
 
 .right-how {
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--text-muted);
   padding-top: 0.75rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid color-mix(in srgb, var(--border-color, var(--border)) 50%, transparent);
   margin-top: 0.75rem;
 }
 
 .right-how strong {
-  color: #a9b1d6;
+  color: var(--text-secondary);
 }
 
 /* Security Measures */
@@ -1461,14 +1461,14 @@ strong {
 }
 
 .measure-category {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color, var(--border)) 50%, transparent);
   border-radius: 12px;
   padding: 1.25rem;
 }
 
 .measure-category h4 {
-  color: #a855f7;
+  color: var(--accent-purple, #a855f7);
   margin: 0 0 0.75rem;
   font-size: 1rem;
 }
@@ -1484,8 +1484,8 @@ strong {
 
 /* Contact Card */
 .contact-card {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color, var(--border)) 50%, transparent);
   border-radius: 12px;
   padding: 1.5rem;
   margin: 1.5rem 0;
@@ -1505,7 +1505,7 @@ strong {
 .contact-method svg {
   width: 24px;
   height: 24px;
-  color: #a855f7;
+  color: var(--accent-purple, #a855f7);
   flex-shrink: 0;
   margin-top: 2px;
 }
@@ -1513,7 +1513,7 @@ strong {
 .contact-method strong {
   display: block;
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 0.15rem;

@@ -1,114 +1,77 @@
 <template>
-  <div class="min-h-screen bg-surface-1">
+  <div class="changelog-page">
     <!-- Navigation -->
-    <nav class="fixed top-0 left-0 right-0 z-50 bg-surface-1/80 backdrop-blur-xl border-b border-skin">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
-          <Logo variant="full" size="md" to="/" />
-          <div class="flex items-center gap-4">
-            <router-link to="/" class="text-sm text-skin-secondary hover:text-skin-primary transition-colors">
-              Back to Home
-            </router-link>
-          </div>
-        </div>
+    <nav class="changelog-nav">
+      <div class="nav-inner">
+        <Logo variant="full" size="md" to="/" />
+        <router-link to="/" class="back-link">Back to Home</router-link>
       </div>
     </nav>
 
-    <!-- Main Content -->
-    <main class="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
-      <div class="max-w-4xl mx-auto">
-        <!-- Header -->
-        <div class="text-center mb-16">
-          <p class="text-sm font-semibold text-brand-purple uppercase tracking-wider mb-3">CHANGELOG</p>
-          <h1 class="text-4xl sm:text-5xl font-bold mb-4" style="color: var(--text-primary)">
-            Product <span class="gradient-text">Updates</span>
-          </h1>
-          <p class="text-lg" style="color: var(--text-secondary)">
-            Latest improvements, features, and bug fixes for ClaudeNest
-          </p>
-        </div>
+    <main class="changelog-main">
+      <!-- Header -->
+      <header class="changelog-header">
+        <span class="changelog-badge">CHANGELOG</span>
+        <h1 class="changelog-title">
+          Product <span class="gradient-text">Updates</span>
+        </h1>
+        <p class="changelog-subtitle">
+          Latest improvements, features, and bug fixes for ClaudeNest
+        </p>
+      </header>
 
-        <!-- Timeline -->
-        <div class="relative">
-          <!-- Timeline Line (Desktop) -->
-          <div class="hidden md:block absolute left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-brand-purple via-brand-indigo to-transparent"></div>
+      <!-- Timeline -->
+      <div class="timeline">
+        <div class="timeline-line" />
 
-          <!-- Changelog Entries -->
-          <div class="space-y-12">
-            <div
-              v-for="(entry, idx) in changelogEntries"
-              :key="idx"
-              v-motion
-              :initial="{ opacity: 0, y: 30 }"
-              :visibleOnce="{ opacity: 1, y: 0, transition: { delay: idx * 100, duration: 500 } }"
-              class="relative"
-              :class="idx % 2 === 0 ? 'md:pr-[calc(50%+2rem)]' : 'md:pl-[calc(50%+2rem)] md:text-right'"
-            >
-              <!-- Timeline Dot -->
-              <div class="hidden md:block absolute top-6 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-brand-purple ring-4 ring-surface-1"></div>
+        <article
+          v-for="(entry, idx) in changelogEntries"
+          :key="idx"
+          class="timeline-entry"
+        >
+          <div class="timeline-dot" />
 
-              <!-- Card -->
-              <div class="landing-card p-6">
-                <!-- Date & Version -->
-                <div class="flex items-center gap-3 mb-3" :class="idx % 2 === 0 ? '' : 'md:justify-end'">
-                  <time class="text-sm font-mono text-dark-4">{{ entry.date }}</time>
-                  <span class="px-2 py-0.5 bg-brand-purple/10 text-brand-purple text-xs font-semibold rounded">
-                    {{ entry.version }}
-                  </span>
-                </div>
+          <div class="entry-card">
+            <!-- Date + Version -->
+            <div class="entry-meta">
+              <time class="entry-date">{{ entry.date }}</time>
+              <span class="entry-version">{{ entry.version }}</span>
+            </div>
 
-                <!-- Title -->
-                <h3 class="text-xl font-bold mb-3" style="color: var(--text-primary)">{{ entry.title }}</h3>
+            <h3 class="entry-title">{{ entry.title }}</h3>
+            <p class="entry-desc">{{ entry.description }}</p>
 
-                <!-- Description -->
-                <p class="mb-4 leading-relaxed" style="color: var(--text-secondary)">{{ entry.description }}</p>
-
-                <!-- Changes -->
-                <div class="space-y-2">
-                  <div
-                    v-for="(change, changeIdx) in entry.changes"
-                    :key="changeIdx"
-                    class="flex items-start gap-2"
-                    :class="idx % 2 === 0 ? '' : 'md:flex-row-reverse md:text-right'"
-                  >
-                    <span
-                      class="inline-flex items-center justify-center px-2 py-0.5 rounded text-xs font-semibold flex-shrink-0"
-                      :class="changeTypeClasses[change.type]"
-                    >
-                      {{ change.type }}
-                    </span>
-                    <span class="text-sm" style="color: var(--text-secondary)">{{ change.text }}</span>
-                  </div>
-                </div>
+            <!-- Changes -->
+            <div class="entry-changes">
+              <div
+                v-for="(change, ci) in entry.changes"
+                :key="ci"
+                class="change-item"
+              >
+                <span :class="['change-badge', `badge-${change.type}`]">{{ change.type }}</span>
+                <span class="change-text">{{ change.text }}</span>
               </div>
             </div>
           </div>
-        </div>
-
-        <!-- Subscribe Section -->
-        <div
-          v-motion
-          :initial="{ opacity: 0, y: 30 }"
-          :visibleOnce="{ opacity: 1, y: 0, transition: { delay: 400, duration: 600 } }"
-          class="mt-16 text-center landing-card p-8"
-        >
-          <h3 class="text-2xl font-bold mb-3" style="color: var(--text-primary)">Stay Updated</h3>
-          <p class="mb-6" style="color: var(--text-secondary)">
-            Subscribe to our newsletter to get notified about new features and updates.
-          </p>
-          <div class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-            <input
-              v-model="email"
-              type="email"
-              placeholder="your@email.com"
-              class="flex-1 px-4 py-2 bg-dark-3 border border-dark-4 rounded-lg text-white placeholder-dark-4 focus:outline-none focus:ring-2 focus:ring-brand-purple focus:border-transparent"
-            />
-            <Button variant="primary" @click="subscribe">
-              Subscribe
-            </Button>
-          </div>
-        </div>
+        </article>
       </div>
+
+      <!-- Subscribe Section -->
+      <section class="subscribe-section">
+        <h3 class="subscribe-title">Stay Updated</h3>
+        <p class="subscribe-desc">
+          Subscribe to our newsletter to get notified about new features and updates.
+        </p>
+        <div class="subscribe-form">
+          <input
+            v-model="email"
+            type="email"
+            placeholder="your@email.com"
+            class="subscribe-input"
+          />
+          <button class="subscribe-btn" @click="subscribe">Subscribe</button>
+        </div>
+      </section>
     </main>
   </div>
 </template>
@@ -117,7 +80,6 @@
 import { ref } from 'vue';
 import { useToast } from '@/composables/useToast';
 import Logo from '@/components/common/Logo.vue';
-import Button from '@/components/common/Button.vue';
 
 const toast = useToast();
 const email = ref('');
@@ -191,20 +153,300 @@ const changelogEntries: ChangelogEntry[] = [
   },
 ];
 
-const changeTypeClasses: Record<string, string> = {
-  feat: 'bg-green-500/10 text-green-500',
-  fix: 'bg-blue-500/10 text-blue-500',
-  breaking: 'bg-red-500/10 text-red-500',
-};
-
 function subscribe(): void {
   if (!email.value) {
     toast.error('Error', 'Please enter your email address');
     return;
   }
-
-  // TODO: Implement newsletter subscription
   toast.success('Subscribed!', 'You will receive updates about ClaudeNest');
   email.value = '';
 }
 </script>
+
+<style scoped>
+.changelog-page {
+  min-height: 100vh;
+  background-color: var(--bg-primary, var(--surface-1));
+}
+
+/* ── Navigation ────────────────────── */
+.changelog-nav {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 50;
+  background-color: color-mix(in srgb, var(--bg-primary, var(--surface-1)) 80%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-color, var(--border));
+}
+
+.nav-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.back-link {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.back-link:hover {
+  color: var(--text-primary);
+}
+
+/* ── Main ──────────────────────────── */
+.changelog-main {
+  padding: 8rem 1.5rem 5rem;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+/* ── Header ────────────────────────── */
+.changelog-header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.changelog-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--accent-purple, #a855f7);
+  margin-bottom: 0.75rem;
+}
+
+.changelog-title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0 0 1rem;
+  line-height: 1.15;
+}
+
+.changelog-subtitle {
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── Timeline ──────────────────────── */
+.timeline {
+  position: relative;
+  padding-left: 2rem;
+}
+
+.timeline-line {
+  position: absolute;
+  left: 7px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(
+    to bottom,
+    var(--accent-purple, #a855f7),
+    var(--accent-indigo, #6366f1),
+    transparent
+  );
+}
+
+/* ── Timeline Entry ────────────────── */
+.timeline-entry {
+  position: relative;
+  margin-bottom: 2.5rem;
+}
+
+.timeline-dot {
+  position: absolute;
+  left: -2rem;
+  top: 1.5rem;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent-purple, #a855f7);
+  box-shadow: 0 0 0 4px var(--bg-primary, var(--surface-1));
+  transform: translateX(calc(-50% + 8px));
+}
+
+.entry-card {
+  padding: 1.5rem;
+  border-radius: 12px;
+  background-color: var(--bg-card, var(--surface-2));
+  border: 1px solid var(--border-color, var(--border));
+  transition: border-color 0.2s;
+}
+
+.entry-card:hover {
+  border-color: color-mix(in srgb, var(--accent-purple, #a855f7) 30%, var(--border-color, var(--border)));
+}
+
+/* ── Entry Meta ────────────────────── */
+.entry-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.entry-date {
+  font-size: 0.8rem;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+}
+
+.entry-version {
+  padding: 0.15rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent-purple, #a855f7);
+  background-color: color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
+  border-radius: 4px;
+}
+
+.entry-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem;
+}
+
+.entry-desc {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0 0 1rem;
+}
+
+/* ── Changes ───────────────────────── */
+.entry-changes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.change-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.change-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.badge-feat {
+  background-color: color-mix(in srgb, #22c55e 12%, transparent);
+  color: #22c55e;
+}
+
+.badge-fix {
+  background-color: color-mix(in srgb, #3b82f6 12%, transparent);
+  color: #3b82f6;
+}
+
+.badge-breaking {
+  background-color: color-mix(in srgb, #ef4444 12%, transparent);
+  color: #ef4444;
+}
+
+.change-text {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* ── Subscribe ─────────────────────── */
+.subscribe-section {
+  margin-top: 4rem;
+  padding: 2rem;
+  border-radius: 16px;
+  background-color: var(--bg-card, var(--surface-2));
+  border: 1px solid var(--border-color, var(--border));
+  text-align: center;
+}
+
+.subscribe-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem;
+}
+
+.subscribe-desc {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin: 0 0 1.5rem;
+}
+
+.subscribe-form {
+  display: flex;
+  gap: 0.75rem;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.subscribe-input {
+  flex: 1;
+  padding: 0.625rem 1rem;
+  border-radius: 8px;
+  background-color: var(--bg-primary, var(--surface-1));
+  border: 1px solid var(--border-color, var(--border));
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.subscribe-input::placeholder {
+  color: var(--text-muted);
+}
+
+.subscribe-input:focus {
+  border-color: var(--accent-purple, #a855f7);
+}
+
+.subscribe-btn {
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent-purple, #a855f7), var(--accent-indigo, #6366f1));
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  white-space: nowrap;
+}
+
+.subscribe-btn:hover {
+  opacity: 0.9;
+}
+
+/* ── Responsive ────────────────────── */
+@media (max-width: 768px) {
+  .changelog-main {
+    padding: 7rem 1rem 3rem;
+  }
+
+  .subscribe-form {
+    flex-direction: column;
+  }
+}
+</style>

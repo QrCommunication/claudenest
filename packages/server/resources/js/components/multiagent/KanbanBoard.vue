@@ -194,11 +194,11 @@ function onDrop(columnId: TaskStatus, event: DragEvent) {
 }
 
 .column-indicator.bg-brand-purple {
-  background-color: #a855f7;
+  background-color: var(--accent-purple, #a855f7);
 }
 
 .column-indicator.bg-brand-cyan {
-  background-color: #22d3ee;
+  background-color: var(--accent-cyan, #22d3ee);
 }
 
 .column-indicator.bg-green-500 {

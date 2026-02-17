@@ -11,21 +11,21 @@
         <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color:#1a1b26"/>
-              <stop offset="100%" style="stop-color:#24283b"/>
+              <stop offset="0%" style="stop-color: var(--bg-secondary, var(--surface-2))"/>
+              <stop offset="100%" style="stop-color: var(--bg-card, var(--surface-3))"/>
             </linearGradient>
             <linearGradient id="nestGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color:#a855f7"/>
-              <stop offset="100%" style="stop-color:#6366f1"/>
+              <stop offset="0%" style="stop-color: var(--accent-purple, #a855f7)"/>
+              <stop offset="100%" style="stop-color: var(--accent-indigo, #6366f1)"/>
             </linearGradient>
           </defs>
           <rect x="0" y="0" width="512" height="512" rx="96" fill="url(#bgGrad)"/>
           <g transform="translate(256, 256)">
             <path d="M-80 -40 Q-120 -40 -120 0 Q-120 40 -80 40" stroke="url(#nestGrad)" stroke-width="16" fill="none" stroke-linecap="round"/>
             <path d="M80 -40 Q120 -40 120 0 Q120 40 80 40" stroke="url(#nestGrad)" stroke-width="16" fill="none" stroke-linecap="round"/>
-            <circle cx="-35" cy="0" r="18" fill="#22d3ee"/>
+            <circle cx="-35" cy="0" r="18" :style="{ fill: 'var(--accent-cyan, #22d3ee)' }"/>
             <circle cx="0" cy="0" r="18" fill="url(#nestGrad)"/>
-            <circle cx="35" cy="0" r="18" fill="#22d3ee"/>
+            <circle cx="35" cy="0" r="18" :style="{ fill: 'var(--accent-cyan, #22d3ee)' }"/>
           </g>
         </svg>
         <span>ClaudeNest Docs</span>
@@ -101,8 +101,8 @@ window.addEventListener('keydown', (e) => {
 .docs-layout {
   display: flex;
   min-height: 100vh;
-  background: #0f0f1a;
-  color: #ffffff;
+  background: var(--bg-primary, var(--surface-1));
+  color: var(--text-primary);
 }
 
 /* Mobile Header */
@@ -113,9 +113,9 @@ window.addEventListener('keydown', (e) => {
   left: 0;
   right: 0;
   height: 60px;
-  background: rgba(15, 15, 26, 0.95);
+  background: color-mix(in srgb, var(--bg-primary, var(--surface-1)) 95%, transparent);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-color, var(--border));
   align-items: center;
   justify-content: space-between;
   padding: 0 1rem;
@@ -131,7 +131,7 @@ window.addEventListener('keydown', (e) => {
   justify-content: center;
   background: transparent;
   border: none;
-  color: #a9b1d6;
+  color: var(--text-secondary);
   cursor: pointer;
   border-radius: 8px;
   transition: all 0.2s;
@@ -139,8 +139,8 @@ window.addEventListener('keydown', (e) => {
 
 .menu-btn:hover,
 .search-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+  background: var(--bg-hover, var(--surface-3));
+  color: var(--text-primary);
 }
 
 .menu-btn svg,
@@ -154,7 +154,7 @@ window.addEventListener('keydown', (e) => {
   align-items: center;
   gap: 0.75rem;
   text-decoration: none;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .logo svg {
@@ -174,8 +174,8 @@ window.addEventListener('keydown', (e) => {
   top: 0;
   bottom: 0;
   width: 260px;
-  background: #0f0f1a;
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-primary, var(--surface-1));
+  border-right: 1px solid var(--border-color, var(--border));
   overflow-y: auto;
   z-index: 50;
   transition: transform 0.3s ease;
@@ -230,15 +230,15 @@ window.addEventListener('keydown', (e) => {
   gap: 1rem;
   margin-top: 4rem;
   padding-top: 2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--border-color, var(--border));
 }
 
 .page-nav-item {
   display: flex;
   flex-direction: column;
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 12px;
   text-decoration: none;
   color: inherit;
@@ -247,8 +247,8 @@ window.addEventListener('keydown', (e) => {
 }
 
 .page-nav-item:hover {
-  background: rgba(168, 85, 247, 0.1);
-  border-color: rgba(168, 85, 247, 0.3);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
+  border-color: color-mix(in srgb, var(--accent-purple, #a855f7) 30%, transparent);
 }
 
 .page-nav-item.next {
@@ -258,13 +258,13 @@ window.addEventListener('keydown', (e) => {
 
 .page-nav-item .label {
   font-size: 0.8rem;
-  color: #a855f7;
+  color: var(--accent-purple, #a855f7);
   margin-bottom: 0.25rem;
 }
 
 .page-nav-item .title {
   font-weight: 500;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 /* Responsive */

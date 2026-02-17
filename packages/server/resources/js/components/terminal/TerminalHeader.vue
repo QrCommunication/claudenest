@@ -190,8 +190,8 @@ function handleDisconnect(): void {
   justify-content: space-between;
   height: 56px;
   padding: 0 16px;
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(99, 102, 241, 0.1));
-  border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent), color-mix(in srgb, var(--accent-indigo, #6366f1) 10%, transparent));
+  border-bottom: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
 }
 
 .header-left {
@@ -215,17 +215,17 @@ function handleDisconnect(): void {
   height: 36px;
   padding: 0;
   background: transparent;
-  border: 1px solid rgba(168, 85, 247, 0.3);
+  border: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 30%, transparent);
   border-radius: 8px;
-  color: #a9b1d6;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .icon-btn:hover {
-  background: rgba(168, 85, 247, 0.1);
-  border-color: rgba(168, 85, 247, 0.5);
-  color: #c0caf5;
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
+  border-color: color-mix(in srgb, var(--accent-purple, #a855f7) 50%, transparent);
+  color: var(--text-primary);
 }
 
 /* Session Info */
@@ -239,7 +239,7 @@ function handleDisconnect(): void {
   margin: 0;
   font-size: 15px;
   font-weight: 600;
-  color: #c0caf5;
+  color: var(--text-primary);
   font-family: 'JetBrains Mono', monospace;
 }
 
@@ -255,7 +255,7 @@ function handleDisconnect(): void {
   align-items: center;
   gap: 4px;
   font-size: 12px;
-  color: #a9b1d6;
+  color: var(--text-secondary);
 }
 
 .meta-icon {
@@ -303,12 +303,12 @@ function handleDisconnect(): void {
 }
 
 .status-completed {
-  background: rgba(34, 211, 238, 0.15);
-  color: #22d3ee;
+  background: color-mix(in srgb, var(--accent-cyan, #22d3ee) 15%, transparent);
+  color: var(--accent-cyan, #22d3ee);
 }
 
 .status-completed .status-dot {
-  background: #22d3ee;
+  background: var(--accent-cyan, #22d3ee);
 }
 
 .status-error {
@@ -340,18 +340,18 @@ function handleDisconnect(): void {
 }
 
 .mode-badge.interactive {
-  background: rgba(168, 85, 247, 0.15);
-  color: #a855f7;
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 15%, transparent);
+  color: var(--accent-purple, #a855f7);
 }
 
 .mode-badge.headless {
-  background: rgba(99, 102, 241, 0.15);
-  color: #6366f1;
+  background: color-mix(in srgb, var(--accent-indigo, #6366f1) 15%, transparent);
+  color: var(--accent-indigo, #6366f1);
 }
 
 .mode-badge.oneshot {
-  background: rgba(34, 211, 238, 0.15);
-  color: #22d3ee;
+  background: color-mix(in srgb, var(--accent-cyan, #22d3ee) 15%, transparent);
+  color: var(--accent-cyan, #22d3ee);
 }
 
 /* Actions */
@@ -368,24 +368,24 @@ function handleDisconnect(): void {
   width: 36px;
   height: 36px;
   padding: 0;
-  background: rgba(26, 27, 38, 0.8);
-  border: 1px solid rgba(168, 85, 247, 0.2);
+  background: color-mix(in srgb, var(--bg-secondary, var(--surface-2)) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
   border-radius: 8px;
-  color: #a9b1d6;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .action-btn:hover {
-  background: rgba(168, 85, 247, 0.1);
-  border-color: rgba(168, 85, 247, 0.4);
-  color: #c0caf5;
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
+  border-color: color-mix(in srgb, var(--accent-purple, #a855f7) 40%, transparent);
+  color: var(--text-primary);
 }
 
 .action-btn.active {
-  background: rgba(168, 85, 247, 0.2);
-  border-color: #a855f7;
-  color: #a855f7;
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
+  border-color: var(--accent-purple, #a855f7);
+  color: var(--accent-purple, #a855f7);
 }
 
 .action-btn.danger {

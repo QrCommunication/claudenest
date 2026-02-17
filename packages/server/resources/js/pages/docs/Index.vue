@@ -856,7 +856,7 @@ const cliCommands: CliCommand[] = [
 .doc-hero {
   margin-bottom: 3.5rem;
   padding-bottom: 2.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color, var(--border)) 50%, transparent);
 }
 
 .hero-badge {
@@ -864,12 +864,12 @@ const cliCommands: CliCommand[] = [
   align-items: center;
   gap: 0.5rem;
   padding: 0.35rem 0.85rem;
-  background: rgba(168, 85, 247, 0.1);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
   border: 1px solid rgba(168, 85, 247, 0.25);
   border-radius: 20px;
   font-size: 0.8rem;
   font-weight: 500;
-  color: #c084fc;
+  color: var(--accent-purple-light, #c084fc);
   margin-bottom: 1.25rem;
 }
 
@@ -890,7 +890,7 @@ const cliCommands: CliCommand[] = [
   font-size: 2.75rem;
   font-weight: 800;
   margin: 0 0 1rem;
-  background: linear-gradient(135deg, #a855f7 0%, #6366f1 40%, #22d3ee 100%);
+  background: linear-gradient(135deg, var(--accent-purple, #a855f7) 0%, var(--accent-indigo, #6366f1) 40%, var(--accent-cyan, #22d3ee) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -900,7 +900,7 @@ const cliCommands: CliCommand[] = [
 
 .hero-lead {
   font-size: 1.2rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
   line-height: 1.65;
   margin: 0 0 1.75rem;
   max-width: 640px;
@@ -930,8 +930,8 @@ const cliCommands: CliCommand[] = [
 }
 
 .hero-btn.primary {
-  background: linear-gradient(135deg, #a855f7, #6366f1);
-  color: #ffffff;
+  background: linear-gradient(135deg, var(--accent-purple, #a855f7), var(--accent-indigo, #6366f1));
+  color: var(--text-primary);
   box-shadow: 0 4px 14px rgba(168, 85, 247, 0.35);
 }
 
@@ -941,13 +941,13 @@ const cliCommands: CliCommand[] = [
 }
 
 .hero-btn.secondary {
-  background: rgba(255, 255, 255, 0.05);
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #e2e8f0;
+  color: var(--text-primary);
 }
 
 .hero-btn.secondary:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
   border-color: rgba(168, 85, 247, 0.4);
 }
 
@@ -962,7 +962,7 @@ h2 {
   font-size: 1.65rem;
   font-weight: 700;
   margin: 0 0 0.75rem;
-  color: #ffffff;
+  color: var(--text-primary);
   letter-spacing: -0.01em;
 }
 
@@ -970,18 +970,18 @@ h3 {
   font-size: 1.15rem;
   font-weight: 600;
   margin: 1.75rem 0 0.6rem;
-  color: #e2e8f0;
+  color: var(--text-primary);
 }
 
 h4 {
   font-size: 1rem;
   font-weight: 600;
   margin: 0 0 0.4rem;
-  color: #e2e8f0;
+  color: var(--text-primary);
 }
 
 p {
-  color: #94a3b8;
+  color: var(--text-secondary);
   line-height: 1.7;
   margin: 0 0 1rem;
 }
@@ -989,10 +989,10 @@ p {
 code {
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
   font-size: 0.88em;
-  background: rgba(168, 85, 247, 0.1);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
   padding: 0.15rem 0.4rem;
   border-radius: 4px;
-  color: #c084fc;
+  color: var(--accent-purple-light, #c084fc);
 }
 
 /* ========================
@@ -1010,8 +1010,8 @@ code {
   align-items: center;
   gap: 1rem;
   padding: 1.15rem 1.25rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 12px;
   text-decoration: none;
   color: inherit;
@@ -1019,7 +1019,7 @@ code {
 }
 
 .nav-card:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--text-primary) 4%, transparent);
   border-color: rgba(168, 85, 247, 0.3);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -1042,12 +1042,12 @@ code {
 
 .nav-card-icon.install {
   background: rgba(34, 211, 238, 0.12);
-  color: #22d3ee;
+  color: var(--accent-cyan, #22d3ee);
 }
 
 .nav-card-icon.auth {
   background: rgba(168, 85, 247, 0.12);
-  color: #a855f7;
+  color: var(--accent-purple, #a855f7);
 }
 
 .nav-card-icon.sessions {
@@ -1079,12 +1079,12 @@ code {
   font-size: 0.95rem;
   font-weight: 600;
   margin: 0 0 0.2rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .nav-card-content p {
   font-size: 0.825rem;
-  color: #64748b;
+  color: var(--text-muted);
   margin: 0;
   line-height: 1.4;
 }
@@ -1098,7 +1098,7 @@ code {
 }
 
 .nav-card:hover .nav-card-arrow {
-  color: #a855f7;
+  color: var(--accent-purple, #a855f7);
   transform: translateX(3px);
 }
 
@@ -1108,8 +1108,8 @@ code {
 .arch-diagram {
   margin-top: 1.5rem;
   padding: 2rem 1.5rem;
-  background: rgba(255, 255, 255, 0.015);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 16px;
 }
 
@@ -1126,8 +1126,8 @@ code {
   align-items: center;
   gap: 0.35rem;
   padding: 1rem 1.25rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 12px;
   min-width: 130px;
   text-align: center;
@@ -1153,16 +1153,16 @@ code {
 }
 
 .arch-node.client .arch-node-icon {
-  color: #22d3ee;
+  color: var(--accent-cyan, #22d3ee);
 }
 
 .arch-node.server-node {
-  background: rgba(168, 85, 247, 0.08);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 8%, transparent);
   border-color: rgba(168, 85, 247, 0.25);
 }
 
 .server-icon {
-  color: #a855f7;
+  color: var(--accent-purple, #a855f7);
 }
 
 .arch-node.infra .arch-node-icon {
@@ -1172,12 +1172,12 @@ code {
 .arch-node span {
   font-size: 0.85rem;
   font-weight: 500;
-  color: #e2e8f0;
+  color: var(--text-primary);
 }
 
 .arch-tech {
   font-size: 0.72rem !important;
-  color: #64748b !important;
+  color: var(--text-muted) !important;
   font-weight: 400 !important;
 }
 
@@ -1207,9 +1207,9 @@ code {
 
 .connector-labels span {
   font-size: 0.7rem;
-  color: #64748b;
+  color: var(--text-muted);
   padding: 0.15rem 0.5rem;
-  background: rgba(255, 255, 255, 0.03);
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
   border-radius: 4px;
 }
 
@@ -1236,14 +1236,14 @@ code {
 .step-number {
   width: 32px;
   height: 32px;
-  background: linear-gradient(135deg, #a855f7, #6366f1);
+  background: linear-gradient(135deg, var(--accent-purple, #a855f7), var(--accent-indigo, #6366f1));
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .step-line {
@@ -1302,12 +1302,12 @@ code {
 
 .callout-content {
   font-size: 0.9rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
   line-height: 1.6;
 }
 
 .callout-content strong {
-  color: #e2e8f0;
+  color: var(--text-primary);
 }
 
 /* ========================
@@ -1318,7 +1318,7 @@ code {
 }
 
 .endpoint-table {
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 12px;
   overflow: hidden;
   margin-top: 0.75rem;
@@ -1330,7 +1330,7 @@ code {
   gap: 0.75rem;
   padding: 0.75rem 1rem;
   align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color, var(--border)) 50%, transparent);
   transition: background 0.15s;
 }
 
@@ -1339,12 +1339,12 @@ code {
 }
 
 .endpoint-row:not(.header):hover {
-  background: rgba(255, 255, 255, 0.02);
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
 }
 
 .endpoint-row.header {
-  background: rgba(255, 255, 255, 0.03);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  border-bottom: 1px solid var(--border-color, var(--border));
 }
 
 .endpoint-row.header .ep-method,
@@ -1354,7 +1354,7 @@ code {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #64748b;
+  color: var(--text-muted);
   font-family: inherit;
   background: transparent;
   padding: 0;
@@ -1368,18 +1368,18 @@ code {
 }
 
 .ep-method.get { color: #22c55e; }
-.ep-method.post { color: #a855f7; }
+.ep-method.post { color: var(--accent-purple, #a855f7); }
 .ep-method.patch { color: #f59e0b; }
 .ep-method.delete { color: #ef4444; }
 
 .ep-path {
   font-size: 0.8rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 .ep-desc {
   font-size: 0.82rem;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 /* ========================
@@ -1391,8 +1391,8 @@ code {
   gap: 0.5rem;
   margin: 1.5rem 0;
   padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 12px;
   overflow-x: auto;
 }
@@ -1407,7 +1407,7 @@ code {
 .ws-flow-num {
   width: 26px;
   height: 26px;
-  background: rgba(168, 85, 247, 0.15);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 15%, transparent);
   border: 1px solid rgba(168, 85, 247, 0.3);
   border-radius: 50%;
   display: flex;
@@ -1415,7 +1415,7 @@ code {
   justify-content: center;
   font-size: 0.75rem;
   font-weight: 700;
-  color: #c084fc;
+  color: var(--accent-purple-light, #c084fc);
   flex-shrink: 0;
 }
 
@@ -1426,12 +1426,12 @@ code {
 
 .ws-flow-content strong {
   font-size: 0.82rem;
-  color: #e2e8f0;
+  color: var(--text-primary);
 }
 
 .ws-flow-content span {
   font-size: 0.72rem;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .ws-flow-arrow {
@@ -1457,7 +1457,7 @@ code {
 .event-item {
   padding: 1rem;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-color, var(--border));
   transition: border-color 0.2s;
 }
 
@@ -1490,13 +1490,13 @@ code {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #e2e8f0;
+  color: var(--text-primary);
   margin-bottom: 0.25rem;
 }
 
 .event-desc {
   font-size: 0.82rem;
-  color: #64748b;
+  color: var(--text-muted);
   line-height: 1.4;
 }
 
@@ -1507,7 +1507,7 @@ code {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  color: #a855f7;
+  color: var(--accent-purple, #a855f7);
   text-decoration: none;
   font-weight: 500;
   font-size: 0.9rem;
@@ -1537,8 +1537,8 @@ code {
 
 .feature-card {
   padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 14px;
   transition: border-color 0.2s;
 }
@@ -1571,12 +1571,12 @@ code {
 
 .feature-card-icon.context {
   background: rgba(34, 211, 238, 0.12);
-  color: #22d3ee;
+  color: var(--accent-cyan, #22d3ee);
 }
 
 .feature-card-icon.tasks {
   background: rgba(168, 85, 247, 0.12);
-  color: #a855f7;
+  color: var(--accent-purple, #a855f7);
 }
 
 .feature-card-icon.locks {
@@ -1598,7 +1598,7 @@ code {
    CLI Table
    ======================== */
 .cli-table {
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 12px;
   overflow: hidden;
   margin: 1rem 0 1.5rem;
@@ -1609,7 +1609,7 @@ code {
   grid-template-columns: 300px 1fr;
   gap: 1rem;
   padding: 0.65rem 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color, var(--border)) 50%, transparent);
   align-items: center;
   transition: background 0.15s;
 }
@@ -1619,12 +1619,12 @@ code {
 }
 
 .cli-row:not(.header):hover {
-  background: rgba(255, 255, 255, 0.02);
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
 }
 
 .cli-row.header {
-  background: rgba(255, 255, 255, 0.03);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  border-bottom: 1px solid var(--border-color, var(--border));
 }
 
 .cli-row.header .cli-cmd,
@@ -1633,7 +1633,7 @@ code {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #64748b;
+  color: var(--text-muted);
   font-family: inherit;
   background: transparent;
   padding: 0;
@@ -1641,12 +1641,12 @@ code {
 
 .cli-cmd {
   font-size: 0.82rem;
-  color: #22d3ee;
+  color: var(--accent-cyan, #22d3ee);
 }
 
 .cli-desc {
   font-size: 0.82rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 /* ========================
@@ -1664,8 +1664,8 @@ code {
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.25rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 12px;
   text-decoration: none;
   color: inherit;
@@ -1673,7 +1673,7 @@ code {
 }
 
 .resource-card:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--text-primary) 4%, transparent);
   border-color: rgba(168, 85, 247, 0.3);
   transform: translateY(-1px);
 }
@@ -1694,8 +1694,8 @@ code {
 }
 
 .resource-icon.github {
-  background: rgba(255, 255, 255, 0.08);
-  color: #e2e8f0;
+  background: var(--border-color, var(--border));
+  color: var(--text-primary);
 }
 
 .resource-icon.discord {
@@ -1705,12 +1705,12 @@ code {
 
 .resource-icon.api {
   background: rgba(168, 85, 247, 0.12);
-  color: #a855f7;
+  color: var(--accent-purple, #a855f7);
 }
 
 .resource-icon.changelog {
   background: rgba(34, 211, 238, 0.12);
-  color: #22d3ee;
+  color: var(--accent-cyan, #22d3ee);
 }
 
 .resource-content {
@@ -1720,12 +1720,12 @@ code {
 
 .resource-content strong {
   font-size: 0.9rem;
-  color: #e2e8f0;
+  color: var(--text-primary);
 }
 
 .resource-content span {
   font-size: 0.78rem;
-  color: #64748b;
+  color: var(--text-muted);
   margin-top: 0.15rem;
 }
 

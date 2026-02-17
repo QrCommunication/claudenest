@@ -208,14 +208,14 @@ const lastUsedText = computed(() => {
 <style scoped>
 .credential-card {
   @apply rounded-lg overflow-hidden;
-  background: linear-gradient(135deg, #1a1b26 0%, #24283b 100%);
-  border: 1px solid rgba(168, 85, 247, 0.1);
+  background: linear-gradient(135deg, var(--bg-secondary, var(--surface-2)) 0%, var(--bg-tertiary, var(--surface-3)) 100%);
+  border: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
   transition: all 0.3s ease;
 }
 
 .credential-card:hover {
-  border-color: rgba(168, 85, 247, 0.3);
-  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.1);
+  border-color: color-mix(in srgb, var(--accent-purple, #a855f7) 30%, transparent);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
 }
 
 .card-header {
@@ -272,17 +272,17 @@ const lastUsedText = computed(() => {
 
 .status-dot-green {
   @apply bg-green-500;
-  box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--status-success, #22c55e) 50%, transparent);
 }
 
 .status-dot-yellow {
   @apply bg-yellow-500;
-  box-shadow: 0 0 8px rgba(234, 179, 8, 0.5);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--status-warning, #eab308) 50%, transparent);
 }
 
 .status-dot-red {
   @apply bg-red-500;
-  box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--status-error, #ef4444) 50%, transparent);
 }
 
 .status-dot-gray {

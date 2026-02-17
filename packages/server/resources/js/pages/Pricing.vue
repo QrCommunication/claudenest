@@ -1,251 +1,76 @@
 <template>
-  <div class="min-h-screen bg-surface-1">
+  <div class="pricing-page">
     <!-- Navigation -->
-    <nav class="fixed top-0 left-0 right-0 z-50 bg-surface-1/80 backdrop-blur-xl border-b border-skin">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
-          <Logo variant="full" size="md" to="/" />
-          <div class="flex items-center gap-4">
-            <router-link to="/" class="text-sm text-skin-secondary hover:text-skin-primary transition-colors">
-              Back to Home
-            </router-link>
-          </div>
-        </div>
+    <nav class="pricing-nav">
+      <div class="nav-inner">
+        <Logo variant="full" size="md" to="/" />
+        <router-link to="/" class="back-link">Back to Home</router-link>
       </div>
     </nav>
 
-    <!-- Main Content -->
-    <main class="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
-      <div class="max-w-7xl mx-auto">
-        <!-- Header -->
-        <div class="text-center mb-16">
-          <p class="text-sm font-semibold text-brand-purple uppercase tracking-wider mb-3">PRICING</p>
-          <h1 class="text-4xl sm:text-5xl font-bold mb-4" style="color: var(--text-primary)">
-            Simple, <span class="gradient-text">transparent pricing</span>
-          </h1>
-          <p class="text-lg max-w-2xl mx-auto" style="color: var(--text-secondary)">
-            Choose the plan that fits your needs. All plans include core features with no hidden fees.
-          </p>
-        </div>
+    <main class="pricing-main">
+      <!-- Header -->
+      <header class="pricing-header">
+        <span class="pricing-badge">PRICING</span>
+        <h1 class="pricing-title">
+          Simple, <span class="gradient-text">transparent pricing</span>
+        </h1>
+        <p class="pricing-subtitle">
+          Choose the plan that fits your needs. All plans include core features with no hidden fees.
+        </p>
+      </header>
 
-        <!-- Pricing Cards -->
-        <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-20">
-          <!-- Community Plan -->
-          <div
-            v-motion
-            :initial="{ opacity: 0, y: 30 }"
-            :visibleOnce="{ opacity: 1, y: 0, transition: { delay: 0, duration: 500 } }"
-            class="landing-card p-8"
-          >
-            <div class="mb-6">
-              <h3 class="text-2xl font-bold mb-2" style="color: var(--text-primary)">Community</h3>
-              <div class="flex items-baseline gap-1 mb-4">
-                <span class="text-4xl font-bold gradient-text">Free</span>
-              </div>
-              <p class="text-sm" style="color: var(--text-secondary)">Perfect for individuals and open source projects</p>
+      <!-- Pricing Cards -->
+      <div class="pricing-grid">
+        <div
+          v-for="plan in plans"
+          :key="plan.name"
+          :class="['plan-card', { featured: plan.featured }]"
+        >
+          <span v-if="plan.featured" class="plan-popular">Popular</span>
+
+          <div class="plan-header">
+            <h3 class="plan-name">{{ plan.name }}</h3>
+            <div class="plan-price">
+              <span class="price-value gradient-text">{{ plan.price }}</span>
+              <span v-if="plan.period" class="price-period">{{ plan.period }}</span>
             </div>
-
-            <ul class="space-y-3 mb-8">
-              <li class="flex items-start gap-2">
-                <svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <span class="text-sm" style="color: var(--text-secondary)">Self-hosted deployment</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <span class="text-sm" style="color: var(--text-secondary)">Unlimited machines</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <span class="text-sm" style="color: var(--text-secondary)">Multi-agent coordination</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <span class="text-sm" style="color: var(--text-secondary)">Context RAG with pgvector</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <span class="text-sm" style="color: var(--text-secondary)">MIT License</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <span class="text-sm" style="color: var(--text-secondary)">Community support</span>
-              </li>
-            </ul>
-
-            <Button variant="secondary" block size="lg" @click="router.push('/register')">
-              Get Started
-            </Button>
+            <p class="plan-desc">{{ plan.description }}</p>
           </div>
 
-          <!-- Pro Plan (Popular) -->
-          <div
-            v-motion
-            :initial="{ opacity: 0, y: 30 }"
-            :visibleOnce="{ opacity: 1, y: 0, transition: { delay: 100, duration: 500 } }"
-            class="landing-card p-8 relative border-2 border-brand-purple"
-          >
-            <div class="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-brand-purple text-white text-sm font-semibold rounded-full">
-              Popular
-            </div>
-
-            <div class="mb-6">
-              <h3 class="text-2xl font-bold mb-2" style="color: var(--text-primary)">Pro</h3>
-              <div class="flex items-baseline gap-1 mb-4">
-                <span class="text-4xl font-bold gradient-text">$29</span>
-                <span class="text-sm" style="color: var(--text-secondary)">/month</span>
-              </div>
-              <p class="text-sm" style="color: var(--text-secondary)">Managed hosting with advanced features</p>
-            </div>
-
-            <ul class="space-y-3 mb-8">
-              <li class="flex items-start gap-2">
-                <svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <span class="text-sm font-semibold" style="color: var(--text-primary)">Everything in Community, plus:</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <svg class="w-5 h-5 text-brand-purple mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <span class="text-sm" style="color: var(--text-secondary)">Hosted infrastructure</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <svg class="w-5 h-5 text-brand-purple mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <span class="text-sm" style="color: var(--text-secondary)">99.9% uptime SLA</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <svg class="w-5 h-5 text-brand-purple mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <span class="text-sm" style="color: var(--text-secondary)">Priority support (24h response)</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <svg class="w-5 h-5 text-brand-purple mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <span class="text-sm" style="color: var(--text-secondary)">Advanced analytics</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <svg class="w-5 h-5 text-brand-purple mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <span class="text-sm" style="color: var(--text-secondary)">Team collaboration</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <svg class="w-5 h-5 text-brand-purple mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <span class="text-sm" style="color: var(--text-secondary)">Automatic backups</span>
-              </li>
-            </ul>
-
-            <Button variant="primary" block size="lg" @click="router.push('/register')">
-              Start Free Trial
-            </Button>
-          </div>
-
-          <!-- Enterprise Plan -->
-          <div
-            v-motion
-            :initial="{ opacity: 0, y: 30 }"
-            :visibleOnce="{ opacity: 1, y: 0, transition: { delay: 200, duration: 500 } }"
-            class="landing-card p-8"
-          >
-            <div class="mb-6">
-              <h3 class="text-2xl font-bold mb-2" style="color: var(--text-primary)">Enterprise</h3>
-              <div class="flex items-baseline gap-1 mb-4">
-                <span class="text-4xl font-bold gradient-text">Custom</span>
-              </div>
-              <p class="text-sm" style="color: var(--text-secondary)">For large teams with custom requirements</p>
-            </div>
-
-            <ul class="space-y-3 mb-8">
-              <li class="flex items-start gap-2">
-                <svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <span class="text-sm font-semibold" style="color: var(--text-primary)">Everything in Pro, plus:</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <svg class="w-5 h-5 text-brand-cyan mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <span class="text-sm" style="color: var(--text-secondary)">Dedicated support engineer</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <svg class="w-5 h-5 text-brand-cyan mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <span class="text-sm" style="color: var(--text-secondary)">Custom SLA (99.99%+)</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <svg class="w-5 h-5 text-brand-cyan mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <span class="text-sm" style="color: var(--text-secondary)">On-premise deployment</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <svg class="w-5 h-5 text-brand-cyan mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <span class="text-sm" style="color: var(--text-secondary)">SSO/SAML integration</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <svg class="w-5 h-5 text-brand-cyan mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <span class="text-sm" style="color: var(--text-secondary)">Custom integrations</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <svg class="w-5 h-5 text-brand-cyan mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <span class="text-sm" style="color: var(--text-secondary)">Training & onboarding</span>
-              </li>
-            </ul>
-
-            <Button variant="secondary" block size="lg" @click="contactSales">
-              Contact Sales
-            </Button>
-          </div>
-        </div>
-
-        <!-- FAQ Section -->
-        <div class="max-w-3xl mx-auto">
-          <h2 class="text-3xl font-bold text-center mb-12" style="color: var(--text-primary)">
-            Frequently Asked Questions
-          </h2>
-
-          <div class="space-y-4">
-            <div
-              v-for="(faq, idx) in faqs"
-              :key="idx"
-              v-motion
-              :initial="{ opacity: 0, y: 20 }"
-              :visibleOnce="{ opacity: 1, y: 0, transition: { delay: idx * 50, duration: 400 } }"
-              class="landing-card p-6"
+          <ul class="plan-features">
+            <li
+              v-for="(feat, i) in plan.features"
+              :key="i"
+              class="feature-item"
             >
-              <h3 class="text-lg font-semibold mb-2" style="color: var(--text-primary)">{{ faq.question }}</h3>
-              <p class="leading-relaxed" style="color: var(--text-secondary)">{{ faq.answer }}</p>
-            </div>
-          </div>
+              <svg class="feature-check" :class="plan.checkColor" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span :class="{ 'feature-bold': feat.bold }">{{ feat.text }}</span>
+            </li>
+          </ul>
+
+          <button
+            :class="['plan-cta', plan.featured ? 'cta-primary' : 'cta-secondary']"
+            @click="plan.action()"
+          >
+            {{ plan.cta }}
+          </button>
         </div>
       </div>
+
+      <!-- FAQ Section -->
+      <section class="faq-section">
+        <h2 class="faq-title">Frequently Asked Questions</h2>
+
+        <div class="faq-grid">
+          <div v-for="(faq, idx) in faqs" :key="idx" class="faq-card">
+            <h3 class="faq-question">{{ faq.question }}</h3>
+            <p class="faq-answer">{{ faq.answer }}</p>
+          </div>
+        </div>
+      </section>
     </main>
   </div>
 </template>
@@ -253,9 +78,82 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import Logo from '@/components/common/Logo.vue';
-import Button from '@/components/common/Button.vue';
 
 const router = useRouter();
+
+interface PlanFeature {
+  text: string;
+  bold?: boolean;
+}
+
+interface Plan {
+  name: string;
+  price: string;
+  period?: string;
+  description: string;
+  featured: boolean;
+  checkColor: string;
+  cta: string;
+  action: () => void;
+  features: PlanFeature[];
+}
+
+const plans: Plan[] = [
+  {
+    name: 'Community',
+    price: 'Free',
+    description: 'Perfect for individuals and open source projects',
+    featured: false,
+    checkColor: 'check-green',
+    cta: 'Get Started',
+    action: () => router.push('/register'),
+    features: [
+      { text: 'Self-hosted deployment' },
+      { text: 'Unlimited machines' },
+      { text: 'Multi-agent coordination' },
+      { text: 'Context RAG with pgvector' },
+      { text: 'MIT License' },
+      { text: 'Community support' },
+    ],
+  },
+  {
+    name: 'Pro',
+    price: '$29',
+    period: '/month',
+    description: 'Managed hosting with advanced features',
+    featured: true,
+    checkColor: 'check-purple',
+    cta: 'Start Free Trial',
+    action: () => router.push('/register'),
+    features: [
+      { text: 'Everything in Community, plus:', bold: true },
+      { text: 'Hosted infrastructure' },
+      { text: '99.9% uptime SLA' },
+      { text: 'Priority support (24h response)' },
+      { text: 'Advanced analytics' },
+      { text: 'Team collaboration' },
+      { text: 'Automatic backups' },
+    ],
+  },
+  {
+    name: 'Enterprise',
+    price: 'Custom',
+    description: 'For large teams with custom requirements',
+    featured: false,
+    checkColor: 'check-cyan',
+    cta: 'Contact Sales',
+    action: () => { window.location.href = 'mailto:sales@claudenest.io?subject=Enterprise Plan Inquiry'; },
+    features: [
+      { text: 'Everything in Pro, plus:', bold: true },
+      { text: 'Dedicated support engineer' },
+      { text: 'Custom SLA (99.99%+)' },
+      { text: 'On-premise deployment' },
+      { text: 'SSO/SAML integration' },
+      { text: 'Custom integrations' },
+      { text: 'Training & onboarding' },
+    ],
+  },
+];
 
 interface FAQ {
   question: string;
@@ -288,8 +186,293 @@ const faqs: FAQ[] = [
     answer: 'Enterprise plans are custom-tailored to your needs. Contact our sales team to discuss your requirements, and we will create a proposal with pricing, SLA commitments, and deployment options.',
   },
 ];
-
-function contactSales(): void {
-  window.location.href = 'mailto:sales@claudenest.io?subject=Enterprise Plan Inquiry';
-}
 </script>
+
+<style scoped>
+.pricing-page {
+  min-height: 100vh;
+  background-color: var(--bg-primary, var(--surface-1));
+}
+
+/* ── Navigation ────────────────────── */
+.pricing-nav {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 50;
+  background-color: color-mix(in srgb, var(--bg-primary, var(--surface-1)) 80%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-color, var(--border));
+}
+
+.nav-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.back-link {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.back-link:hover {
+  color: var(--text-primary);
+}
+
+/* ── Main ──────────────────────────── */
+.pricing-main {
+  padding: 8rem 1.5rem 5rem;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+/* ── Header ────────────────────────── */
+.pricing-header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.pricing-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--accent-purple, #a855f7);
+  margin-bottom: 0.75rem;
+}
+
+.pricing-title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0 0 1rem;
+  line-height: 1.15;
+}
+
+.pricing-subtitle {
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+  max-width: 40rem;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* ── Pricing Grid ──────────────────── */
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 5rem;
+  align-items: start;
+}
+
+/* ── Plan Card ─────────────────────── */
+.plan-card {
+  position: relative;
+  padding: 2rem;
+  border-radius: 16px;
+  background-color: var(--bg-card, var(--surface-2));
+  border: 1px solid var(--border-color, var(--border));
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.plan-card:hover {
+  transform: translateY(-4px);
+}
+
+.plan-card.featured {
+  border-color: var(--accent-purple, #a855f7);
+  border-width: 2px;
+  box-shadow: 0 0 40px color-mix(in srgb, var(--accent-purple, #a855f7) 15%, transparent);
+}
+
+.plan-popular {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.25rem 1rem;
+  background: var(--accent-purple, #a855f7);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+
+/* ── Plan Header ───────────────────── */
+.plan-header {
+  margin-bottom: 1.5rem;
+}
+
+.plan-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.75rem;
+}
+
+.plan-price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.price-value {
+  font-size: 2.5rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.price-period {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.plan-desc {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ── Features List ─────────────────── */
+.plan-features {
+  list-style: none;
+  margin: 0 0 2rem;
+  padding: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.feature-bold {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.feature-check {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.check-green { color: #22c55e; }
+.check-purple { color: var(--accent-purple, #a855f7); }
+.check-cyan { color: var(--accent-cyan, #22d3ee); }
+
+/* ── CTA Button ────────────────────── */
+.plan-cta {
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.cta-primary {
+  background: linear-gradient(135deg, var(--accent-purple, #a855f7), var(--accent-indigo, #6366f1));
+  color: #fff;
+}
+
+.cta-primary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.cta-secondary {
+  background-color: var(--bg-hover, var(--surface-3));
+  color: var(--text-primary);
+  border: 1px solid var(--border-color, var(--border));
+}
+
+.cta-secondary:hover {
+  background-color: var(--border-color, var(--border));
+}
+
+/* ── FAQ ───────────────────────────── */
+.faq-section {
+  max-width: 56rem;
+  margin: 0 auto;
+}
+
+.faq-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: center;
+  margin: 0 0 3rem;
+}
+
+.faq-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.faq-card {
+  padding: 1.5rem;
+  border-radius: 12px;
+  background-color: var(--bg-card, var(--surface-2));
+  border: 1px solid var(--border-color, var(--border));
+}
+
+.faq-question {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem;
+}
+
+.faq-answer {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── Responsive ────────────────────── */
+@media (max-width: 1024px) {
+  .pricing-grid {
+    grid-template-columns: 1fr;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .pricing-main {
+    padding: 7rem 1rem 3rem;
+  }
+
+  .faq-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

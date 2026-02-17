@@ -250,8 +250,8 @@ const navigateToDashboard = () => {
 }
 
 .nav-item.active {
-  background-color: rgba(168, 85, 247, 0.1);
-  color: var(--accent-purple);
+  background-color: color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
+  color: var(--accent-purple, #a855f7);
 }
 
 .nav-icon {

@@ -112,10 +112,10 @@ watch(() => route.path, () => {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #64748b;
+  color: var(--text-muted);
   margin: 0 0 1rem;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-color, var(--border));
 }
 
 .toc-nav {
@@ -127,7 +127,7 @@ watch(() => route.path, () => {
 .toc-link {
   display: block;
   padding: 0.375rem 0;
-  color: #64748b;
+  color: var(--text-muted);
   text-decoration: none;
   font-size: 0.85rem;
   line-height: 1.4;
@@ -138,12 +138,12 @@ watch(() => route.path, () => {
 }
 
 .toc-link:hover {
-  color: #a9b1d6;
+  color: var(--text-secondary);
 }
 
 .toc-link.is-active {
-  color: #a855f7;
-  border-left-color: #a855f7;
+  color: var(--accent-purple, #a855f7);
+  border-left-color: var(--accent-purple, #a855f7);
   font-weight: 500;
 }
 

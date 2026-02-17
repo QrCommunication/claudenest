@@ -91,7 +91,7 @@ const installLang = computed(() => currentSdk.value === 'cli' ? 'bash' : 'bash')
 const installCode = computed(() => {
   const codes: Record<string, string> = {
     javascript: 'npm install @claudenest/sdk\n# or\nyarn add @claudenest/sdk',
-    cli: 'npm install -g @claudenest/cli\n# or\ncurl -fsSL https://claudenest.io/install-cli.sh | bash',
+    cli: 'npm install -g @claudenest/agent\n# or\ncurl -fsSL https://claudenest.io/install-agent.sh | bash',
     php: 'composer require claudenest/sdk',
     python: 'pip install claudenest-sdk'
   };
@@ -147,14 +147,14 @@ const fullExample = computed(() => {
 .doc-header {
   margin-bottom: 3rem;
   padding-bottom: 2rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-color, var(--border));
 }
 
 .doc-header h1 {
   font-size: 2.5rem;
   font-weight: 800;
   margin: 0 0 1rem;
-  background: linear-gradient(135deg, #a855f7, #22d3ee);
+  background: linear-gradient(135deg, var(--accent-purple, #a855f7), var(--accent-cyan, #22d3ee));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -162,7 +162,7 @@ const fullExample = computed(() => {
 
 .lead {
   font-size: 1.25rem;
-  color: #a9b1d6;
+  color: var(--text-secondary);
   line-height: 1.6;
   margin: 0;
 }
@@ -175,11 +175,11 @@ h2 {
   font-size: 1.75rem;
   font-weight: 700;
   margin: 0 0 1rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 p {
-  color: #a9b1d6;
+  color: var(--text-secondary);
   line-height: 1.7;
   margin: 0 0 1rem;
 }
@@ -189,15 +189,15 @@ p {
   gap: 0.5rem;
   margin-bottom: 2rem;
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 12px;
   overflow-x: auto;
 }
 
 .sdk-link {
   padding: 0.5rem 1rem;
-  color: #a9b1d6;
+  color: var(--text-secondary);
   text-decoration: none;
   border-radius: 8px;
   font-size: 0.95rem;
@@ -206,13 +206,13 @@ p {
 }
 
 .sdk-link:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: #ffffff;
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
+  color: var(--text-primary);
 }
 
 .sdk-link.is-active {
-  background: rgba(168, 85, 247, 0.2);
-  color: #a855f7;
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
+  color: var(--accent-purple, #a855f7);
   font-weight: 500;
 }
 

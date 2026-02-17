@@ -246,7 +246,7 @@ const executeRequest = async () => {
 .try-it-header h4 {
   margin: 0;
   font-size: 1rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .auth-input {
@@ -257,23 +257,23 @@ const executeRequest = async () => {
 
 .auth-input label {
   font-size: 0.8rem;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .auth-input input {
   width: 250px;
   padding: 0.375rem 0.625rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 6px;
-  color: #ffffff;
+  color: var(--text-primary);
   font-size: 0.85rem;
   font-family: 'JetBrains Mono', monospace;
 }
 
 .auth-input input:focus {
   outline: none;
-  border-color: #a855f7;
+  border-color: var(--accent-purple, #a855f7);
 }
 
 /* Request Builder */
@@ -288,8 +288,8 @@ const executeRequest = async () => {
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 8px;
 }
 
@@ -301,7 +301,7 @@ const executeRequest = async () => {
 .url {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.85rem;
-  color: #a9b1d6;
+  color: var(--text-secondary);
   word-break: break-all;
 }
 
@@ -311,7 +311,7 @@ const executeRequest = async () => {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #64748b;
+  color: var(--text-muted);
   margin: 0 0 0.75rem;
 }
 
@@ -329,7 +329,7 @@ const executeRequest = async () => {
 
 .param-input label {
   font-size: 0.8rem;
-  color: #a9b1d6;
+  color: var(--text-secondary);
 }
 
 .param-input label .required {
@@ -338,16 +338,16 @@ const executeRequest = async () => {
 
 .param-input input {
   padding: 0.5rem 0.75rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 6px;
-  color: #ffffff;
+  color: var(--text-primary);
   font-size: 0.9rem;
 }
 
 .param-input input:focus {
   outline: none;
-  border-color: #a855f7;
+  border-color: var(--accent-purple, #a855f7);
 }
 
 /* Body Editor */
@@ -355,10 +355,10 @@ const executeRequest = async () => {
   width: 100%;
   min-height: 120px;
   padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 8px;
-  color: #e2e8f0;
+  color: var(--text-primary);
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.85rem;
   resize: vertical;
@@ -366,7 +366,7 @@ const executeRequest = async () => {
 
 .body-editor:focus {
   outline: none;
-  border-color: #a855f7;
+  border-color: var(--accent-purple, #a855f7);
 }
 
 .json-error {
@@ -382,10 +382,10 @@ const executeRequest = async () => {
   justify-content: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #a855f7, #6366f1);
+  background: linear-gradient(135deg, var(--accent-purple, #a855f7), var(--accent-indigo, #6366f1));
   border: none;
   border-radius: 8px;
-  color: #ffffff;
+  color: var(--text-primary);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
@@ -416,7 +416,7 @@ const executeRequest = async () => {
 .response-section {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--border-color, var(--border));
 }
 
 .response-header {
@@ -429,7 +429,7 @@ const executeRequest = async () => {
 .response-header h5 {
   margin: 0;
   font-size: 0.9rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .status-badge {
@@ -440,7 +440,7 @@ const executeRequest = async () => {
 }
 
 .status-badge.success {
-  background: rgba(34, 197, 94, 0.2);
+  background: color-mix(in srgb, var(--status-success, #22c55e) 20%, transparent);
   color: #4ade80;
 }
 
@@ -452,7 +452,7 @@ const executeRequest = async () => {
 .response-body {
   margin: 0;
   padding: 1rem;
-  background: #0d0d14;
+  background: var(--bg-primary, var(--surface-1));
   border-radius: 8px;
   overflow-x: auto;
   font-family: 'JetBrains Mono', monospace;

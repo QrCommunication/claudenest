@@ -294,7 +294,7 @@ watch(() => route.params.id, (newId) => {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: #0f0f1a;
+  background: var(--bg-primary, var(--surface-1));
   overflow: hidden;
 }
 
@@ -305,14 +305,14 @@ watch(() => route.params.id, (newId) => {
   gap: 16px;
   height: 56px;
   padding: 0 16px;
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(99, 102, 241, 0.1));
-  border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent), color-mix(in srgb, var(--accent-indigo, #6366f1) 10%, transparent));
+  border-bottom: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
 }
 
 .skeleton-back {
   width: 36px;
   height: 36px;
-  background: rgba(168, 85, 247, 0.2);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
   border-radius: 8px;
   animation: pulse 2s infinite;
 }
@@ -326,7 +326,7 @@ watch(() => route.params.id, (newId) => {
 .skeleton-title {
   width: 120px;
   height: 16px;
-  background: rgba(168, 85, 247, 0.2);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
   border-radius: 4px;
   animation: pulse 2s infinite;
 }
@@ -334,7 +334,7 @@ watch(() => route.params.id, (newId) => {
 .skeleton-meta {
   width: 200px;
   height: 12px;
-  background: rgba(168, 85, 247, 0.15);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 15%, transparent);
   border-radius: 4px;
   animation: pulse 2s infinite;
 }
@@ -365,15 +365,15 @@ watch(() => route.params.id, (newId) => {
   align-items: center;
   justify-content: center;
   gap: 16px;
-  background: #0f0f1a;
-  color: #565f89;
+  background: var(--bg-primary, var(--surface-1));
+  color: var(--text-muted);
 }
 
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid rgba(168, 85, 247, 0.2);
-  border-top-color: #a855f7;
+  border: 3px solid color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
+  border-top-color: var(--accent-purple, #a855f7);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -393,7 +393,7 @@ watch(() => route.params.id, (newId) => {
   align-items: center;
   justify-content: center;
   gap: 16px;
-  background: #0f0f1a;
+  background: var(--bg-primary, var(--surface-1));
   text-align: center;
   padding: 32px;
 }
@@ -401,22 +401,22 @@ watch(() => route.params.id, (newId) => {
 .error-icon {
   width: 48px;
   height: 48px;
-  color: #ef4444;
+  color: var(--status-error, #ef4444);
 }
 
 .error-overlay p {
   margin: 0;
-  color: #ef4444;
+  color: var(--status-error, #ef4444);
   font-size: 14px;
   max-width: 400px;
 }
 
 .retry-btn {
   padding: 10px 24px;
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: color-mix(in srgb, var(--status-error, #ef4444) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--status-error, #ef4444) 30%, transparent);
   border-radius: 8px;
-  color: #ef4444;
+  color: var(--status-error, #ef4444);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -424,7 +424,7 @@ watch(() => route.params.id, (newId) => {
 }
 
 .retry-btn:hover {
-  background: rgba(239, 68, 68, 0.25);
+  background: color-mix(in srgb, var(--status-error, #ef4444) 25%, transparent);
 }
 
 /* Not Running Overlay */
@@ -436,7 +436,7 @@ watch(() => route.params.id, (newId) => {
   align-items: center;
   justify-content: center;
   gap: 16px;
-  background: #0f0f1a;
+  background: var(--bg-primary, var(--surface-1));
   text-align: center;
   padding: 32px;
 }
@@ -444,19 +444,19 @@ watch(() => route.params.id, (newId) => {
 .info-icon {
   width: 48px;
   height: 48px;
-  color: #a855f7;
+  color: var(--accent-purple, #a855f7);
 }
 
 .not-running-overlay h3 {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
-  color: #c0caf5;
+  color: var(--text-primary);
 }
 
 .not-running-overlay p {
   margin: 0;
-  color: #565f89;
+  color: var(--text-muted);
   font-size: 14px;
 }
 
@@ -466,8 +466,8 @@ watch(() => route.params.id, (newId) => {
   gap: 8px;
   margin: 16px 0;
   padding: 16px 24px;
-  background: rgba(168, 85, 247, 0.05);
-  border: 1px solid rgba(168, 85, 247, 0.15);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 15%, transparent);
   border-radius: 8px;
 }
 
@@ -478,24 +478,24 @@ watch(() => route.params.id, (newId) => {
 }
 
 .detail-label {
-  color: #565f89;
+  color: var(--text-muted);
 }
 
 .detail-value {
-  color: #c0caf5;
+  color: var(--text-primary);
   font-family: 'JetBrains Mono', monospace;
 }
 
 .text-error {
-  color: #ef4444;
+  color: var(--status-error, #ef4444);
 }
 
 .back-btn {
   padding: 10px 24px;
-  background: rgba(168, 85, 247, 0.15);
-  border: 1px solid rgba(168, 85, 247, 0.3);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 30%, transparent);
   border-radius: 8px;
-  color: #a855f7;
+  color: var(--accent-purple, #a855f7);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -503,7 +503,7 @@ watch(() => route.params.id, (newId) => {
 }
 
 .back-btn:hover {
-  background: rgba(168, 85, 247, 0.25);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 25%, transparent);
 }
 
 /* Reconnect Toast */
@@ -516,20 +516,20 @@ watch(() => route.params.id, (newId) => {
   align-items: center;
   gap: 16px;
   padding: 12px 20px;
-  background: rgba(245, 158, 11, 0.15);
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: color-mix(in srgb, var(--status-warning, #f59e0b) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--status-warning, #f59e0b) 30%, transparent);
   border-radius: 8px;
-  color: #f59e0b;
+  color: var(--status-warning, #f59e0b);
   font-size: 14px;
   z-index: 1000;
 }
 
 .reconnect-btn {
   padding: 6px 12px;
-  background: rgba(245, 158, 11, 0.2);
-  border: 1px solid rgba(245, 158, 11, 0.4);
+  background: color-mix(in srgb, var(--status-warning, #f59e0b) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--status-warning, #f59e0b) 40%, transparent);
   border-radius: 6px;
-  color: #f59e0b;
+  color: var(--status-warning, #f59e0b);
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
@@ -537,7 +537,7 @@ watch(() => route.params.id, (newId) => {
 }
 
 .reconnect-btn:hover {
-  background: rgba(245, 158, 11, 0.3);
+  background: color-mix(in srgb, var(--status-warning, #f59e0b) 30%, transparent);
 }
 
 /* Transitions */

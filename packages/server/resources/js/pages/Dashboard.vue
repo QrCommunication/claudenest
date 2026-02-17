@@ -1,458 +1,202 @@
 <template>
-  <div class="dashboard-page p-4 sm:p-6 space-y-6 lg:space-y-8 min-h-screen">
-    <!-- Page Header -->
-    <div class="page-header">
-      <div>
-        <h1 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-          Dashboard
-        </h1>
-        <p class="text-gray-400 mt-1 text-sm sm:text-base">
-          System overview and quick actions
-        </p>
-      </div>
-      <div class="flex items-center gap-3">
+  <div class="dashboard">
+    <!-- ================================================================ -->
+    <!-- GREETING BANNER                                                   -->
+    <!-- ================================================================ -->
+    <header class="greeting">
+      <div class="greeting-bg" />
+      <div class="greeting-inner">
+        <div class="greeting-copy">
+          <h1 class="greeting-title">
+            {{ greetingText }}
+          </h1>
+          <p class="greeting-sub">
+            <span class="health-pill" :class="overallHealthClass">
+              <span class="health-pill-dot" />
+              {{ overallHealthLabel }}
+            </span>
+            <span class="greeting-sep">&middot;</span>
+            <span>{{ lastRefreshLabel }}</span>
+          </p>
+        </div>
         <button
           class="refresh-btn"
           :disabled="isRefreshing"
           @click="refreshAll"
           aria-label="Refresh dashboard data"
         >
-          <svg class="w-5 h-5" :class="{ 'animate-spin': isRefreshing }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg class="refresh-icon" :class="{ spinning: isRefreshing }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="23 4 23 10 17 10" />
             <polyline points="1 20 1 14 7 14" />
             <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
           </svg>
         </button>
-        <span class="text-xs text-gray-500 hidden sm:inline">
-          {{ lastRefreshLabel }}
-        </span>
       </div>
-    </div>
+    </header>
 
-    <!-- ============================================================ -->
-    <!-- SECTION 1: Stats Overview                                     -->
-    <!-- ============================================================ -->
-    <section class="stats-grid" aria-label="System statistics">
-      <!-- Machines Online -->
-      <div class="stat-card group" @click="navigateTo('/machines')">
-        <div class="stat-card-inner">
-          <div class="stat-icon stat-icon--purple">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="2" y="2" width="20" height="8" rx="2" ry="2" />
-              <rect x="2" y="14" width="20" height="8" rx="2" ry="2" />
-              <line x1="6" y1="6" x2="6.01" y2="6" />
-              <line x1="6" y1="18" x2="6.01" y2="18" />
-            </svg>
-          </div>
-          <div class="stat-content">
-            <template v-if="machinesStore.isLoading && machinesStore.machines.length === 0">
-              <div class="skeleton-number" />
-              <div class="skeleton-label" />
-            </template>
-            <template v-else>
-              <span class="stat-number">{{ machinesStore.onlineMachines.length }}</span>
-              <span class="stat-label">
-                Machines Online
-                <span class="stat-sub">/ {{ machinesStore.machines.length }} total</span>
-              </span>
-            </template>
-          </div>
-        </div>
-        <div class="stat-border stat-border--purple" />
-      </div>
-
-      <!-- Active Sessions -->
-      <div class="stat-card group" @click="navigateTo('/sessions')">
-        <div class="stat-card-inner">
-          <div class="stat-icon stat-icon--cyan">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="4 17 10 11 4 5" />
-              <line x1="12" y1="19" x2="20" y2="19" />
-            </svg>
-          </div>
-          <div class="stat-content">
-            <template v-if="machinesStore.isLoading && machinesStore.machines.length === 0">
-              <div class="skeleton-number" />
-              <div class="skeleton-label" />
-            </template>
-            <template v-else>
-              <span class="stat-number">{{ machinesStore.totalActiveSessions }}</span>
-              <span class="stat-label">Active Sessions</span>
-            </template>
-          </div>
-        </div>
-        <div class="stat-border stat-border--cyan" />
-      </div>
-
-      <!-- Projects -->
-      <div class="stat-card group" @click="navigateTo('/projects')">
-        <div class="stat-card-inner">
-          <div class="stat-icon stat-icon--indigo">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-            </svg>
-          </div>
-          <div class="stat-content">
-            <template v-if="isLoadingProjects">
-              <div class="skeleton-number" />
-              <div class="skeleton-label" />
-            </template>
-            <template v-else>
-              <span class="stat-number">{{ totalProjects }}</span>
-              <span class="stat-label">Projects</span>
-            </template>
-          </div>
-        </div>
-        <div class="stat-border stat-border--indigo" />
-      </div>
-
-      <!-- Pending Tasks -->
-      <div class="stat-card group" @click="navigateTo('/projects')">
-        <div class="stat-card-inner">
-          <div class="stat-icon stat-icon--warning">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M9 11l3 3L22 4" />
-              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-            </svg>
-          </div>
-          <div class="stat-content">
-            <template v-if="isLoadingProjects">
-              <div class="skeleton-number" />
-              <div class="skeleton-label" />
-            </template>
-            <template v-else>
-              <span class="stat-number">{{ totalPendingTasks }}</span>
-              <span class="stat-label">Tasks Pending</span>
-            </template>
-          </div>
-        </div>
-        <div class="stat-border stat-border--warning" />
-      </div>
-    </section>
-
-    <!-- ============================================================ -->
-    <!-- SECTION 2: Quick Actions + System Status                      -->
-    <!-- ============================================================ -->
-    <section class="grid grid-cols-1 lg:grid-cols-5 gap-6" aria-label="Quick actions and system status">
-      <!-- Quick Actions (left, 3 cols) -->
-      <div class="lg:col-span-3 card">
-        <h2 class="card-title">Quick Actions</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-          <button
-            class="action-btn action-btn--primary"
-            @click="navigateTo('/sessions/new')"
-          >
-            <span class="action-icon action-icon--purple">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="4 17 10 11 4 5" />
-                <line x1="12" y1="19" x2="20" y2="19" />
-              </svg>
-            </span>
-            <span class="action-text">
-              <span class="action-name">New Session</span>
-              <span class="action-desc">Start a Claude Code session</span>
-            </span>
-            <svg class="action-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </button>
-
-          <button
-            class="action-btn"
-            @click="navigateTo('/machines')"
-          >
-            <span class="action-icon action-icon--cyan">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="2" width="20" height="8" rx="2" ry="2" />
-                <rect x="2" y="14" width="20" height="8" rx="2" ry="2" />
-                <line x1="6" y1="6" x2="6.01" y2="6" />
-                <line x1="6" y1="18" x2="6.01" y2="18" />
-              </svg>
-            </span>
-            <span class="action-text">
-              <span class="action-name">Connect Machine</span>
-              <span class="action-desc">Register a new machine</span>
-            </span>
-            <svg class="action-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </button>
-
-          <button
-            class="action-btn"
-            @click="navigateTo('/projects')"
-          >
-            <span class="action-icon action-icon--indigo">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-                <line x1="12" y1="11" x2="12" y2="17" />
-                <line x1="9" y1="14" x2="15" y2="14" />
-              </svg>
-            </span>
-            <span class="action-text">
-              <span class="action-name">Create Project</span>
-              <span class="action-desc">Set up multi-agent project</span>
-            </span>
-            <svg class="action-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </button>
-
-          <button
-            class="action-btn"
-            @click="navigateTo('/docs')"
-          >
-            <span class="action-icon action-icon--gray">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-                <line x1="16" y1="13" x2="8" y2="13" />
-                <line x1="16" y1="17" x2="8" y2="17" />
-                <polyline points="10 9 9 9 8 9" />
-              </svg>
-            </span>
-            <span class="action-text">
-              <span class="action-name">View Docs</span>
-              <span class="action-desc">API reference & guides</span>
-            </span>
-            <svg class="action-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- System Health (right, 2 cols) -->
-      <div class="lg:col-span-2 card">
-        <h2 class="card-title">System Health</h2>
-        <div class="mt-4 space-y-4">
-          <div class="health-row">
-            <div class="health-indicator">
-              <span
-                class="health-dot"
-                :class="systemHealth.api ? 'health-dot--ok' : 'health-dot--error'"
-              />
-              <span class="health-name">API Server</span>
-            </div>
-            <span
-              class="health-status"
-              :class="systemHealth.api ? 'text-green-400' : 'text-red-400'"
-            >
-              {{ systemHealth.api ? 'Operational' : 'Unreachable' }}
-            </span>
-          </div>
-
-          <div class="health-row">
-            <div class="health-indicator">
-              <span
-                class="health-dot"
-                :class="systemHealth.websocket ? 'health-dot--ok' : 'health-dot--warn'"
-              />
-              <span class="health-name">WebSocket</span>
-            </div>
-            <span
-              class="health-status"
-              :class="systemHealth.websocket ? 'text-green-400' : 'text-yellow-400'"
-            >
-              {{ systemHealth.websocket ? 'Connected' : 'Checking...' }}
-            </span>
-          </div>
-
-          <div class="health-row">
-            <div class="health-indicator">
-              <span
-                class="health-dot"
-                :class="systemHealth.database ? 'health-dot--ok' : 'health-dot--error'"
-              />
-              <span class="health-name">Database</span>
-            </div>
-            <span
-              class="health-status"
-              :class="systemHealth.database ? 'text-green-400' : 'text-red-400'"
-            >
-              {{ systemHealth.database ? 'Healthy' : 'Unknown' }}
-            </span>
-          </div>
-
-          <div class="health-divider" />
-
-          <div class="health-row">
-            <span class="text-gray-400 text-sm">Last sync</span>
-            <span class="text-gray-300 text-sm font-mono">
-              {{ lastRefreshLabel }}
-            </span>
-          </div>
-
-          <div class="health-row">
-            <span class="text-gray-400 text-sm">Uptime</span>
-            <span class="text-gray-300 text-sm font-mono">
-              {{ uptimeLabel }}
-            </span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============================================================ -->
-    <!-- SECTION 3: Recent Activity Feed                               -->
-    <!-- ============================================================ -->
-    <section class="card" aria-label="Recent activity">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="card-title mb-0">Recent Activity</h2>
-        <span class="text-xs text-gray-500">
-          {{ activityFeed.length }} events
-        </span>
-      </div>
-
-      <!-- Empty State -->
-      <div
-        v-if="activityFeed.length === 0"
-        class="empty-state"
-      >
-        <svg class="w-12 h-12 text-gray-600 mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10" />
-          <polyline points="12 6 12 12 16 14" />
-        </svg>
-        <p class="text-gray-500 text-sm">No recent activity</p>
-        <p class="text-gray-600 text-xs mt-1">
-          Activity will appear here as machines connect and sessions run.
-        </p>
-      </div>
-
-      <!-- Activity Timeline -->
-      <div v-else class="activity-timeline">
-        <div
-          v-for="(event, index) in activityFeed"
-          :key="event.id"
-          class="activity-item"
-          :class="{ 'activity-item--last': index === activityFeed.length - 1 }"
+    <!-- ================================================================ -->
+    <!-- BENTO GRID                                                        -->
+    <!-- ================================================================ -->
+    <section class="bento" aria-label="Dashboard overview">
+      <!-- ROW 1: Stats strip -->
+      <div class="bento-stats">
+        <button
+          v-for="stat in stats"
+          :key="stat.key"
+          class="stat-chip"
+          :class="`stat-chip--${stat.color}`"
+          @click="navigateTo(stat.route)"
         >
-          <div class="activity-dot-wrapper">
-            <span
-              class="activity-dot"
-              :class="activityDotClass(event.type)"
-            />
-            <span
-              v-if="index < activityFeed.length - 1"
-              class="activity-line"
-            />
+          <span class="stat-chip-icon" :class="`stat-chip-icon--${stat.color}`">
+            <component :is="stat.icon" />
+          </span>
+          <span class="stat-chip-body">
+            <template v-if="stat.loading">
+              <span class="skel skel--num" />
+              <span class="skel skel--lbl" />
+            </template>
+            <template v-else>
+              <span class="stat-chip-num">{{ stat.value }}</span>
+              <span class="stat-chip-lbl">{{ stat.label }}</span>
+            </template>
+          </span>
+          <span v-if="stat.sub" class="stat-chip-sub">{{ stat.sub }}</span>
+        </button>
+      </div>
+
+      <!-- ROW 2: Main content grid -->
+      <div class="bento-main">
+        <!-- LEFT: Quick Actions (large card) -->
+        <div class="bento-card bento-card--actions">
+          <div class="bento-card-head">
+            <h2 class="bento-card-title">Quick Actions</h2>
           </div>
-          <div class="activity-body">
-            <div class="activity-header">
-              <span class="activity-icon" :class="activityIconClass(event.type)">
-                <component :is="activityIconComponent(event.type)" />
+          <div class="actions-grid">
+            <button
+              v-for="action in quickActions"
+              :key="action.route"
+              class="action-tile"
+              :class="{ 'action-tile--primary': action.primary }"
+              @click="navigateTo(action.route)"
+            >
+              <span class="action-tile-icon" :class="`action-tile-icon--${action.color}`">
+                <component :is="action.icon" />
               </span>
-              <span class="activity-description">{{ event.description }}</span>
-              <span
-                class="activity-badge"
-                :class="activityBadgeClass(event.type)"
-              >
-                {{ activityBadgeLabel(event.type) }}
+              <span class="action-tile-copy">
+                <span class="action-tile-name">{{ action.name }}</span>
+                <span class="action-tile-desc">{{ action.desc }}</span>
+              </span>
+              <svg class="action-tile-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- RIGHT: System Health + Uptime -->
+        <div class="bento-card bento-card--health">
+          <div class="bento-card-head">
+            <h2 class="bento-card-title">System Health</h2>
+          </div>
+          <div class="health-list">
+            <div
+              v-for="svc in healthServices"
+              :key="svc.name"
+              class="health-row"
+            >
+              <div class="health-row-left">
+                <span class="health-dot" :class="svc.dotClass" />
+                <span class="health-name">{{ svc.name }}</span>
+              </div>
+              <span class="health-status" :class="svc.statusClass">
+                {{ svc.statusLabel }}
               </span>
             </div>
-            <span class="activity-time">{{ formatTimeAgo(event.timestamp) }}</span>
+          </div>
+          <div class="health-divider" />
+          <div class="health-meta">
+            <div class="health-meta-row">
+              <span class="health-meta-lbl">Last sync</span>
+              <span class="health-meta-val">{{ lastRefreshLabel }}</span>
+            </div>
+            <div class="health-meta-row">
+              <span class="health-meta-lbl">Uptime</span>
+              <span class="health-meta-val">{{ uptimeLabel }}</span>
+            </div>
           </div>
         </div>
       </div>
-    </section>
 
-    <!-- ============================================================ -->
-    <!-- SECTION 4: Resource Cards                                     -->
-    <!-- ============================================================ -->
-    <section class="resource-grid" aria-label="Quick navigation">
-      <!-- Machines Card -->
-      <router-link to="/machines" class="resource-card group">
-        <div class="resource-top">
-          <div class="resource-icon resource-icon--purple">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="2" y="2" width="20" height="8" rx="2" ry="2" />
-              <rect x="2" y="14" width="20" height="8" rx="2" ry="2" />
-              <line x1="6" y1="6" x2="6.01" y2="6" />
-              <line x1="6" y1="18" x2="6.01" y2="18" />
+      <!-- ROW 3: Activity feed (full width) -->
+      <div class="bento-card bento-card--activity">
+        <div class="bento-card-head">
+          <h2 class="bento-card-title">Recent Activity</h2>
+          <span class="bento-card-badge">{{ activityFeed.length }} events</span>
+        </div>
+
+        <!-- Empty State -->
+        <div v-if="activityFeed.length === 0" class="empty-state">
+          <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+          <p class="empty-title">No recent activity</p>
+          <p class="empty-sub">Activity will appear here as machines connect and sessions run.</p>
+        </div>
+
+        <!-- Activity Timeline -->
+        <div v-else class="activity-feed">
+          <div
+            v-for="(event, index) in activityFeed"
+            :key="event.id"
+            class="act-row"
+          >
+            <div class="act-dot-col">
+              <span class="act-dot" :class="activityDotClass(event.type)" />
+              <span v-if="index < activityFeed.length - 1" class="act-line" />
+            </div>
+            <div class="act-body">
+              <div class="act-header">
+                <component :is="activityIconComponent(event.type)" class="act-icon" :class="activityIconClass(event.type)" />
+                <span class="act-desc">{{ event.description }}</span>
+                <span class="act-badge" :class="activityBadgeClass(event.type)">
+                  {{ activityBadgeLabel(event.type) }}
+                </span>
+              </div>
+              <span class="act-time">{{ formatTimeAgo(event.timestamp) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 4: Resource nav cards -->
+      <div class="bento-resources">
+        <router-link
+          v-for="res in resources"
+          :key="res.route"
+          :to="res.route"
+          class="res-card"
+          :class="`res-card--${res.color}`"
+        >
+          <div class="res-card-top">
+            <span class="res-card-icon" :class="`res-card-icon--${res.color}`">
+              <component :is="res.icon" />
+            </span>
+            <span v-if="res.badge" class="res-card-pill" :class="`res-card-pill--${res.badgeColor}`">
+              {{ res.badge }}
+            </span>
+          </div>
+          <h3 class="res-card-title">{{ res.title }}</h3>
+          <p class="res-card-desc">{{ res.desc }}</p>
+          <div class="res-card-foot">
+            <span class="res-card-count">{{ res.count }}</span>
+            <svg class="res-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
             </svg>
           </div>
-          <span
-            v-if="machinesStore.onlineMachines.length > 0"
-            class="resource-badge resource-badge--purple"
-          >
-            {{ machinesStore.onlineMachines.length }} online
-          </span>
-        </div>
-        <h3 class="resource-title">Machines</h3>
-        <p class="resource-desc">
-          Manage your connected machines and agents
-        </p>
-        <div class="resource-footer">
-          <span class="resource-count">
-            {{ machinesStore.machines.length }} registered
-          </span>
-          <svg class="resource-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="5" y1="12" x2="19" y2="12" />
-            <polyline points="12 5 19 12 12 19" />
-          </svg>
-        </div>
-      </router-link>
-
-      <!-- Sessions Card -->
-      <router-link to="/sessions" class="resource-card group">
-        <div class="resource-top">
-          <div class="resource-icon resource-icon--cyan">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="4 17 10 11 4 5" />
-              <line x1="12" y1="19" x2="20" y2="19" />
-            </svg>
-          </div>
-          <span
-            v-if="machinesStore.totalActiveSessions > 0"
-            class="resource-badge resource-badge--cyan"
-          >
-            {{ machinesStore.totalActiveSessions }} active
-          </span>
-        </div>
-        <h3 class="resource-title">Sessions</h3>
-        <p class="resource-desc">
-          View and manage Claude Code sessions
-        </p>
-        <div class="resource-footer">
-          <span class="resource-count">
-            {{ machinesStore.totalActiveSessions }} running
-          </span>
-          <svg class="resource-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="5" y1="12" x2="19" y2="12" />
-            <polyline points="12 5 19 12 12 19" />
-          </svg>
-        </div>
-      </router-link>
-
-      <!-- Projects Card -->
-      <router-link to="/projects" class="resource-card group">
-        <div class="resource-top">
-          <div class="resource-icon resource-icon--indigo">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-            </svg>
-          </div>
-          <span
-            v-if="totalPendingTasks > 0"
-            class="resource-badge resource-badge--warning"
-          >
-            {{ totalPendingTasks }} tasks
-          </span>
-        </div>
-        <h3 class="resource-title">Projects</h3>
-        <p class="resource-desc">
-          Multi-agent coordination and task management
-        </p>
-        <div class="resource-footer">
-          <span class="resource-count">
-            {{ totalProjects }} projects
-          </span>
-          <svg class="resource-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="5" y1="12" x2="19" y2="12" />
-            <polyline points="12 5 19 12 12 19" />
-          </svg>
-        </div>
-      </router-link>
+        </router-link>
+      </div>
     </section>
   </div>
 </template>
@@ -498,20 +242,218 @@ const systemHealth = ref({
 });
 
 // ============================================================================
+// Greeting
+// ============================================================================
+
+const greetingText = computed(() => {
+  const h = new Date().getHours();
+  if (h < 6) return 'Good night';
+  if (h < 12) return 'Good morning';
+  if (h < 18) return 'Good afternoon';
+  return 'Good evening';
+});
+
+// ============================================================================
+// Overall health
+// ============================================================================
+
+const overallHealthy = computed(() =>
+  systemHealth.value.api && systemHealth.value.websocket && systemHealth.value.database
+);
+
+const overallHealthClass = computed(() =>
+  overallHealthy.value ? 'health-pill--ok' : 'health-pill--warn'
+);
+
+const overallHealthLabel = computed(() =>
+  overallHealthy.value ? 'All systems operational' : 'Issues detected'
+);
+
+// ============================================================================
+// Functional icon components
+// ============================================================================
+
+const ServerSvg: FunctionalComponent = () =>
+  h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+    h('rect', { x: '2', y: '2', width: '20', height: '8', rx: '2', ry: '2' }),
+    h('rect', { x: '2', y: '14', width: '20', height: '8', rx: '2', ry: '2' }),
+    h('line', { x1: '6', y1: '6', x2: '6.01', y2: '6' }),
+    h('line', { x1: '6', y1: '18', x2: '6.01', y2: '18' }),
+  ]);
+
+const TerminalSvg: FunctionalComponent = () =>
+  h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+    h('polyline', { points: '4 17 10 11 4 5' }),
+    h('line', { x1: '12', y1: '19', x2: '20', y2: '19' }),
+  ]);
+
+const FolderSvg: FunctionalComponent = () =>
+  h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+    h('path', { d: 'M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z' }),
+  ]);
+
+const FolderPlusSvg: FunctionalComponent = () =>
+  h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+    h('path', { d: 'M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z' }),
+    h('line', { x1: '12', y1: '11', x2: '12', y2: '17' }),
+    h('line', { x1: '9', y1: '14', x2: '15', y2: '14' }),
+  ]);
+
+const CheckSvg: FunctionalComponent = () =>
+  h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+    h('path', { d: 'M9 11l3 3L22 4' }),
+    h('path', { d: 'M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11' }),
+  ]);
+
+const LockSvg: FunctionalComponent = () =>
+  h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+    h('rect', { x: '3', y: '11', width: '18', height: '11', rx: '2', ry: '2' }),
+    h('path', { d: 'M7 11V7a5 5 0 0 1 10 0v4' }),
+  ]);
+
+const DocSvg: FunctionalComponent = () =>
+  h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+    h('path', { d: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z' }),
+    h('polyline', { points: '14 2 14 8 20 8' }),
+    h('line', { x1: '16', y1: '13', x2: '8', y2: '13' }),
+    h('line', { x1: '16', y1: '17', x2: '8', y2: '17' }),
+  ]);
+
+// ============================================================================
+// Stats data
+// ============================================================================
+
+const stats = computed(() => {
+  const ml = machinesStore.isLoading && machinesStore.machines.length === 0;
+  return [
+    {
+      key: 'machines',
+      icon: ServerSvg,
+      value: machinesStore.onlineMachines.length,
+      label: 'Machines Online',
+      sub: `/ ${machinesStore.machines.length}`,
+      color: 'purple',
+      route: '/machines',
+      loading: ml,
+    },
+    {
+      key: 'sessions',
+      icon: TerminalSvg,
+      value: machinesStore.totalActiveSessions,
+      label: 'Active Sessions',
+      sub: null,
+      color: 'cyan',
+      route: '/sessions',
+      loading: ml,
+    },
+    {
+      key: 'projects',
+      icon: FolderSvg,
+      value: totalProjects.value,
+      label: 'Projects',
+      sub: null,
+      color: 'indigo',
+      route: '/projects',
+      loading: isLoadingProjects.value,
+    },
+    {
+      key: 'tasks',
+      icon: CheckSvg,
+      value: totalPendingTasks.value,
+      label: 'Tasks Pending',
+      sub: null,
+      color: 'warning',
+      route: '/projects',
+      loading: isLoadingProjects.value,
+    },
+  ];
+});
+
+// ============================================================================
+// Quick Actions
+// ============================================================================
+
+const quickActions = computed(() => [
+  { name: 'New Session', desc: 'Start a Claude Code session', icon: TerminalSvg, route: '/sessions/new', color: 'purple', primary: true },
+  { name: 'Connect Machine', desc: 'Register a new machine', icon: ServerSvg, route: '/machines', color: 'cyan', primary: false },
+  { name: 'Create Project', desc: 'Set up multi-agent project', icon: FolderPlusSvg, route: '/projects', color: 'indigo', primary: false },
+  { name: 'View Docs', desc: 'API reference & guides', icon: DocSvg, route: '/docs', color: 'gray', primary: false },
+]);
+
+// ============================================================================
+// Health services
+// ============================================================================
+
+const healthServices = computed(() => [
+  {
+    name: 'API Server',
+    dotClass: systemHealth.value.api ? 'dot--ok' : 'dot--error',
+    statusLabel: systemHealth.value.api ? 'Operational' : 'Unreachable',
+    statusClass: systemHealth.value.api ? 'st--ok' : 'st--error',
+  },
+  {
+    name: 'WebSocket',
+    dotClass: systemHealth.value.websocket ? 'dot--ok' : 'dot--warn',
+    statusLabel: systemHealth.value.websocket ? 'Connected' : 'Checking...',
+    statusClass: systemHealth.value.websocket ? 'st--ok' : 'st--warn',
+  },
+  {
+    name: 'Database',
+    dotClass: systemHealth.value.database ? 'dot--ok' : 'dot--error',
+    statusLabel: systemHealth.value.database ? 'Healthy' : 'Unknown',
+    statusClass: systemHealth.value.database ? 'st--ok' : 'st--error',
+  },
+]);
+
+// ============================================================================
+// Resources
+// ============================================================================
+
+const resources = computed(() => [
+  {
+    title: 'Machines',
+    desc: 'Manage your connected machines and agents',
+    icon: ServerSvg,
+    route: '/machines',
+    color: 'purple',
+    badge: machinesStore.onlineMachines.length > 0 ? `${machinesStore.onlineMachines.length} online` : null,
+    badgeColor: 'purple',
+    count: `${machinesStore.machines.length} registered`,
+  },
+  {
+    title: 'Sessions',
+    desc: 'View and manage Claude Code sessions',
+    icon: TerminalSvg,
+    route: '/sessions',
+    color: 'cyan',
+    badge: machinesStore.totalActiveSessions > 0 ? `${machinesStore.totalActiveSessions} active` : null,
+    badgeColor: 'cyan',
+    count: `${machinesStore.totalActiveSessions} running`,
+  },
+  {
+    title: 'Projects',
+    desc: 'Multi-agent coordination and task management',
+    icon: FolderSvg,
+    route: '/projects',
+    color: 'indigo',
+    badge: totalPendingTasks.value > 0 ? `${totalPendingTasks.value} tasks` : null,
+    badgeColor: 'warning',
+    count: `${totalProjects.value} projects`,
+  },
+]);
+
+// ============================================================================
 // Computed
 // ============================================================================
 
 const totalProjects = computed(() => projectsStore.projects.length);
 
-const totalPendingTasks = computed(() => {
-  return projectsStore.projects.reduce(
-    (sum, p) => sum + (p.pending_tasks_count || 0),
-    0
-  );
-});
+const totalPendingTasks = computed(() =>
+  projectsStore.projects.reduce((sum, p) => sum + (p.pending_tasks_count || 0), 0)
+);
 
 const uptimeLabel = computed(() => {
-  uptimeTick.value; // read to establish reactive dependency
+  uptimeTick.value;
   const elapsed = Math.floor((Date.now() - pageLoadTime) / 1000);
   if (elapsed < 60) return `${elapsed}s`;
   if (elapsed < 3600) return `${Math.floor(elapsed / 60)}m ${elapsed % 60}s`;
@@ -536,7 +478,6 @@ function formatTimeAgo(timestamp: string): string {
   const diffMin = Math.floor(diffSec / 60);
   const diffHour = Math.floor(diffMin / 60);
   const diffDay = Math.floor(diffHour / 24);
-
   if (diffSec < 10) return 'just now';
   if (diffSec < 60) return `${diffSec}s ago`;
   if (diffMin < 60) return `${diffMin}m ago`;
@@ -548,41 +489,41 @@ function updateRefreshLabel(): void {
   lastRefreshLabel.value = formatTimeAgo(lastRefreshTime.value.toISOString());
 }
 
-// Activity feed helpers
+// Activity helpers
 function activityDotClass(type: ActivityEvent['type']): string {
   const map: Record<ActivityEvent['type'], string> = {
-    session_start: 'activity-dot--cyan',
-    session_end: 'activity-dot--gray',
-    machine_connect: 'activity-dot--green',
-    machine_disconnect: 'activity-dot--red',
-    task_complete: 'activity-dot--purple',
-    file_lock: 'activity-dot--warning',
+    session_start: 'act-dot--cyan',
+    session_end: 'act-dot--gray',
+    machine_connect: 'act-dot--green',
+    machine_disconnect: 'act-dot--red',
+    task_complete: 'act-dot--purple',
+    file_lock: 'act-dot--warning',
   };
-  return map[type] || 'activity-dot--gray';
+  return map[type] || 'act-dot--gray';
 }
 
 function activityIconClass(type: ActivityEvent['type']): string {
   const map: Record<ActivityEvent['type'], string> = {
-    session_start: 'text-brand-cyan',
-    session_end: 'text-gray-400',
-    machine_connect: 'text-green-400',
-    machine_disconnect: 'text-red-400',
-    task_complete: 'text-brand-purple',
-    file_lock: 'text-yellow-400',
+    session_start: 'ic--cyan',
+    session_end: 'ic--gray',
+    machine_connect: 'ic--green',
+    machine_disconnect: 'ic--red',
+    task_complete: 'ic--purple',
+    file_lock: 'ic--warning',
   };
-  return map[type] || 'text-gray-400';
+  return map[type] || 'ic--gray';
 }
 
 function activityBadgeClass(type: ActivityEvent['type']): string {
   const map: Record<ActivityEvent['type'], string> = {
-    session_start: 'activity-badge--cyan',
-    session_end: 'activity-badge--gray',
-    machine_connect: 'activity-badge--green',
-    machine_disconnect: 'activity-badge--red',
-    task_complete: 'activity-badge--purple',
-    file_lock: 'activity-badge--warning',
+    session_start: 'badge--cyan',
+    session_end: 'badge--gray',
+    machine_connect: 'badge--green',
+    machine_disconnect: 'badge--red',
+    task_complete: 'badge--purple',
+    file_lock: 'badge--warning',
   };
-  return map[type] || 'activity-badge--gray';
+  return map[type] || 'badge--gray';
 }
 
 function activityBadgeLabel(type: ActivityEvent['type']): string {
@@ -597,48 +538,21 @@ function activityBadgeLabel(type: ActivityEvent['type']): string {
   return map[type] || 'Event';
 }
 
-// Functional icon components for activity events
-const TerminalIcon: FunctionalComponent = () =>
-  h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', class: 'w-3.5 h-3.5' }, [
-    h('polyline', { points: '4 17 10 11 4 5' }),
-    h('line', { x1: '12', y1: '19', x2: '20', y2: '19' }),
-  ]);
-
-const ServerIcon: FunctionalComponent = () =>
-  h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', class: 'w-3.5 h-3.5' }, [
-    h('rect', { x: '2', y: '2', width: '20', height: '8', rx: '2', ry: '2' }),
-    h('rect', { x: '2', y: '14', width: '20', height: '8', rx: '2', ry: '2' }),
-  ]);
-
-const CheckIcon: FunctionalComponent = () =>
-  h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', class: 'w-3.5 h-3.5' }, [
-    h('path', { d: 'M9 11l3 3L22 4' }),
-    h('path', { d: 'M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11' }),
-  ]);
-
-const LockIcon: FunctionalComponent = () =>
-  h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', class: 'w-3.5 h-3.5' }, [
-    h('rect', { x: '3', y: '11', width: '18', height: '11', rx: '2', ry: '2' }),
-    h('path', { d: 'M7 11V7a5 5 0 0 1 10 0v4' }),
-  ]);
-
 function activityIconComponent(type: ActivityEvent['type']): FunctionalComponent {
   const map: Record<ActivityEvent['type'], FunctionalComponent> = {
-    session_start: TerminalIcon,
-    session_end: TerminalIcon,
-    machine_connect: ServerIcon,
-    machine_disconnect: ServerIcon,
-    task_complete: CheckIcon,
-    file_lock: LockIcon,
+    session_start: TerminalSvg,
+    session_end: TerminalSvg,
+    machine_connect: ServerSvg,
+    machine_disconnect: ServerSvg,
+    task_complete: CheckSvg,
+    file_lock: LockSvg,
   };
-  return map[type] || TerminalIcon;
+  return map[type] || TerminalSvg;
 }
 
 // Build activity feed from store data
 function buildActivityFeed(): void {
   const events: ActivityEvent[] = [];
-
-  // Machine events: use machines that have connected_at or last_seen_at
   for (const machine of machinesStore.machines) {
     if (machine.status === 'online' && machine.connected_at) {
       events.push({
@@ -656,8 +570,6 @@ function buildActivityFeed(): void {
       });
     }
   }
-
-  // Project events: projects with recent activity
   for (const project of projectsStore.projects) {
     if (project.active_instances_count > 0) {
       events.push({
@@ -668,8 +580,6 @@ function buildActivityFeed(): void {
       });
     }
   }
-
-  // Sort by timestamp descending, take the 8 most recent
   events.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   activityFeed.value = events.slice(0, 8);
 }
@@ -679,7 +589,6 @@ function buildActivityFeed(): void {
 // ============================================================================
 
 async function fetchDashboardData(): Promise<void> {
-  // 1. Fetch machines (gives us machine counts + active session counts)
   try {
     await machinesStore.fetchMachines(1, 100);
     systemHealth.value.api = true;
@@ -689,24 +598,18 @@ async function fetchDashboardData(): Promise<void> {
     systemHealth.value.database = false;
   }
 
-  // 2. Fetch projects per online machine
   isLoadingProjects.value = true;
   try {
     const machineIds = machinesStore.machines.map(m => m.id);
     const fetchPromises = machineIds.map(id =>
-      projectsStore.fetchProjects(id).catch(() => {
-        // Silently skip machines whose projects fail to load
-      })
+      projectsStore.fetchProjects(id).catch(() => {})
     );
     await Promise.allSettled(fetchPromises);
   } finally {
     isLoadingProjects.value = false;
   }
 
-  // 3. Build activity feed from the fetched data
   buildActivityFeed();
-
-  // 4. Update refresh time
   lastRefreshTime.value = new Date();
   updateRefreshLabel();
 }
@@ -729,18 +632,9 @@ let refreshLabelInterval: ReturnType<typeof setInterval> | null = null;
 let uptimeInterval: ReturnType<typeof setInterval> | null = null;
 
 onMounted(async () => {
-  // Initial data fetch
   await fetchDashboardData();
-
-  // Update "last refresh" label every 15s
   refreshLabelInterval = setInterval(updateRefreshLabel, 15000);
-
-  // Increment uptimeTick every second to trigger uptimeLabel recomputation
-  uptimeInterval = setInterval(() => {
-    uptimeTick.value++;
-  }, 1000);
-
-  // Assume WebSocket is healthy if page loads
+  uptimeInterval = setInterval(() => { uptimeTick.value++; }, 1000);
   systemHealth.value.websocket = true;
 });
 
@@ -752,486 +646,723 @@ onUnmounted(() => {
 
 <style scoped>
 /* ============================================================
-   PAGE HEADER
+   LAYOUT
    ============================================================ */
-.page-header {
-  @apply flex items-start sm:items-center justify-between;
+.dashboard {
+  min-height: 100%;
 }
 
+/* ============================================================
+   GREETING BANNER
+   ============================================================ */
+.greeting {
+  position: relative;
+  padding: 2rem 1.5rem 1.5rem;
+  overflow: hidden;
+}
+
+@media (min-width: 640px) {
+  .greeting { padding: 2.5rem 2rem 2rem; }
+}
+
+.greeting-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(168, 85, 247, 0.06) 0%,
+    rgba(99, 102, 241, 0.04) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.greeting-inner {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.greeting-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+@media (min-width: 640px) {
+  .greeting-title { font-size: 1.75rem; }
+}
+
+.greeting-sub {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+
+.greeting-sep {
+  color: var(--text-disabled, #4b5563);
+}
+
+/* Health pill */
+.health-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px 2px 8px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.health-pill--ok {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--status-success, #22c55e);
+}
+
+.health-pill--warn {
+  background: rgba(251, 191, 36, 0.1);
+  color: var(--status-warning, #fbbf24);
+}
+
+.health-pill-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* Refresh button */
 .refresh-btn {
-  @apply p-2 rounded-lg text-gray-400
-    hover:text-white hover:bg-dark-3
-    transition-all duration-200 cursor-pointer
-    disabled:opacity-50 disabled:cursor-not-allowed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color, var(--border));
+  background: var(--bg-card, var(--surface-2));
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
 }
 
-/* ============================================================
-   SECTION 1: STAT CARDS
-   ============================================================ */
-.stats-grid {
-  @apply grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4;
+.refresh-btn:hover {
+  background: var(--bg-hover, var(--surface-3));
+  color: var(--text-primary);
+  border-color: var(--accent-purple, #a855f7);
 }
 
-.stat-card {
-  @apply relative rounded-xl overflow-hidden cursor-pointer
-    transition-all duration-200;
-  background: rgba(26, 27, 38, 0.8);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+.refresh-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.stat-card:hover {
-  transform: translateY(-2px);
-}
-
-.stat-card-inner {
-  @apply relative z-10 flex items-center gap-3 sm:gap-4 p-4 sm:p-5;
-}
-
-.stat-icon {
-  @apply w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0;
-}
-
-.stat-icon svg {
-  @apply w-5 h-5 sm:w-6 sm:h-6;
-}
-
-.stat-icon--purple {
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(99, 102, 241, 0.2));
-  color: #a855f7;
-}
-
-.stat-icon--cyan {
-  background: linear-gradient(135deg, rgba(34, 211, 238, 0.2), rgba(99, 102, 241, 0.15));
-  color: #22d3ee;
-}
-
-.stat-icon--indigo {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.15));
-  color: #6366f1;
-}
-
-.stat-icon--warning {
-  background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(245, 158, 11, 0.15));
-  color: #fbbf24;
-}
-
-.stat-content {
-  @apply flex flex-col min-w-0;
-}
-
-.stat-number {
-  @apply text-2xl sm:text-3xl font-bold text-white leading-none;
-}
-
-.stat-label {
-  @apply text-xs sm:text-sm text-gray-400 mt-1 truncate;
-}
-
-.stat-sub {
-  @apply text-gray-600;
-}
-
-/* Gradient border effect */
-.stat-border {
-  @apply absolute inset-x-0 bottom-0 h-0.5 opacity-0 transition-opacity duration-200;
-}
-
-.stat-card:hover .stat-border {
-  @apply opacity-100;
-}
-
-.stat-border--purple {
-  background: linear-gradient(90deg, #a855f7, #6366f1);
-}
-
-.stat-border--cyan {
-  background: linear-gradient(90deg, #22d3ee, #6366f1);
-}
-
-.stat-border--indigo {
-  background: linear-gradient(90deg, #6366f1, #a855f7);
-}
-
-.stat-border--warning {
-  background: linear-gradient(90deg, #fbbf24, #f59e0b);
-}
-
-/* Outer border */
-.stat-card::before {
-  content: '';
-  @apply absolute inset-0 rounded-xl pointer-events-none;
-  border: 1px solid rgba(59, 66, 97, 0.6);
-  transition: border-color 0.2s;
-}
-
-.stat-card:hover::before {
-  border-color: rgba(168, 85, 247, 0.3);
-}
-
-/* Skeletons */
-.skeleton-number {
-  @apply h-8 w-12 rounded-md animate-pulse;
-  background: rgba(59, 66, 97, 0.5);
-}
-
-.skeleton-label {
-  @apply h-4 w-24 rounded mt-2 animate-pulse;
-  background: rgba(59, 66, 97, 0.3);
-}
-
-/* ============================================================
-   SHARED CARD STYLE
-   ============================================================ */
-.card {
-  @apply rounded-xl p-5 sm:p-6 border;
-  background-color: #1a1b26;
-  border-color: rgba(59, 66, 97, 0.6);
-}
-
-.card-title {
-  @apply text-base sm:text-lg font-semibold text-white mb-0;
-}
-
-/* ============================================================
-   SECTION 2: QUICK ACTIONS
-   ============================================================ */
-.action-btn {
-  @apply flex items-center gap-3 p-3 sm:p-4 rounded-xl border cursor-pointer
-    transition-all duration-200 text-left w-full;
-  background-color: rgba(36, 40, 59, 0.5);
-  border-color: rgba(59, 66, 97, 0.5);
-}
-
-.action-btn:hover {
-  background-color: rgba(36, 40, 59, 0.8);
-  border-color: rgba(168, 85, 247, 0.3);
-}
-
-.action-btn--primary {
-  border-color: rgba(168, 85, 247, 0.4);
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.08), rgba(99, 102, 241, 0.05));
-}
-
-.action-btn--primary:hover {
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(99, 102, 241, 0.1));
-  border-color: rgba(168, 85, 247, 0.5);
-}
-
-.action-icon {
-  @apply w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0;
-}
-
-.action-icon svg {
+.refresh-icon {
   width: 18px;
   height: 18px;
 }
 
-.action-icon--purple {
-  background: rgba(168, 85, 247, 0.15);
-  color: #a855f7;
+.refresh-icon.spinning {
+  animation: spin 1s linear infinite;
 }
 
-.action-icon--cyan {
-  background: rgba(34, 211, 238, 0.15);
-  color: #22d3ee;
+/* ============================================================
+   BENTO GRID
+   ============================================================ */
+.bento {
+  padding: 0 1.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-.action-icon--indigo {
-  background: rgba(99, 102, 241, 0.15);
-  color: #6366f1;
+@media (min-width: 640px) {
+  .bento { padding: 0 2rem 2.5rem; gap: 1.25rem; }
 }
 
-.action-icon--gray {
-  background: rgba(148, 163, 184, 0.1);
-  color: #94a3b8;
+/* ---- Stats strip ---- */
+.bento-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
 }
 
-.action-text {
-  @apply flex flex-col flex-1 min-w-0;
+@media (min-width: 1024px) {
+  .bento-stats { grid-template-columns: repeat(4, 1fr); }
 }
 
-.action-name {
-  @apply text-sm font-medium text-white;
+.stat-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 14px;
+  border: 1px solid var(--border-color, var(--border));
+  background: var(--bg-card, var(--surface-2));
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
 }
 
-.action-desc {
-  @apply text-xs text-gray-500 mt-0.5 truncate;
+.stat-chip:hover {
+  transform: translateY(-2px);
+  border-color: rgba(168, 85, 247, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
-.action-arrow {
-  @apply w-4 h-4 text-gray-600 flex-shrink-0
-    transition-transform duration-200;
+.stat-chip-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  flex-shrink: 0;
 }
 
-.action-btn:hover .action-arrow {
-  @apply text-gray-400;
+.stat-chip-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.stat-chip-icon--purple { background: linear-gradient(135deg, rgba(168,85,247,0.15), rgba(99,102,241,0.1)); color: var(--accent-purple, #a855f7); }
+.stat-chip-icon--cyan   { background: linear-gradient(135deg, rgba(34,211,238,0.15), rgba(99,102,241,0.08)); color: var(--accent-cyan, #22d3ee); }
+.stat-chip-icon--indigo { background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(168,85,247,0.08)); color: var(--accent-indigo, #6366f1); }
+.stat-chip-icon--warning{ background: linear-gradient(135deg, rgba(251,191,36,0.15), rgba(245,158,11,0.08)); color: var(--status-warning, #fbbf24); }
+
+.stat-chip-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.stat-chip-num {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+@media (min-width: 640px) {
+  .stat-chip-num { font-size: 1.75rem; }
+}
+
+.stat-chip-lbl {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stat-chip-sub {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+/* ---- Skeletons ---- */
+.skel {
+  display: block;
+  border-radius: 6px;
+  background: var(--surface-3, rgba(59,66,97,0.4));
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.skel--num { width: 48px; height: 28px; }
+.skel--lbl { width: 80px; height: 14px; margin-top: 4px; }
+
+/* ---- Main content grid ---- */
+.bento-main {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .bento-main { grid-template-columns: 3fr 2fr; gap: 1.25rem; }
+}
+
+/* ---- Bento cards ---- */
+.bento-card {
+  border-radius: 16px;
+  border: 1px solid var(--border-color, var(--border));
+  background: var(--bg-card, var(--surface-2));
+  overflow: hidden;
+}
+
+.bento-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem 0;
+}
+
+.bento-card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.bento-card-badge {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* ---- Actions grid ---- */
+.actions-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.625rem;
+  padding: 1rem 1.5rem 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .actions-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.action-tile {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color, var(--border));
+  background: var(--bg-hover, var(--surface-3));
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  width: 100%;
+}
+
+.action-tile:hover {
+  border-color: rgba(168, 85, 247, 0.3);
+  background: var(--surface-4, rgba(36, 40, 59, 0.8));
+}
+
+.action-tile--primary {
+  border-color: rgba(168, 85, 247, 0.25);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.06), rgba(99, 102, 241, 0.03));
+}
+
+.action-tile--primary:hover {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(99, 102, 241, 0.06));
+  border-color: rgba(168, 85, 247, 0.4);
+}
+
+.action-tile-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.action-tile-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.action-tile-icon--purple { background: rgba(168,85,247,0.12); color: var(--accent-purple, #a855f7); }
+.action-tile-icon--cyan   { background: rgba(34,211,238,0.12); color: var(--accent-cyan, #22d3ee); }
+.action-tile-icon--indigo { background: rgba(99,102,241,0.12); color: var(--accent-indigo, #6366f1); }
+.action-tile-icon--gray   { background: rgba(148,163,184,0.08); color: var(--text-secondary); }
+
+.action-tile-copy {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.action-tile-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.action-tile-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.action-tile-arrow {
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+
+.action-tile:hover .action-tile-arrow {
+  color: var(--text-secondary);
   transform: translateX(2px);
 }
 
-/* ============================================================
-   SECTION 2: SYSTEM HEALTH
-   ============================================================ */
-.health-row {
-  @apply flex items-center justify-between;
+/* ---- System Health ---- */
+.health-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem 0;
 }
 
-.health-indicator {
-  @apply flex items-center gap-2.5;
+.health-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.health-row-left {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
 }
 
 .health-dot {
-  @apply w-2 h-2 rounded-full flex-shrink-0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
-.health-dot--ok {
-  @apply bg-green-400;
-  box-shadow: 0 0 6px rgba(34, 197, 94, 0.4);
-}
-
-.health-dot--warn {
-  @apply bg-yellow-400;
-  box-shadow: 0 0 6px rgba(251, 191, 36, 0.4);
-}
-
-.health-dot--error {
-  @apply bg-red-400;
-  box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
-}
+.dot--ok    { background: var(--status-success, #22c55e); box-shadow: 0 0 6px rgba(34,197,94,0.4); }
+.dot--warn  { background: var(--status-warning, #fbbf24); box-shadow: 0 0 6px rgba(251,191,36,0.4); }
+.dot--error { background: var(--status-error, #ef4444);   box-shadow: 0 0 6px rgba(239,68,68,0.4); }
 
 .health-name {
-  @apply text-sm text-gray-300;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
 }
 
 .health-status {
-  @apply text-sm font-medium;
+  font-size: 0.875rem;
+  font-weight: 500;
 }
+
+.st--ok    { color: var(--status-success, #22c55e); }
+.st--warn  { color: var(--status-warning, #fbbf24); }
+.st--error { color: var(--status-error, #ef4444); }
 
 .health-divider {
-  @apply border-t;
-  border-color: rgba(59, 66, 97, 0.4);
+  margin: 1rem 1.5rem 0;
+  border-top: 1px solid var(--border-color, var(--border));
+  opacity: 0.5;
 }
 
-/* ============================================================
-   SECTION 3: ACTIVITY TIMELINE
-   ============================================================ */
-.empty-state {
-  @apply flex flex-col items-center justify-center py-10;
+.health-meta {
+  padding: 1rem 1.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
 }
 
-.activity-skeleton {
-  @apply flex items-center gap-3 p-3;
+.health-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.skeleton-circle {
-  @apply w-8 h-8 rounded-full flex-shrink-0 animate-pulse;
-  background: rgba(59, 66, 97, 0.5);
+.health-meta-lbl {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
 }
 
-.skeleton-text {
-  @apply h-3 rounded animate-pulse;
-  background: rgba(59, 66, 97, 0.4);
+.health-meta-val {
+  font-size: 0.8125rem;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-secondary);
 }
 
-.activity-timeline {
-  @apply space-y-0;
+/* ---- Activity feed ---- */
+.bento-card--activity {
+  padding-bottom: 0.5rem;
 }
 
-.activity-item {
-  @apply flex gap-3 py-2.5;
+.activity-feed {
+  padding: 0.75rem 1.5rem 1rem;
 }
 
-.activity-dot-wrapper {
-  @apply flex flex-col items-center flex-shrink-0;
+.act-row {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+}
+
+.act-dot-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
   width: 16px;
 }
 
-.activity-dot {
-  @apply w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1;
+.act-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
 }
 
-.activity-dot--cyan {
-  @apply bg-brand-cyan;
-  box-shadow: 0 0 6px rgba(34, 211, 238, 0.3);
-}
+.act-dot--cyan    { background: var(--accent-cyan, #22d3ee);    box-shadow: 0 0 6px rgba(34,211,238,0.3); }
+.act-dot--green   { background: var(--status-success, #22c55e); box-shadow: 0 0 6px rgba(34,197,94,0.3); }
+.act-dot--red     { background: var(--status-error, #ef4444);   box-shadow: 0 0 6px rgba(239,68,68,0.3); }
+.act-dot--purple  { background: var(--accent-purple, #a855f7);  box-shadow: 0 0 6px rgba(168,85,247,0.3); }
+.act-dot--warning { background: var(--status-warning, #fbbf24); box-shadow: 0 0 6px rgba(251,191,36,0.3); }
+.act-dot--gray    { background: var(--text-muted, #6b7280); }
 
-.activity-dot--green {
-  @apply bg-green-400;
-  box-shadow: 0 0 6px rgba(34, 197, 94, 0.3);
-}
-
-.activity-dot--red {
-  @apply bg-red-400;
-  box-shadow: 0 0 6px rgba(239, 68, 68, 0.3);
-}
-
-.activity-dot--purple {
-  @apply bg-brand-purple;
-  box-shadow: 0 0 6px rgba(168, 85, 247, 0.3);
-}
-
-.activity-dot--warning {
-  @apply bg-yellow-400;
-  box-shadow: 0 0 6px rgba(251, 191, 36, 0.3);
-}
-
-.activity-dot--gray {
-  @apply bg-gray-500;
-}
-
-.activity-line {
-  @apply flex-1 w-px mt-1;
-  background: rgba(59, 66, 97, 0.5);
+.act-line {
+  flex: 1;
+  width: 1px;
+  margin-top: 4px;
+  background: var(--border-color, var(--border));
   min-height: 16px;
+  opacity: 0.5;
 }
 
-.activity-item--last .activity-line {
-  @apply hidden;
+.act-body {
+  flex: 1;
+  min-width: 0;
 }
 
-.activity-body {
-  @apply flex-1 min-w-0;
+.act-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
-.activity-header {
-  @apply flex items-center gap-2 flex-wrap;
+.act-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
 }
 
-.activity-icon {
-  @apply flex-shrink-0;
+.ic--cyan    { color: var(--accent-cyan, #22d3ee); }
+.ic--green   { color: var(--status-success, #22c55e); }
+.ic--red     { color: var(--status-error, #ef4444); }
+.ic--purple  { color: var(--accent-purple, #a855f7); }
+.ic--warning { color: var(--status-warning, #fbbf24); }
+.ic--gray    { color: var(--text-muted); }
+
+.act-desc {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.activity-description {
-  @apply text-sm text-gray-300 truncate;
+.act-badge {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  padding: 1px 8px;
+  border-radius: 9999px;
+  flex-shrink: 0;
 }
 
-.activity-badge {
-  @apply text-xs font-medium px-1.5 py-0.5 rounded flex-shrink-0;
+.badge--cyan    { background: rgba(34,211,238,0.1);  color: var(--accent-cyan, #22d3ee); }
+.badge--green   { background: rgba(34,197,94,0.1);   color: var(--status-success, #22c55e); }
+.badge--red     { background: rgba(239,68,68,0.1);   color: var(--status-error, #ef4444); }
+.badge--purple  { background: rgba(168,85,247,0.1);  color: var(--accent-purple, #a855f7); }
+.badge--warning { background: rgba(251,191,36,0.1);  color: var(--status-warning, #fbbf24); }
+.badge--gray    { background: rgba(148,163,184,0.08); color: var(--text-muted); }
+
+.act-time {
+  display: block;
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  margin-top: 2px;
 }
 
-.activity-badge--cyan {
-  background: rgba(34, 211, 238, 0.1);
-  color: #22d3ee;
+/* ---- Empty state ---- */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
 }
 
-.activity-badge--green {
-  background: rgba(34, 197, 94, 0.1);
-  color: #22c55e;
+.empty-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
 }
 
-.activity-badge--red {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+.empty-title {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
 }
 
-.activity-badge--purple {
-  background: rgba(168, 85, 247, 0.1);
-  color: #a855f7;
+.empty-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
 }
 
-.activity-badge--warning {
-  background: rgba(251, 191, 36, 0.1);
-  color: #fbbf24;
+/* ---- Resource nav cards ---- */
+.bento-resources {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
 }
 
-.activity-badge--gray {
-  background: rgba(148, 163, 184, 0.1);
-  color: #94a3b8;
+@media (min-width: 640px) {
+  .bento-resources { grid-template-columns: repeat(2, 1fr); }
 }
 
-.activity-time {
-  @apply text-xs text-gray-600 mt-0.5 block;
+@media (min-width: 1024px) {
+  .bento-resources { grid-template-columns: repeat(3, 1fr); }
+}
+
+.res-card {
+  display: block;
+  padding: 1.25rem 1.5rem;
+  border-radius: 16px;
+  border: 1px solid var(--border-color, var(--border));
+  background: var(--bg-card, var(--surface-2));
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.res-card:hover {
+  border-color: rgba(168, 85, 247, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.res-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.res-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+}
+
+.res-card-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.res-card-icon--purple { background: rgba(168,85,247,0.1);  color: var(--accent-purple, #a855f7); }
+.res-card-icon--cyan   { background: rgba(34,211,238,0.1);  color: var(--accent-cyan, #22d3ee); }
+.res-card-icon--indigo { background: rgba(99,102,241,0.1);  color: var(--accent-indigo, #6366f1); }
+
+.res-card-pill {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  padding: 2px 10px;
+  border-radius: 9999px;
+}
+
+.res-card-pill--purple  { background: rgba(168,85,247,0.1);  color: var(--accent-purple, #a855f7); }
+.res-card-pill--cyan    { background: rgba(34,211,238,0.1);  color: var(--accent-cyan, #22d3ee); }
+.res-card-pill--warning { background: rgba(251,191,36,0.1);  color: var(--status-warning, #fbbf24); }
+
+.res-card-title {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.res-card-desc {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.res-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color, var(--border));
+  opacity: 0.7;
+}
+
+.res-card:hover .res-card-foot {
+  opacity: 1;
+}
+
+.res-card-count {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.res-card-arrow {
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+  transition: transform 0.2s, color 0.2s;
+}
+
+.res-card:hover .res-card-arrow {
+  color: var(--accent-purple, #a855f7);
+  transform: translateX(3px);
 }
 
 /* ============================================================
-   SECTION 4: RESOURCE CARDS
+   ANIMATIONS
    ============================================================ */
-.resource-grid {
-  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6;
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
-.resource-card {
-  @apply block rounded-xl p-5 sm:p-6 border
-    transition-all duration-200 cursor-pointer;
-  background-color: #1a1b26;
-  border-color: rgba(59, 66, 97, 0.6);
-  text-decoration: none;
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
-.resource-card:hover {
-  border-color: rgba(168, 85, 247, 0.35);
-  transform: translateY(-2px);
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
 
-.resource-top {
-  @apply flex items-start justify-between mb-4;
+/* ============================================================
+   RESPONSIVE - Mobile (< 640px)
+   ============================================================ */
+@media (max-width: 639px) {
+  .stat-chip-sub { display: none; }
+  .act-badge { display: none; }
 }
 
-.resource-icon {
-  @apply w-10 h-10 rounded-xl flex items-center justify-center;
-}
-
-.resource-icon svg {
-  @apply w-5 h-5;
-}
-
-.resource-icon--purple {
-  background: rgba(168, 85, 247, 0.12);
-  color: #a855f7;
-}
-
-.resource-icon--cyan {
-  background: rgba(34, 211, 238, 0.12);
-  color: #22d3ee;
-}
-
-.resource-icon--indigo {
-  background: rgba(99, 102, 241, 0.12);
-  color: #6366f1;
-}
-
-.resource-badge {
-  @apply text-xs font-medium px-2 py-0.5 rounded-full;
-}
-
-.resource-badge--purple {
-  background: rgba(168, 85, 247, 0.12);
-  color: #a855f7;
-}
-
-.resource-badge--cyan {
-  background: rgba(34, 211, 238, 0.12);
-  color: #22d3ee;
-}
-
-.resource-badge--warning {
-  background: rgba(251, 191, 36, 0.12);
-  color: #fbbf24;
-}
-
-.resource-title {
-  @apply text-lg font-semibold text-white mb-1;
-}
-
-.resource-desc {
-  @apply text-sm text-gray-400 leading-relaxed;
-}
-
-.resource-footer {
-  @apply flex items-center justify-between mt-4 pt-4 border-t;
-  border-color: rgba(59, 66, 97, 0.4);
-}
-
-.resource-count {
-  @apply text-xs text-gray-500;
-}
-
-.resource-arrow {
-  @apply w-4 h-4 text-gray-600 transition-transform duration-200;
-}
-
-.resource-card:hover .resource-arrow {
-  @apply text-brand-purple;
-  transform: translateX(3px);
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .stat-chip:hover,
+  .res-card:hover { transform: none; }
+  .refresh-icon.spinning { animation: none; }
+  .health-pill-dot { animation: none; }
 }
 </style>

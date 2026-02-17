@@ -121,8 +121,8 @@ function applySyntaxHighlighting(element: HTMLElement, language: string) {
   margin: 1.5rem 0;
   border-radius: 12px;
   overflow: hidden;
-  background: #0d1117;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-code, var(--bg-primary, #0f0f1a));
+  border: 1px solid var(--border-color, var(--border));
 }
 
 .code-header {
@@ -130,19 +130,19 @@ function applySyntaxHighlighting(element: HTMLElement, language: string) {
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 1rem;
-  background: rgba(255, 255, 255, 0.03);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--text-primary) 5%, transparent);
 }
 
 .filename {
   font-size: 0.85rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
   font-family: 'JetBrains Mono', monospace;
 }
 
 .language {
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -152,18 +152,18 @@ function applySyntaxHighlighting(element: HTMLElement, language: string) {
   align-items: center;
   gap: 0.4rem;
   padding: 0.4rem 0.75rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 6px;
-  color: #94a3b8;
+  color: var(--text-secondary);
   font-size: 0.8rem;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .copy-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #e2e8f0;
+  background: color-mix(in srgb, var(--text-primary) 10%, transparent);
+  color: var(--text-primary);
 }
 
 .copy-btn.copied {
@@ -184,7 +184,7 @@ pre {
   font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', monospace;
   font-size: 0.875rem;
   line-height: 1.6;
-  color: #e2e8f0;
+  color: var(--text-primary);
 }
 
 code {
@@ -234,7 +234,7 @@ pre::-webkit-scrollbar-track {
 }
 
 pre::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--text-primary) 10%, transparent);
   border-radius: 4px;
 }
 </style>

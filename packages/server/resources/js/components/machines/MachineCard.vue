@@ -121,7 +121,7 @@ const machineHasWakeOnLan = computed(() =>
 
 .machine-card:hover {
   @apply border-brand-purple/50;
-  box-shadow: 0 0 20px rgba(168, 85, 247, 0.1);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
 }
 
 .machine-online {

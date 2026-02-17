@@ -362,14 +362,14 @@ session.onStatusChange((status) => {
 .doc-header {
   margin-bottom: 3rem;
   padding-bottom: 2rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-color, var(--border));
 }
 
 .doc-header h1 {
   font-size: 2.5rem;
   font-weight: 800;
   margin: 0 0 1rem;
-  background: linear-gradient(135deg, #a855f7, #22d3ee);
+  background: linear-gradient(135deg, var(--accent-purple, #a855f7), var(--accent-cyan, #22d3ee));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -377,7 +377,7 @@ session.onStatusChange((status) => {
 
 .lead {
   font-size: 1.25rem;
-  color: #a9b1d6;
+  color: var(--text-secondary);
   line-height: 1.6;
   margin: 0;
 }
@@ -390,31 +390,31 @@ h2 {
   font-size: 1.75rem;
   font-weight: 700;
   margin: 0 0 1rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 h3 {
   font-size: 1.25rem;
   font-weight: 600;
   margin: 1.5rem 0 0.75rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 h4 {
   font-size: 1.1rem;
   font-weight: 600;
   margin: 0 0 0.5rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 p {
-  color: #a9b1d6;
+  color: var(--text-secondary);
   line-height: 1.7;
   margin: 0 0 1rem;
 }
 
 ul {
-  color: #a9b1d6;
+  color: var(--text-secondary);
   margin: 0 0 1rem;
   padding-left: 1.5rem;
 }
@@ -433,13 +433,13 @@ li {
 
 .message-type {
   padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 12px;
 }
 
 .message-type h4 {
-  color: #a855f7;
+  color: var(--accent-purple, #a855f7);
 }
 
 .message-type p {
@@ -459,25 +459,25 @@ li {
 .events-table td {
   padding: 0.75rem;
   text-align: left;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border-color, var(--border));
 }
 
 .events-table th {
   font-weight: 600;
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .events-table td {
-  color: #a9b1d6;
+  color: var(--text-secondary);
 }
 
 .events-table code {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.85rem;
-  color: #22d3ee;
+  color: var(--accent-cyan, #22d3ee);
   background: rgba(34, 211, 238, 0.1);
   padding: 0.2rem 0.4rem;
   border-radius: 4px;
@@ -486,10 +486,10 @@ li {
 code {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.9em;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--border-color, var(--border));
   padding: 0.2rem 0.4rem;
   border-radius: 4px;
-  color: #22d3ee;
+  color: var(--accent-cyan, #22d3ee);
 }
 
 @media (max-width: 768px) {

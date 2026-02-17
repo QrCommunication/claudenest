@@ -76,14 +76,14 @@ const category = computed(() => {
 .doc-header {
   margin-bottom: 2rem;
   padding-bottom: 2rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-color, var(--border));
 }
 
 .doc-header h1 {
   font-size: 2.5rem;
   font-weight: 800;
   margin: 0 0 1rem;
-  background: linear-gradient(135deg, #a855f7, #22d3ee);
+  background: linear-gradient(135deg, var(--accent-purple, #a855f7), var(--accent-cyan, #22d3ee));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -91,7 +91,7 @@ const category = computed(() => {
 
 .lead {
   font-size: 1.25rem;
-  color: #a9b1d6;
+  color: var(--text-secondary);
   line-height: 1.6;
   margin: 0;
 }
@@ -103,14 +103,14 @@ const category = computed(() => {
   gap: 0.5rem;
   margin-bottom: 2rem;
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 12px;
 }
 
 .category-link {
   padding: 0.5rem 0.875rem;
-  color: #a9b1d6;
+  color: var(--text-secondary);
   text-decoration: none;
   border-radius: 8px;
   font-size: 0.9rem;
@@ -119,13 +119,13 @@ const category = computed(() => {
 }
 
 .category-link:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: #ffffff;
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
+  color: var(--text-primary);
 }
 
 .category-link.is-active {
-  background: rgba(168, 85, 247, 0.2);
-  color: #a855f7;
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
+  color: var(--accent-purple, #a855f7);
   font-weight: 500;
 }
 
@@ -138,18 +138,18 @@ const category = computed(() => {
 .error-codes-section {
   margin-top: 3rem;
   padding-top: 2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--border-color, var(--border));
 }
 
 .error-codes-section h2 {
   font-size: 1.75rem;
   font-weight: 700;
   margin: 0 0 1rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .error-codes-section p {
-  color: #a9b1d6;
+  color: var(--text-secondary);
   margin-bottom: 1.5rem;
 }
 
@@ -163,19 +163,19 @@ const category = computed(() => {
 .error-table td {
   padding: 0.75rem;
   text-align: left;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border-color, var(--border));
 }
 
 .error-table th {
   font-weight: 600;
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .error-table td {
-  color: #a9b1d6;
+  color: var(--text-secondary);
 }
 
 .error-table code {
@@ -190,8 +190,8 @@ const category = computed(() => {
 .http-badge {
   display: inline-block;
   padding: 0.2rem 0.5rem;
-  background: rgba(168, 85, 247, 0.1);
-  color: #a855f7;
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
+  color: var(--accent-purple, #a855f7);
   border-radius: 4px;
   font-size: 0.8rem;
   font-weight: 500;

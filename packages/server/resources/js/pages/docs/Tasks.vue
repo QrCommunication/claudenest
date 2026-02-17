@@ -615,7 +615,7 @@ h1 {
   font-size: 2.5rem;
   font-weight: 700;
   margin-bottom: 1rem;
-  background: linear-gradient(135deg, #a855f7, #22d3ee);
+  background: linear-gradient(135deg, var(--accent-purple, #a855f7), var(--accent-cyan, #22d3ee));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -623,7 +623,7 @@ h1 {
 
 .lead {
   font-size: 1.1rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
   line-height: 1.6;
   margin-bottom: 2rem;
 }
@@ -635,20 +635,20 @@ h1 {
 h2 {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #e2e8f0;
+  color: var(--text-primary);
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-color, var(--border));
 }
 
 p {
-  color: #94a3b8;
+  color: var(--text-secondary);
   line-height: 1.7;
   margin-bottom: 1rem;
 }
 
 ul, ol {
-  color: #94a3b8;
+  color: var(--text-secondary);
   line-height: 1.8;
   padding-left: 1.5rem;
   margin-bottom: 1rem;
@@ -661,8 +661,8 @@ li {
 :deep(code) {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.9em;
-  color: #c084fc;
-  background: rgba(168, 85, 247, 0.1);
+  color: var(--accent-purple-light, #c084fc);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
   padding: 0.15rem 0.4rem;
   border-radius: 4px;
 }

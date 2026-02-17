@@ -349,9 +349,9 @@ const sendRequest = async () => {
   width: 100%;
   max-width: 800px;
   max-height: 90vh;
-  background: #16162a;
+  background: var(--bg-secondary, var(--surface-2));
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-color, var(--border));
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -362,8 +362,8 @@ const sendRequest = async () => {
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--border-color, var(--border));
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
 }
 
 .tester-header h2 {
@@ -371,20 +371,20 @@ const sendRequest = async () => {
   align-items: center;
   gap: 0.5rem;
   font-size: 1.1rem;
-  color: #e2e8f0;
+  color: var(--text-primary);
   margin: 0;
 }
 
 .tester-header h2 svg {
   width: 24px;
   height: 24px;
-  color: #a855f7;
+  color: var(--accent-purple, #a855f7);
 }
 
 .close-btn {
   background: none;
   border: none;
-  color: #64748b;
+  color: var(--text-muted);
   cursor: pointer;
   padding: 0.5rem;
   border-radius: 6px;
@@ -392,8 +392,8 @@ const sendRequest = async () => {
 }
 
 .close-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #e2e8f0;
+  background: var(--bg-hover, var(--surface-3));
+  color: var(--text-primary);
 }
 
 .close-btn svg {
@@ -415,7 +415,7 @@ const sendRequest = async () => {
 .request-section h3,
 .response-section h3 {
   font-size: 0.9rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
   margin: 0 0 1rem 0;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -429,10 +429,10 @@ const sendRequest = async () => {
 
 .method-select {
   padding: 0.6rem 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 8px;
-  color: #e2e8f0;
+  color: var(--text-primary);
   font-size: 0.9rem;
   cursor: pointer;
 }
@@ -440,21 +440,21 @@ const sendRequest = async () => {
 .url-input {
   flex: 1;
   padding: 0.6rem 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 8px;
-  color: #e2e8f0;
+  color: var(--text-primary);
   font-size: 0.9rem;
   font-family: 'JetBrains Mono', monospace;
 }
 
 .url-input::placeholder {
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .send-btn {
   padding: 0.6rem 1.5rem;
-  background: linear-gradient(135deg, #a855f7, #6366f1);
+  background: linear-gradient(135deg, var(--accent-purple, #a855f7), var(--accent-indigo, #6366f1));
   border: none;
   border-radius: 8px;
   color: #fff;
@@ -495,17 +495,17 @@ const sendRequest = async () => {
 .input-group label {
   display: block;
   font-size: 0.8rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
   margin-bottom: 0.4rem;
 }
 
 .input-group input {
   width: 100%;
   padding: 0.6rem 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 8px;
-  color: #e2e8f0;
+  color: var(--text-primary);
   font-size: 0.9rem;
   font-family: 'JetBrains Mono', monospace;
 }
@@ -515,7 +515,7 @@ const sendRequest = async () => {
   display: flex;
   gap: 0.25rem;
   margin-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-color, var(--border));
 }
 
 .tab-btn {
@@ -523,7 +523,7 @@ const sendRequest = async () => {
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.2s;
@@ -531,12 +531,12 @@ const sendRequest = async () => {
 }
 
 .tab-btn:hover {
-  color: #e2e8f0;
+  color: var(--text-primary);
 }
 
 .tab-btn.active {
-  color: #a855f7;
-  border-bottom-color: #a855f7;
+  color: var(--accent-purple, #a855f7);
+  border-bottom-color: var(--accent-purple, #a855f7);
 }
 
 .tab-panel {
@@ -552,17 +552,17 @@ const sendRequest = async () => {
 .header-row input {
   flex: 1;
   padding: 0.5rem 0.75rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 6px;
-  color: #e2e8f0;
+  color: var(--text-primary);
   font-size: 0.85rem;
 }
 
 .remove-btn {
   background: none;
   border: none;
-  color: #64748b;
+  color: var(--text-muted);
   cursor: pointer;
   padding: 0.5rem;
   border-radius: 6px;
@@ -582,27 +582,27 @@ const sendRequest = async () => {
 .add-btn {
   padding: 0.5rem 1rem;
   background: rgba(255, 255, 255, 0.05);
-  border: 1px dashed rgba(255, 255, 255, 0.2);
+  border: 1px dashed color-mix(in srgb, var(--text-primary) 20%, transparent);
   border-radius: 6px;
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .add-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #e2e8f0;
+  background: var(--bg-hover, var(--surface-3));
+  color: var(--text-primary);
   border-style: solid;
 }
 
 .body-editor {
   width: 100%;
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 8px;
-  color: #e2e8f0;
+  color: var(--text-primary);
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.85rem;
   resize: vertical;
@@ -660,21 +660,21 @@ const sendRequest = async () => {
 
 .time-badge {
   padding: 0.3rem 0.75rem;
-  background: rgba(255, 255, 255, 0.05);
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
   border-radius: 20px;
   font-size: 0.8rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 .response-body {
-  background: #0d1117;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-primary, var(--surface-1));
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 8px;
   padding: 1rem;
   overflow-x: auto;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.85rem;
-  color: #e2e8f0;
+  color: var(--text-primary);
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -687,11 +687,11 @@ const sendRequest = async () => {
 
 .headers-table td {
   padding: 0.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid color-mix(in srgb, var(--text-primary) 5%, transparent);
 }
 
 .header-name {
-  color: #a855f7;
+  color: var(--accent-purple, #a855f7);
   font-weight: 500;
   width: 40%;
 }

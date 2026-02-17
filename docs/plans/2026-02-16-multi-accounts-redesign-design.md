@@ -307,7 +307,7 @@ const env = {
 - Animated data flow lines
 
 **Install Section:**
-- One-liner: `curl -fsSL https://claudenest.io/install.sh | bash`
+- One-liner: `curl -fsSL https://claudenest.io/install-agent.sh | bash`
 - Copy-to-clipboard button
 - Alternative: Docker compose command
 

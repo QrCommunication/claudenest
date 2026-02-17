@@ -238,8 +238,8 @@ function handleViewLogs(): void {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background: rgba(168, 85, 247, 0.05);
-  border-bottom: 1px solid rgba(168, 85, 247, 0.1);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 5%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
 }
 
 .session-id {
@@ -251,14 +251,14 @@ function handleViewLogs(): void {
 .terminal-icon {
   width: 20px;
   height: 20px;
-  color: #a855f7;
+  color: var(--accent-purple, #a855f7);
 }
 
 .id-text {
   font-family: 'JetBrains Mono', monospace;
   font-size: 13px;
   font-weight: 600;
-  color: #c0caf5;
+  color: var(--text-primary);
 }
 
 /* Status Badge */
@@ -301,12 +301,12 @@ function handleViewLogs(): void {
 }
 
 .status-completed {
-  background: rgba(34, 211, 238, 0.15);
-  color: #22d3ee;
+  background: color-mix(in srgb, var(--accent-cyan, #22d3ee) 15%, transparent);
+  color: var(--accent-cyan, #22d3ee);
 }
 
 .status-completed .status-dot {
-  background: #22d3ee;
+  background: var(--accent-cyan, #22d3ee);
 }
 
 .status-error {
@@ -351,7 +351,7 @@ function handleViewLogs(): void {
 
 .info-text {
   font-size: 13px;
-  color: #a9b1d6;
+  color: var(--text-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -382,8 +382,8 @@ function handleViewLogs(): void {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background: rgba(15, 15, 26, 0.4);
-  border-top: 1px solid rgba(168, 85, 247, 0.1);
+  background: color-mix(in srgb, var(--bg-primary, var(--surface-1)) 40%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
 }
 
 .mode-badge {
@@ -396,18 +396,18 @@ function handleViewLogs(): void {
 }
 
 .mode-badge.interactive {
-  background: rgba(168, 85, 247, 0.15);
-  color: #a855f7;
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 15%, transparent);
+  color: var(--accent-purple, #a855f7);
 }
 
 .mode-badge.headless {
-  background: rgba(99, 102, 241, 0.15);
-  color: #6366f1;
+  background: color-mix(in srgb, var(--accent-indigo, #6366f1) 15%, transparent);
+  color: var(--accent-indigo, #6366f1);
 }
 
 .mode-badge.oneshot {
-  background: rgba(34, 211, 238, 0.15);
-  color: #22d3ee;
+  background: color-mix(in srgb, var(--accent-cyan, #22d3ee) 15%, transparent);
+  color: var(--accent-cyan, #22d3ee);
 }
 
 /* Actions */
@@ -430,7 +430,7 @@ function handleViewLogs(): void {
 }
 
 .action-btn.primary {
-  background: linear-gradient(135deg, #a855f7, #6366f1);
+  background: linear-gradient(135deg, var(--accent-purple, #a855f7), var(--accent-indigo, #6366f1));
   color: white;
 }
 
@@ -450,14 +450,14 @@ function handleViewLogs(): void {
 }
 
 .action-btn.secondary {
-  background: rgba(168, 85, 247, 0.1);
-  color: #a9b1d6;
-  border: 1px solid rgba(168, 85, 247, 0.2);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
+  color: var(--text-secondary);
+  border: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
 }
 
 .action-btn.secondary:hover {
-  background: rgba(168, 85, 247, 0.2);
-  color: #c0caf5;
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
+  color: var(--text-primary);
 }
 
 .btn-icon {

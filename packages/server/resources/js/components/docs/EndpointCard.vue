@@ -164,8 +164,8 @@ const copyEndpoint = async () => {
 
 <style scoped>
 .endpoint-card {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text-primary) 8%, transparent);
   border-radius: 12px;
   margin-bottom: 2rem;
   overflow: hidden;
@@ -173,7 +173,7 @@ const copyEndpoint = async () => {
 
 .endpoint-header {
   padding: 1.25rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid color-mix(in srgb, var(--text-primary) 8%, transparent);
 }
 
 .endpoint-meta {
@@ -191,18 +191,18 @@ const copyEndpoint = async () => {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .endpoint-path {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.95rem;
-  color: #e2e8f0;
+  color: var(--text-primary);
   background: none;
 }
 
 .endpoint-description {
-  color: #a9b1d6;
+  color: var(--text-secondary);
   font-size: 0.95rem;
   margin: 0;
   line-height: 1.5;
@@ -212,7 +212,7 @@ const copyEndpoint = async () => {
   display: flex;
   gap: 0.5rem;
   padding: 0.75rem 1.25rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid color-mix(in srgb, var(--text-primary) 8%, transparent);
 }
 
 .try-it-btn,
@@ -221,10 +221,10 @@ const copyEndpoint = async () => {
   align-items: center;
   gap: 0.375rem;
   padding: 0.5rem 0.75rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 8px;
-  color: #a9b1d6;
+  color: var(--text-secondary);
   font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.2s;
@@ -232,9 +232,9 @@ const copyEndpoint = async () => {
 
 .try-it-btn:hover,
 .copy-btn:hover {
-  background: rgba(168, 85, 247, 0.1);
-  border-color: rgba(168, 85, 247, 0.3);
-  color: #ffffff;
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
+  border-color: color-mix(in srgb, var(--accent-purple, #a855f7) 30%, transparent);
+  color: var(--text-primary);
 }
 
 .try-it-btn svg,
@@ -244,22 +244,22 @@ const copyEndpoint = async () => {
 }
 
 .try-it-btn {
-  background: rgba(168, 85, 247, 0.1);
-  border-color: rgba(168, 85, 247, 0.3);
-  color: #a855f7;
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
+  border-color: color-mix(in srgb, var(--accent-purple, #a855f7) 30%, transparent);
+  color: var(--accent-purple, #a855f7);
 }
 
 .try-it-btn:hover {
-  background: rgba(168, 85, 247, 0.2);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
 }
 
 .try-it-panel {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid color-mix(in srgb, var(--text-primary) 8%, transparent);
 }
 
 .endpoint-section {
   padding: 1.25rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid color-mix(in srgb, var(--text-primary) 8%, transparent);
 }
 
 .endpoint-section:last-child {
@@ -269,7 +269,7 @@ const copyEndpoint = async () => {
 .section-title {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--text-primary);
   margin: 0 0 1rem;
 }
 
@@ -284,32 +284,32 @@ const copyEndpoint = async () => {
 .params-table td {
   padding: 0.625rem 0.75rem;
   text-align: left;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid color-mix(in srgb, var(--text-primary) 5%, transparent);
 }
 
 .params-table th {
   font-weight: 600;
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .params-table td {
-  color: #a9b1d6;
+  color: var(--text-secondary);
 }
 
 .params-table code {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.8rem;
-  color: #e2e8f0;
+  color: var(--text-primary);
 }
 
 .type-badge {
   display: inline-block;
   padding: 0.2rem 0.4rem;
-  background: rgba(34, 211, 238, 0.1);
-  color: #22d3ee;
+  background: color-mix(in srgb, var(--accent-cyan, #22d3ee) 10%, transparent);
+  color: var(--accent-cyan, #22d3ee);
   border-radius: 4px;
   font-size: 0.75rem;
 }
@@ -317,15 +317,15 @@ const copyEndpoint = async () => {
 .required-badge {
   display: inline-block;
   padding: 0.2rem 0.4rem;
-  background: rgba(255, 255, 255, 0.05);
-  color: #64748b;
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
+  color: var(--text-muted);
   border-radius: 4px;
   font-size: 0.75rem;
 }
 
 .required-badge.required {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+  background: color-mix(in srgb, var(--status-error, #ef4444) 10%, transparent);
+  color: var(--status-error, #ef4444);
 }
 
 /* Error List */
@@ -337,7 +337,7 @@ const copyEndpoint = async () => {
 
 .error-list li {
   padding: 0.5rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid color-mix(in srgb, var(--text-primary) 5%, transparent);
 }
 
 .error-list li:last-child {
@@ -347,6 +347,6 @@ const copyEndpoint = async () => {
 .error-list code {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.85rem;
-  color: #fca5a5;
+  color: var(--status-error-light, #fca5a5);
 }
 </style>

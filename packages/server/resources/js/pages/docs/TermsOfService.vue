@@ -640,14 +640,14 @@
 .doc-header {
   margin-bottom: 3rem;
   padding-bottom: 2rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-color, var(--border));
 }
 
 .doc-header h1 {
   font-size: 2.5rem;
   font-weight: 800;
   margin: 0 0 1rem;
-  background: linear-gradient(135deg, #a855f7, #22d3ee);
+  background: linear-gradient(135deg, var(--accent-purple, #a855f7), var(--accent-cyan, #22d3ee));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -655,7 +655,7 @@
 
 .lead {
   font-size: 1.25rem;
-  color: #a9b1d6;
+  color: var(--text-secondary);
   line-height: 1.6;
   margin: 0 0 1.5rem;
 }
@@ -671,13 +671,13 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.9rem;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .meta-icon {
   width: 18px;
   height: 18px;
-  color: #a855f7;
+  color: var(--accent-purple, #a855f7);
 }
 
 /* Sections */
@@ -689,37 +689,37 @@ h2 {
   font-size: 1.75rem;
   font-weight: 700;
   margin: 0 0 1rem;
-  color: #ffffff;
+  color: var(--text-primary);
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color, var(--border)) 50%, transparent);
   transition: color 0.2s ease;
 }
 
 h2:hover {
-  color: #a855f7;
+  color: var(--accent-purple, #a855f7);
 }
 
 h3 {
   font-size: 1.25rem;
   font-weight: 600;
   margin: 2rem 0 0.75rem;
-  color: #e2e8f0;
+  color: var(--text-primary);
   transition: color 0.2s ease;
 }
 
 h3:hover {
-  color: #22d3ee;
+  color: var(--accent-cyan, #22d3ee);
 }
 
 h4 {
   font-size: 1.1rem;
   font-weight: 600;
   margin: 1.25rem 0 0.5rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 p {
-  color: #a9b1d6;
+  color: var(--text-secondary);
   line-height: 1.8;
   margin: 0 0 1rem;
 }
@@ -727,7 +727,7 @@ p {
 /* Lists */
 ul,
 ol {
-  color: #a9b1d6;
+  color: var(--text-secondary);
   margin: 0 0 1.5rem;
   padding-left: 1.5rem;
 }
@@ -738,18 +738,18 @@ li {
 }
 
 li strong {
-  color: #e2e8f0;
+  color: var(--text-primary);
 }
 
 /* Links */
 a {
-  color: #a855f7;
+  color: var(--accent-purple, #a855f7);
   text-decoration: none;
   transition: color 0.15s ease;
 }
 
 a:hover {
-  color: #c084fc;
+  color: var(--accent-purple-light, #c084fc);
   text-decoration: underline;
 }
 
@@ -780,7 +780,7 @@ a:hover {
 }
 
 .notice-info .notice-icon {
-  color: #6366f1;
+  color: var(--accent-indigo, #6366f1);
 }
 
 .notice-warning .notice-icon {
@@ -793,13 +793,13 @@ a:hover {
 }
 
 .notice-content {
-  color: #a9b1d6;
+  color: var(--text-secondary);
   font-size: 0.95rem;
   line-height: 1.7;
 }
 
 .notice-content strong {
-  color: #e2e8f0;
+  color: var(--text-primary);
 }
 
 /* GDPR Rights Grid */
@@ -811,21 +811,21 @@ a:hover {
 }
 
 .right-item {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 10px;
   padding: 1.25rem;
   transition: all 0.2s ease;
 }
 
 .right-item:hover {
-  background: rgba(168, 85, 247, 0.06);
-  border-color: rgba(168, 85, 247, 0.2);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 6%, transparent);
+  border-color: color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
 }
 
 .right-item strong {
   display: block;
-  color: #ffffff;
+  color: var(--text-primary);
   font-size: 1rem;
   margin-bottom: 0.375rem;
 }
@@ -833,7 +833,7 @@ a:hover {
 .right-item p {
   font-size: 0.875rem;
   margin: 0;
-  color: #8b95b0;
+  color: var(--text-secondary);
   line-height: 1.5;
 }
 
@@ -850,26 +850,26 @@ a:hover {
   align-items: center;
   gap: 1rem;
   padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 12px;
   transition: all 0.2s ease;
 }
 
 .contact-card:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(168, 85, 247, 0.25);
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
+  border-color: color-mix(in srgb, var(--accent-purple, #a855f7) 25%, transparent);
 }
 
 .contact-icon {
   width: 44px;
   height: 44px;
-  background: rgba(168, 85, 247, 0.15);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 15%, transparent);
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #a855f7;
+  color: var(--accent-purple, #a855f7);
   flex-shrink: 0;
 }
 
@@ -880,7 +880,7 @@ a:hover {
 
 .contact-icon.privacy-icon {
   background: rgba(34, 211, 238, 0.15);
-  color: #22d3ee;
+  color: var(--accent-cyan, #22d3ee);
 }
 
 .contact-icon.support-icon {
@@ -892,12 +892,12 @@ a:hover {
   font-size: 0.95rem;
   font-weight: 600;
   margin: 0 0 0.25rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .contact-card a {
   font-size: 0.9rem;
-  color: #a855f7;
+  color: var(--accent-purple, #a855f7);
 }
 
 /* Footer */
@@ -911,15 +911,15 @@ a:hover {
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(168, 85, 247, 0.3),
-    rgba(34, 211, 238, 0.3),
+    color-mix(in srgb, var(--accent-purple, #a855f7) 30%, transparent),
+    color-mix(in srgb, var(--accent-cyan, #22d3ee) 30%, transparent),
     transparent
   );
   margin-bottom: 2rem;
 }
 
 .footer-text {
-  color: #8b95b0;
+  color: var(--text-secondary);
   font-size: 0.95rem;
   font-style: italic;
   text-align: center;
@@ -927,7 +927,7 @@ a:hover {
 }
 
 .footer-meta {
-  color: #4a5568;
+  color: var(--text-muted);
   font-size: 0.85rem;
   text-align: center;
   margin-top: 0.5rem;
@@ -937,10 +937,10 @@ a:hover {
 code {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.9em;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--border-color, var(--border));
   padding: 0.2rem 0.4rem;
   border-radius: 4px;
-  color: #22d3ee;
+  color: var(--accent-cyan, #22d3ee);
 }
 
 /* Responsive */

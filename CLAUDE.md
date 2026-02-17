@@ -1713,7 +1713,7 @@ docker-compose exec server npm install
 **Installation**:
 ```bash
 # Download installer
-curl -fsSL https://claudenest.io/install.sh | bash
+curl -fsSL https://claudenest.io/install-server.sh | bash
 
 # Or manual installation
 sudo mkdir -p /opt/claudenest

@@ -147,7 +147,7 @@ onMounted(() => {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #0f0f1a;
+    background: var(--bg-primary, var(--surface-1));
     padding: 24px;
 }
 
@@ -170,13 +170,13 @@ onMounted(() => {
 .auth-header h1 {
     font-size: 28px;
     font-weight: 700;
-    color: #ffffff;
+    color: var(--text-primary);
     margin: 0 0 8px;
 }
 
 .auth-header p {
     font-size: 15px;
-    color: #888888;
+    color: var(--text-secondary);
     margin: 0;
 }
 
@@ -206,7 +206,7 @@ onMounted(() => {
 .success-icon {
     width: 64px;
     height: 64px;
-    background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+    background: linear-gradient(135deg, var(--accent-purple, #a855f7) 0%, var(--accent-indigo, #6366f1) 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -219,20 +219,20 @@ onMounted(() => {
 .success-container h2 {
     font-size: 24px;
     font-weight: 700;
-    color: #ffffff;
+    color: var(--text-primary);
     margin: 0 0 12px;
 }
 
 .success-container p {
     font-size: 15px;
-    color: #888888;
+    color: var(--text-secondary);
     margin: 0 0 24px;
 }
 
 .back-link {
     display: block;
     text-align: center;
-    color: #a855f7;
+    color: var(--accent-purple, #a855f7);
     text-decoration: none;
     font-size: 14px;
     font-weight: 500;
@@ -241,6 +241,6 @@ onMounted(() => {
 }
 
 .back-link:hover {
-    color: #c084fc;
+    color: var(--accent-purple-light, #c084fc);
 }
 </style>

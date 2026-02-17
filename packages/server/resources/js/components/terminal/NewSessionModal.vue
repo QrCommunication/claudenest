@@ -310,8 +310,8 @@ watch(() => props.defaultMachineId, (machineId) => {
   width: 100%;
   max-width: 520px;
   max-height: 90vh;
-  background: linear-gradient(135deg, #1a1b26, #24283b);
-  border: 1px solid rgba(168, 85, 247, 0.2);
+  background: linear-gradient(135deg, var(--bg-secondary, var(--surface-2)), var(--bg-card, var(--surface-3)));
+  border: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
@@ -325,8 +325,8 @@ watch(() => props.defaultMachineId, (machineId) => {
   align-items: center;
   justify-content: space-between;
   padding: 20px 24px;
-  background: rgba(168, 85, 247, 0.05);
-  border-bottom: 1px solid rgba(168, 85, 247, 0.1);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 5%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
 }
 
 .modal-title {
@@ -336,13 +336,13 @@ watch(() => props.defaultMachineId, (machineId) => {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
-  color: #c0caf5;
+  color: var(--text-primary);
 }
 
 .title-icon {
   width: 24px;
   height: 24px;
-  color: #a855f7;
+  color: var(--accent-purple, #a855f7);
 }
 
 .close-btn {
@@ -355,13 +355,13 @@ watch(() => props.defaultMachineId, (machineId) => {
   background: transparent;
   border: none;
   border-radius: 8px;
-  color: #a9b1d6;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .close-btn:hover {
-  background: rgba(239, 68, 68, 0.1);
+  background: color-mix(in srgb, var(--status-error, #ef4444) 10%, transparent);
   color: #ef4444;
 }
 
@@ -387,7 +387,7 @@ watch(() => props.defaultMachineId, (machineId) => {
   margin-bottom: 8px;
   font-size: 13px;
   font-weight: 500;
-  color: #a9b1d6;
+  color: var(--text-secondary);
 }
 
 .required {
@@ -401,10 +401,10 @@ watch(() => props.defaultMachineId, (machineId) => {
 .form-textarea {
   width: 100%;
   padding: 10px 14px;
-  background: rgba(26, 27, 38, 0.8);
-  border: 1px solid rgba(168, 85, 247, 0.2);
+  background: color-mix(in srgb, var(--bg-secondary, var(--surface-2)) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
   border-radius: 8px;
-  color: #c0caf5;
+  color: var(--text-primary);
   font-size: 14px;
   outline: none;
   transition: all 0.2s;
@@ -413,8 +413,8 @@ watch(() => props.defaultMachineId, (machineId) => {
 .form-input:focus,
 .form-select:focus,
 .form-textarea:focus {
-  border-color: #a855f7;
-  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+  border-color: var(--accent-purple, #a855f7);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
 }
 
 .form-input::placeholder,
@@ -479,21 +479,21 @@ watch(() => props.defaultMachineId, (machineId) => {
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  background: rgba(26, 27, 38, 0.5);
-  border: 1px solid rgba(168, 85, 247, 0.15);
+  background: color-mix(in srgb, var(--bg-secondary, var(--surface-2)) 50%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 15%, transparent);
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .mode-option:hover {
-  border-color: rgba(168, 85, 247, 0.3);
-  background: rgba(168, 85, 247, 0.05);
+  border-color: color-mix(in srgb, var(--accent-purple, #a855f7) 30%, transparent);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 5%, transparent);
 }
 
 .mode-option.active {
-  border-color: #a855f7;
-  background: rgba(168, 85, 247, 0.1);
+  border-color: var(--accent-purple, #a855f7);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
 }
 
 .mode-radio {
@@ -512,7 +512,7 @@ watch(() => props.defaultMachineId, (machineId) => {
 .mode-name {
   font-size: 14px;
   font-weight: 500;
-  color: #c0caf5;
+  color: var(--text-primary);
 }
 
 .mode-description {
@@ -556,8 +556,8 @@ watch(() => props.defaultMachineId, (machineId) => {
   justify-content: flex-end;
   gap: 12px;
   padding: 20px 24px;
-  background: rgba(15, 15, 26, 0.4);
-  border-top: 1px solid rgba(168, 85, 247, 0.1);
+  background: color-mix(in srgb, var(--bg-primary, var(--surface-1)) 40%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
 }
 
 /* Buttons */
@@ -582,7 +582,7 @@ watch(() => props.defaultMachineId, (machineId) => {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #a855f7, #6366f1);
+  background: linear-gradient(135deg, var(--accent-purple, #a855f7), var(--accent-indigo, #6366f1));
   color: white;
 }
 
@@ -592,14 +592,14 @@ watch(() => props.defaultMachineId, (machineId) => {
 }
 
 .btn-secondary {
-  background: rgba(168, 85, 247, 0.1);
-  color: #a9b1d6;
-  border: 1px solid rgba(168, 85, 247, 0.2);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
+  color: var(--text-secondary);
+  border: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
 }
 
 .btn-secondary:hover {
-  background: rgba(168, 85, 247, 0.2);
-  color: #c0caf5;
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
+  color: var(--text-primary);
 }
 
 /* Spinner */

@@ -172,7 +172,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #0f0f1a;
+  background: var(--bg-primary, var(--surface-1));
 }
 
 .tab-header {
@@ -181,8 +181,8 @@ onMounted(() => {
   justify-content: space-between;
   height: 36px;
   padding: 0 12px;
-  background: rgba(26, 27, 38, 0.8);
-  border-bottom: 1px solid rgba(168, 85, 247, 0.15);
+  background: color-mix(in srgb, var(--bg-secondary, var(--surface-2)) 80%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 15%, transparent);
   flex-shrink: 0;
 }
 
@@ -206,7 +206,7 @@ onMounted(() => {
 }
 
 .tab-status-dot.completed {
-  background: #6366f1;
+  background: var(--accent-indigo, #6366f1);
 }
 
 .tab-status-dot.error {
@@ -218,7 +218,7 @@ onMounted(() => {
 }
 
 .tab-session-mode {
-  color: #a9b1d6;
+  color: var(--text-secondary);
   font-weight: 500;
   text-transform: capitalize;
 }
@@ -249,8 +249,8 @@ onMounted(() => {
 }
 
 .tab-action-btn:hover {
-  background: rgba(168, 85, 247, 0.1);
-  color: #a9b1d6;
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
+  color: var(--text-secondary);
 }
 
 .tab-action-btn.danger:hover {
@@ -284,8 +284,8 @@ onMounted(() => {
 .loading-spinner {
   width: 32px;
   height: 32px;
-  border: 2px solid rgba(168, 85, 247, 0.2);
-  border-top-color: #a855f7;
+  border: 2px solid color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
+  border-top-color: var(--accent-purple, #a855f7);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -296,16 +296,16 @@ onMounted(() => {
 
 .retry-btn {
   padding: 6px 16px;
-  background: rgba(168, 85, 247, 0.15);
-  border: 1px solid rgba(168, 85, 247, 0.3);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 30%, transparent);
   border-radius: 6px;
-  color: #a855f7;
+  color: var(--accent-purple, #a855f7);
   font-size: 12px;
   cursor: pointer;
   transition: background 0.2s;
 }
 
 .retry-btn:hover {
-  background: rgba(168, 85, 247, 0.25);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 25%, transparent);
 }
 </style>

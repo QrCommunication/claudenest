@@ -132,7 +132,7 @@ docker-compose exec app php artisan user:create --admin"
         
         <CodeBlock 
           code="# Download and run the installer
-curl -fsSL https://claudenest.io/install.sh | bash
+curl -fsSL https://claudenest.io/install-server.sh | bash
 
 # Or manual installation
 cd /opt
@@ -366,14 +366,14 @@ OLLAMA_EMBEDDING_MODEL=nomic-embed-text`;
 .doc-header {
   margin-bottom: 3rem;
   padding-bottom: 2rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-color, var(--border));
 }
 
 .doc-header h1 {
   font-size: 2.5rem;
   font-weight: 800;
   margin: 0 0 1rem;
-  background: linear-gradient(135deg, #a855f7, #22d3ee);
+  background: linear-gradient(135deg, var(--accent-purple, #a855f7), var(--accent-cyan, #22d3ee));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -381,7 +381,7 @@ OLLAMA_EMBEDDING_MODEL=nomic-embed-text`;
 
 .lead {
   font-size: 1.25rem;
-  color: #a9b1d6;
+  color: var(--text-secondary);
   line-height: 1.6;
   margin: 0;
 }
@@ -394,24 +394,24 @@ h2 {
   font-size: 1.75rem;
   font-weight: 700;
   margin: 0 0 1rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 h3 {
   font-size: 1.25rem;
   font-weight: 600;
   margin: 1.5rem 0 0.75rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 p {
-  color: #a9b1d6;
+  color: var(--text-secondary);
   line-height: 1.7;
   margin: 0 0 1rem;
 }
 
 ul {
-  color: #a9b1d6;
+  color: var(--text-secondary);
   margin: 0 0 1rem;
   padding-left: 1.5rem;
 }
@@ -434,8 +434,8 @@ li {
   align-items: center;
   gap: 0.75rem;
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 10px;
 }
 
@@ -458,12 +458,12 @@ li {
 }
 
 .prereq-item strong {
-  color: #ffffff;
+  color: var(--text-primary);
   font-size: 0.95rem;
 }
 
 .prereq-item span {
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.8rem;
 }
 
@@ -472,7 +472,7 @@ li {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-color, var(--border));
 }
 
 .tab-btn {
@@ -480,7 +480,7 @@ li {
   background: transparent;
   border: none;
   border-bottom: 2px solid transparent;
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.2s;
@@ -488,12 +488,12 @@ li {
 }
 
 .tab-btn:hover {
-  color: #a9b1d6;
+  color: var(--text-secondary);
 }
 
 .tab-btn.active {
-  color: #a855f7;
-  border-bottom-color: #a855f7;
+  color: var(--accent-purple, #a855f7);
+  border-bottom-color: var(--accent-purple, #a855f7);
 }
 
 .tab-content {
@@ -517,15 +517,15 @@ li {
   display: flex;
   flex-direction: column;
   padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 12px;
   text-decoration: none;
   transition: all 0.2s;
 }
 
 .next-step-card:hover {
-  background: rgba(168, 85, 247, 0.05);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 5%, transparent);
   border-color: rgba(168, 85, 247, 0.3);
   transform: translateY(-2px);
 }
@@ -538,26 +538,26 @@ li {
 .next-step-card h3 {
   font-size: 1.1rem;
   margin: 0 0 0.5rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .next-step-card p {
   font-size: 0.9rem;
   margin: 0;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .next-step-card:hover p {
-  color: #a9b1d6;
+  color: var(--text-secondary);
 }
 
 code {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.9em;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--border-color, var(--border));
   padding: 0.2rem 0.4rem;
   border-radius: 4px;
-  color: #22d3ee;
+  color: var(--accent-cyan, #22d3ee);
 }
 
 @media (max-width: 768px) {

@@ -222,7 +222,7 @@ function socialLogin(provider: string): void {
   height: 400px;
   top: -10%;
   right: -10%;
-  background: radial-gradient(circle, rgba(168, 85, 247, 0.4) 0%, transparent 70%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent-purple, #a855f7) 40%, transparent) 0%, transparent 70%);
 }
 
 .auth-orb--indigo {
@@ -230,6 +230,6 @@ function socialLogin(provider: string): void {
   height: 350px;
   bottom: -10%;
   left: -10%;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.3) 0%, transparent 70%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent-indigo, #6366f1) 30%, transparent) 0%, transparent 70%);
 }
 </style>
