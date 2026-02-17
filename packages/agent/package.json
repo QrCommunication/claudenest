@@ -1,6 +1,6 @@
 {
   "name": "@claudenest/agent",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "ClaudeNest Agent - Local daemon for remote orchestration of Claude Code instances",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -24,7 +24,8 @@
     "test": "vitest",
     "test:run": "vitest run",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "claude",
