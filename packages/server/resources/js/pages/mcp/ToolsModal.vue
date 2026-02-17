@@ -57,7 +57,7 @@
     <template #footer>
       <div class="flex justify-between items-center">
         <Button variant="ghost" size="sm" @click="refreshTools" :loading="isLoading">
-          <RefreshCwIcon class="w-4 h-4 mr-2" />
+          <RefreshCwIcon class="w-4 h-4" />
           Refresh
         </Button>
         <Button variant="ghost" @click="$emit('close')">

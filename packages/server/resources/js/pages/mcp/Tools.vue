@@ -15,7 +15,7 @@
           @click="refreshTools"
           :loading="mcpStore.isLoadingTools"
         >
-          <RefreshCwIcon class="w-4 h-4 mr-2" />
+          <RefreshCwIcon class="w-4 h-4" />
           Refresh
         </Button>
       </div>

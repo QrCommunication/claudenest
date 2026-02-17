@@ -4,11 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasVersion4Uuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Laravel\Sanctum\PersonalAccessToken as SanctumPersonalAccessToken;
 use Illuminate\Support\Str;
 
-class PersonalAccessToken extends Model
+class PersonalAccessToken extends SanctumPersonalAccessToken
 {
     use HasFactory, HasVersion4Uuids;
 
@@ -26,19 +25,19 @@ class PersonalAccessToken extends Model
      * The attributes that are mass assignable.
      */
     protected $fillable = [
-        'user_id',
         'name',
-        'token_hash',
+        'token',
         'abilities',
-        'last_used_at',
         'expires_at',
+        'tokenable_type',
+        'tokenable_id',
     ];
 
     /**
      * The attributes that should be hidden for serialization.
      */
     protected $hidden = [
-        'token_hash',
+        'token',
     ];
 
     /**
@@ -63,18 +62,12 @@ class PersonalAccessToken extends Model
         });
     }
 
-    // ==================== RELATIONSHIPS ====================
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
-
     // ==================== SCOPES ====================
 
     public function scopeForUser($query, string $userId)
     {
-        return $query->where('user_id', $userId);
+        return $query->where('tokenable_id', $userId)
+                     ->where('tokenable_type', User::class);
     }
 
     public function scopeActive($query)
@@ -110,24 +103,6 @@ class PersonalAccessToken extends Model
 
     // ==================== HELPERS ====================
 
-    public function can(string $ability): bool
-    {
-        if ($this->has_ability_wildcard) {
-            return true;
-        }
-        return in_array($ability, $this->abilities ?? []);
-    }
-
-    public function cant(string $ability): bool
-    {
-        return !$this->can($ability);
-    }
-
-    public function touchLastUsed(): void
-    {
-        $this->update(['last_used_at' => now()]);
-    }
-
     public function revoke(): bool
     {
         return $this->delete();
@@ -136,7 +111,7 @@ class PersonalAccessToken extends Model
     public static function findValidToken(string $token): ?self
     {
         $hash = hash('sha256', $token);
-        return static::where('token_hash', $hash)
+        return static::where('token', $hash)
             ->active()
             ->first();
     }
@@ -151,9 +126,10 @@ class PersonalAccessToken extends Model
         $hash = hash('sha256', $token);
 
         $model = static::create([
-            'user_id' => $userId,
+            'tokenable_type' => User::class,
+            'tokenable_id' => $userId,
             'name' => $name,
-            'token_hash' => $hash,
+            'token' => $hash,
             'abilities' => $abilities,
             'expires_at' => $expiresInDays ? now()->addDays($expiresInDays) : null,
         ]);

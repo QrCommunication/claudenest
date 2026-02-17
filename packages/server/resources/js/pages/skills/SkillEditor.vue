@@ -4,7 +4,7 @@
     <div class="flex items-center justify-between mb-6">
       <div class="flex items-center gap-4">
         <Button variant="ghost" @click="goBack">
-          <ArrowLeftIcon class="w-4 h-4 mr-2" />
+          <ArrowLeftIcon class="w-4 h-4" />
           Back
         </Button>
         <div>
@@ -22,7 +22,7 @@
           @click="togglePreview"
           :class="{ 'bg-brand-purple/20 text-brand-purple': showPreview }"
         >
-          <EyeIcon class="w-4 h-4 mr-2" />
+          <EyeIcon class="w-4 h-4" />
           {{ showPreview ? 'Hide Preview' : 'Show Preview' }}
         </Button>
         <Button 
@@ -31,7 +31,7 @@
           :loading="skillsStore.isDeleting"
           @click="confirmDelete"
         >
-          <TrashIcon class="w-4 h-4 mr-2" />
+          <TrashIcon class="w-4 h-4" />
           Delete
         </Button>
         <Button 
@@ -39,7 +39,7 @@
           :loading="isSaving"
           @click="saveSkill"
         >
-          <SaveIcon class="w-4 h-4 mr-2" />
+          <SaveIcon class="w-4 h-4" />
           Save
         </Button>
       </div>

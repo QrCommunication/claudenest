@@ -15,11 +15,11 @@
           @click="refreshServers"
           :loading="mcpStore.isLoading"
         >
-          <RefreshCwIcon class="w-4 h-4 mr-2" />
+          <RefreshCwIcon class="w-4 h-4" />
           Refresh
         </Button>
         <Button variant="primary" @click="showAddModal = true">
-          <PlusIcon class="w-4 h-4 mr-2" />
+          <PlusIcon class="w-4 h-4" />
           Add Server
         </Button>
       </div>
@@ -83,7 +83,7 @@
       <h3 class="text-lg font-medium text-white mb-2">No MCP servers</h3>
       <p class="text-dark-4 mb-4">Add your first MCP server to start using tools</p>
       <Button variant="primary" @click="showAddModal = true">
-        <PlusIcon class="w-4 h-4 mr-2" />
+        <PlusIcon class="w-4 h-4" />
         Add Server
       </Button>
     </div>
@@ -170,7 +170,7 @@
         <!-- Actions -->
         <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-dark-4">
           <Button variant="error" @click="deleteServer(selectedServer)">
-            <TrashIcon class="w-4 h-4 mr-2" />
+            <TrashIcon class="w-4 h-4" />
             Delete
           </Button>
           <Button 
@@ -179,7 +179,7 @@
             :loading="mcpStore.isStarting"
             @click="startServer(selectedServer)"
           >
-            <PlayIcon class="w-4 h-4 mr-2" />
+            <PlayIcon class="w-4 h-4" />
             Start
           </Button>
           <Button 
@@ -188,7 +188,7 @@
             :loading="mcpStore.isStopping"
             @click="stopServer(selectedServer)"
           >
-            <SquareIcon class="w-4 h-4 mr-2" />
+            <SquareIcon class="w-4 h-4" />
             Stop
           </Button>
         </div>

@@ -15,14 +15,14 @@
           @click="refreshSkills"
           :loading="skillsStore.isLoading"
         >
-          <RefreshCwIcon class="w-4 h-4 mr-2" />
+          <RefreshCwIcon class="w-4 h-4" />
           Refresh
         </Button>
         <Button 
           variant="primary" 
           @click="createSkill"
         >
-          <PlusIcon class="w-4 h-4 mr-2" />
+          <PlusIcon class="w-4 h-4" />
           New Skill
         </Button>
       </div>
@@ -86,7 +86,7 @@
         {{ searchQuery ? 'Try adjusting your search filters' : 'Create your first skill to get started' }}
       </p>
       <Button variant="primary" @click="createSkill">
-        <PlusIcon class="w-4 h-4 mr-2" />
+        <PlusIcon class="w-4 h-4" />
         Create Skill
       </Button>
     </div>
@@ -159,7 +159,7 @@
             variant="primary" 
             @click="editSkill(previewingSkill!)"
           >
-            <EditIcon class="w-4 h-4 mr-2" />
+            <EditIcon class="w-4 h-4" />
             Edit
           </Button>
         </div>

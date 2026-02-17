@@ -44,7 +44,7 @@
             @toggle="toggleSkill"
           />
           <Button variant="ghost" @click="$router.push('/skills')">
-            <ArrowLeftIcon class="w-4 h-4 mr-2" />
+            <ArrowLeftIcon class="w-4 h-4" />
             Back
           </Button>
         </div>
@@ -65,7 +65,7 @@
               </p>
               <div v-if="skill.has_config" class="flex gap-2">
                 <Button variant="ghost" size="sm" @click="resetConfig">
-                  <RotateCcwIcon class="w-4 h-4 mr-1" />
+                  <RotateCcwIcon class="w-4 h-4" />
                   Reset
                 </Button>
                 <Button 
@@ -74,7 +74,7 @@
                   :loading="skillsStore.isUpdating"
                   @click="saveConfig"
                 >
-                  <SaveIcon class="w-4 h-4 mr-1" />
+                  <SaveIcon class="w-4 h-4" />
                   Save
                 </Button>
               </div>

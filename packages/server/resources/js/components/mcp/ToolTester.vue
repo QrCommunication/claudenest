@@ -83,7 +83,7 @@
           :loading="isExecuting"
           @click="execute"
         >
-          <PlayIcon class="w-4 h-4 mr-1" />
+          <PlayIcon class="w-4 h-4" />
           Execute
         </Button>
       </div>

@@ -66,7 +66,7 @@
           :loading="isStarting"
           @click="$emit('start', server)"
         >
-          <PlayIcon class="w-4 h-4 mr-1" />
+          <PlayIcon class="w-4 h-4" />
           Start
         </Button>
         <Button 
@@ -76,7 +76,7 @@
           :loading="isStopping"
           @click="$emit('stop', server)"
         >
-          <StopIcon class="w-4 h-4 mr-1" />
+          <StopIcon class="w-4 h-4" />
           Stop
         </Button>
         <Button 

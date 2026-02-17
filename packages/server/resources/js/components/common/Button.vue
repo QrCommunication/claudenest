@@ -30,7 +30,7 @@
         />
       </svg>
     </span>
-    <span :class="{ 'opacity-0': loading }">
+    <span :class="['inline-flex items-center gap-2', { 'opacity-0': loading }]">
       <slot />
     </span>
   </button>
