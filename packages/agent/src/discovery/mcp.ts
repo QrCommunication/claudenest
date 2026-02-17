@@ -7,6 +7,7 @@ import { spawn, ChildProcess } from 'child_process';
 import fs from 'fs/promises';
 import path from 'path';
 import type { Logger } from '../utils/logger.js';
+import { getConfigDir } from '../utils/index.js';
 import type { MCPServer, MCPStatus, MCPTool } from '../types/index.js';
 
 interface MCPManagerOptions {
@@ -42,7 +43,6 @@ export class MCPManager extends EventEmitter {
     super();
     this.logger = options.logger.child({ component: 'MCPManager' });
     
-    const { getConfigDir } = require('../utils/index.js');
     this.configPath = options.configPath || path.join(getConfigDir(), 'mcp.json');
   }
 

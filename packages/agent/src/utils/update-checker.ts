@@ -5,6 +5,7 @@
 
 import { execFile } from 'child_process';
 import { promisify } from 'util';
+import readline from 'readline';
 import fs from 'fs/promises';
 import path from 'path';
 import { getConfigDir, ensureDir } from './index.js';
@@ -151,7 +152,6 @@ export async function promptAutoUpdate(info: UpdateInfo): Promise<boolean> {
   printUpdateNotification(info);
 
   return new Promise((resolve) => {
-    const readline = require('readline');
     const rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
