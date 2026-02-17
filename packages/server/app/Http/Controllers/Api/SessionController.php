@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Machine;
 use App\Models\Session;
+use App\Services\AgentGateway;
 use App\Services\CredentialService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -150,7 +151,17 @@ class SessionController extends Controller
             }
         }
 
-        // Broadcast session creation to agent (include credential env)
+        // Send to agent via dedicated WebSocket server
+        AgentGateway::send($machine->id, 'session:create', [
+            'sessionId' => $session->id,
+            'mode' => $session->mode,
+            'projectPath' => $session->project_path,
+            'initialPrompt' => $session->initial_prompt,
+            'ptySize' => $session->pty_size,
+            'credentialEnv' => $credentialEnv,
+        ]);
+
+        // Broadcast to dashboard via Reverb
         broadcast(new \App\Events\SessionCreated($session, $credentialEnv))->toOthers();
 
         return response()->json([
@@ -246,7 +257,12 @@ class SessionController extends Controller
         // Mark as terminated
         $session->markAsTerminated();
 
-        // Broadcast termination to agent
+        // Send to agent via dedicated WebSocket server
+        AgentGateway::send($session->machine_id, 'session:terminate', [
+            'sessionId' => $session->id,
+        ]);
+
+        // Broadcast to dashboard via Reverb
         broadcast(new \App\Events\SessionTerminated($session))->toOthers();
 
         return response()->json([
@@ -441,7 +457,13 @@ class SessionController extends Controller
             'data' => 'required|string',
         ]);
 
-        // Broadcast input to agent
+        // Send input to agent via dedicated WebSocket server
+        AgentGateway::send($session->machine_id, 'session:input', [
+            'sessionId' => $session->id,
+            'data' => $validated['data'],
+        ]);
+
+        // Broadcast to dashboard via Reverb
         broadcast(new \App\Events\SessionInput($session, $validated['data']))->toOthers();
 
         // Log input
@@ -517,7 +539,14 @@ class SessionController extends Controller
 
         $session->resizePty($validated['cols'], $validated['rows']);
 
-        // Broadcast resize to agent
+        // Send resize to agent via dedicated WebSocket server
+        AgentGateway::send($session->machine_id, 'session:resize', [
+            'sessionId' => $session->id,
+            'cols' => $validated['cols'],
+            'rows' => $validated['rows'],
+        ]);
+
+        // Broadcast to dashboard via Reverb
         broadcast(new \App\Events\SessionResize($session, $validated['cols'], $validated['rows']))->toOthers();
 
         return response()->json([

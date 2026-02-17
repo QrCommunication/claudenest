@@ -8,6 +8,7 @@ git pull origin main
 
 echo "Updating infrastructure configs..."
 sudo cp infrastructure/supervisor/claudenest-worker.conf /etc/supervisor/conf.d/claudenest-worker.conf
+sudo cp infrastructure/supervisor/claudenest-agent-ws.conf /etc/supervisor/conf.d/claudenest-agent-ws.conf
 sudo cp infrastructure/caddy/Caddyfile /etc/caddy/Caddyfile
 
 echo "Installing backend dependencies..."
@@ -39,6 +40,7 @@ sudo systemctl reload caddy
 sudo supervisorctl reread
 sudo supervisorctl update
 sudo supervisorctl restart claudenest-worker:*
+sudo supervisorctl restart claudenest-agent-ws
 sudo systemctl restart claudenest-reverb
 
 echo "Deployment complete!"

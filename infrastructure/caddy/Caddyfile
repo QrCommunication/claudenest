@@ -1,15 +1,53 @@
-# ClaudeNest API and WebSocket
+# ClaudeNest API - serves both REST API and WebSocket
 api.claudenest.io {
-    reverse_proxy localhost:8000
+    # CORS headers for API
+    header {
+        Access-Control-Allow-Origin "https://claudenest.io"
+        Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+        Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, X-Request-ID, X-Machine-Token, X-Machine-ID"
+        Access-Control-Allow-Credentials "true"
+        Access-Control-Max-Age "86400"
+    }
 
-    @websocket {
+    # Handle CORS preflight
+    @options method OPTIONS
+    respond @options 204
+
+    # WebSocket: Reverb handles /app/* and /apps/* paths
+    @reverb {
+        path /app/* /apps/*
+    }
+    reverse_proxy @reverb localhost:8080
+
+    # WebSocket: Agent custom WS endpoint → dedicated server on port 6001
+    @agent_ws {
+        path /ws/agent
         header Connection *Upgrade*
         header Upgrade websocket
     }
-    reverse_proxy @websocket localhost:8000
+    reverse_proxy @agent_ws localhost:6001
+
+    # Broadcasting auth (needed for private channels)
+    @broadcasting {
+        path /broadcasting/auth
+    }
+    reverse_proxy @broadcasting unix//run/php/php8.3-fpm.sock {
+        transport fastcgi {
+            root /var/www/claudenest/packages/server/public
+            split .php
+        }
+    }
+
+    # All other requests -> PHP-FPM
+    root * /var/www/claudenest/packages/server/public
+    try_files {path} {path}/ /index.php
+    file_server
+    php_fastcgi unix//run/php/php8.3-fpm.sock
+
+    encode gzip zstd
 }
 
-# Main application
+# Main application (web dashboard + landing)
 claudenest.io {
     root * /var/www/claudenest/packages/server/public
 
@@ -34,7 +72,7 @@ claudenest.io {
     }
 }
 
-# App subdomain
+# App subdomain (alias for main app)
 app.claudenest.io {
     root * /var/www/claudenest/packages/server/public
     try_files {path} {path}/ /index.php

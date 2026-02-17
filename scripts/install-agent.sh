@@ -290,6 +290,9 @@ main() {
   # ------------------------------------------
   step "Installing $PACKAGE_NAME..."
 
+  # Determine npm global bin directory
+  NPM_BIN_DIR="$(npm config get prefix)/bin"
+
   if command_exists claudenest-agent; then
     CURRENT_VERSION=$(claudenest-agent --version 2>/dev/null || echo "unknown")
     info "Upgrading from v${CURRENT_VERSION}..."
@@ -298,9 +301,37 @@ main() {
     npm install -g "$PACKAGE_NAME"
   fi
 
+  # If claudenest-agent not in PATH, add npm global bin to PATH
   if ! command_exists claudenest-agent; then
-    error "Installation failed. The 'claudenest-agent' command is not available."
-    error "Try: npm install -g $PACKAGE_NAME"
+    if [[ -x "${NPM_BIN_DIR}/claudenest-agent" ]]; then
+      warn "npm global bin directory not in PATH. Fixing..."
+      export PATH="${NPM_BIN_DIR}:${PATH}"
+
+      # Persist to shell profile
+      SHELL_NAME="$(basename "$SHELL")"
+      case "$SHELL_NAME" in
+        zsh)  PROFILE="$HOME/.zshrc" ;;
+        bash) PROFILE="$HOME/.bashrc" ;;
+        *)    PROFILE="$HOME/.profile" ;;
+      esac
+
+      if ! grep -q 'npm config get prefix' "$PROFILE" 2>/dev/null; then
+        echo '' >> "$PROFILE"
+        echo '# npm global bin (added by ClaudeNest installer)' >> "$PROFILE"
+        echo 'export PATH="$(npm config get prefix)/bin:$PATH"' >> "$PROFILE"
+        info "Added npm global bin to ${PROFILE}"
+      fi
+    else
+      error "Installation failed. The 'claudenest-agent' command is not available."
+      error "npm bin dir: ${NPM_BIN_DIR}"
+      error "Try: npm install -g $PACKAGE_NAME"
+      exit 1
+    fi
+  fi
+
+  if ! command_exists claudenest-agent; then
+    error "Installation failed even after PATH fix."
+    error "Try manually: npm install -g $PACKAGE_NAME && export PATH=\"${NPM_BIN_DIR}:\$PATH\""
     exit 1
   fi
 
