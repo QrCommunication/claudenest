@@ -13,6 +13,41 @@ class SessionController extends Controller
 {
     /**
      * List sessions for a machine.
+     *
+     * @OA\Get(
+     *     path="/api/machines/{machineId}/sessions",
+     *     tags={"Sessions"},
+     *     summary="List sessions for a machine",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="machineId",
+     *         in="path",
+     *         required=true,
+     *         description="Machine UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         required=false,
+     *         description="Number of results per page",
+     *         @OA\Schema(type="integer", default=20)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Paginated list of sessions",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(ref="#/components/schemas/Session")
+     *             ),
+     *             @OA\Property(property="meta", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Machine not found")
+     * )
      */
     public function index(Request $request, string $machineId): JsonResponse
     {
@@ -44,6 +79,34 @@ class SessionController extends Controller
 
     /**
      * Create a new session.
+     *
+     * @OA\Post(
+     *     path="/api/machines/{machineId}/sessions",
+     *     tags={"Sessions"},
+     *     summary="Create a new session",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="machineId",
+     *         in="path",
+     *         required=true,
+     *         description="Machine UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/CreateSessionRequest")
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Session created",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", ref="#/components/schemas/Session")
+     *         )
+     *     ),
+     *     @OA\Response(response=400, description="Machine is offline"),
+     *     @OA\Response(response=404, description="Machine not found")
+     * )
      */
     public function store(Request $request, string $machineId): JsonResponse
     {
@@ -101,7 +164,30 @@ class SessionController extends Controller
     }
 
     /**
-     * Show session details.
+     * Get session details.
+     *
+     * @OA\Get(
+     *     path="/api/sessions/{id}",
+     *     tags={"Sessions"},
+     *     summary="Get session details",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Session UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Session details including recent logs",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", ref="#/components/schemas/Session")
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Session not found")
+     * )
      */
     public function show(Request $request, string $id): JsonResponse
     {
@@ -123,6 +209,27 @@ class SessionController extends Controller
 
     /**
      * Terminate a session.
+     *
+     * @OA\Delete(
+     *     path="/api/sessions/{id}",
+     *     tags={"Sessions"},
+     *     summary="Terminate a session",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Session UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Session terminated",
+     *         @OA\JsonContent(ref="#/components/schemas/DeletedResponse")
+     *     ),
+     *     @OA\Response(response=400, description="Session already terminated"),
+     *     @OA\Response(response=404, description="Session not found")
+     * )
      */
     public function destroy(Request $request, string $id): JsonResponse
     {
@@ -154,6 +261,41 @@ class SessionController extends Controller
 
     /**
      * Get session logs.
+     *
+     * @OA\Get(
+     *     path="/api/sessions/{id}/logs",
+     *     tags={"Sessions"},
+     *     summary="Get session logs",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Session UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         required=false,
+     *         description="Number of log entries per page",
+     *         @OA\Schema(type="integer", default=100)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Paginated list of session logs",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(ref="#/components/schemas/SessionLog")
+     *             ),
+     *             @OA\Property(property="meta", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Session not found")
+     * )
      */
     public function logs(Request $request, string $id): JsonResponse
     {
@@ -190,7 +332,36 @@ class SessionController extends Controller
     }
 
     /**
-     * Attach to a running session (WebSocket token).
+     * Attach to running session (get WebSocket token).
+     *
+     * @OA\Post(
+     *     path="/api/sessions/{id}/attach",
+     *     tags={"Sessions"},
+     *     summary="Attach to running session (get WebSocket token)",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Session UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="WebSocket attachment token",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="ws_token", type="string", example="a1b2c3..."),
+     *                 @OA\Property(property="session_id", type="string", format="uuid"),
+     *                 @OA\Property(property="ws_url", type="string", example="ws://localhost:8080")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Session not found or not running")
+     * )
      */
     public function attach(Request $request, string $id): JsonResponse
     {
@@ -225,7 +396,36 @@ class SessionController extends Controller
     }
 
     /**
-     * Send input to a session.
+     * Send input to session.
+     *
+     * @OA\Post(
+     *     path="/api/sessions/{id}/input",
+     *     tags={"Sessions"},
+     *     summary="Send input to session",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Session UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"data"},
+     *             @OA\Property(property="data", type="string", description="Input data to send to the session")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Input sent successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true)
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Session not found or not running")
+     * )
      */
     public function input(Request $request, string $id): JsonResponse
     {
@@ -259,6 +459,46 @@ class SessionController extends Controller
 
     /**
      * Resize session PTY.
+     *
+     * @OA\Post(
+     *     path="/api/sessions/{id}/resize",
+     *     tags={"Sessions"},
+     *     summary="Resize session PTY",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Session UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"cols", "rows"},
+     *             @OA\Property(property="cols", type="integer", minimum=20, maximum=500, description="Terminal columns"),
+     *             @OA\Property(property="rows", type="integer", minimum=10, maximum=200, description="Terminal rows")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="PTY resized successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="pty_size",
+     *                     type="object",
+     *                     @OA\Property(property="cols", type="integer"),
+     *                     @OA\Property(property="rows", type="integer")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Session not found or not running")
+     * )
      */
     public function resize(Request $request, string $id): JsonResponse
     {

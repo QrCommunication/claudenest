@@ -12,6 +12,20 @@ class TaskController extends Controller
 {
     /**
      * List tasks for a project.
+     *
+     * @OA\Get(
+     *     path="/api/projects/{projectId}/tasks",
+     *     tags={"Tasks"},
+     *     summary="List project tasks",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(name="projectId", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\Parameter(name="status", in="query", required=false, @OA\Schema(type="string", enum={"pending","in_progress","blocked","review","done"})),
+     *     @OA\Parameter(name="assigned_to", in="query", required=false, @OA\Schema(type="string")),
+     *     @OA\Parameter(name="priority", in="query", required=false, @OA\Schema(type="string", enum={"low","medium","high","critical"})),
+     *     @OA\Parameter(name="per_page", in="query", required=false, @OA\Schema(type="integer", default=20)),
+     *     @OA\Response(response=200, description="Paginated task list", @OA\JsonContent(ref="#/components/schemas/PaginatedResponse")),
+     *     @OA\Response(response=404, description="Project not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
+     * )
      */
     public function index(Request $request, string $projectId): JsonResponse
     {
@@ -61,6 +75,17 @@ class TaskController extends Controller
 
     /**
      * Create a new task.
+     *
+     * @OA\Post(
+     *     path="/api/projects/{projectId}/tasks",
+     *     tags={"Tasks"},
+     *     summary="Create a task",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(name="projectId", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\RequestBody(required=true, @OA\JsonContent(ref="#/components/schemas/CreateTaskRequest")),
+     *     @OA\Response(response=201, description="Task created", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
+     *     @OA\Response(response=404, description="Project not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
+     * )
      */
     public function store(Request $request, string $projectId): JsonResponse
     {
@@ -107,6 +132,16 @@ class TaskController extends Controller
 
     /**
      * Show task details.
+     *
+     * @OA\Get(
+     *     path="/api/tasks/{id}",
+     *     tags={"Tasks"},
+     *     summary="Get task details",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\Response(response=200, description="Task details", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
+     *     @OA\Response(response=404, description="Task not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
+     * )
      */
     public function show(Request $request, string $id): JsonResponse
     {
@@ -130,6 +165,23 @@ class TaskController extends Controller
 
     /**
      * Update task.
+     *
+     * @OA\Patch(
+     *     path="/api/tasks/{id}",
+     *     tags={"Tasks"},
+     *     summary="Update a task",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\RequestBody(required=true, @OA\JsonContent(
+     *         @OA\Property(property="title", type="string", maxLength=255),
+     *         @OA\Property(property="description", type="string", nullable=true),
+     *         @OA\Property(property="priority", type="string", enum={"low","medium","high","critical"}),
+     *         @OA\Property(property="files", type="array", @OA\Items(type="string")),
+     *         @OA\Property(property="estimated_tokens", type="integer")
+     *     )),
+     *     @OA\Response(response=200, description="Task updated", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
+     *     @OA\Response(response=404, description="Task not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
+     * )
      */
     public function update(Request $request, string $id): JsonResponse
     {
@@ -164,6 +216,16 @@ class TaskController extends Controller
 
     /**
      * Delete task.
+     *
+     * @OA\Delete(
+     *     path="/api/tasks/{id}",
+     *     tags={"Tasks"},
+     *     summary="Delete a task",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\Response(response=200, description="Task deleted", @OA\JsonContent(ref="#/components/schemas/DeletedResponse")),
+     *     @OA\Response(response=404, description="Task not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
+     * )
      */
     public function destroy(Request $request, string $id): JsonResponse
     {
@@ -194,6 +256,21 @@ class TaskController extends Controller
 
     /**
      * Claim a task.
+     *
+     * @OA\Post(
+     *     path="/api/tasks/{id}/claim",
+     *     tags={"Tasks"},
+     *     summary="Claim a task for an instance",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\RequestBody(required=true, @OA\JsonContent(
+     *         required={"instance_id"},
+     *         @OA\Property(property="instance_id", type="string")
+     *     )),
+     *     @OA\Response(response=200, description="Task claimed", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
+     *     @OA\Response(response=404, description="Task not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
+     *     @OA\Response(response=409, description="Task already claimed", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
+     * )
      */
     public function claim(Request $request, string $id): JsonResponse
     {
@@ -238,6 +315,20 @@ class TaskController extends Controller
 
     /**
      * Release a task.
+     *
+     * @OA\Post(
+     *     path="/api/tasks/{id}/release",
+     *     tags={"Tasks"},
+     *     summary="Release a claimed task",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\RequestBody(required=false, @OA\JsonContent(
+     *         @OA\Property(property="reason", type="string", nullable=true)
+     *     )),
+     *     @OA\Response(response=200, description="Task released", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
+     *     @OA\Response(response=404, description="Task not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
+     *     @OA\Response(response=400, description="Task not claimed", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
+     * )
      */
     public function release(Request $request, string $id): JsonResponse
     {
@@ -274,6 +365,18 @@ class TaskController extends Controller
 
     /**
      * Complete a task.
+     *
+     * @OA\Post(
+     *     path="/api/tasks/{id}/complete",
+     *     tags={"Tasks"},
+     *     summary="Mark a task as completed",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\RequestBody(required=true, @OA\JsonContent(ref="#/components/schemas/CompleteTaskRequest")),
+     *     @OA\Response(response=200, description="Task completed", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
+     *     @OA\Response(response=404, description="Task not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
+     *     @OA\Response(response=400, description="Task not claimed", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
+     * )
      */
     public function complete(Request $request, string $id): JsonResponse
     {
@@ -332,6 +435,16 @@ class TaskController extends Controller
 
     /**
      * Get next available task.
+     *
+     * @OA\Get(
+     *     path="/api/projects/{projectId}/tasks/next-available",
+     *     tags={"Tasks"},
+     *     summary="Get next available unclaimed task",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(name="projectId", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\Response(response=200, description="Next available task or null", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
+     *     @OA\Response(response=404, description="Project not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
+     * )
      */
     public function nextAvailable(Request $request, string $projectId): JsonResponse
     {

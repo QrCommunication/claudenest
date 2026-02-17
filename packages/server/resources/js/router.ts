@@ -207,6 +207,119 @@ const routes: RouteRecordRaw[] = [
         name: 'docs.resources.changelog',
         component: () => import('./pages/docs/ApiReference.vue'),
       },
+      // Guides
+      {
+        path: 'guides/getting-started',
+        name: 'docs.guides.getting-started',
+        component: () => import('./pages/docs/guides/GettingStarted.vue'),
+      },
+      {
+        path: 'guides/first-machine',
+        name: 'docs.guides.first-machine',
+        component: () => import('./pages/docs/guides/FirstMachine.vue'),
+      },
+      {
+        path: 'guides/remote-sessions',
+        name: 'docs.guides.remote-sessions',
+        component: () => import('./pages/docs/guides/RemoteSessions.vue'),
+      },
+      {
+        path: 'guides/multi-agent',
+        name: 'docs.guides.multi-agent',
+        component: () => import('./pages/docs/guides/MultiAgent.vue'),
+      },
+      {
+        path: 'guides/rag-pipeline',
+        name: 'docs.guides.rag-pipeline',
+        component: () => import('./pages/docs/guides/RagPipeline.vue'),
+      },
+      {
+        path: 'guides/file-locking',
+        name: 'docs.guides.file-locking',
+        component: () => import('./pages/docs/guides/FileLocking.vue'),
+      },
+      {
+        path: 'guides/task-coordination',
+        name: 'docs.guides.task-coordination',
+        component: () => import('./pages/docs/guides/TaskCoordination.vue'),
+      },
+      {
+        path: 'guides/agent-setup',
+        name: 'docs.guides.agent-setup',
+        component: () => import('./pages/docs/guides/AgentSetup.vue'),
+      },
+      {
+        path: 'guides/credentials',
+        name: 'docs.guides.credentials',
+        component: () => import('./pages/docs/guides/Credentials.vue'),
+      },
+      // Cookbook
+      {
+        path: 'cookbook/docker',
+        name: 'docs.cookbook.docker',
+        component: () => import('./pages/docs/cookbook/Docker.vue'),
+      },
+      {
+        path: 'cookbook/bare-metal',
+        name: 'docs.cookbook.bare-metal',
+        component: () => import('./pages/docs/cookbook/BareMetal.vue'),
+      },
+      {
+        path: 'cookbook/mcp-setup',
+        name: 'docs.cookbook.mcp-setup',
+        component: () => import('./pages/docs/cookbook/McpSetup.vue'),
+      },
+      {
+        path: 'cookbook/skills-discovery',
+        name: 'docs.cookbook.skills-discovery',
+        component: () => import('./pages/docs/cookbook/SkillsDiscovery.vue'),
+      },
+      {
+        path: 'cookbook/websocket',
+        name: 'docs.cookbook.websocket',
+        component: () => import('./pages/docs/cookbook/WebSocketIntegration.vue'),
+      },
+      {
+        path: 'cookbook/oauth',
+        name: 'docs.cookbook.oauth',
+        component: () => import('./pages/docs/cookbook/OAuth.vue'),
+      },
+      {
+        path: 'cookbook/mobile',
+        name: 'docs.cookbook.mobile',
+        component: () => import('./pages/docs/cookbook/Mobile.vue'),
+      },
+      {
+        path: 'cookbook/monitoring',
+        name: 'docs.cookbook.monitoring',
+        component: () => import('./pages/docs/cookbook/Monitoring.vue'),
+      },
+      // Concepts
+      {
+        path: 'concepts/architecture',
+        name: 'docs.concepts.architecture',
+        component: () => import('./pages/docs/concepts/Architecture.vue'),
+      },
+      {
+        path: 'concepts/security',
+        name: 'docs.concepts.security',
+        component: () => import('./pages/docs/concepts/Security.vue'),
+      },
+      {
+        path: 'concepts/websocket-protocol',
+        name: 'docs.concepts.websocket-protocol',
+        component: () => import('./pages/docs/concepts/WebSocketProtocol.vue'),
+      },
+      {
+        path: 'concepts/rag-embeddings',
+        name: 'docs.concepts.rag-embeddings',
+        component: () => import('./pages/docs/concepts/RagEmbeddings.vue'),
+      },
+      {
+        path: 'concepts/multi-agent-coordination',
+        name: 'docs.concepts.multi-agent-coordination',
+        component: () => import('./pages/docs/concepts/MultiAgentCoordination.vue'),
+      },
       // Legal pages
       {
         path: 'terms',

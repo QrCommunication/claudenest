@@ -12,6 +12,33 @@ class ProjectController extends Controller
 {
     /**
      * List projects for a machine.
+     *
+     * @OA\Get(
+     *     path="/api/machines/{machineId}/projects",
+     *     tags={"Projects"},
+     *     summary="List projects for a machine",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="machineId",
+     *         in="path",
+     *         required=true,
+     *         description="Machine UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of shared projects",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(ref="#/components/schemas/SharedProject")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Machine not found")
+     * )
      */
     public function index(Request $request, string $machineId): JsonResponse
     {
@@ -42,6 +69,34 @@ class ProjectController extends Controller
 
     /**
      * Create a new shared project.
+     *
+     * @OA\Post(
+     *     path="/api/machines/{machineId}/projects",
+     *     tags={"Projects"},
+     *     summary="Create shared project",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="machineId",
+     *         in="path",
+     *         required=true,
+     *         description="Machine UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/CreateProjectRequest")
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Project created",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", ref="#/components/schemas/SharedProject")
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Machine not found"),
+     *     @OA\Response(response=422, description="Validation error or project already exists for this path")
+     * )
      */
     public function store(Request $request, string $machineId): JsonResponse
     {
@@ -91,6 +146,29 @@ class ProjectController extends Controller
 
     /**
      * Show project details.
+     *
+     * @OA\Get(
+     *     path="/api/projects/{id}",
+     *     tags={"Projects"},
+     *     summary="Get project details",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Project UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Project details",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", ref="#/components/schemas/SharedProject")
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Project not found")
+     * )
      */
     public function show(Request $request, string $id): JsonResponse
     {
@@ -112,6 +190,33 @@ class ProjectController extends Controller
 
     /**
      * Update project.
+     *
+     * @OA\Patch(
+     *     path="/api/projects/{id}",
+     *     tags={"Projects"},
+     *     summary="Update project",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Project UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/UpdateProjectRequest")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Project updated",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", ref="#/components/schemas/SharedProject")
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Project not found")
+     * )
      */
     public function update(Request $request, string $id): JsonResponse
     {
@@ -155,6 +260,26 @@ class ProjectController extends Controller
 
     /**
      * Delete project.
+     *
+     * @OA\Delete(
+     *     path="/api/projects/{id}",
+     *     tags={"Projects"},
+     *     summary="Delete project",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Project UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Project deleted",
+     *         @OA\JsonContent(ref="#/components/schemas/DeletedResponse")
+     *     ),
+     *     @OA\Response(response=404, description="Project not found")
+     * )
      */
     public function destroy(Request $request, string $id): JsonResponse
     {
@@ -178,6 +303,33 @@ class ProjectController extends Controller
 
     /**
      * Get project instances.
+     *
+     * @OA\Get(
+     *     path="/api/projects/{id}/instances",
+     *     tags={"Projects"},
+     *     summary="List active Claude instances",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Project UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of Claude instances",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(ref="#/components/schemas/ClaudeInstance")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Project not found")
+     * )
      */
     public function instances(Request $request, string $id): JsonResponse
     {
@@ -221,6 +373,47 @@ class ProjectController extends Controller
 
     /**
      * Get project activity log.
+     *
+     * @OA\Get(
+     *     path="/api/projects/{id}/activity",
+     *     tags={"Projects"},
+     *     summary="Get activity log",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Project UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Parameter(
+     *         name="limit",
+     *         in="query",
+     *         required=false,
+     *         description="Maximum number of log entries to return",
+     *         @OA\Schema(type="integer", default=50)
+     *     ),
+     *     @OA\Parameter(
+     *         name="since",
+     *         in="query",
+     *         required=false,
+     *         description="Return entries created after this datetime",
+     *         @OA\Schema(type="string", format="date-time")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Activity log entries",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(ref="#/components/schemas/ActivityLog")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Project not found")
+     * )
      */
     public function activity(Request $request, string $id): JsonResponse
     {
@@ -262,6 +455,53 @@ class ProjectController extends Controller
 
     /**
      * Broadcast message to all instances in project.
+     *
+     * @OA\Post(
+     *     path="/api/projects/{id}/broadcast",
+     *     tags={"Projects"},
+     *     summary="Broadcast message to instances",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Project UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"message"},
+     *             @OA\Property(property="message", type="string", description="Message to broadcast"),
+     *             @OA\Property(
+     *                 property="type",
+     *                 type="string",
+     *                 enum={"info", "warning", "error", "success"},
+     *                 description="Message type"
+     *             ),
+     *             @OA\Property(
+     *                 property="target_instances",
+     *                 type="array",
+     *                 @OA\Items(type="string"),
+     *                 description="Optional list of instance IDs to target"
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Message broadcasted",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="message_id", type="string", description="Unique ID of the broadcast message"),
+     *                 @OA\Property(property="broadcasted_at", type="string", format="date-time")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Project not found")
+     * )
      */
     public function broadcast(Request $request, string $id): JsonResponse
     {
@@ -307,6 +547,46 @@ class ProjectController extends Controller
 
     /**
      * Get project stats.
+     *
+     * @OA\Get(
+     *     path="/api/projects/{id}/stats",
+     *     tags={"Projects"},
+     *     summary="Get project statistics",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Project UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Project statistics",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="total_tasks", type="integer"),
+     *                 @OA\Property(property="pending_tasks", type="integer"),
+     *                 @OA\Property(property="completed_tasks", type="integer"),
+     *                 @OA\Property(property="active_instances", type="integer"),
+     *                 @OA\Property(property="context_chunks", type="integer"),
+     *                 @OA\Property(property="active_locks", type="integer"),
+     *                 @OA\Property(
+     *                     property="token_usage",
+     *                     type="object",
+     *                     @OA\Property(property="current", type="integer"),
+     *                     @OA\Property(property="max", type="integer"),
+     *                     @OA\Property(property="percent", type="number", format="float")
+     *                 ),
+     *                 @OA\Property(property="activity_last_24h", type="integer")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Project not found")
+     * )
      */
     public function stats(Request $request, string $id): JsonResponse
     {
