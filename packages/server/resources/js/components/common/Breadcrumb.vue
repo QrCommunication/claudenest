@@ -1,7 +1,7 @@
 <template>
   <nav
     aria-label="Breadcrumb"
-    class="mb-4"
+    class=""
   >
     <ol class="flex items-center gap-1 text-sm">
       <!-- Home link (always first) -->

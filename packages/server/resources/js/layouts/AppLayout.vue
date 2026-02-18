@@ -124,9 +124,6 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
-.breadcrumb-bar :deep(nav) {
-  margin-bottom: 0;
-}
 
 .app-content {
   overflow-y: auto;
