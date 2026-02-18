@@ -101,57 +101,57 @@
         :columns="columns"
         :is-loading="store.isLoading"
       >
-        <template #row="{ row }">
+        <template #row="{ row: rawRow }">
           <td class="px-6 py-4 whitespace-nowrap">
             <div class="flex items-center">
               <div
                 class="w-10 h-10 rounded-lg flex items-center justify-center mr-3"
-                :class="platformBg(row.platform)"
+                :class="platformBg((rawRow as Machine).platform)"
               >
                 <component
-                  :is="platformIcon(row.platform)"
+                  :is="platformIcon((rawRow as Machine).platform)"
                   class="w-5 h-5"
-                  :class="platformColor(row.platform)"
+                  :class="platformColor((rawRow as Machine).platform)"
                 />
               </div>
               <div>
-                <p class="text-sm font-medium text-white">{{ row.display_name || row.name }}</p>
-                <p class="text-xs text-dark-4">{{ row.id }}</p>
+                <p class="text-sm font-medium text-white">{{ (rawRow as Machine).display_name || (rawRow as Machine).name }}</p>
+                <p class="text-xs text-dark-4">{{ (rawRow as Machine).id }}</p>
               </div>
             </div>
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-dark-4">
-            {{ row.hostname || '-' }}
+            {{ (rawRow as Machine).hostname || '-' }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-dark-4 capitalize">
-            {{ row.platform }}
+            {{ (rawRow as Machine).platform }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap">
             <Badge
-              :variant="row.status === 'online' ? 'success' : 'error'"
+              :variant="(rawRow as Machine).status === 'online' ? 'success' : 'error'"
               size="sm"
               dot
             >
-              {{ row.status }}
+              {{ (rawRow as Machine).status }}
             </Badge>
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-dark-4">
-            {{ row.last_seen_human || formatTime(row.last_seen_at) }}
+            {{ (rawRow as Machine).last_seen_human || formatTime((rawRow as Machine).last_seen_at) }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
             <div class="flex items-center justify-end gap-2">
               <Button
                 variant="ghost"
                 size="sm"
-                :disabled="!row.is_online"
-                @click="connect(row)"
+                :disabled="!(rawRow as Machine).is_online"
+                @click="connect(rawRow as Machine)"
               >
                 Connect
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
-                @click="openEditModal(row)"
+                @click="openEditModal(rawRow as Machine)"
               >
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -161,7 +161,7 @@
                 variant="ghost"
                 size="sm"
                 :loading="store.isDeleting"
-                @click="handleDelete(row)"
+                @click="handleDelete(rawRow as Machine)"
               >
                 <svg class="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -318,7 +318,7 @@ const machineToDelete = ref<Machine | null>(null);
 
 // ==================== TABLE COLUMNS ====================
 
-const columns: TableColumn<Machine>[] = [
+const columns: TableColumn[] = [
   { key: 'name', label: 'Machine', sortable: true },
   { key: 'hostname', label: 'Hostname', sortable: true },
   { key: 'platform', label: 'Platform', sortable: true },

@@ -189,7 +189,7 @@ const route = useRoute();
 const router = useRouter();
 const skillsStore = useSkillsStore();
 const machinesStore = useMachinesStore();
-const { showToast } = useToast();
+const toast = useToast();
 
 const isEditing = computed(() => route.name === 'skills.edit');
 const showPreview = ref(true);
@@ -254,14 +254,14 @@ async function loadSkill(): Promise<void> {
       category: skill.category,
       author: '',
       path: skill.path,
-      content: skill.config?.content || '',
+      content: (skill.config?.content as string) || '',
     };
     
     if (skill.tags?.length) {
       tagsInput.value = skill.tags.join(', ');
     }
   } catch {
-    showToast('Failed to load skill', 'error');
+    toast.error('Failed to load skill');
     goBack();
   }
 }
@@ -277,12 +277,12 @@ function togglePreview(): void {
 
 async function saveSkill(): Promise<void> {
   if (!currentMachineId.value) {
-    showToast('No machine selected', 'error');
+    toast.error('No machine selected');
     return;
   }
 
   if (!skillForm.value.name || !skillForm.value.path) {
-    showToast('Name and path are required', 'error');
+    toast.error('Name and path are required');
     return;
   }
 
@@ -305,7 +305,7 @@ async function saveSkill(): Promise<void> {
           },
         }
       );
-      showToast('Skill updated successfully', 'success');
+      toast.success('Skill updated successfully');
     } else {
       await skillsStore.createSkill(currentMachineId.value, {
         name: skillForm.value.name,
@@ -318,12 +318,12 @@ async function saveSkill(): Promise<void> {
         tags: parsedTags.value,
         examples: [],
       });
-      showToast('Skill created successfully', 'success');
+      toast.success('Skill created successfully');
     }
     
     goBack();
   } catch {
-    showToast(isEditing.value ? 'Failed to update skill' : 'Failed to create skill', 'error');
+    toast.error(isEditing.value ? 'Failed to update skill' : 'Failed to create skill');
   } finally {
     isSaving.value = false;
   }
@@ -338,11 +338,11 @@ async function deleteSkill(): Promise<void> {
   
   try {
     await skillsStore.deleteSkill(currentMachineId.value, skillForm.value.path);
-    showToast('Skill deleted successfully', 'success');
+    toast.success('Skill deleted successfully');
     showDeleteModal.value = false;
     goBack();
   } catch {
-    showToast('Failed to delete skill', 'error');
+    toast.error('Failed to delete skill');
   }
 }
 

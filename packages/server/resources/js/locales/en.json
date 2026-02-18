@@ -215,7 +215,15 @@
       "failed_start": "Failed to start session",
       "failed_load_machines": "Failed to load machines",
       "failed_load_machines_desc": "Could not fetch the list of available machines.",
-      "expired_credentials_warning": "{count} credential(s) expired — refresh them in Settings."
+      "expired_credentials_warning": "{count} credential(s) expired — refresh them in Settings.",
+      "browse_files": "Browse files",
+      "selected_path": "Selected path",
+      "loading_tree": "Loading file tree...",
+      "manual_input": "Manual input",
+      "browse_error": "Failed to load directory",
+      "machine_timeout": "Machine did not respond",
+      "empty_directory": "Empty directory",
+      "or_browse": "or browse remote files"
     }
   },
   "projects": {

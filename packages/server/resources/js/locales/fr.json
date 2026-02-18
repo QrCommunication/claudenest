@@ -215,7 +215,15 @@
       "failed_start": "Echec du demarrage de la session",
       "failed_load_machines": "Echec du chargement des machines",
       "failed_load_machines_desc": "Impossible de recuperer la liste des machines disponibles.",
-      "expired_credentials_warning": "{count} identifiant(s) expire(s) — rafraichissez-les dans les Parametres."
+      "expired_credentials_warning": "{count} identifiant(s) expire(s) — rafraichissez-les dans les Parametres.",
+      "browse_files": "Parcourir les fichiers",
+      "selected_path": "Chemin selectionne",
+      "loading_tree": "Chargement de l'arborescence...",
+      "manual_input": "Saisie manuelle",
+      "browse_error": "Erreur lors du chargement",
+      "machine_timeout": "La machine n'a pas repondu",
+      "empty_directory": "Dossier vide",
+      "or_browse": "ou parcourir les fichiers distants"
     }
   },
   "projects": {

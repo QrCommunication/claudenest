@@ -90,7 +90,7 @@
 
     <!-- Tool Tester Modal -->
     <ToolTester
-      :model-value="showTester"
+      :show="showTester"
       :tool="selectedTool"
       :is-executing="mcpStore.isExecuting"
       :result="executionResult"
@@ -121,7 +121,7 @@ import type { MCPToolWithServer } from '@/types';
 
 const mcpStore = useMCPStore();
 const machinesStore = useMachinesStore();
-const { showToast } = useToast();
+const { success: toastSuccess, error: toastError } = useToast();
 
 const searchQuery = ref('');
 const selectedServer = ref<string | null>(null);
@@ -165,13 +165,13 @@ async function loadTools(): Promise<void> {
       mcpStore.fetchAllTools(currentMachineId.value),
     ]);
   } catch {
-    showToast('Failed to load tools', 'error');
+    toastError('Failed to load tools');
   }
 }
 
 async function refreshTools(): Promise<void> {
   await loadTools();
-  showToast('Tools refreshed', 'success');
+  toastSuccess('Tools refreshed');
 }
 
 function openToolTester(tool: MCPToolWithServer): void {
@@ -204,10 +204,10 @@ async function executeTool(params: Record<string, unknown>): Promise<void> {
       }
     );
     executionResult.value = result;
-    showToast('Tool executed successfully', 'success');
+    toastSuccess('Tool executed successfully');
   } catch (err) {
     executionError.value = 'Failed to execute tool';
-    showToast('Failed to execute tool', 'error');
+    toastError('Failed to execute tool');
   }
 }
 </script>

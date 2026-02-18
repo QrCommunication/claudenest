@@ -23,7 +23,11 @@
       <EndpointCard
         v-for="(endpoint, index) in category.endpoints"
         :key="index"
-        :endpoint="endpoint"
+        :method="endpoint.method"
+        :path="endpoint.path"
+        :description="endpoint.description"
+        :params="endpoint.params"
+        :responses="endpoint.response ? [{ status: 200, description: 'Success', body: endpoint.response }] : undefined"
       />
     </div>
 

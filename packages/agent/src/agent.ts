@@ -13,6 +13,7 @@ import {
   createSessionHandlers,
   createConfigHandlers,
   createContextHandlers,
+  createFileHandlers,
 } from './handlers/index.js';
 import type { 
   AgentConfig, 
@@ -320,6 +321,12 @@ export class ClaudeNestAgent extends EventEmitter {
       instanceId: this.machineId,
     });
 
+    // File handlers
+    const fileHandlers = createFileHandlers({
+      wsClient: this.wsClient,
+      logger: this.logger,
+    });
+
     // Register all handlers
     for (const [type, handler] of Object.entries(sessionHandlers)) {
       this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
@@ -328,6 +335,9 @@ export class ClaudeNestAgent extends EventEmitter {
       this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
     }
     for (const [type, handler] of Object.entries(contextHandlers)) {
+      this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
+    }
+    for (const [type, handler] of Object.entries(fileHandlers)) {
       this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
     }
 

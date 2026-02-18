@@ -241,7 +241,7 @@ import { storeToRefs } from 'pinia';
 import { useMachinesStore } from '@/stores/machines';
 import MachineCard from '@/components/machines/MachineCard.vue';
 import MachineForm from '@/components/machines/MachineForm.vue';
-import type { Machine, CreateMachineForm, UpdateMachineForm } from '@/types';
+import type { Machine, MachineStatus, CreateMachineForm, UpdateMachineForm } from '@/types';
 
 const router = useRouter();
 const machinesStore = useMachinesStore();
@@ -283,7 +283,7 @@ function handleSearch() {
   machinesStore.fetchMachines();
 }
 
-function setStatusFilter(status: typeof filters.value.status) {
+function setStatusFilter(status: MachineStatus | 'all') {
   machinesStore.setFilters({ status });
   machinesStore.fetchMachines();
 }

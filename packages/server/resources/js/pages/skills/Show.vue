@@ -186,7 +186,7 @@ const route = useRoute();
 const router = useRouter();
 const skillsStore = useSkillsStore();
 const machinesStore = useMachinesStore();
-const { showToast } = useToast();
+const toast = useToast();
 
 const configJson = ref('');
 const configError = ref('');
@@ -218,7 +218,7 @@ async function loadSkill(): Promise<void> {
       configJson.value = JSON.stringify(skill.value.config, null, 2);
     }
   } catch {
-    showToast('Failed to load skill', 'error');
+    toast.error('Failed to load skill');
   }
 }
 
@@ -227,9 +227,9 @@ async function toggleSkill(): Promise<void> {
   
   try {
     await skillsStore.toggleSkill(currentMachineId.value, skill.value.path);
-    showToast(`Skill ${skill.value.enabled ? 'disabled' : 'enabled'}`, 'success');
+    toast.success(`Skill ${skill.value.enabled ? 'disabled' : 'enabled'}`);
   } catch {
-    showToast('Failed to toggle skill', 'error');
+    toast.error('Failed to toggle skill');
   }
 }
 
@@ -239,13 +239,13 @@ async function saveConfig(): Promise<void> {
   try {
     const config = JSON.parse(configJson.value);
     await skillsStore.updateSkill(currentMachineId.value, skill.value.path, { config });
-    showToast('Configuration saved', 'success');
+    toast.success('Configuration saved');
     configError.value = '';
   } catch (e) {
     if (e instanceof SyntaxError) {
       configError.value = 'Invalid JSON: ' + e.message;
     } else {
-      showToast('Failed to save configuration', 'error');
+      toast.error('Failed to save configuration');
     }
   }
 }

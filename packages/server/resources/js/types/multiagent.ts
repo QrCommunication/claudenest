@@ -190,7 +190,7 @@ export interface CreateLockForm {
 
 // ==================== CLAUDE INSTANCE TYPES ====================
 
-export type InstanceStatus = 'active' | 'idle' | 'busy' | 'disconnected';
+export type InstanceStatus = 'active' | 'idle' | 'busy' | 'disconnected' | 'unknown';
 
 export interface ClaudeInstance {
   id: string;

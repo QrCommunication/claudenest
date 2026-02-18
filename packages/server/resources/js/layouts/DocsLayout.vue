@@ -53,13 +53,13 @@
           
           <!-- Prev/Next Navigation -->
           <nav v-if="prevNext.prev || prevNext.next" class="page-nav">
-            <router-link v-if="prevNext.prev" :to="prevNext.prev.path" class="page-nav-item prev">
+            <router-link v-if="prevNext.prev && prevNext.prev.path" :to="prevNext.prev.path" class="page-nav-item prev">
               <span class="label">← Previous</span>
               <span class="title">{{ prevNext.prev.title }}</span>
             </router-link>
             <div v-else class="page-nav-item"></div>
-            
-            <router-link v-if="prevNext.next" :to="prevNext.next.path" class="page-nav-item next">
+
+            <router-link v-if="prevNext.next && prevNext.next.path" :to="prevNext.next.path" class="page-nav-item next">
               <span class="label">Next →</span>
               <span class="title">{{ prevNext.next.title }}</span>
             </router-link>

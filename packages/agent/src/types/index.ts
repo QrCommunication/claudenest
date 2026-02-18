@@ -164,6 +164,7 @@ export type IncomingMessageType =
   | 'task:complete'
   | 'file:lock'
   | 'file:unlock'
+  | 'file:browse'
   | 'ping';
 
 // Messages sortants (agent → serveur)
@@ -178,8 +179,35 @@ export type OutgoingMessageType =
   | 'context:sync'
   | 'task:update'
   | 'file:lock_update'
+  | 'file:browse_result'
   | 'pong'
   | 'error';
+
+// ============================================
+// File Browser
+// ============================================
+
+export interface FileBrowseRequest {
+  requestId: string;
+  path?: string;
+  dirsOnly?: boolean;
+  showHidden?: boolean;
+}
+
+export interface FileBrowseEntry {
+  name: string;
+  type: 'directory' | 'file';
+  size?: number;
+  modifiedAt?: string;
+}
+
+export interface FileBrowseResult {
+  requestId: string;
+  path: string;
+  homePath: string;
+  entries: FileBrowseEntry[];
+  error?: string;
+}
 
 // ============================================
 // Skills & MCP

@@ -120,7 +120,7 @@ const emit = defineEmits<{
   'load-more': [];
 }>();
 
-const selectedFilter = ref<ActivityType | ''>('');
+const selectedFilter = ref<string>('');
 const expandedActivities = ref<Set<string>>(new Set());
 const feedContainer = ref<HTMLElement | null>(null);
 

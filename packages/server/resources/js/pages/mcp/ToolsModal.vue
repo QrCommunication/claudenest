@@ -69,7 +69,7 @@
 
   <!-- Tool Tester Modal -->
   <ToolTester
-    :model-value="showTester"
+    :show="showTester"
     :tool="selectedTool"
     :is-executing="isExecuting"
     :result="executionResult"
@@ -112,7 +112,7 @@ const emit = defineEmits<{
 
 const mcpStore = useMCPStore();
 const machinesStore = useMachinesStore();
-const { showToast } = useToast();
+const { success: toastSuccess, error: toastError } = useToast();
 
 const searchQuery = ref('');
 const showTester = ref(false);
@@ -182,10 +182,10 @@ async function executeTool(params: Record<string, unknown>): Promise<void> {
       }
     );
     executionResult.value = result;
-    showToast('Tool executed successfully', 'success');
+    toastSuccess('Tool executed successfully');
   } catch (err) {
     executionError.value = err instanceof Error ? err.message : 'Failed to execute tool';
-    showToast('Failed to execute tool', 'error');
+    toastError('Failed to execute tool');
   } finally {
     isExecuting.value = false;
   }

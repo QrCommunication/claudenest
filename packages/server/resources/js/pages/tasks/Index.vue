@@ -385,10 +385,8 @@ const availableInstances = computed(() =>
 );
 
 // Lifecycle
-onMounted(async () => {
-  if (projectsStore.projects.length === 0) {
-    await projectsStore.fetchMachines?.();
-  }
+onMounted(() => {
+  // Projects are loaded when the user selects a machine via onProjectChange
 });
 
 // Methods

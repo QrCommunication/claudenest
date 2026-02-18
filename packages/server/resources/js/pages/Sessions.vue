@@ -24,7 +24,7 @@
       >
         <div class="absolute top-4 right-4">
           <Badge
-            :variant="session.status === 'active' ? 'success' : 'default'"
+            :variant="session.status === 'running' ? 'success' : 'default'"
             size="sm"
             dot
           >
@@ -40,7 +40,7 @@
           </div>
           <div class="flex-1 min-w-0">
             <h3 class="text-lg font-semibold text-white truncate">Session #{{ session.id }}</h3>
-            <p class="text-sm text-dark-4 mt-0.5">{{ getMachineName(session.machine_id) }}</p>
+            <p class="text-sm text-dark-4 mt-0.5">{{ getMachineName(session.machine_id ?? '') }}</p>
             
             <div class="flex items-center gap-4 mt-3 text-xs text-dark-4">
               <span class="flex items-center gap-1">
@@ -61,7 +61,7 @@
 
         <div class="flex items-center gap-2 mt-4 pt-4 border-t border-dark-4">
           <Button
-            v-if="session.status === 'active'"
+            v-if="session.status === 'running'"
             variant="primary"
             size="sm"
             class="flex-1"
@@ -77,7 +77,7 @@
             Details
           </Button>
           <Button
-            v-if="session.status === 'active'"
+            v-if="session.status === 'running'"
             variant="ghost"
             size="sm"
             class="text-red-400 hover:text-red-300"
@@ -151,31 +151,32 @@ const toast = useToast();
 const showNewSessionModal = ref(false);
 const isStarting = ref(false);
 
-const machines = ref<Machine[]>([
-  { id: 'm1', name: 'MacBook Pro', status: 'online', platform: 'darwin', hostname: 'macbook.local', last_seen_at: new Date().toISOString() },
-  { id: 'm2', name: 'Ubuntu Server', status: 'online', platform: 'linux', hostname: 'ubuntu.local', last_seen_at: new Date().toISOString() },
-  { id: 'm3', name: 'Windows PC', status: 'offline', platform: 'win32', hostname: 'windows.local', last_seen_at: new Date().toISOString() },
+const machines = ref<Partial<Machine>[]>([
+  { id: 'm1', name: 'MacBook Pro', display_name: 'MacBook Pro', status: 'online', platform: 'darwin', hostname: 'macbook.local', last_seen_at: new Date().toISOString() },
+  { id: 'm2', name: 'Ubuntu Server', display_name: 'Ubuntu Server', status: 'online', platform: 'linux', hostname: 'ubuntu.local', last_seen_at: new Date().toISOString() },
+  { id: 'm3', name: 'Windows PC', display_name: 'Windows PC', status: 'offline', platform: 'win32', hostname: 'windows.local', last_seen_at: new Date().toISOString() },
 ]);
 
-const sessions = ref<Session[]>([
+// Mock sessions for demo — using Partial to avoid requiring all Session fields
+const sessions = ref<Partial<Session>[]>([
   {
     id: 's1',
     machine_id: 'm1',
-    status: 'active',
+    status: 'running',
     started_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
     command_count: 24,
   },
   {
     id: 's2',
     machine_id: 'm2',
-    status: 'active',
+    status: 'running',
     started_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
     command_count: 156,
   },
   {
     id: 's3',
     machine_id: 'm1',
-    status: 'closed',
+    status: 'terminated',
     started_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
     ended_at: new Date(Date.now() - 1000 * 60 * 60 * 20).toISOString(),
     command_count: 42,
@@ -189,15 +190,15 @@ const newSession = ref({
 const machineOptions = computed(() =>
   machines.value
     .filter(m => m.status === 'online')
-    .map(m => ({ value: m.id, label: m.name }))
+    .map(m => ({ value: m.id ?? '', label: m.name ?? '' }))
 );
 
 const getMachineName = (machineId: string) => {
   return machines.value.find(m => m.id === machineId)?.name || 'Unknown Machine';
 };
 
-const formatDuration = (session: Session) => {
-  const start = new Date(session.started_at);
+const formatDuration = (session: Partial<Session>) => {
+  const start = new Date(session.started_at ?? '');
   const end = session.ended_at ? new Date(session.ended_at) : new Date();
   const diff = end.getTime() - start.getTime();
   
@@ -210,17 +211,17 @@ const formatDuration = (session: Session) => {
   return `${minutes}m`;
 };
 
-const openSession = (session: Session) => {
+const openSession = (session: Partial<Session>) => {
   toast.success('Opening Session', `Connecting to session #${session.id}...`);
 };
 
-const viewDetails = (session: Session) => {
+const viewDetails = (session: Partial<Session>) => {
   toast.info('Session Details', `Viewing details for session #${session.id}`);
 };
 
-const endSession = (session: Session) => {
+const endSession = (session: Partial<Session>) => {
   if (confirm('Are you sure you want to end this session?')) {
-    session.status = 'closed';
+    session.status = 'terminated';
     session.ended_at = new Date().toISOString();
     toast.success('Session Ended', `Session #${session.id} has been ended`);
   }
@@ -228,12 +229,12 @@ const endSession = (session: Session) => {
 
 const startSession = () => {
   isStarting.value = true;
-  
+
   setTimeout(() => {
-    const session: Session = {
+    const session: Partial<Session> = {
       id: `s${Date.now()}`,
       machine_id: newSession.value.machine_id,
-      status: 'active',
+      status: 'running',
       started_at: new Date().toISOString(),
       command_count: 0,
     };

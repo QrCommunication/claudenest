@@ -114,7 +114,7 @@ import {
   FolderIcon,
   CheckCircleIcon,
   SparklesIcon,
-  PlugIcon,
+  WrenchScrewdriverIcon,
   Squares2X2Icon,
   Cog6ToothIcon,
 } from '@heroicons/vue/24/outline';
@@ -141,7 +141,7 @@ const iconMap = {
   FolderIcon,
   CheckCircleIcon,
   SparklesIcon,
-  PlugIcon,
+  WrenchScrewdriverIcon,
   Squares2X2Icon,
   Cog6ToothIcon,
 };
@@ -153,7 +153,7 @@ const navItemsConfig: Array<NavItem & { iconName: keyof typeof iconMap }> = [
   { name: 'Projects', path: '/projects', icon: 'folder', iconName: 'FolderIcon' },
   { name: 'Tasks', path: '/tasks', icon: 'checklist', iconName: 'CheckCircleIcon' },
   { name: 'Skills', path: '/skills', icon: 'sparkles', iconName: 'SparklesIcon' },
-  { name: 'MCP', path: '/mcp', icon: 'plug', iconName: 'PlugIcon' },
+  { name: 'MCP', path: '/mcp', icon: 'wrench', iconName: 'WrenchScrewdriverIcon' },
   { name: 'Commands', path: '/commands', icon: 'command', iconName: 'Squares2X2Icon' },
   { name: 'Settings', path: '/settings', icon: 'gear', iconName: 'Cog6ToothIcon' },
 ];

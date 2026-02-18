@@ -142,11 +142,11 @@
         <SkillPreview
           :name="previewingSkill.name"
           :display-name="previewingSkill.display_name"
-          :description="previewingSkill.description"
+          :description="previewingSkill.description ?? undefined"
           :version="previewingSkill.version"
           :category="previewingSkill.category"
           :tags="previewingSkill.tags"
-          :content="previewingSkill.config?.content || ''"
+          :content="(previewingSkill.config?.content as string) || ''"
         />
       </div>
       
@@ -228,7 +228,7 @@ import type { Skill } from '@/types';
 const router = useRouter();
 const skillsStore = useSkillsStore();
 const machinesStore = useMachinesStore();
-const { showToast } = useToast();
+const toast = useToast();
 
 const searchQuery = ref('');
 const selectedCategory = ref('');
@@ -300,13 +300,13 @@ async function loadSkills(): Promise<void> {
   try {
     await skillsStore.fetchSkills(currentMachineId.value);
   } catch {
-    showToast('Failed to load skills', 'error');
+    toast.error('Failed to load skills');
   }
 }
 
 async function refreshSkills(): Promise<void> {
   await loadSkills();
-  showToast('Skills refreshed', 'success');
+  toast.success('Skills refreshed');
 }
 
 function createSkill(): void {
@@ -327,9 +327,9 @@ async function toggleSkill(skill: Skill): Promise<void> {
   
   try {
     await skillsStore.toggleSkill(currentMachineId.value, skill.path);
-    showToast(`Skill ${skill.enabled ? 'disabled' : 'enabled'}`, 'success');
+    toast.success(`Skill ${skill.enabled ? 'disabled' : 'enabled'}`);
   } catch {
-    showToast('Failed to toggle skill', 'error');
+    toast.error('Failed to toggle skill');
   }
 }
 
@@ -345,10 +345,10 @@ async function deleteSkill(): Promise<void> {
   
   try {
     await skillsStore.deleteSkill(currentMachineId.value, skillToDelete.value.path);
-    showToast('Skill deleted successfully', 'success');
+    toast.success('Skill deleted successfully');
     showDeleteModal.value = false;
   } catch {
-    showToast('Failed to delete skill', 'error');
+    toast.error('Failed to delete skill');
   } finally {
     isDeleting.value = null;
     skillToDelete.value = null;

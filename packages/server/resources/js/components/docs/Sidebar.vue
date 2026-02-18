@@ -80,9 +80,9 @@
           <router-link
             v-for="item in section.items"
             :key="item.id"
-            :to="item.path"
+            :to="item.path ?? '/docs'"
             class="nav-link"
-            :class="{ 'is-active': isActive(item.path) }"
+            :class="{ 'is-active': isActive(item.path ?? '') }"
           >
             <span class="nav-link-title">{{ item.title }}</span>
             <span v-if="item.description" class="nav-link-desc">{{ item.description }}</span>

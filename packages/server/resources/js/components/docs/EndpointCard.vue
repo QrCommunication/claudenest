@@ -4,21 +4,15 @@
     <div class="endpoint-header">
       <div class="endpoint-meta">
         <span class="method-badge" :style="{ backgroundColor: methodColor }">
-          {{ endpoint.method }}
+          {{ method }}
         </span>
-        <code class="endpoint-path">{{ endpoint.path }}</code>
+        <code class="endpoint-path">{{ path }}</code>
       </div>
-      <p class="endpoint-description">{{ endpoint.description }}</p>
+      <p class="endpoint-description">{{ description }}</p>
     </div>
 
-    <!-- Try It Button -->
+    <!-- Actions -->
     <div class="endpoint-actions">
-      <button class="try-it-btn" @click="showTryIt = !showTryIt">
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M8 5v14l11-7z"/>
-        </svg>
-        {{ showTryIt ? 'Hide' : 'Try It' }}
-      </button>
       <button class="copy-btn" @click="copyEndpoint">
         <svg v-if="!copied" viewBox="0 0 24 24" fill="currentColor">
           <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
@@ -30,16 +24,9 @@
       </button>
     </div>
 
-    <!-- Try It Panel -->
-    <ApiTryIt
-      v-if="showTryIt"
-      :endpoint="endpoint"
-      class="try-it-panel"
-    />
-
     <!-- Parameters -->
-    <div v-if="endpoint.params?.length" class="endpoint-section">
-      <h4 class="section-title">Path Parameters</h4>
+    <div v-if="params?.length" class="endpoint-section">
+      <h4 class="section-title">Parameters</h4>
       <table class="params-table">
         <thead>
           <tr>
@@ -50,7 +37,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="param in endpoint.params" :key="param.name">
+          <tr v-for="param in params" :key="param.name">
             <td><code>{{ param.name }}</code></td>
             <td><span class="type-badge">{{ param.type }}</span></td>
             <td>
@@ -64,61 +51,24 @@
       </table>
     </div>
 
-    <!-- Query Parameters -->
-    <div v-if="endpoint.query?.length" class="endpoint-section">
-      <h4 class="section-title">Query Parameters</h4>
-      <table class="params-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Required</th>
-            <th>Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="param in endpoint.query" :key="param.name">
-            <td><code>{{ param.name }}</code></td>
-            <td><span class="type-badge">{{ param.type }}</span></td>
-            <td>
-              <span class="required-badge" :class="{ required: param.required }">
-                {{ param.required ? 'Yes' : 'No' }}
-              </span>
-            </td>
-            <td>{{ param.description }}</td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- Code Examples -->
+    <div v-if="codeExamples.length" class="endpoint-section">
+      <h4 class="section-title">Examples</h4>
+      <CodeTabs :tabs="codeExamples" />
     </div>
 
-    <!-- Request Body -->
-    <div v-if="endpoint.body" class="endpoint-section">
-      <h4 class="section-title">Request Body</h4>
-      <CodeBlock 
-        :code="endpoint.body" 
-        language="json"
-        :filename="'Request'"
-      />
-    </div>
-
-    <!-- Response -->
-    <div v-if="endpoint.response" class="endpoint-section">
-      <h4 class="section-title">Response</h4>
-      <CodeBlock 
-        :code="endpoint.response" 
-        language="json"
-        :filename="'Response'"
-      />
-    </div>
-
-    <!-- Errors -->
-    <div v-if="endpoint.errors?.length" class="endpoint-section">
-      <h4 class="section-title">Possible Errors</h4>
-      <ul class="error-list">
-        <li v-for="error in endpoint.errors" :key="error">
-          <code>{{ error }}</code>
-        </li>
-      </ul>
+    <!-- Responses -->
+    <div v-if="responses?.length" class="endpoint-section">
+      <h4 class="section-title">Responses</h4>
+      <div v-for="(resp, i) in responses" :key="i" class="response-block">
+        <div class="response-header">
+          <span class="http-status" :class="String(resp.status).startsWith('2') ? 'status-ok' : 'status-err'">
+            {{ resp.status }}
+          </span>
+          <span v-if="resp.description" class="response-desc">{{ resp.description }}</span>
+        </div>
+        <CodeBlock :code="resp.body" language="json" />
+      </div>
     </div>
   </div>
 </template>
@@ -126,24 +76,41 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useDocs } from '@/composables/useDocs';
-import type { ApiEndpoint } from '@/data/api-endpoints';
 import CodeBlock from './CodeBlock.vue';
-import ApiTryIt from './ApiTryIt.vue';
+import CodeTabs from './CodeTabs.vue';
+
+interface Param {
+  name: string;
+  type: string;
+  required?: boolean;
+  description: string;
+}
+
+interface ResponseExample {
+  status: number | string;
+  description?: string;
+  body: string;
+}
 
 const props = defineProps<{
-  endpoint: ApiEndpoint;
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  path: string;
+  description: string;
+  params?: Param[];
+  curlExample?: string;
+  jsExample?: string;
+  phpExample?: string;
+  responses?: ResponseExample[];
 }>();
 
 const { getMethodColor, copyToClipboard } = useDocs();
 
-const showTryIt = ref(false);
 const copied = ref(false);
 
-const methodColor = computed(() => getMethodColor(props.endpoint.method));
+const methodColor = computed(() => getMethodColor(props.method));
 
 const endpointId = computed(() => {
-  // Create a URL-friendly ID from the path
-  return props.endpoint.path
+  return props.path
     .replace(/[^a-zA-Z0-9]/g, '-')
     .replace(/-+/g, '-')
     .replace(/^-|-$/g, '')
@@ -151,7 +118,7 @@ const endpointId = computed(() => {
 });
 
 const copyEndpoint = async () => {
-  const text = `${props.endpoint.method} ${props.endpoint.path}`;
+  const text = `${props.method} ${props.path}`;
   const success = await copyToClipboard(text);
   if (success) {
     copied.value = true;
@@ -160,6 +127,14 @@ const copyEndpoint = async () => {
     }, 2000);
   }
 };
+
+const codeExamples = computed(() => {
+  const tabs: Array<{ label: string; language: string; code: string }> = [];
+  if (props.curlExample) tabs.push({ label: 'cURL', language: 'bash', code: props.curlExample });
+  if (props.jsExample) tabs.push({ label: 'JavaScript', language: 'javascript', code: props.jsExample });
+  if (props.phpExample) tabs.push({ label: 'PHP', language: 'php', code: props.phpExample });
+  return tabs;
+});
 </script>
 
 <style scoped>
@@ -215,7 +190,6 @@ const copyEndpoint = async () => {
   border-bottom: 1px solid color-mix(in srgb, var(--text-primary) 8%, transparent);
 }
 
-.try-it-btn,
 .copy-btn {
   display: flex;
   align-items: center;
@@ -230,31 +204,15 @@ const copyEndpoint = async () => {
   transition: all 0.2s;
 }
 
-.try-it-btn:hover,
 .copy-btn:hover {
   background: color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
   border-color: color-mix(in srgb, var(--accent-purple, #a855f7) 30%, transparent);
   color: var(--text-primary);
 }
 
-.try-it-btn svg,
 .copy-btn svg {
   width: 16px;
   height: 16px;
-}
-
-.try-it-btn {
-  background: color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
-  border-color: color-mix(in srgb, var(--accent-purple, #a855f7) 30%, transparent);
-  color: var(--accent-purple, #a855f7);
-}
-
-.try-it-btn:hover {
-  background: color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
-}
-
-.try-it-panel {
-  border-bottom: 1px solid color-mix(in srgb, var(--text-primary) 8%, transparent);
 }
 
 .endpoint-section {
@@ -328,25 +286,42 @@ const copyEndpoint = async () => {
   color: var(--status-error, #ef4444);
 }
 
-/* Error List */
-.error-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.response-block {
+  margin-bottom: 1rem;
 }
 
-.error-list li {
-  padding: 0.5rem 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--text-primary) 5%, transparent);
+.response-block:last-child {
+  margin-bottom: 0;
 }
 
-.error-list li:last-child {
-  border-bottom: none;
+.response-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
-.error-list code {
+.http-status {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
   font-family: 'JetBrains Mono', monospace;
+}
+
+.status-ok {
+  background: color-mix(in srgb, #22c55e 10%, transparent);
+  color: #22c55e;
+}
+
+.status-err {
+  background: color-mix(in srgb, var(--status-error, #ef4444) 10%, transparent);
+  color: var(--status-error, #ef4444);
+}
+
+.response-desc {
   font-size: 0.85rem;
-  color: var(--status-error-light, #fca5a5);
+  color: var(--text-secondary);
 }
 </style>

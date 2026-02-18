@@ -1,5 +1,5 @@
 <template>
-  <Modal :show="show" @close="$emit('close')">
+  <Modal :model-value="show" @update:model-value="$emit('close')" @close="$emit('close')">
     <template #title>
       <div class="flex items-center gap-2">
         <WrenchIcon class="w-5 h-5 text-brand-purple" />
@@ -15,9 +15,9 @@
       <div v-if="hasParameters" class="space-y-3">
         <p class="text-sm font-medium text-white">Parameters</p>
         
-        <div 
-          v-for="(param, name) in parameters" 
-          :key="name"
+        <div
+          v-for="(param, name) in parameters"
+          :key="String(name)"
           class="space-y-1"
         >
           <label class="flex items-center gap-2 text-sm">
@@ -138,7 +138,9 @@ function isRequired(name: string): boolean {
   return requiredParams.value.includes(name);
 }
 
-function inputType(paramType: string): string {
+type InputType = 'text' | 'password' | 'email' | 'number' | 'tel' | 'url';
+
+function inputType(paramType: string): InputType {
   switch (paramType) {
     case 'number':
     case 'integer':

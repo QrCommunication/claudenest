@@ -71,6 +71,10 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::get('machines/{machine}/environment', [Api\MachineController::class, 'environment']);
     Route::post('machines/{machine}/wake', [Api\MachineController::class, 'wake']);
 
+    // ==================== FILE BROWSER ====================
+    Route::get('machines/{machine}/browse', [Api\FileBrowserController::class, 'browse'])
+        ->middleware('throttle:30,1');
+
     // ==================== SESSIONS ====================
     Route::get('machines/{machine}/sessions', [Api\SessionController::class, 'index']);
     Route::post('machines/{machine}/sessions', [Api\SessionController::class, 'store']);

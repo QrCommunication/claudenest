@@ -201,9 +201,9 @@ const sortedData = computed(() => {
   
   if (sortKey.value) {
     result.sort((a, b) => {
-      const aVal = getValue(a, sortKey.value);
-      const bVal = getValue(b, sortKey.value);
-      
+      const aVal = getValue(a, sortKey.value) as string | number | null;
+      const bVal = getValue(b, sortKey.value) as string | number | null;
+
       if (aVal < bVal) return sortOrder.value === 'asc' ? -1 : 1;
       if (aVal > bVal) return sortOrder.value === 'asc' ? 1 : -1;
       return 0;

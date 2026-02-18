@@ -56,6 +56,42 @@ class AgentGateway
     }
 
     /**
+     * Send a message and wait for the agent's response (request-response pattern).
+     *
+     * Uses a unique requestId injected into the payload. The agent responds
+     * on a Redis key `agent:response:{requestId}` which we blpop on.
+     *
+     * @return array|null  The response payload, or null on timeout.
+     */
+    public static function sendAndWait(string $machineId, string $type, array $payload = [], int $timeout = 5): ?array
+    {
+        $requestId = Str::uuid()->toString();
+        $payload['requestId'] = $requestId;
+
+        $responseKey = "agent:response:{$requestId}";
+
+        self::send($machineId, $type, $payload);
+
+        try {
+            $result = Redis::blpop($responseKey, $timeout);
+
+            if (!$result) {
+                return null;
+            }
+
+            // blpop returns [key, value]
+            $raw = is_array($result) ? ($result[1] ?? null) : $result;
+            if (!$raw) {
+                return null;
+            }
+
+            return json_decode($raw, true);
+        } finally {
+            Redis::del($responseKey);
+        }
+    }
+
+    /**
      * Get the Redis key for a machine's message queue.
      */
     public static function queueKey(string $machineId): string

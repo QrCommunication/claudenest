@@ -182,6 +182,7 @@
 import { ref, reactive } from 'vue';
 import { useCredentialsStore } from '@/stores/credentials';
 import { useToast } from '@/composables/useToast';
+import type { CreateCredentialForm } from '@/types';
 
 interface CredentialForm {
   name: string;
@@ -241,7 +242,7 @@ async function handleSubmit(): Promise<void> {
       }
     }
 
-    await store.createCredential(payload);
+    await store.createCredential(payload as unknown as CreateCredentialForm);
 
     emit('created');
   } catch (error: unknown) {

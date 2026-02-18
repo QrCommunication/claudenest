@@ -35,6 +35,7 @@ export interface Machine {
   updated_at: string;
   last_seen_human: string | null;
   created_at_human: string;
+  connected_at_human?: string | null;
 }
 
 export interface MachineEnvironment {
@@ -74,6 +75,8 @@ export interface Session {
   is_completed: boolean;
   command_count?: number;
   ended_at?: string;
+  machine?: Machine;
+  recent_logs?: SessionLog[];
 }
 
 export interface SessionLog {
@@ -276,6 +279,7 @@ export interface Credential {
   created_at: string;
   updated_at: string;
   sessions_count?: number;
+  api_key?: string;
 }
 
 export interface CreateCredentialForm {
@@ -380,12 +384,11 @@ export interface SelectOption {
 }
 
 // ==================== ACTIVITY TYPES ====================
-
-export type ActivityType = 'session_start' | 'session_end' | 'task_complete' | 'machine_connect' | 'machine_disconnect' | 'skill_run';
+// ActivityType and ActivityLog are defined in multiagent.ts and re-exported below
 
 export interface Activity {
   id: string;
-  type: ActivityType;
+  type: string;
   description: string;
   timestamp: string;
   metadata?: Record<string, unknown>;

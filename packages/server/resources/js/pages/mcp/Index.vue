@@ -241,7 +241,7 @@ import type { MCPServer, CreateMCPServerPayload } from '@/types';
 
 const mcpStore = useMCPStore();
 const machinesStore = useMachinesStore();
-const { showToast } = useToast();
+const { success: toastSuccess, error: toastError } = useToast();
 
 const showAddModal = ref(false);
 const showToolsModal = ref(false);
@@ -273,46 +273,46 @@ async function loadServers(): Promise<void> {
   try {
     await mcpStore.fetchServers(currentMachineId.value);
   } catch {
-    showToast('Failed to load MCP servers', 'error');
+    toastError('Failed to load MCP servers');
   }
 }
 
 async function refreshServers(): Promise<void> {
   await loadServers();
-  showToast('Servers refreshed', 'success');
+  toastSuccess('Servers refreshed');
 }
 
 async function addServer(data: CreateMCPServerPayload): Promise<void> {
   if (!currentMachineId.value) return;
-  
+
   try {
     await mcpStore.createServer(currentMachineId.value, data);
-    showToast('MCP server added', 'success');
+    toastSuccess('MCP server added');
     showAddModal.value = false;
   } catch {
-    showToast('Failed to add MCP server', 'error');
+    toastError('Failed to add MCP server');
   }
 }
 
 async function startServer(server: MCPServer): Promise<void> {
   if (!currentMachineId.value) return;
-  
+
   try {
     await mcpStore.startServer(currentMachineId.value, server.name);
-    showToast(`Server "${server.display_name}" started`, 'success');
+    toastSuccess(`Server "${server.display_name}" started`);
   } catch {
-    showToast('Failed to start server', 'error');
+    toastError('Failed to start server');
   }
 }
 
 async function stopServer(server: MCPServer): Promise<void> {
   if (!currentMachineId.value) return;
-  
+
   try {
     await mcpStore.stopServer(currentMachineId.value, server.name);
-    showToast(`Server "${server.display_name}" stopped`, 'success');
+    toastSuccess(`Server "${server.display_name}" stopped`);
   } catch {
-    showToast('Failed to stop server', 'error');
+    toastError('Failed to stop server');
   }
 }
 
@@ -330,7 +330,7 @@ function selectServer(server: MCPServer): void {
 function viewTools(server: MCPServer): void {
   selectedServerForTools.value = server;
   showToolsModal.value = true;
-  
+
   // Load tools for this server
   if (currentMachineId.value) {
     mcpStore.fetchServerTools(currentMachineId.value, server.name);
@@ -339,28 +339,28 @@ function viewTools(server: MCPServer): void {
 
 async function refreshServerTools(server: MCPServer): Promise<void> {
   if (!currentMachineId.value) return;
-  
+
   try {
     await mcpStore.fetchServerTools(currentMachineId.value, server.name);
-    showToast('Tools refreshed', 'success');
+    toastSuccess('Tools refreshed');
   } catch {
-    showToast('Failed to refresh tools', 'error');
+    toastError('Failed to refresh tools');
   }
 }
 
 async function deleteServer(server: MCPServer): Promise<void> {
   if (!currentMachineId.value) return;
-  
+
   if (!confirm(`Are you sure you want to delete "${server.display_name}"?`)) {
     return;
   }
-  
+
   try {
     await mcpStore.deleteServer(currentMachineId.value, server.name);
     selectedServer.value = null;
-    showToast('Server deleted', 'success');
+    toastSuccess('Server deleted');
   } catch {
-    showToast('Failed to delete server', 'error');
+    toastError('Failed to delete server');
   }
 }
 </script>

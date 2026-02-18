@@ -79,20 +79,20 @@
         :columns="columns"
         :is-loading="isLoading"
       >
-        <template #row="{ row }">
+        <template #row="{ row: rawRow }">
           <td class="px-6 py-4">
             <div class="flex items-center gap-3">
               <button
                 :class="[
                   'w-5 h-5 rounded border-2 flex items-center justify-center transition-colors',
-                  row.status === 'completed'
+                  (rawRow as Task).status === 'completed'
                     ? 'bg-green-500 border-green-500'
                     : 'border-dark-4 hover:border-brand-purple',
                 ]"
-                @click="toggleTask(row)"
+                @click="toggleTask(rawRow as Task)"
               >
                 <svg
-                  v-if="row.status === 'completed'"
+                  v-if="(rawRow as Task).status === 'completed'"
                   class="w-3 h-3 text-white"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -105,33 +105,33 @@
                 <p
                   :class="[
                     'text-sm font-medium',
-                    row.status === 'completed' ? 'text-dark-4 line-through' : 'text-white',
+                    (rawRow as Task).status === 'completed' ? 'text-dark-4 line-through' : 'text-white',
                   ]"
                 >
-                  {{ row.title }}
+                  {{ (rawRow as Task).title }}
                 </p>
-                <p class="text-xs text-dark-4">{{ row.description }}</p>
+                <p class="text-xs text-dark-4">{{ (rawRow as Task).description }}</p>
               </div>
             </div>
           </td>
           <td class="px-6 py-4 whitespace-nowrap">
-            <Badge :variant="priorityVariant(row.priority)" size="sm">
-              {{ row.priority }}
+            <Badge :variant="priorityVariant((rawRow as Task).priority)" size="sm">
+              {{ (rawRow as Task).priority }}
             </Badge>
           </td>
           <td class="px-6 py-4 whitespace-nowrap">
-            <Badge :variant="statusVariant(row.status)" size="sm" dot>
-              {{ formatStatus(row.status) }}
+            <Badge :variant="statusVariant((rawRow as Task).status)" size="sm" dot>
+              {{ formatStatus((rawRow as Task).status) }}
             </Badge>
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-dark-4">
-            {{ formatTime(row.created_at) }}
+            {{ formatTime((rawRow as Task).created_at) }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-right">
             <Button
               variant="ghost"
               size="sm"
-              @click="deleteTask(row)"
+              @click="deleteTask(rawRow as Task)"
             >
               <svg class="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -195,7 +195,18 @@ import Select from '@/components/common/Select.vue';
 import Badge from '@/components/common/Badge.vue';
 import Table from '@/components/common/Table.vue';
 import Modal from '@/components/common/Modal.vue';
-import type { Task, TableColumn } from '@/types';
+import type { TableColumn } from '@/types';
+
+// Local task type for this demo page (separate from multiagent SharedTask)
+interface Task {
+  id: string;
+  title: string;
+  description: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'failed';
+  priority: 'low' | 'medium' | 'high';
+  created_at: string;
+  updated_at: string;
+}
 
 const toast = useToast();
 
@@ -250,7 +261,7 @@ const newTask = ref({
   priority: 'medium',
 });
 
-const columns: TableColumn<Task>[] = [
+const columns: TableColumn[] = [
   { key: 'title', label: 'Task', sortable: true },
   { key: 'priority', label: 'Priority', sortable: true, width: '100px' },
   { key: 'status', label: 'Status', sortable: true, width: '120px' },
@@ -294,7 +305,7 @@ const priorityVariant = (priority: Task['priority']) => {
 };
 
 const statusVariant = (status: Task['status']) => {
-  const variants: Record<string, 'default' | 'success' | 'warning' | 'error'> = {
+  const variants: Record<string, 'default' | 'success' | 'warning' | 'error' | 'info'> = {
     pending: 'default',
     in_progress: 'info',
     completed: 'success',

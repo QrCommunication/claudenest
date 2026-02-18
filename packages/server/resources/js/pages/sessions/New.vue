@@ -70,12 +70,35 @@
         </div>
 
         <div class="form-group">
-          <label for="project_path">{{ $t('sessions.create.project_path_optional') }}</label>
-          <input
-            id="project_path"
-            v-model="projectPath"
-            type="text"
-            :placeholder="$t('sessions.create.project_path_placeholder')"
+          <div class="path-header">
+            <label>{{ $t('sessions.create.project_path_optional') }}</label>
+            <button
+              v-if="isSelectedMachineOnline"
+              class="toggle-input-btn"
+              @click="useManualInput = !useManualInput"
+            >
+              {{ useManualInput ? $t('sessions.create.browse_files') : $t('sessions.create.manual_input') }}
+            </button>
+          </div>
+
+          <!-- Manual text input -->
+          <div v-if="useManualInput || !isSelectedMachineOnline">
+            <input
+              id="project_path"
+              v-model="projectPath"
+              type="text"
+              :placeholder="$t('sessions.create.project_path_placeholder')"
+            />
+            <p v-if="isSelectedMachineOnline" class="field-hint">
+              {{ $t('sessions.create.or_browse') }}
+            </p>
+          </div>
+
+          <!-- Remote file tree -->
+          <RemoteFileTree
+            v-else-if="selectedMachineId && isSelectedMachineOnline"
+            :machine-id="selectedMachineId"
+            @select="onPathSelected"
           />
         </div>
 
@@ -138,6 +161,7 @@ import { useSessionsStore } from '@/stores/sessions';
 import { useMachinesStore } from '@/stores/machines';
 import { useCredentialsStore } from '@/stores/credentials';
 import { useToast } from '@/composables/useToast';
+import RemoteFileTree from '@/components/sessions/RemoteFileTree.vue';
 import type { SessionMode } from '@/types';
 
 const route = useRoute();
@@ -155,8 +179,15 @@ const selectedCredentialId = ref('');
 const isStarting = ref(false);
 const isFetchingMachines = ref(false);
 const selectedMachineId = ref('');
+const useManualInput = ref(false);
 
 const availableMachines = computed(() => machinesStore.machines);
+
+const isSelectedMachineOnline = computed(() => {
+  if (!selectedMachineId.value) return false;
+  const machine = availableMachines.value.find(m => m.id === selectedMachineId.value);
+  return machine?.status === 'online';
+});
 
 const noOnlineMachines = computed(() =>
   availableMachines.value.length > 0 &&
@@ -205,6 +236,10 @@ onMounted(async () => {
     isFetchingMachines.value = false;
   }
 });
+
+function onPathSelected(path: string): void {
+  projectPath.value = path;
+}
 
 async function startSession() {
   if (!canStart.value) return;
@@ -302,6 +337,22 @@ async function startSession() {
 
 .field-warning {
   @apply text-xs text-yellow-400 mt-1;
+}
+
+.field-hint {
+  @apply text-xs text-gray-500 mt-1;
+}
+
+.path-header {
+  @apply flex items-center justify-between mb-2;
+}
+
+.path-header label {
+  @apply mb-0;
+}
+
+.toggle-input-btn {
+  @apply text-xs text-brand-purple hover:text-brand-cyan transition-colors;
 }
 
 .mode-options {

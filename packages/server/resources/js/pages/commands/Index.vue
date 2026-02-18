@@ -266,7 +266,7 @@ import type { DiscoveredCommand, CommandCategory } from '@/types';
 
 const commandsStore = useCommandsStore();
 const machinesStore = useMachinesStore();
-const { showToast } = useToast();
+const toast = useToast();
 
 const searchQuery = ref('');
 const selectedCategory = ref('');
@@ -343,7 +343,7 @@ async function loadCommands(): Promise<void> {
   try {
     await commandsStore.fetchCommands(currentMachineId.value);
   } catch {
-    showToast('Failed to load commands', 'error');
+    toast.error('Failed to load commands');
   }
 }
 
@@ -357,10 +357,10 @@ async function executeCommand(): Promise<void> {
   
   try {
     await commandsStore.executeCommand(currentMachineId.value, selectedCommand.value.id);
-    showToast(`Command "${selectedCommand.value.name}" executed`, 'success');
+    toast.success(`Command "${selectedCommand.value.name}" executed`);
     showDetail.value = false;
   } catch {
-    showToast('Failed to execute command', 'error');
+    toast.error('Failed to execute command');
   }
 }
 
