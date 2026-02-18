@@ -290,9 +290,6 @@ main() {
   # ------------------------------------------
   step "Installing $PACKAGE_NAME..."
 
-  # Determine npm global bin directory
-  NPM_BIN_DIR="$(npm config get prefix)/bin"
-
   if command_exists claudenest-agent; then
     CURRENT_VERSION=$(claudenest-agent --version 2>/dev/null || echo "unknown")
     info "Upgrading from v${CURRENT_VERSION}..."
@@ -301,17 +298,70 @@ main() {
     npm install -g "$PACKAGE_NAME"
   fi
 
-  # Reset bash command cache so newly installed binary is found
-  hash -r 2>/dev/null
+  # Find the installed binary using multiple strategies
+  # (curl | bash context may not have hash table or PATH fully set up)
+  AGENT_BIN=""
 
-  # If claudenest-agent not in PATH, add npm global bin to PATH
-  if ! command_exists claudenest-agent; then
-    if [[ -x "${NPM_BIN_DIR}/claudenest-agent" ]]; then
+  # Strategy 1: Reset bash hash table and check PATH
+  hash -r 2>/dev/null
+  if command -v claudenest-agent >/dev/null 2>&1; then
+    AGENT_BIN="$(command -v claudenest-agent)"
+  fi
+
+  # Strategy 2: Check npm prefix bin directory
+  if [[ -z "$AGENT_BIN" ]]; then
+    NPM_PREFIX="$(npm config get prefix 2>/dev/null)"
+    if [[ -n "$NPM_PREFIX" && -x "${NPM_PREFIX}/bin/claudenest-agent" ]]; then
+      AGENT_BIN="${NPM_PREFIX}/bin/claudenest-agent"
+      info "Found binary at npm prefix: ${AGENT_BIN}"
+    fi
+  fi
+
+  # Strategy 3: Derive from npm global root
+  if [[ -z "$AGENT_BIN" ]]; then
+    NPM_ROOT="$(npm root -g 2>/dev/null)"
+    if [[ -n "$NPM_ROOT" ]]; then
+      # npm root -g returns .../lib/node_modules, bin is at .../bin
+      DERIVED_BIN="$(cd "$(dirname "$NPM_ROOT")/.." 2>/dev/null && pwd)/bin"
+      if [[ -x "${DERIVED_BIN}/claudenest-agent" ]]; then
+        AGENT_BIN="${DERIVED_BIN}/claudenest-agent"
+        info "Found binary via npm root: ${AGENT_BIN}"
+      fi
+    fi
+  fi
+
+  # Strategy 4: Check the installed package directly (fallback: run via node)
+  if [[ -z "$AGENT_BIN" ]]; then
+    NPM_ROOT="$(npm root -g 2>/dev/null)"
+    PKG_ENTRY="${NPM_ROOT}/@claudenest/agent/dist/index.js"
+    if [[ -f "$PKG_ENTRY" ]]; then
+      AGENT_BIN="$PKG_ENTRY"
+      info "Found package entry point: ${AGENT_BIN}"
+    fi
+  fi
+
+  # Strategy 5: Common global bin locations
+  if [[ -z "$AGENT_BIN" ]]; then
+    for dir in /usr/local/bin /usr/bin "$HOME/.npm-global/bin" "$HOME/.local/bin"; do
+      if [[ -x "${dir}/claudenest-agent" ]]; then
+        AGENT_BIN="${dir}/claudenest-agent"
+        info "Found binary in ${dir}"
+        break
+      fi
+    done
+  fi
+
+  # If found but not in PATH, add its directory to PATH
+  if [[ -n "$AGENT_BIN" ]]; then
+    AGENT_BIN_DIR="$(dirname "$AGENT_BIN")"
+
+    if ! command -v claudenest-agent >/dev/null 2>&1; then
       warn "npm global bin directory not in PATH. Fixing..."
-      export PATH="${NPM_BIN_DIR}:${PATH}"
+      export PATH="${AGENT_BIN_DIR}:${PATH}"
+      hash -r 2>/dev/null
 
       # Persist to shell profile
-      SHELL_NAME="$(basename "$SHELL")"
+      SHELL_NAME="$(basename "${SHELL:-bash}")"
       case "$SHELL_NAME" in
         zsh)  PROFILE="$HOME/.zshrc" ;;
         bash) PROFILE="$HOME/.bashrc" ;;
@@ -324,17 +374,24 @@ main() {
         echo 'export PATH="$(npm config get prefix)/bin:$PATH"' >> "$PROFILE"
         info "Added npm global bin to ${PROFILE}"
       fi
-    else
-      error "Installation failed. The 'claudenest-agent' command is not available."
-      error "npm bin dir: ${NPM_BIN_DIR}"
-      error "Try: npm install -g $PACKAGE_NAME"
-      exit 1
     fi
   fi
 
-  if ! command_exists claudenest-agent; then
-    error "Installation failed even after PATH fix."
-    error "Try manually: npm install -g $PACKAGE_NAME && export PATH=\"${NPM_BIN_DIR}:\$PATH\""
+  # Final verification
+  if ! command -v claudenest-agent >/dev/null 2>&1; then
+    echo ""
+    error "Installation failed. The 'claudenest-agent' command is not available."
+    error ""
+    error "Diagnostics:"
+    error "  npm prefix: $(npm config get prefix 2>/dev/null || echo 'N/A')"
+    error "  npm root -g: $(npm root -g 2>/dev/null || echo 'N/A')"
+    error "  PATH: $PATH"
+    error "  Agent binary found: ${AGENT_BIN:-none}"
+    error ""
+    error "Try manually:"
+    error "  npm install -g $PACKAGE_NAME"
+    error "  export PATH=\"\$(npm config get prefix)/bin:\$PATH\""
+    error "  claudenest-agent --version"
     exit 1
   fi
 
