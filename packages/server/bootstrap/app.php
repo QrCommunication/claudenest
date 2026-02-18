@@ -22,7 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'rate.limit' => \App\Http\Middleware\RateLimitApi::class,
         ]);
 
-        $middleware->redirectGuestsTo(fn ($request) => $request->is('api/*') ? null : '/login');
+        $middleware->redirectGuestsTo(fn ($request) => $request->is('api/*', 'broadcasting/*') ? null : '/login');
 
         $middleware->validateCsrfTokens(except: [
             'webhook/*',
@@ -48,7 +48,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, $request) {
-            if ($request->is('api/*')) {
+            if ($request->is('api/*', 'broadcasting/*')) {
                 return response()->json([
                     'success' => false,
                     'error' => [
