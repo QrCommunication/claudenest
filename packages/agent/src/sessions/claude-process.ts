@@ -56,41 +56,37 @@ export class ClaudeProcess extends EventEmitter {
     }, 'PTY configuration');
 
     try {
-      // Determine shell based on platform
-      const shell = process.platform === 'win32' ? 'powershell.exe' : 'bash';
-      const shellArgs = process.platform === 'win32' ? [] : ['-c', `${this.options.claudePath} ${args.join(' ')}`];
-
-      if (process.platform === 'win32') {
-        // Windows: use direct command
-        this.process = pty.spawn(this.options.claudePath, args, {
-          name: 'xterm-256color',
-          cols: ptySize.cols,
-          rows: ptySize.rows,
-          cwd,
-          env: {
-            ...process.env,
-            ...this.options.env,
-            ...(this.options.credentialEnv || {}),
-            CLAUDE_SESSION_ID: this.options.sessionId,
-            FORCE_COLOR: '1',
-          },
-        });
-      } else {
-        // Unix: use shell wrapper
-        this.process = pty.spawn(shell, shellArgs, {
-          name: 'xterm-256color',
-          cols: ptySize.cols,
-          rows: ptySize.rows,
-          cwd,
-          env: {
-            ...process.env,
-            ...this.options.env,
-            ...(this.options.credentialEnv || {}),
-            CLAUDE_SESSION_ID: this.options.sessionId,
-            FORCE_COLOR: '1',
-          },
-        });
+      // Build a clean env by stripping ALL Claude-related variables.
+      // When the agent runs inside a Claude Code session, the parent
+      // sets CLAUDE_SESSION_ID, CLAUDE_CODE_ENTRYPOINT and others.
+      // If any of these leak into the child PTY, Claude Code detects
+      // nesting and refuses to start. We also strip ANTHROPIC_* to
+      // avoid inheriting API config from the parent context.
+      const cleanEnv: Record<string, string> = {};
+      for (const [key, value] of Object.entries(process.env)) {
+        if (value === undefined) continue;
+        if (key === 'CLAUDECODE' || key.startsWith('CLAUDE_') || key.startsWith('ANTHROPIC_')) continue;
+        cleanEnv[key] = value;
       }
+
+      const env = {
+        ...cleanEnv,
+        ...this.options.env,
+        ...(this.options.credentialEnv || {}),
+        FORCE_COLOR: '1',
+      };
+
+      // Spawn an interactive shell, then inject the claude command as input.
+      // This way Claude Code runs inside a regular terminal, not as a nested process.
+      const shell = process.platform === 'win32' ? 'powershell.exe' : 'bash';
+
+      this.process = pty.spawn(shell, [], {
+        name: 'xterm-256color',
+        cols: ptySize.cols,
+        rows: ptySize.rows,
+        cwd,
+        env,
+      });
 
       this.pid = this.process.pid;
       this.logger.info({ pid: this.pid }, `Process started with PID ${this.pid}`);
@@ -100,9 +96,13 @@ export class ClaudeProcess extends EventEmitter {
       this.process.onExit(({ exitCode, signal }) => this.onExit(exitCode, signal));
 
       this.setStatus('running');
-      
-      // Wait a bit for the process to initialize
-      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // Wait for the shell to initialize, then inject the claude command
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      const claudeCmd = [this.options.claudePath, ...args].join(' ');
+      this.logger.info({ cmd: claudeCmd }, 'Injecting Claude command into shell');
+      this.process.write(claudeCmd + '\n');
       
     } catch (error) {
       this.logger.error({ err: error }, 'Failed to start process');
