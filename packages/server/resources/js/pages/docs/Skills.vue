@@ -223,22 +223,25 @@ const listPhp = `<?php
 $skills = Http::withToken($token)
     ->get('https://api.claudenest.io/api/skills', ['tag' => 'git'])['data'];`;
 
-const listResponses = {
-  '200': {
-    success: true,
-    data: [
-      {
-        id: 'skill-git-v1',
-        name: 'Git Integration',
-        description: 'Advanced Git operations and commit analysis',
-        version: '1.2.0',
-        tags: ['git', 'version-control'],
-        status: 'active',
-      },
-    ],
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_abc' },
+const listResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: [
+        {
+          id: 'skill-git-v1',
+          name: 'Git Integration',
+          description: 'Advanced Git operations and commit analysis',
+          version: '1.2.0',
+          tags: ['git', 'version-control'],
+          status: 'active',
+        },
+      ],
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_abc' },
+    }, null, 2),
   },
-};
+];
 
 // Get Skill
 const getParams = [
@@ -258,22 +261,25 @@ const getPhp = `<?php
 $skill = Http::withToken($token)
     ->get('https://api.claudenest.io/api/skills/skill-git-v1')['data'];`;
 
-const getResponses = {
-  '200': {
-    success: true,
-    data: {
-      id: 'skill-git-v1',
-      name: 'Git Integration',
-      description: 'Advanced Git operations and commit analysis',
-      version: '1.2.0',
-      capabilities: {
-        tools: [{ name: 'git_status', description: 'Get git status' }],
+const getResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: {
+        id: 'skill-git-v1',
+        name: 'Git Integration',
+        description: 'Advanced Git operations and commit analysis',
+        version: '1.2.0',
+        capabilities: {
+          tools: [{ name: 'git_status', description: 'Get git status' }],
+        },
+        permissions: ['filesystem.read', 'git.execute'],
       },
-      permissions: ['filesystem.read', 'git.execute'],
-    },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_123' },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_123' },
+    }, null, 2),
   },
-};
+];
 
 // Install Skill
 const installParams = [
@@ -309,17 +315,20 @@ $result = Http::withToken($token)
         'config' => ['default_branch' => 'main'],
     ])['data'];`;
 
-const installResponses = {
-  '200': {
-    success: true,
-    data: {
-      skill_id: 'skill-git-v1',
-      status: 'installed',
-      installed_at: '2026-02-02T15:30:00Z',
-    },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_install' },
+const installResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: {
+        skill_id: 'skill-git-v1',
+        status: 'installed',
+        installed_at: '2026-02-02T15:30:00Z',
+      },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_install' },
+    }, null, 2),
   },
-};
+];
 
 // Uninstall Skill
 const uninstallParams = [
@@ -339,13 +348,16 @@ const uninstallPhp = `<?php
 Http::withToken($token)
     ->delete('https://api.claudenest.io/api/machines/550e8400-e29b-41d4-a716-446655440000/skills/skill-git-v1');`;
 
-const uninstallResponses = {
-  '200': {
-    success: true,
-    data: null,
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_uninstall' },
+const uninstallResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: null,
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_uninstall' },
+    }, null, 2),
   },
-};
+];
 
 // Execute Skill
 const executeParams = [
@@ -386,16 +398,19 @@ $result = Http::withToken($token)
         'parameters' => ['path' => '/Users/dev/project'],
     ])['data'];`;
 
-const executeResponses = {
-  '200': {
-    success: true,
-    data: {
-      output: 'On branch main\nYour branch is up to date...',
-      exit_code: 0,
-    },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_exec' },
+const executeResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: {
+        output: 'On branch main\nYour branch is up to date...',
+        exit_code: 0,
+      },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_exec' },
+    }, null, 2),
   },
-};
+];
 
 const customSkillManifest = ref(`{
   "manifest_version": "1.0",

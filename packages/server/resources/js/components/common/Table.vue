@@ -204,6 +204,9 @@ const sortedData = computed(() => {
       const aVal = getValue(a, sortKey.value) as string | number | null;
       const bVal = getValue(b, sortKey.value) as string | number | null;
 
+      if (aVal == null && bVal == null) return 0;
+      if (aVal == null) return sortOrder.value === 'asc' ? -1 : 1;
+      if (bVal == null) return sortOrder.value === 'asc' ? 1 : -1;
       if (aVal < bVal) return sortOrder.value === 'asc' ? -1 : 1;
       if (aVal > bVal) return sortOrder.value === 'asc' ? 1 : -1;
       return 0;

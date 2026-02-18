@@ -223,26 +223,29 @@ $tasks = Http::withToken($token)
         'priority' => 'high',
     ])['data'];`;
 
-const listResponses = {
-  '200': {
-    success: true,
-    data: [
-      {
-        id: '550e8400-e29b-41d4-a716-446655440003',
-        title: 'Implement user authentication',
-        priority: 'high',
-        status: 'pending',
-        is_claimed: false,
-        created_at: '2026-02-02T10:00:00Z',
+const listResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: [
+        {
+          id: '550e8400-e29b-41d4-a716-446655440003',
+          title: 'Implement user authentication',
+          priority: 'high',
+          status: 'pending',
+          is_claimed: false,
+          created_at: '2026-02-02T10:00:00Z',
+        },
+      ],
+      meta: {
+        timestamp: '2026-02-02T15:30:00Z',
+        request_id: 'req_abc',
+        pagination: { current_page: 1, last_page: 1, per_page: 20, total: 1 },
       },
-    ],
-    meta: {
-      timestamp: '2026-02-02T15:30:00Z',
-      request_id: 'req_abc',
-      pagination: { current_page: 1, last_page: 1, per_page: 20, total: 1 },
-    },
+    }, null, 2),
   },
-};
+];
 
 // Create Task
 const createParams = [
@@ -294,21 +297,24 @@ $task = Http::withToken($token)
         'estimated_tokens' => 5000,
     ])['data'];`;
 
-const createResponses = {
-  '201': {
-    success: true,
-    data: {
-      id: '550e8400-e29b-41d4-a716-446655440003',
-      project_id: '550e8400-e29b-41d4-a716-446655440002',
-      title: 'Implement user authentication',
-      priority: 'high',
-      status: 'pending',
-      is_claimed: false,
-      created_at: '2026-02-02T15:30:00Z',
-    },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_xyz' },
+const createResponses = [
+  {
+    status: 201,
+    body: JSON.stringify({
+      success: true,
+      data: {
+        id: '550e8400-e29b-41d4-a716-446655440003',
+        project_id: '550e8400-e29b-41d4-a716-446655440002',
+        title: 'Implement user authentication',
+        priority: 'high',
+        status: 'pending',
+        is_claimed: false,
+        created_at: '2026-02-02T15:30:00Z',
+      },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_xyz' },
+    }, null, 2),
   },
-};
+];
 
 // Get Task
 const getParams = [
@@ -328,28 +334,35 @@ const getPhp = `<?php
 $task = Http::withToken($token)
     ->get('https://api.claudenest.io/api/tasks/550e8400-e29b-41d4-a716-446655440003')['data'];`;
 
-const getResponses = {
-  '200': {
-    success: true,
-    data: {
-      id: '550e8400-e29b-41d4-a716-446655440003',
-      title: 'Implement user authentication',
-      description: 'Create login/logout functionality',
-      priority: 'high',
-      status: 'in_progress',
-      is_claimed: true,
-      assigned_to: 'inst-001',
-      files: ['src/auth.ts', 'src/middleware.ts'],
-      dependencies: [],
-    },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_123' },
+const getResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: {
+        id: '550e8400-e29b-41d4-a716-446655440003',
+        title: 'Implement user authentication',
+        description: 'Create login/logout functionality',
+        priority: 'high',
+        status: 'in_progress',
+        is_claimed: true,
+        assigned_to: 'inst-001',
+        files: ['src/auth.ts', 'src/middleware.ts'],
+        dependencies: [],
+      },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_123' },
+    }, null, 2),
   },
-  '404': {
-    success: false,
-    error: { code: 'TSK_001', message: 'Task not found' },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_456' },
+  {
+    status: 404,
+    description: 'Task not found',
+    body: JSON.stringify({
+      success: false,
+      error: { code: 'TSK_001', message: 'Task not found' },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_456' },
+    }, null, 2),
   },
-};
+];
 
 // Update Task
 const updateParams = [
@@ -382,13 +395,16 @@ Http::withToken($token)
         'estimated_tokens' => 8000,
     ]);`;
 
-const updateResponses = {
-  '200': {
-    success: true,
-    data: { id: '...', priority: 'critical', estimated_tokens: 8000 },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_789' },
+const updateResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: { id: '...', priority: 'critical', estimated_tokens: 8000 },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_789' },
+    }, null, 2),
   },
-};
+];
 
 // Delete Task
 const deleteParams = [
@@ -407,13 +423,16 @@ const deletePhp = `<?php
 Http::withToken($token)
     ->delete('https://api.claudenest.io/api/tasks/550e8400-e29b-41d4-a716-446655440003');`;
 
-const deleteResponses = {
-  '200': {
-    success: true,
-    data: null,
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_012' },
+const deleteResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: null,
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_012' },
+    }, null, 2),
   },
-};
+];
 
 // Claim Task
 const claimParams = [
@@ -443,23 +462,34 @@ $task = Http::withToken($token)
         'instance_id' => 'inst-001',
     ])['data'];`;
 
-const claimResponses = {
-  '200': {
-    success: true,
-    data: { id: '...', status: 'in_progress', is_claimed: true, assigned_to: 'inst-001' },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_claim' },
+const claimResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: { id: '...', status: 'in_progress', is_claimed: true, assigned_to: 'inst-001' },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_claim' },
+    }, null, 2),
   },
-  '409': {
-    success: false,
-    error: { code: 'TSK_002', message: 'Task already claimed by inst-002' },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_err' },
+  {
+    status: 409,
+    description: 'Task already claimed',
+    body: JSON.stringify({
+      success: false,
+      error: { code: 'TSK_002', message: 'Task already claimed by inst-002' },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_err' },
+    }, null, 2),
   },
-  '400': {
-    success: false,
-    error: { code: 'TSK_003', message: 'Task dependencies not completed' },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_dep' },
+  {
+    status: 400,
+    description: 'Dependencies not completed',
+    body: JSON.stringify({
+      success: false,
+      error: { code: 'TSK_003', message: 'Task dependencies not completed' },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_dep' },
+    }, null, 2),
   },
-};
+];
 
 // Release Task
 const releaseParams = [
@@ -487,18 +517,25 @@ Http::withToken($token)
         'reason' => 'Need to work on higher priority task',
     ]);`;
 
-const releaseResponses = {
-  '200': {
-    success: true,
-    data: { id: '...', status: 'pending', is_claimed: false, assigned_to: null },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_rel' },
+const releaseResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: { id: '...', status: 'pending', is_claimed: false, assigned_to: null },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_rel' },
+    }, null, 2),
   },
-  '400': {
-    success: false,
-    error: { code: 'TSK_003', message: 'Task is not claimed' },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_err' },
+  {
+    status: 400,
+    description: 'Task is not claimed',
+    body: JSON.stringify({
+      success: false,
+      error: { code: 'TSK_003', message: 'Task is not claimed' },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_err' },
+    }, null, 2),
   },
-};
+];
 
 // Complete Task
 const completeParams = [
@@ -538,18 +575,25 @@ $task = Http::withToken($token)
         'instance_id' => 'inst-001',
     ])['data'];`;
 
-const completeResponses = {
-  '200': {
-    success: true,
-    data: { id: '...', status: 'done', is_completed: true, completion_summary: '...' },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_comp' },
+const completeResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: { id: '...', status: 'done', is_completed: true, completion_summary: '...' },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_comp' },
+    }, null, 2),
   },
-  '400': {
-    success: false,
-    error: { code: 'TSK_003', message: 'Task must be claimed before completion' },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_err' },
+  {
+    status: 400,
+    description: 'Task not claimed',
+    body: JSON.stringify({
+      success: false,
+      error: { code: 'TSK_003', message: 'Task must be claimed before completion' },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_err' },
+    }, null, 2),
   },
-};
+];
 
 // Next Available Task
 const nextParams = [
@@ -573,23 +617,31 @@ const nextPhp = `<?php
 $task = Http::withToken($token)
     ->get('https://api.claudenest.io/api/projects/550e8400-e29b-41d4-a716-446655440002/tasks/next-available')['data'];`;
 
-const nextResponses = {
-  '200 (with task)': {
-    success: true,
-    data: {
-      id: '550e8400-e29b-41d4-a716-446655440003',
-      title: 'Implement user authentication',
-      priority: 'high',
-      status: 'pending',
-    },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_next' },
+const nextResponses = [
+  {
+    status: 200,
+    description: 'Task available',
+    body: JSON.stringify({
+      success: true,
+      data: {
+        id: '550e8400-e29b-41d4-a716-446655440003',
+        title: 'Implement user authentication',
+        priority: 'high',
+        status: 'pending',
+      },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_next' },
+    }, null, 2),
   },
-  '200 (no task)': {
-    success: true,
-    data: null,
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_none' },
+  {
+    status: 200,
+    description: 'No task available',
+    body: JSON.stringify({
+      success: true,
+      data: null,
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_none' },
+    }, null, 2),
   },
-};
+];
 
 const dependenciesExample = ref(`{
   "title": "Add payment processing",

@@ -35,7 +35,7 @@
             class="w-full bg-dark-1 border border-dark-4 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-brand-purple"
           >
             <option value="">Select...</option>
-            <option v-for="option in param.enum" :key="option" :value="option">
+            <option v-for="option in param.enum" :key="String(option)" :value="option">
               {{ option }}
             </option>
           </select>

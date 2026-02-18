@@ -242,24 +242,27 @@ $init = Http::withToken($token)
         'clientInfo' => ['name' => 'claude-desktop', 'version' => '1.0.0'],
     ])['data'];`;
 
-const initResponses = {
-  '200': {
-    success: true,
-    data: {
-      protocolVersion: '2024-11-05',
-      capabilities: {
-        tools: { listChanged: true },
-        resources: { subscribe: true, listChanged: true },
-        prompts: { listChanged: true },
+const initResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: {
+        protocolVersion: '2024-11-05',
+        capabilities: {
+          tools: { listChanged: true },
+          resources: { subscribe: true, listChanged: true },
+          prompts: { listChanged: true },
+        },
+        serverInfo: {
+          name: 'claudenest-mcp',
+          version: '1.0.0',
+        },
       },
-      serverInfo: {
-        name: 'claudenest-mcp',
-        version: '1.0.0',
-      },
-    },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_init' },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_init' },
+    }, null, 2),
   },
-};
+];
 
 // List Tools
 const listToolsCurl = `curl https://api.claudenest.io/api/mcp/tools/list \\
@@ -275,36 +278,39 @@ const listToolsPhp = `<?php
 $tools = Http::withToken($token)
     ->get('https://api.claudenest.io/api/mcp/tools/list')['data']['tools'];`;
 
-const listToolsResponses = {
-  '200': {
-    success: true,
-    data: {
-      tools: [
-        {
-          name: 'create_session',
-          description: 'Create a new Claude Code session',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              machine_id: { type: 'string', description: 'Machine ID' },
-              mode: { type: 'string', enum: ['interactive', 'headless'] },
+const listToolsResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: {
+        tools: [
+          {
+            name: 'create_session',
+            description: 'Create a new Claude Code session',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                machine_id: { type: 'string', description: 'Machine ID' },
+                mode: { type: 'string', enum: ['interactive', 'headless'] },
+              },
+              required: ['machine_id'],
             },
-            required: ['machine_id'],
           },
-        },
-        {
-          name: 'list_machines',
-          description: 'List available machines',
-          inputSchema: {
-            type: 'object',
-            properties: {},
+          {
+            name: 'list_machines',
+            description: 'List available machines',
+            inputSchema: {
+              type: 'object',
+              properties: {},
+            },
           },
-        },
-      ],
-    },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_tools' },
+        ],
+      },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_tools' },
+    }, null, 2),
   },
-};
+];
 
 // Call Tool
 const callToolParams = [
@@ -349,21 +355,24 @@ $result = Http::withToken($token)
         ],
     ])['data'];`;
 
-const callToolResponses = {
-  '200': {
-    success: true,
-    data: {
-      content: [
-        {
-          type: 'text',
-          text: '{"id": "550e8400-e29b-41d4-a716-446655440001", "status": "created"}',
-        },
-      ],
-      isError: false,
-    },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_call' },
+const callToolResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: {
+        content: [
+          {
+            type: 'text',
+            text: '{"id": "550e8400-e29b-41d4-a716-446655440001", "status": "created"}',
+          },
+        ],
+        isError: false,
+      },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_call' },
+    }, null, 2),
   },
-};
+];
 
 // List Resources
 const listResourcesCurl = `curl https://api.claudenest.io/api/mcp/resources/list \\
@@ -379,26 +388,29 @@ const listResourcesPhp = `<?php
 $resources = Http::withToken($token)
     ->get('https://api.claudenest.io/api/mcp/resources/list')['data']['resources'];`;
 
-const listResourcesResponses = {
-  '200': {
-    success: true,
-    data: {
-      resources: [
-        {
-          uri: 'context://550e8400-e29b-41d4-a716-446655440002/summary',
-          name: 'Project Summary',
-          mimeType: 'text/plain',
-        },
-        {
-          uri: 'task://550e8400-e29b-41d4-a716-446655440002/pending',
-          name: 'Pending Tasks',
-          mimeType: 'application/json',
-        },
-      ],
-    },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_res' },
+const listResourcesResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: {
+        resources: [
+          {
+            uri: 'context://550e8400-e29b-41d4-a716-446655440002/summary',
+            name: 'Project Summary',
+            mimeType: 'text/plain',
+          },
+          {
+            uri: 'task://550e8400-e29b-41d4-a716-446655440002/pending',
+            name: 'Pending Tasks',
+            mimeType: 'application/json',
+          },
+        ],
+      },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_res' },
+    }, null, 2),
   },
-};
+];
 
 // Read Resource
 const readResourceParams = [
@@ -428,21 +440,24 @@ $resource = Http::withToken($token)
         'uri' => 'context://550e8400-e29b-41d4-a716-446655440002/summary',
     ])['data'];`;
 
-const readResourceResponses = {
-  '200': {
-    success: true,
-    data: {
-      contents: [
-        {
-          uri: 'context://550e8400-e29b-41d4-a716-446655440002/summary',
-          mimeType: 'text/plain',
-          text: 'E-commerce platform with React frontend and Node.js backend',
-        },
-      ],
-    },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_read' },
+const readResourceResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: {
+        contents: [
+          {
+            uri: 'context://550e8400-e29b-41d4-a716-446655440002/summary',
+            mimeType: 'text/plain',
+            text: 'E-commerce platform with React frontend and Node.js backend',
+          },
+        ],
+      },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_read' },
+    }, null, 2),
   },
-};
+];
 
 const claudeDesktopConfig = ref(`{
   "mcpServers": {

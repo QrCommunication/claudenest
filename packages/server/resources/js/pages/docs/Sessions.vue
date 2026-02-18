@@ -210,28 +210,31 @@ const listPhp = `<?php
 $sessions = Http::withToken($token)
     ->get('https://api.claudenest.io/api/machines/550e8400-e29b-41d4-a716-446655440000/sessions')['data'];`;
 
-const listResponses = {
-  '200': {
-    success: true,
-    data: [
-      {
-        id: '550e8400-e29b-41d4-a716-446655440001',
-        machine_id: '550e8400-e29b-41d4-a716-446655440000',
-        mode: 'interactive',
-        status: 'running',
-        is_running: true,
-        total_tokens: 15000,
-        duration: 3600,
-        created_at: '2026-02-02T14:00:00Z',
+const listResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: [
+        {
+          id: '550e8400-e29b-41d4-a716-446655440001',
+          machine_id: '550e8400-e29b-41d4-a716-446655440000',
+          mode: 'interactive',
+          status: 'running',
+          is_running: true,
+          total_tokens: 15000,
+          duration: 3600,
+          created_at: '2026-02-02T14:00:00Z',
+        },
+      ],
+      meta: {
+        timestamp: '2026-02-02T15:30:00Z',
+        request_id: 'req_abc',
+        pagination: { current_page: 1, last_page: 1, per_page: 20, total: 1 },
       },
-    ],
-    meta: {
-      timestamp: '2026-02-02T15:30:00Z',
-      request_id: 'req_abc',
-      pagination: { current_page: 1, last_page: 1, per_page: 20, total: 1 },
-    },
+    }, null, 2),
   },
-};
+];
 
 // Create Session
 const createParams = [
@@ -277,26 +280,33 @@ $session = Http::withToken($token)
         'pty_size' => ['cols' => 120, 'rows' => 40],
     ])['data'];`;
 
-const createResponses = {
-  '201': {
-    success: true,
-    data: {
-      id: '550e8400-e29b-41d4-a716-446655440001',
-      machine_id: '550e8400-e29b-41d4-a716-446655440000',
-      mode: 'interactive',
-      project_path: '/Users/dev/projects/myapp',
-      status: 'created',
-      pty_size: { cols: 120, rows: 40 },
-      created_at: '2026-02-02T15:30:00Z',
-    },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_xyz' },
+const createResponses = [
+  {
+    status: 201,
+    body: JSON.stringify({
+      success: true,
+      data: {
+        id: '550e8400-e29b-41d4-a716-446655440001',
+        machine_id: '550e8400-e29b-41d4-a716-446655440000',
+        mode: 'interactive',
+        project_path: '/Users/dev/projects/myapp',
+        status: 'created',
+        pty_size: { cols: 120, rows: 40 },
+        created_at: '2026-02-02T15:30:00Z',
+      },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_xyz' },
+    }, null, 2),
   },
-  '400': {
-    success: false,
-    error: { code: 'MCH_002', message: 'Machine is offline' },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_err' },
+  {
+    status: 400,
+    description: 'Machine is offline',
+    body: JSON.stringify({
+      success: false,
+      error: { code: 'MCH_002', message: 'Machine is offline' },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_err' },
+    }, null, 2),
   },
-};
+];
 
 // Get Session
 const getParams = [
@@ -316,30 +326,37 @@ const getPhp = `<?php
 $session = Http::withToken($token)
     ->get('https://api.claudenest.io/api/sessions/550e8400-e29b-41d4-a716-446655440001')['data'];`;
 
-const getResponses = {
-  '200': {
-    success: true,
-    data: {
-      id: '550e8400-e29b-41d4-a716-446655440001',
-      machine_id: '550e8400-e29b-41d4-a716-446655440000',
-      mode: 'interactive',
-      status: 'running',
-      is_running: true,
-      total_tokens: 15000,
-      total_cost: 0.45,
-      duration: 3600,
-      recent_logs: [
-        { type: 'output', data: 'Refactoring complete!', created_at: '2026-02-02T15:25:00Z' },
-      ],
-    },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_123' },
+const getResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: {
+        id: '550e8400-e29b-41d4-a716-446655440001',
+        machine_id: '550e8400-e29b-41d4-a716-446655440000',
+        mode: 'interactive',
+        status: 'running',
+        is_running: true,
+        total_tokens: 15000,
+        total_cost: 0.45,
+        duration: 3600,
+        recent_logs: [
+          { type: 'output', data: 'Refactoring complete!', created_at: '2026-02-02T15:25:00Z' },
+        ],
+      },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_123' },
+    }, null, 2),
   },
-  '404': {
-    success: false,
-    error: { code: 'SES_001', message: 'Session not found' },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_456' },
+  {
+    status: 404,
+    description: 'Session not found',
+    body: JSON.stringify({
+      success: false,
+      error: { code: 'SES_001', message: 'Session not found' },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_456' },
+    }, null, 2),
   },
-};
+];
 
 // Terminate Session
 const deleteParams = [
@@ -358,18 +375,25 @@ const deletePhp = `<?php
 Http::withToken($token)
     ->delete('https://api.claudenest.io/api/sessions/550e8400-e29b-41d4-a716-446655440001');`;
 
-const deleteResponses = {
-  '200': {
-    success: true,
-    data: null,
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_789' },
+const deleteResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: null,
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_789' },
+    }, null, 2),
   },
-  '400': {
-    success: false,
-    error: { code: 'SES_003', message: 'Session already terminated' },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_012' },
+  {
+    status: 400,
+    description: 'Session already terminated',
+    body: JSON.stringify({
+      success: false,
+      error: { code: 'SES_003', message: 'Session already terminated' },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_012' },
+    }, null, 2),
   },
-};
+];
 
 // Get Logs
 const logsParams = [
@@ -390,32 +414,35 @@ const logsPhp = `<?php
 $logs = Http::withToken($token)
     ->get('https://api.claudenest.io/api/sessions/550e8400-e29b-41d4-a716-446655440001/logs')['data'];`;
 
-const logsResponses = {
-  '200': {
-    success: true,
-    data: [
-      {
-        id: 'log-1',
-        type: 'input',
-        data: 'Help me refactor this codebase',
-        metadata: {},
-        created_at: '2026-02-02T14:00:00Z',
+const logsResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: [
+        {
+          id: 'log-1',
+          type: 'input',
+          data: 'Help me refactor this codebase',
+          metadata: {},
+          created_at: '2026-02-02T14:00:00Z',
+        },
+        {
+          id: 'log-2',
+          type: 'output',
+          data: "I'll help you refactor the codebase...",
+          metadata: { tokens_used: 500 },
+          created_at: '2026-02-02T14:00:05Z',
+        },
+      ],
+      meta: {
+        timestamp: '2026-02-02T15:30:00Z',
+        request_id: 'req_logs',
+        pagination: { current_page: 1, last_page: 1, per_page: 100, total: 2 },
       },
-      {
-        id: 'log-2',
-        type: 'output',
-        data: "I'll help you refactor the codebase...",
-        metadata: { tokens_used: 500 },
-        created_at: '2026-02-02T14:00:05Z',
-      },
-    ],
-    meta: {
-      timestamp: '2026-02-02T15:30:00Z',
-      request_id: 'req_logs',
-      pagination: { current_page: 1, last_page: 1, per_page: 100, total: 2 },
-    },
+    }, null, 2),
   },
-};
+];
 
 // Attach to Session
 const attachParams = [
@@ -436,22 +463,29 @@ const attachPhp = `<?php
 $wsInfo = Http::withToken($token)
     ->post('https://api.claudenest.io/api/sessions/550e8400-e29b-41d4-a716-446655440001/attach')['data'];`;
 
-const attachResponses = {
-  '200': {
-    success: true,
-    data: {
-      ws_token: 'ws_token_abc123xyz...',
-      session_id: '550e8400-e29b-41d4-a716-446655440001',
-      ws_url: 'wss://api.claudenest.io:8080',
-    },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_attach' },
+const attachResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: {
+        ws_token: 'ws_token_abc123xyz...',
+        session_id: '550e8400-e29b-41d4-a716-446655440001',
+        ws_url: 'wss://api.claudenest.io:8080',
+      },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_attach' },
+    }, null, 2),
   },
-  '404': {
-    success: false,
-    error: { code: 'SES_001', message: 'Session not found or not running' },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_err' },
+  {
+    status: 404,
+    description: 'Session not found or not running',
+    body: JSON.stringify({
+      success: false,
+      error: { code: 'SES_001', message: 'Session not found or not running' },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_err' },
+    }, null, 2),
   },
-};
+];
 
 // Send Input
 const inputParams = [
@@ -479,13 +513,16 @@ Http::withToken($token)
         'data' => 'Please continue refactoring',
     ]);`;
 
-const inputResponses = {
-  '200': {
-    success: true,
-    data: null,
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_input' },
+const inputResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: null,
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_input' },
+    }, null, 2),
   },
-};
+];
 
 // Resize PTY
 const resizeParams = [
@@ -515,13 +552,16 @@ Http::withToken($token)
         'rows' => 50,
     ]);`;
 
-const resizeResponses = {
-  '200': {
-    success: true,
-    data: { pty_size: { cols: 150, rows: 50 } },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_resize' },
+const resizeResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: { pty_size: { cols: 150, rows: 50 } },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_resize' },
+    }, null, 2),
   },
-};
+];
 
 // WebSocket Example
 const websocketExample = ref(`// 1. Get WebSocket token

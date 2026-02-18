@@ -37,22 +37,22 @@
           <div class="event-card client">
             <h4>auth</h4>
             <p>Authenticate with WebSocket token</p>
-            <CodeBlock language="json" :code='{"type":"auth","token":"ws_token_abc123"}' />
+            <CodeBlock language="json" code='{"type":"auth","token":"ws_token_abc123"}' />
           </div>
           <div class="event-card client">
             <h4>input</h4>
             <p>Send input to the session</p>
-            <CodeBlock language="json" :code='{"type":"input","data":"hello"}' />
+            <CodeBlock language="json" code='{"type":"input","data":"hello"}' />
           </div>
           <div class="event-card client">
             <h4>resize</h4>
             <p>Resize terminal dimensions</p>
-            <CodeBlock language="json" :code='{"type":"resize","cols":150,"rows":50}' />
+            <CodeBlock language="json" code='{"type":"resize","cols":150,"rows":50}' />
           </div>
           <div class="event-card client">
             <h4>ping</h4>
             <p>Keep connection alive</p>
-            <CodeBlock language="json" :code='{"type":"ping"}' />
+            <CodeBlock language="json" code='{"type":"ping"}' />
           </div>
         </div>
 
@@ -86,7 +86,7 @@
           <div class="event-card server">
             <h4>pong</h4>
             <p>Heartbeat response</p>
-            <CodeBlock language="json" :code='{"type":"pong","timestamp":"2026-02-02T15:30:00Z"}' />
+            <CodeBlock language="json" code='{"type":"pong","timestamp":"2026-02-02T15:30:00Z"}' />
           </div>
           <div class="event-card server error">
             <h4>error</h4>

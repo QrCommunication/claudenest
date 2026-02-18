@@ -117,7 +117,7 @@ import {
   RefreshCwIcon,
   WrenchIcon,
 } from 'lucide-vue-next';
-import type { MCPToolWithServer } from '@/types';
+import type { MCPTool, MCPToolWithServer } from '@/types';
 
 const mcpStore = useMCPStore();
 const machinesStore = useMachinesStore();
@@ -126,7 +126,7 @@ const { success: toastSuccess, error: toastError } = useToast();
 const searchQuery = ref('');
 const selectedServer = ref<string | null>(null);
 const showTester = ref(false);
-const selectedTool = ref<MCPToolWithServer | null>(null);
+const selectedTool = ref<MCPTool | MCPToolWithServer | null>(null);
 const executionResult = ref<unknown>(undefined);
 const executionError = ref<string | null>(null);
 
@@ -174,7 +174,7 @@ async function refreshTools(): Promise<void> {
   toastSuccess('Tools refreshed');
 }
 
-function openToolTester(tool: MCPToolWithServer): void {
+function openToolTester(tool: MCPTool | MCPToolWithServer): void {
   selectedTool.value = tool;
   executionResult.value = undefined;
   executionError.value = null;
@@ -197,7 +197,7 @@ async function executeTool(params: Record<string, unknown>): Promise<void> {
   try {
     const result = await mcpStore.executeTool(
       currentMachineId.value,
-      selectedTool.value.server.name,
+      ('server' in selectedTool.value ? selectedTool.value.server.name : ''),
       {
         tool: selectedTool.value.name,
         params,

@@ -216,25 +216,28 @@ const listPhp = `<?php
 $projects = Http::withToken($token)
     ->get('https://api.claudenest.io/api/machines/550e8400-e29b-41d4-a716-446655440000/projects')['data'];`;
 
-const listResponses = {
-  '200': {
-    success: true,
-    data: [
-      {
-        id: '550e8400-e29b-41d4-a716-446655440002',
-        machine_id: '550e8400-e29b-41d4-a716-446655440000',
-        name: 'E-commerce Platform',
-        project_path: '/Users/dev/projects/ecommerce',
-        summary: 'Modern e-commerce platform...',
-        token_usage_percent: 45,
-        active_instances_count: 3,
-        pending_tasks_count: 5,
-        created_at: '2026-02-01T10:00:00Z',
-      },
-    ],
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_abc' },
+const listResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: [
+        {
+          id: '550e8400-e29b-41d4-a716-446655440002',
+          machine_id: '550e8400-e29b-41d4-a716-446655440000',
+          name: 'E-commerce Platform',
+          project_path: '/Users/dev/projects/ecommerce',
+          summary: 'Modern e-commerce platform...',
+          token_usage_percent: 45,
+          active_instances_count: 3,
+          pending_tasks_count: 5,
+          created_at: '2026-02-01T10:00:00Z',
+        },
+      ],
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_abc' },
+    }, null, 2),
   },
-};
+];
 
 // Create Project
 const createParams = [
@@ -283,28 +286,35 @@ $project = Http::withToken($token)
         'summary' => 'Modern e-commerce platform...',
     ])['data'];`;
 
-const createResponses = {
-  '201': {
-    success: true,
-    data: {
-      id: '550e8400-e29b-41d4-a716-446655440002',
-      machine_id: '550e8400-e29b-41d4-a716-446655440000',
-      name: 'E-commerce Platform',
-      project_path: '/Users/dev/projects/ecommerce',
-      summary: 'Modern e-commerce platform with React frontend',
-      total_tokens: 0,
-      max_tokens: 100000,
-      token_usage_percent: 0,
-      created_at: '2026-02-02T15:30:00Z',
-    },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_xyz' },
+const createResponses = [
+  {
+    status: 201,
+    body: JSON.stringify({
+      success: true,
+      data: {
+        id: '550e8400-e29b-41d4-a716-446655440002',
+        machine_id: '550e8400-e29b-41d4-a716-446655440000',
+        name: 'E-commerce Platform',
+        project_path: '/Users/dev/projects/ecommerce',
+        summary: 'Modern e-commerce platform with React frontend',
+        total_tokens: 0,
+        max_tokens: 100000,
+        token_usage_percent: 0,
+        created_at: '2026-02-02T15:30:00Z',
+      },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_xyz' },
+    }, null, 2),
   },
-  '422': {
-    success: false,
-    error: { code: 'VAL_001', message: 'Project already exists for this path' },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_err' },
+  {
+    status: 422,
+    description: 'Validation error',
+    body: JSON.stringify({
+      success: false,
+      error: { code: 'VAL_001', message: 'Project already exists for this path' },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_err' },
+    }, null, 2),
   },
-};
+];
 
 // Get Project
 const getParams = [
@@ -324,31 +334,38 @@ const getPhp = `<?php
 $project = Http::withToken($token)
     ->get('https://api.claudenest.io/api/projects/550e8400-e29b-41d4-a716-446655440002')['data'];`;
 
-const getResponses = {
-  '200': {
-    success: true,
-    data: {
-      id: '550e8400-e29b-41d4-a716-446655440002',
-      machine_id: '550e8400-e29b-41d4-a716-446655440000',
-      name: 'E-commerce Platform',
-      project_path: '/Users/dev/projects/ecommerce',
-      summary: 'Modern e-commerce platform...',
-      architecture: 'Microservices with API Gateway...',
-      conventions: 'TypeScript, ESLint, Jest...',
-      current_focus: 'Implementing payment gateway...',
-      recent_changes: 'Added user authentication...',
-      total_tokens: 45000,
-      max_tokens: 100000,
-      settings: { autoSummarize: true, contextRetentionDays: 30 },
-    },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_123' },
+const getResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: {
+        id: '550e8400-e29b-41d4-a716-446655440002',
+        machine_id: '550e8400-e29b-41d4-a716-446655440000',
+        name: 'E-commerce Platform',
+        project_path: '/Users/dev/projects/ecommerce',
+        summary: 'Modern e-commerce platform...',
+        architecture: 'Microservices with API Gateway...',
+        conventions: 'TypeScript, ESLint, Jest...',
+        current_focus: 'Implementing payment gateway...',
+        recent_changes: 'Added user authentication...',
+        total_tokens: 45000,
+        max_tokens: 100000,
+        settings: { autoSummarize: true, contextRetentionDays: 30 },
+      },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_123' },
+    }, null, 2),
   },
-  '404': {
-    success: false,
-    error: { code: 'CTX_001', message: 'Project not found' },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_456' },
+  {
+    status: 404,
+    description: 'Project not found',
+    body: JSON.stringify({
+      success: false,
+      error: { code: 'CTX_001', message: 'Project not found' },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_456' },
+    }, null, 2),
   },
-};
+];
 
 // Update Project
 const updateParams = [
@@ -393,19 +410,22 @@ Http::withToken($token)
         'current_focus' => 'Implementing checkout flow',
     ]);`;
 
-const updateResponses = {
-  '200': {
-    success: true,
-    data: {
-      id: '550e8400-e29b-41d4-a716-446655440002',
-      name: 'E-commerce Platform v2',
-      current_focus: 'Implementing checkout flow',
-      recent_changes: 'Updated product catalog API',
-      max_tokens: 150000,
-    },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_789' },
+const updateResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: {
+        id: '550e8400-e29b-41d4-a716-446655440002',
+        name: 'E-commerce Platform v2',
+        current_focus: 'Implementing checkout flow',
+        recent_changes: 'Updated product catalog API',
+        max_tokens: 150000,
+      },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_789' },
+    }, null, 2),
   },
-};
+];
 
 // Delete Project
 const deleteParams = [
@@ -424,13 +444,16 @@ const deletePhp = `<?php
 Http::withToken($token)
     ->delete('https://api.claudenest.io/api/projects/550e8400-e29b-41d4-a716-446655440002');`;
 
-const deleteResponses = {
-  '200': {
-    success: true,
-    data: null,
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_012' },
+const deleteResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: null,
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_012' },
+    }, null, 2),
   },
-};
+];
 
 // Get Stats
 const statsParams = [
@@ -450,26 +473,29 @@ const statsPhp = `<?php
 $stats = Http::withToken($token)
     ->get('https://api.claudenest.io/api/projects/550e8400-e29b-41d4-a716-446655440002/stats')['data'];`;
 
-const statsResponses = {
-  '200': {
-    success: true,
-    data: {
-      total_tasks: 25,
-      pending_tasks: 5,
-      completed_tasks: 18,
-      active_instances: 3,
-      context_chunks: 42,
-      active_locks: 2,
-      token_usage: {
-        current: 45000,
-        max: 100000,
-        percent: 45,
+const statsResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: {
+        total_tasks: 25,
+        pending_tasks: 5,
+        completed_tasks: 18,
+        active_instances: 3,
+        context_chunks: 42,
+        active_locks: 2,
+        token_usage: {
+          current: 45000,
+          max: 100000,
+          percent: 45,
+        },
+        activity_last_24h: 15,
       },
-      activity_last_24h: 15,
-    },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_345' },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_345' },
+    }, null, 2),
   },
-};
+];
 
 // Get Instances
 const instancesParams = [
@@ -489,28 +515,31 @@ const instancesPhp = `<?php
 $instances = Http::withToken($token)
     ->get('https://api.claudenest.io/api/projects/550e8400-e29b-41d4-a716-446655440002/instances')['data'];`;
 
-const instancesResponses = {
-  '200': {
-    success: true,
-    data: [
-      {
-        id: 'inst-001',
-        status: 'active',
-        is_connected: true,
-        is_available: true,
-        context_tokens: 12000,
-        context_usage_percent: 25,
-        max_context_tokens: 100000,
-        tasks_completed: 8,
-        current_task: { id: 'task-1', title: 'Implement payment API' },
-        uptime: 3600,
-        connected_at: '2026-02-02T14:30:00Z',
-        last_activity_at: '2026-02-02T15:25:00Z',
-      },
-    ],
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_678' },
+const instancesResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: [
+        {
+          id: 'inst-001',
+          status: 'active',
+          is_connected: true,
+          is_available: true,
+          context_tokens: 12000,
+          context_usage_percent: 25,
+          max_context_tokens: 100000,
+          tasks_completed: 8,
+          current_task: { id: 'task-1', title: 'Implement payment API' },
+          uptime: 3600,
+          connected_at: '2026-02-02T14:30:00Z',
+          last_activity_at: '2026-02-02T15:25:00Z',
+        },
+      ],
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_678' },
+    }, null, 2),
   },
-};
+];
 
 // Get Activity
 const activityParams = [
@@ -534,24 +563,27 @@ $activity = Http::withToken($token)
         'limit' => 10,
     ])['data'];`;
 
-const activityResponses = {
-  '200': {
-    success: true,
-    data: [
-      {
-        id: 'act-1',
-        type: 'task_completed',
-        message: 'Task "Setup database" completed by Instance-1',
-        icon: 'check',
-        color: 'green',
-        instance_id: 'inst-001',
-        details: { task_id: 'task-1' },
-        created_at: '2026-02-02T15:20:00Z',
-      },
-    ],
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_act' },
+const activityResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: [
+        {
+          id: 'act-1',
+          type: 'task_completed',
+          message: 'Task "Setup database" completed by Instance-1',
+          icon: 'check',
+          color: 'green',
+          instance_id: 'inst-001',
+          details: { task_id: 'task-1' },
+          created_at: '2026-02-02T15:20:00Z',
+        },
+      ],
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_act' },
+    }, null, 2),
   },
-};
+];
 
 // Broadcast
 const broadcastParams = [
@@ -588,16 +620,19 @@ Http::withToken($token)
         'type' => 'info',
     ]);`;
 
-const broadcastResponses = {
-  '200': {
-    success: true,
-    data: {
-      message_id: 'msg_abc123',
-      broadcasted_at: '2026-02-02T15:30:00Z',
-    },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_bc' },
+const broadcastResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: {
+        message_id: 'msg_abc123',
+        broadcasted_at: '2026-02-02T15:30:00Z',
+      },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_bc' },
+    }, null, 2),
   },
-};
+];
 </script>
 
 <style scoped>
