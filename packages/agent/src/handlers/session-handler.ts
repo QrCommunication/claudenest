@@ -65,9 +65,10 @@ export function createSessionHandlers(context: HandlerContext) {
         pid: session.pid,
       });
     } catch (error) {
-      logger.error({ err: error }, 'Failed to create session');
+      logger.error({ err: error, sessionId: payload.sessionId }, 'Failed to create session');
       wsClient.send('error', {
         originalType: 'session:create',
+        sessionId: payload.sessionId,
         code: 'SESSION_CREATION_FAILED',
         message: error instanceof Error ? error.message : 'Unknown error',
       });

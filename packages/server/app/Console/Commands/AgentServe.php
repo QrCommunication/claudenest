@@ -226,6 +226,11 @@ class AgentServe extends Command
             $type = $message['type'];
             $data = $message['payload'] ?? [];
 
+            // Log ALL incoming agent messages (except high-frequency output)
+            if ($type !== 'session:output' && $type !== 'ping' && $type !== 'pong') {
+                $this->line("[" . date('H:i:s') . "] Agent → Server: {$type} " . json_encode($data));
+            }
+
             match ($type) {
                 'machine:info' => $this->onMachineInfo($machineId, $data),
                 'session:output' => $this->onSessionOutput($machineId, $data),
@@ -233,13 +238,15 @@ class AgentServe extends Command
                 'session:exited' => $this->onSessionExited($machineId, $data),
                 'file:browse_result' => $this->onFileBrowseResult($data),
                 'ping' => $this->sendToAgent($machineId, 'pong', ['timestamp' => now()->getTimestampMs()]),
-                default => null,
+                'error' => $this->onAgentError($machineId, $data),
+                default => $this->warn("[" . date('H:i:s') . "] Unknown agent message type: {$type}"),
             };
         } catch (\Throwable $e) {
             Log::error("Error handling agent message", [
                 'machineId' => $machineId,
                 'error' => $e->getMessage(),
             ]);
+            $this->error("[" . date('H:i:s') . "] Error handling agent message: {$e->getMessage()}");
         }
     }
 
@@ -313,6 +320,25 @@ class AgentServe extends Command
         $session->markAsCompleted($exitCode);
 
         broadcast(new \App\Events\SessionTerminated($session))->toOthers();
+    }
+
+    private function onAgentError(string $machineId, array $data): void
+    {
+        $originalType = $data['originalType'] ?? 'unknown';
+        $code = $data['code'] ?? 'UNKNOWN';
+        $errorMessage = $data['message'] ?? 'No message';
+        $sessionId = $data['sessionId'] ?? null;
+
+        $this->error("[" . date('H:i:s') . "] Agent error [{$code}]: {$errorMessage} (from: {$originalType})");
+
+        // If the error is related to session creation, mark the session as error
+        if ($originalType === 'session:create' && $sessionId) {
+            $session = Session::find($sessionId);
+            if ($session) {
+                $session->markAsError(null, $errorMessage);
+                $this->error("[" . date('H:i:s') . "] Session {$sessionId} marked as error");
+            }
+        }
     }
 
     private function onFileBrowseResult(array $data): void
