@@ -113,8 +113,7 @@ class AgentServe extends Command
         // Must be a WebSocket upgrade to /ws/agent
         if (!str_contains($requestLine, '/ws/agent') ||
             strtolower($headers['upgrade'] ?? '') !== 'websocket') {
-            $conn->write("HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n");
-            $conn->close();
+            $conn->end("HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n");
             return;
         }
 
@@ -122,17 +121,22 @@ class AgentServe extends Command
         $token = $headers['x-machine-token'] ?? '';
         $machineId = $headers['x-machine-id'] ?? '';
         if (!$token || !$machineId) {
-            $conn->write("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\nMissing authentication headers");
-            $conn->close();
+            $conn->end("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\nMissing authentication headers");
             return;
         }
 
         // Verify machine token
-        $machine = Machine::find($machineId);
+        try {
+            $machine = Machine::find($machineId);
+        } catch (\Throwable $e) {
+            $this->warn("Invalid machine ID format: {$machineId}");
+            $conn->end("HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\nInvalid machine ID");
+            return;
+        }
+
         if (!$machine || !$machine->verifyToken($token)) {
             $this->warn("Auth failed for machine {$machineId}");
-            $conn->write("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\nInvalid token");
-            $conn->close();
+            $conn->end("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\nInvalid token");
             return;
         }
 

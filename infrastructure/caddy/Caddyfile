@@ -1,7 +1,12 @@
 # ClaudeNest API - serves both REST API and WebSocket
 api.claudenest.io {
-    # CORS headers for API
-    header {
+    # Match non-WebSocket routes for CORS and compression
+    @not_ws {
+        not path /ws/agent /app/* /apps/*
+    }
+
+    # CORS headers only for non-WebSocket routes
+    header @not_ws {
         Access-Control-Allow-Origin "https://claudenest.io"
         Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
         Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, X-Request-ID, X-Machine-Token, X-Machine-ID"
@@ -16,13 +21,17 @@ api.claudenest.io {
     # WebSocket: Reverb handles /app/* and /apps/* paths
     @reverb path /app/* /apps/*
     handle @reverb {
-        reverse_proxy localhost:8080
+        reverse_proxy localhost:8080 {
+            flush_interval -1
+        }
     }
 
     # WebSocket: Agent custom WS endpoint → dedicated server on port 6001
     @agent_ws path /ws/agent
     handle @agent_ws {
-        reverse_proxy localhost:6001
+        reverse_proxy localhost:6001 {
+            flush_interval -1
+        }
     }
 
     # Broadcasting auth (needed for private channels)
@@ -44,7 +53,8 @@ api.claudenest.io {
         php_fastcgi unix//run/php/php8.3-fpm.sock
     }
 
-    encode gzip zstd
+    # Compression only for non-WebSocket routes
+    encode @not_ws gzip zstd
 }
 
 # Main application (web dashboard + landing)
