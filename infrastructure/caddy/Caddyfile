@@ -2,7 +2,7 @@
 api.claudenest.io {
     # Match non-WebSocket routes for CORS and compression
     @not_ws {
-        not path /ws/agent /app/* /apps/*
+        not path /ws/agent /ws/terminal /app/* /apps/*
     }
 
     # CORS headers only for non-WebSocket routes
@@ -26,9 +26,11 @@ api.claudenest.io {
         }
     }
 
-    # WebSocket: Agent custom WS endpoint → dedicated server on port 6001
-    @agent_ws path /ws/agent
-    handle @agent_ws {
+    # WebSocket: AgentServe endpoints → dedicated server on port 6001
+    # /ws/agent  = agent daemon connections (machine token auth)
+    # /ws/terminal = browser terminal input (Sanctum token auth)
+    @agentserve_ws path /ws/agent /ws/terminal
+    handle @agentserve_ws {
         reverse_proxy localhost:6001 {
             flush_interval -1
         }
@@ -59,10 +61,18 @@ api.claudenest.io {
 
 # Main application (web dashboard + landing)
 claudenest.io {
-    # WebSocket: Reverb proxy for real-time terminal (must be in handle block)
+    # WebSocket: Reverb proxy for real-time broadcast (must be in handle block)
     @reverb path /app/* /apps/*
     handle @reverb {
         reverse_proxy localhost:8080 {
+            flush_interval -1
+        }
+    }
+
+    # WebSocket: Browser terminal input → AgentServe on port 6001
+    @terminal_ws path /ws/terminal
+    handle @terminal_ws {
+        reverse_proxy localhost:6001 {
             flush_interval -1
         }
     }

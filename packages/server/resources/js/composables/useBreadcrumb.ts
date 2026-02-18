@@ -1,6 +1,6 @@
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
-import type { BreadcrumbItem } from '@/components/common/Breadcrumb.vue';
+import type { BreadcrumbItem } from '@/types';
 
 /**
  * Composable to retrieve breadcrumb items from the current route meta.

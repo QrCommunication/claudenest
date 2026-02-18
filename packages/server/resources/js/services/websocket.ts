@@ -1,11 +1,11 @@
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
-import type { 
-  SessionOutputEvent, 
-  SessionInputEvent, 
+import type {
+  SessionOutputEvent,
+  SessionInputEvent,
   SessionStatusEvent,
   WebSocketConfig,
-  ConnectionStatus 
+  ConnectionStatus
 } from '@/types';
 
 // Make Pusher available globally for Laravel Echo
@@ -37,6 +37,7 @@ export interface WebSocketService {
 
 class WebSocketManager {
   private echo: Echo<"reverb"> | null = null;
+  private terminalWs: WebSocket | null = null;
   private callbacks: WebSocketCallbacks = {};
   private status: ConnectionStatus = 'disconnected';
   private config: WebSocketConfig | null = null;
@@ -44,6 +45,8 @@ class WebSocketManager {
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private terminalReconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private terminalReconnectAttempts = 0;
 
   /**
    * Initialize Laravel Echo with Reverb configuration
@@ -116,6 +119,68 @@ class WebSocketManager {
   }
 
   /**
+   * Connect the direct terminal WebSocket for low-latency input.
+   * Falls back to HTTP POST if this connection fails.
+   */
+  private connectTerminalWs(sessionId: string): void {
+    const authToken = localStorage.getItem('auth_token') || '';
+    if (!authToken) return;
+
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = window.location.host;
+    const url = `${protocol}//${host}/ws/terminal?session=${encodeURIComponent(sessionId)}&token=${encodeURIComponent(authToken)}`;
+
+    try {
+      this.terminalWs = new WebSocket(url);
+    } catch {
+      return;
+    }
+
+    this.terminalWs.onopen = () => {
+      this.terminalReconnectAttempts = 0;
+      console.debug('[Terminal WS] Connected');
+    };
+
+    this.terminalWs.onmessage = (event) => {
+      try {
+        const msg = JSON.parse(event.data);
+        if (msg.type === 'output') {
+          this.callbacks.onOutput?.({
+            session_id: sessionId,
+            data: msg.data,
+            timestamp: msg.timestamp,
+          } as SessionOutputEvent);
+        }
+      } catch {
+        // Ignore malformed messages
+      }
+    };
+
+    this.terminalWs.onclose = () => {
+      this.terminalWs = null;
+      this.reconnectTerminalWs(sessionId);
+    };
+
+    this.terminalWs.onerror = () => {
+      // onclose will fire after this
+    };
+  }
+
+  private reconnectTerminalWs(sessionId: string): void {
+    if (this.terminalReconnectAttempts >= 5) return;
+    if (this.status === 'disconnected') return;
+
+    this.terminalReconnectAttempts++;
+    const delay = Math.min(1000 * this.terminalReconnectAttempts, 5000);
+
+    this.terminalReconnectTimer = setTimeout(() => {
+      if (this.config) {
+        this.connectTerminalWs(sessionId);
+      }
+    }, delay);
+  }
+
+  /**
    * Connect to WebSocket
    */
   connect(config: WebSocketConfig, callbacks: WebSocketCallbacks = {}): void {
@@ -126,6 +191,7 @@ class WebSocketManager {
     try {
       this.initializeEcho(config);
       this.subscribeToSession(config.session_id);
+      this.connectTerminalWs(config.session_id);
     } catch (error) {
       this.status = 'error';
       callbacks.onError?.(error instanceof Error ? error : new Error(String(error)));
@@ -141,6 +207,16 @@ class WebSocketManager {
       this.reconnectTimer = null;
     }
 
+    if (this.terminalReconnectTimer) {
+      clearTimeout(this.terminalReconnectTimer);
+      this.terminalReconnectTimer = null;
+    }
+
+    if (this.terminalWs) {
+      this.terminalWs.close();
+      this.terminalWs = null;
+    }
+
     if (this.echo) {
       if (this.config) {
         this.echo.leave(`private-sessions.${this.config.session_id}`);
@@ -151,19 +227,21 @@ class WebSocketManager {
 
     this.status = 'disconnected';
     this.reconnectAttempts = 0;
+    this.terminalReconnectAttempts = 0;
   }
 
   /**
-   * Send input to the session
+   * Send input to the session.
+   * Uses direct WebSocket for low latency, falls back to HTTP POST.
    */
   sendInput(data: string): void {
-    if (!this.echo || this.status !== 'connected') {
-      console.warn('Cannot send input: WebSocket not connected');
+    // Fast path: direct WebSocket to AgentServe (no HTTP/PHP overhead)
+    if (this.terminalWs && this.terminalWs.readyState === WebSocket.OPEN) {
+      this.terminalWs.send(JSON.stringify({ type: 'input', data }));
       return;
     }
 
-    // Input is sent via HTTP API, not WebSocket
-    // The WebSocket is for receiving output only
+    // Fallback: HTTP POST (works but slower due to TrimStrings bypass)
     import('./api').then(({ sessionsApi }) => {
       if (this.config) {
         sessionsApi.sendInput(this.config.session_id, data);

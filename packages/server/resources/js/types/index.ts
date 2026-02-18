@@ -1,6 +1,14 @@
 // ==================== IMPORTS ====================
 import type { TaskStatus, TaskPriority } from './multiagent';
 
+// ==================== UI TYPES ====================
+
+export interface BreadcrumbItem {
+  label: string;
+  to?: string;
+  icon?: string;
+}
+
 // ==================== ENUMS & CONSTANTS ====================
 
 export type MachineStatus = 'online' | 'offline' | 'connecting';

@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Machine;
+use App\Models\PersonalAccessToken;
 use App\Models\Session;
 use App\Services\AgentGateway;
 use Illuminate\Console\Command;
@@ -14,23 +15,29 @@ use React\Socket\ConnectionInterface;
 use React\Socket\SocketServer;
 
 /**
- * Dedicated WebSocket server for agent connections.
+ * Dedicated WebSocket server for agent and terminal connections.
  *
- * Agents connect with raw WebSocket (JSON messages), not Pusher protocol.
+ * - /ws/agent    — Agent connections (machine token auth, JSON messages)
+ * - /ws/terminal — Browser terminal connections (Sanctum token auth)
+ *
  * Uses ReactPHP for non-blocking I/O and Redis lists as a bridge
  * for server→agent messages (see AgentGateway service).
  *
- * Message format: {type: string, payload: object, id: string, timestamp: int}
+ * Terminal connections send input directly to agents in-memory,
+ * bypassing the HTTP/Redis round-trip for low-latency keystroke delivery.
  */
 class AgentServe extends Command
 {
     protected $signature = 'agent:serve {--port=6001} {--host=0.0.0.0}';
-    protected $description = 'Start the WebSocket server for agent connections';
+    protected $description = 'Start the WebSocket server for agent and terminal connections';
 
     /** @var array<string, array{conn: ConnectionInterface, machine: Machine, connId: int}> */
     private array $agents = [];
 
-    /** @var array<int, array{buffer: string, upgraded: bool, machineId: ?string, frameBuffer: string}> */
+    /** @var array<string, array<int, ConnectionInterface>> sessionId => [connId => conn] */
+    private array $terminals = [];
+
+    /** @var array<int, array{buffer: string, upgraded: bool, machineId: ?string, frameBuffer: string, type: ?string, sessionId: ?string}> */
     private array $connState = [];
 
     private int $nextConnId = 0;
@@ -40,7 +47,7 @@ class AgentServe extends Command
         $host = $this->option('host');
         $port = $this->option('port');
 
-        $this->info("Starting agent WebSocket server on {$host}:{$port}");
+        $this->info("Starting WebSocket server on {$host}:{$port}");
 
         $socket = new SocketServer("{$host}:{$port}");
 
@@ -52,6 +59,8 @@ class AgentServe extends Command
                 'upgraded' => false,
                 'machineId' => null,
                 'frameBuffer' => '',
+                'type' => null,
+                'sessionId' => null,
             ];
 
             $conn->on('data', function (string $data) use ($conn, $connId) {
@@ -77,15 +86,17 @@ class AgentServe extends Command
 
         // Log stats every 60s
         Loop::addPeriodicTimer(60, function () {
-            $count = count($this->agents);
-            if ($count > 0) {
-                $this->line("[" . date('H:i:s') . "] {$count} agent(s) connected");
+            $agentCount = count($this->agents);
+            $termCount = array_sum(array_map('count', $this->terminals));
+            if ($agentCount > 0 || $termCount > 0) {
+                $this->line("[" . date('H:i:s') . "] {$agentCount} agent(s), {$termCount} terminal(s) connected");
             }
         });
 
         $socket->on('error', fn (\Exception $e) => $this->error("Server error: {$e->getMessage()}"));
 
-        $this->info("Agent WebSocket server listening on ws://{$host}:{$port}/ws/agent");
+        $this->info("  /ws/agent    — Agent connections (machine token)");
+        $this->info("  /ws/terminal — Browser terminals (Sanctum token)");
         $this->info("Press Ctrl+C to stop.");
 
         Loop::get()->run();
@@ -97,8 +108,6 @@ class AgentServe extends Command
 
     private function handleUpgrade(ConnectionInterface $conn, int $connId, string $httpRequest): void
     {
-        $state = &$this->connState[$connId];
-
         // Parse HTTP headers
         $lines = explode("\r\n", $httpRequest);
         $requestLine = $lines[0] ?? '';
@@ -111,14 +120,26 @@ class AgentServe extends Command
             }
         }
 
-        // Must be a WebSocket upgrade to /ws/agent
-        if (!str_contains($requestLine, '/ws/agent') ||
-            strtolower($headers['upgrade'] ?? '') !== 'websocket') {
-            $conn->end("HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n");
+        // Must be a WebSocket upgrade
+        if (strtolower($headers['upgrade'] ?? '') !== 'websocket') {
+            $conn->end("HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\n");
             return;
         }
 
-        // Extract auth
+        // Route by path
+        if (str_contains($requestLine, '/ws/terminal')) {
+            $this->handleTerminalUpgrade($conn, $connId, $requestLine, $headers);
+        } elseif (str_contains($requestLine, '/ws/agent')) {
+            $this->handleAgentUpgrade($conn, $connId, $headers);
+        } else {
+            $conn->end("HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n");
+        }
+    }
+
+    private function handleAgentUpgrade(ConnectionInterface $conn, int $connId, array $headers): void
+    {
+        $state = &$this->connState[$connId];
+
         $token = $headers['x-machine-token'] ?? '';
         $machineId = $headers['x-machine-id'] ?? '';
         if (!$token || !$machineId) {
@@ -126,11 +147,9 @@ class AgentServe extends Command
             return;
         }
 
-        // Verify machine token
         try {
             $machine = Machine::find($machineId);
         } catch (\Throwable $e) {
-            $this->warn("Invalid machine ID format: {$machineId}");
             $conn->end("HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\nInvalid machine ID");
             return;
         }
@@ -148,18 +167,11 @@ class AgentServe extends Command
             $old->close();
         }
 
-        // WebSocket accept handshake
-        $wsKey = $headers['sec-websocket-key'] ?? '';
-        $accept = base64_encode(sha1($wsKey . '258EAFA5-E914-47DA-95CA-C5AB0DC85B11', true));
-        $conn->write(
-            "HTTP/1.1 101 Switching Protocols\r\n" .
-            "Upgrade: websocket\r\n" .
-            "Connection: Upgrade\r\n" .
-            "Sec-WebSocket-Accept: {$accept}\r\n\r\n"
-        );
+        $this->completeUpgrade($conn, $headers);
 
         $state['upgraded'] = true;
         $state['machineId'] = $machineId;
+        $state['type'] = 'agent';
 
         $this->agents[$machineId] = [
             'conn' => $conn,
@@ -171,19 +183,114 @@ class AgentServe extends Command
         $this->info("Agent connected: {$machine->name} ({$machineId})");
     }
 
+    private function handleTerminalUpgrade(ConnectionInterface $conn, int $connId, string $requestLine, array $headers): void
+    {
+        $state = &$this->connState[$connId];
+
+        // Parse query parameters: /ws/terminal?token=xxx&session=yyy
+        $urlPart = explode(' ', $requestLine)[1] ?? '';
+        parse_str(parse_url($urlPart, PHP_URL_QUERY) ?? '', $query);
+
+        $token = $query['token'] ?? '';
+        $sessionId = $query['session'] ?? '';
+
+        if (!$token || !$sessionId) {
+            $conn->end("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\nMissing token or session");
+            return;
+        }
+
+        // Verify Sanctum token: format is {id}|{plainText}
+        $tokenParts = explode('|', $token, 2);
+        if (count($tokenParts) !== 2) {
+            $conn->end("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\nInvalid token format");
+            return;
+        }
+
+        [$tokenId, $plainText] = $tokenParts;
+
+        try {
+            $accessToken = PersonalAccessToken::find($tokenId);
+        } catch (\Throwable $e) {
+            $conn->end("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\nInvalid token");
+            return;
+        }
+
+        if (!$accessToken || !hash_equals($accessToken->token, hash('sha256', $plainText))) {
+            $conn->end("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\nInvalid token");
+            return;
+        }
+
+        // Check token is not expired
+        if ($accessToken->expires_at && $accessToken->expires_at->isPast()) {
+            $conn->end("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\nToken expired");
+            return;
+        }
+
+        // Verify session exists, belongs to user, and is active
+        $userId = $accessToken->tokenable_id;
+        $session = Session::where('id', $sessionId)
+            ->where('user_id', $userId)
+            ->whereIn('status', ['running', 'waiting_input', 'starting'])
+            ->first();
+
+        if (!$session) {
+            $conn->end("HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\nSession not found or not accessible");
+            return;
+        }
+
+        $this->completeUpgrade($conn, $headers);
+
+        $state['upgraded'] = true;
+        $state['type'] = 'terminal';
+        $state['sessionId'] = $sessionId;
+        $state['machineId'] = $session->machine_id;
+
+        if (!isset($this->terminals[$sessionId])) {
+            $this->terminals[$sessionId] = [];
+        }
+        $this->terminals[$sessionId][$connId] = $conn;
+
+        $this->info("[" . date('H:i:s') . "] Terminal connected: session {$sessionId}");
+    }
+
+    private function completeUpgrade(ConnectionInterface $conn, array $headers): void
+    {
+        $wsKey = $headers['sec-websocket-key'] ?? '';
+        $accept = base64_encode(sha1($wsKey . '258EAFA5-E914-47DA-95CA-C5AB0DC85B11', true));
+        $conn->write(
+            "HTTP/1.1 101 Switching Protocols\r\n" .
+            "Upgrade: websocket\r\n" .
+            "Connection: Upgrade\r\n" .
+            "Sec-WebSocket-Accept: {$accept}\r\n\r\n"
+        );
+    }
+
     private function handleDisconnect(int $connId): void
     {
         $state = $this->connState[$connId] ?? null;
         if (!$state) return;
 
-        $machineId = $state['machineId'];
-        if ($machineId && isset($this->agents[$machineId]) && $this->agents[$machineId]['connId'] === $connId) {
-            unset($this->agents[$machineId]);
+        $type = $state['type'] ?? null;
 
-            $machine = Machine::find($machineId);
-            if ($machine) {
-                $machine->markAsOffline();
-                $this->warn("Agent disconnected: {$machine->name} ({$machineId})");
+        if ($type === 'agent') {
+            $machineId = $state['machineId'];
+            if ($machineId && isset($this->agents[$machineId]) && $this->agents[$machineId]['connId'] === $connId) {
+                unset($this->agents[$machineId]);
+
+                $machine = Machine::find($machineId);
+                if ($machine) {
+                    $machine->markAsOffline();
+                    $this->warn("Agent disconnected: {$machine->name} ({$machineId})");
+                }
+            }
+        } elseif ($type === 'terminal') {
+            $sessionId = $state['sessionId'];
+            if ($sessionId && isset($this->terminals[$sessionId][$connId])) {
+                unset($this->terminals[$sessionId][$connId]);
+                if (empty($this->terminals[$sessionId])) {
+                    unset($this->terminals[$sessionId]);
+                }
+                $this->line("[" . date('H:i:s') . "] Terminal disconnected: session {$sessionId}");
             }
         }
 
@@ -216,7 +323,16 @@ class AgentServe extends Command
 
     private function handleTextMessage(int $connId, string $payload): void
     {
-        $machineId = $this->connState[$connId]['machineId'] ?? null;
+        $state = $this->connState[$connId] ?? null;
+        if (!$state) return;
+
+        if ($state['type'] === 'terminal') {
+            $this->handleTerminalMessage($connId, $payload);
+            return;
+        }
+
+        // Agent message handling
+        $machineId = $state['machineId'] ?? null;
         if (!$machineId) return;
 
         try {
@@ -226,7 +342,6 @@ class AgentServe extends Command
             $type = $message['type'];
             $data = $message['payload'] ?? [];
 
-            // Log ALL incoming agent messages (except high-frequency output)
             if ($type !== 'session:output' && $type !== 'ping' && $type !== 'pong') {
                 $this->line("[" . date('H:i:s') . "] Agent → Server: {$type} " . json_encode($data));
             }
@@ -247,6 +362,34 @@ class AgentServe extends Command
                 'error' => $e->getMessage(),
             ]);
             $this->error("[" . date('H:i:s') . "] Error handling agent message: {$e->getMessage()}");
+        }
+    }
+
+    private function handleTerminalMessage(int $connId, string $payload): void
+    {
+        $state = $this->connState[$connId] ?? null;
+        if (!$state) return;
+
+        $machineId = $state['machineId'] ?? null;
+        $sessionId = $state['sessionId'] ?? null;
+        if (!$machineId || !$sessionId) return;
+
+        try {
+            $message = json_decode($payload, true);
+            if (!$message || !isset($message['type'])) return;
+
+            if ($message['type'] === 'input') {
+                $data = $message['data'] ?? '';
+                if (!is_string($data)) return;
+
+                // Forward directly to agent in-memory (no Redis, no HTTP)
+                $this->sendToAgent($machineId, 'session:input', [
+                    'sessionId' => $sessionId,
+                    'data' => $data,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            // Silently ignore malformed terminal messages
         }
     }
 
@@ -284,6 +427,18 @@ class AgentServe extends Command
 
         $session->addLog('output', $output);
         broadcast(new \App\Events\SessionOutput($session, $output));
+
+        // Also forward output to directly-connected browser terminals
+        if (isset($this->terminals[$sessionId])) {
+            $frame = $this->encodeFrame(json_encode([
+                'type' => 'output',
+                'data' => $output,
+                'timestamp' => now()->getTimestampMs(),
+            ]));
+            foreach ($this->terminals[$sessionId] as $termConn) {
+                $termConn->write($frame);
+            }
+        }
     }
 
     private function onSessionStatus(string $machineId, array $data): void
@@ -295,7 +450,6 @@ class AgentServe extends Command
         $session = Session::find($sessionId);
         if (!$session) return;
 
-        // Update PID if provided
         if (isset($data['pid']) && $data['pid']) {
             $session->update(['pid' => (int) $data['pid']]);
         }
@@ -320,6 +474,20 @@ class AgentServe extends Command
         $session->markAsCompleted($exitCode);
 
         broadcast(new \App\Events\SessionTerminated($session));
+
+        // Notify connected terminals that session ended
+        if (isset($this->terminals[$sessionId])) {
+            $frame = $this->encodeFrame(json_encode([
+                'type' => 'session:terminated',
+                'exitCode' => $exitCode,
+                'timestamp' => now()->getTimestampMs(),
+            ]));
+            foreach ($this->terminals[$sessionId] as $termConn) {
+                $termConn->write($frame);
+                $termConn->write($this->encodeFrame(pack('n', 1000) . 'Session ended', 0x8));
+            }
+            unset($this->terminals[$sessionId]);
+        }
     }
 
     private function onAgentError(string $machineId, array $data): void
@@ -331,7 +499,6 @@ class AgentServe extends Command
 
         $this->error("[" . date('H:i:s') . "] Agent error [{$code}]: {$errorMessage} (from: {$originalType})");
 
-        // If the error is related to session creation, mark the session as error
         if ($originalType === 'session:create' && $sessionId) {
             $session = Session::find($sessionId);
             if ($session) {
@@ -382,9 +549,6 @@ class AgentServe extends Command
 
     // ==================== WebSocket Frame Codec (RFC 6455) ====================
 
-    /**
-     * Decode a WebSocket frame. Returns null if data is incomplete.
-     */
     private function decodeFrame(string $data): ?array
     {
         $len = strlen($data);
@@ -430,9 +594,6 @@ class AgentServe extends Command
         ];
     }
 
-    /**
-     * Encode a WebSocket frame (server→client, unmasked).
-     */
     private function encodeFrame(string $payload, int $opcode = 0x1): string
     {
         $frame = chr(0x80 | $opcode);

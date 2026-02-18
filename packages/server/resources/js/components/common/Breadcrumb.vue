@@ -82,11 +82,7 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router';
 
-export interface BreadcrumbItem {
-  label: string;
-  to?: string;
-  icon?: string;
-}
+import type { BreadcrumbItem } from '@/types';
 
 interface Props {
   items: BreadcrumbItem[];

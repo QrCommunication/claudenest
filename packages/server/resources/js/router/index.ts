@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory, type RouteRecordRaw, type NavigationGuardNext, type RouteLocationNormalized } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
-import type { BreadcrumbItem } from '@/components/common/Breadcrumb.vue';
+import type { BreadcrumbItem } from '@/types';
 
 // Augment RouteMeta to include breadcrumb
 declare module 'vue-router' {
