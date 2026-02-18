@@ -59,6 +59,14 @@ api.claudenest.io {
 
 # Main application (web dashboard + landing)
 claudenest.io {
+    # WebSocket: Reverb proxy for real-time terminal
+    @reverb path /app/* /apps/*
+    handle @reverb {
+        reverse_proxy localhost:8080 {
+            flush_interval -1
+        }
+    }
+
     root * /var/www/claudenest/packages/server/public
 
     # Try files - SPA fallback via PHP
