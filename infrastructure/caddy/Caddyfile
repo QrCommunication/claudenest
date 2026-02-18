@@ -59,7 +59,7 @@ api.claudenest.io {
 
 # Main application (web dashboard + landing)
 claudenest.io {
-    # WebSocket: Reverb proxy for real-time terminal
+    # WebSocket: Reverb proxy for real-time terminal (must be in handle block)
     @reverb path /app/* /apps/*
     handle @reverb {
         reverse_proxy localhost:8080 {
@@ -67,18 +67,15 @@ claudenest.io {
         }
     }
 
-    root * /var/www/claudenest/packages/server/public
+    # All other requests → PHP (SPA)
+    handle {
+        root * /var/www/claudenest/packages/server/public
+        try_files {path} {path}/ /index.php
+        file_server
+        php_fastcgi unix//run/php/php8.3-fpm.sock
+    }
 
-    # Try files - SPA fallback via PHP
-    try_files {path} {path}/ /index.php
-
-    # File server for static assets
-    file_server
-
-    # PHP for all routes
-    php_fastcgi unix//run/php/php8.3-fpm.sock
-
-    # Enable compression
+    # Compression (outside handles = applies to all)
     encode gzip zstd
 
     # Security headers
