@@ -103,6 +103,9 @@ export function useTerminal(options: UseTerminalOptions): UseTerminalReturn {
   let resizeObserver: ResizeObserver | null = null;
   let wsConfig: WebSocketConfig | null = null;
   let inputBuffer = '';
+  let connectRetryTimer: ReturnType<typeof setTimeout> | null = null;
+  let connectRetryCount = 0;
+  const MAX_CONNECT_RETRIES = 15; // Up to 30s of retrying (2s intervals)
 
   // ============================================================================
   // Terminal Initialization
@@ -251,19 +254,20 @@ export function useTerminal(options: UseTerminalOptions): UseTerminalReturn {
     if (connectionStatus.value === 'connected' || connectionStatus.value === 'connecting') {
       return;
     }
-    
+
     connectionStatus.value = 'connecting';
-    
+
     try {
-      // Get WebSocket configuration
+      // Get WebSocket configuration (attach requires session to be running)
       const config = await sessionsApi.attach(sessionId);
       wsConfig = config;
-      
-      // Connect to WebSocket
+      connectRetryCount = 0;
+
+      // Connect to WebSocket using Sanctum auth (not ws_token)
       websocketManager.connect(
         {
           session_id: sessionId,
-          token: config.token || '',
+          token: localStorage.getItem('auth_token') || '',
           ws_url: config.ws_url || '',
         },
         {
@@ -285,10 +289,24 @@ export function useTerminal(options: UseTerminalOptions): UseTerminalReturn {
         }
       );
     } catch (e) {
-      connectionStatus.value = 'error';
-      const error = e instanceof Error ? e : new Error(String(e));
-      options.onError?.(error);
-      throw error;
+      // If attach fails (session not yet running), retry with backoff
+      if (connectRetryCount < MAX_CONNECT_RETRIES) {
+        connectRetryCount++;
+        connectionStatus.value = 'connecting';
+
+        if (terminal.value) {
+          terminal.value.write(`\r\n\x1b[90m[Waiting for session to start... (${connectRetryCount}/${MAX_CONNECT_RETRIES})]\x1b[0m\r\n`);
+        }
+
+        connectRetryTimer = setTimeout(() => {
+          connectionStatus.value = 'disconnected'; // Reset so connect() can proceed
+          connect();
+        }, 2000);
+      } else {
+        connectionStatus.value = 'error';
+        const error = e instanceof Error ? e : new Error(String(e));
+        options.onError?.(error);
+      }
     }
   }
 
@@ -354,8 +372,13 @@ export function useTerminal(options: UseTerminalOptions): UseTerminalReturn {
   // ============================================================================
   
   function cleanup(): void {
+    if (connectRetryTimer) {
+      clearTimeout(connectRetryTimer);
+      connectRetryTimer = null;
+    }
+
     disconnect();
-    
+
     resizeObserver?.disconnect();
     resizeObserver = null;
     

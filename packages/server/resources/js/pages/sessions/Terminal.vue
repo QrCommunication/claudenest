@@ -47,8 +47,8 @@
         </button>
       </div>
 
-      <!-- Session Not Running -->
-      <div v-else-if="session && !session.is_running && !hasConnected" class="not-running-overlay">
+      <!-- Session Completed/Terminated -->
+      <div v-else-if="session && session.is_completed && !hasConnected" class="not-running-overlay">
         <svg class="info-icon" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
         </svg>
@@ -259,19 +259,31 @@ onMounted(() => {
   });
 
   // Poll for session status updates
-  const interval = setInterval(async () => {
-    if (session.value?.is_running) {
+  // Fast poll (2s) during startup, normal (5s) when running
+  let pollTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function schedulePoll(): void {
+    const s = session.value;
+    if (!s || s.is_completed) return;
+
+    const isStarting = ['created', 'starting'].includes(s.status);
+    const delay = isStarting ? 2000 : 5000;
+
+    pollTimer = setTimeout(async () => {
       try {
         await sessionsStore.fetchSession(sessionId.value);
       } catch (e) {
         // Ignore errors during polling
       }
-    }
-  }, 5000);
-  
+      schedulePoll();
+    }, delay);
+  }
+
+  schedulePoll();
+
   // Cleanup
   onUnmounted(() => {
-    clearInterval(interval);
+    if (pollTimer) clearTimeout(pollTimer);
     terminalRef.value?.disconnect();
     sessionsStore.clearCurrentSession();
   });
@@ -284,6 +296,13 @@ watch(() => route.params.id, (newId) => {
     reconnectAttempts.value = 0;
     showReconnectToast.value = false;
     loadSession();
+  }
+});
+
+// When session becomes running, trigger terminal connect
+watch(() => session.value?.is_running, (isRunning, wasRunning) => {
+  if (isRunning && !wasRunning && !hasConnected.value && terminalRef.value) {
+    terminalRef.value.connect();
   }
 });
 </script>

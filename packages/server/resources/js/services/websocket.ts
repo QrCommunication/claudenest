@@ -48,12 +48,15 @@ class WebSocketManager {
   /**
    * Initialize Laravel Echo with Reverb configuration
    */
-  private initializeEcho(config: WebSocketConfig): void {
+  private initializeEcho(_config: WebSocketConfig): void {
     const reverbConfig = window.ClaudeNest?.reverb;
 
     if (!reverbConfig) {
       throw new Error('Reverb configuration not found');
     }
+
+    // Use the Sanctum auth token for Reverb private channel authentication
+    const authToken = localStorage.getItem('auth_token') || '';
 
     this.echo = new Echo({
       broadcaster: 'reverb',
@@ -65,7 +68,7 @@ class WebSocketManager {
       enabledTransports: ['ws', 'wss'],
       auth: {
         headers: {
-          'Authorization': `Bearer ${config.token}`,
+          'Authorization': `Bearer ${authToken}`,
         },
       },
     });

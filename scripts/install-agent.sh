@@ -302,8 +302,8 @@ main() {
   # In curl|bash context, PATH and hash table may be stale.
   # Probe npm locations, add to PATH, then verify.
   AGENT_BIN=""
-  NPM_PREFIX="$(npm config get prefix 2>/dev/null)"
-  NPM_ROOT="$(npm root -g 2>/dev/null)"
+  NPM_PREFIX="$(npm config get prefix 2>/dev/null || true)"
+  NPM_ROOT="$(npm root -g 2>/dev/null || true)"
 
   info "npm prefix: ${NPM_PREFIX:-N/A}"
 
