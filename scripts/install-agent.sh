@@ -16,7 +16,7 @@ set -euo pipefail
 PACKAGE_NAME="@claudenest/agent"
 MIN_NODE_VERSION=20
 DEFAULT_SERVER_URL="https://api.claudenest.io"
-SERVER_URL="${1:-$DEFAULT_SERVER_URL}"
+SERVER_URL="$DEFAULT_SERVER_URL"
 
 # Colors
 RED='\033[0;31m'
