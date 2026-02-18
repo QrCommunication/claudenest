@@ -122,7 +122,7 @@ class SessionController extends Controller
         }
 
         $validated = $request->validate([
-            'mode' => 'string|in:interactive,headless,oneshot|default:interactive',
+            'mode' => 'sometimes|string|in:interactive,headless,oneshot',
             'project_path' => 'nullable|string|max:512',
             'initial_prompt' => 'nullable|string',
             'credential_id' => 'nullable|uuid|exists:claude_credentials,id',
