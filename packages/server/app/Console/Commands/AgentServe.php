@@ -160,18 +160,15 @@ class AgentServe extends Command
             return;
         }
 
-        // Replace existing connection for this machine
-        if (isset($this->agents[$machineId])) {
-            $old = $this->agents[$machineId]['conn'];
-            $old->write($this->encodeFrame(pack('n', 1000) . 'Replaced', 0x8));
-            $old->close();
-        }
-
         $this->completeUpgrade($conn, $headers);
 
         $state['upgraded'] = true;
         $state['machineId'] = $machineId;
         $state['type'] = 'agent';
+
+        // Replace BEFORE closing old connection so handleDisconnect
+        // sees the new connId and skips markAsOffline for the old one.
+        $old = $this->agents[$machineId]['conn'] ?? null;
 
         $this->agents[$machineId] = [
             'conn' => $conn,
@@ -180,6 +177,11 @@ class AgentServe extends Command
         ];
 
         $machine->markAsOnline();
+
+        if ($old) {
+            $old->write($this->encodeFrame(pack('n', 1000) . 'Replaced', 0x8));
+            $old->close();
+        }
         $this->info("Agent connected: {$machine->name} ({$machineId})");
     }
 
