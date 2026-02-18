@@ -96,6 +96,21 @@ export class WebSocketClient extends EventEmitter {
           this.onClose(code, reason);
         });
 
+        this.ws.on('unexpected-response', (_req, res) => {
+          clearTimeout(timeout);
+          this.isConnecting = false;
+          const status = res.statusCode;
+          let body = '';
+          res.on('data', (d: Buffer) => body += d.toString());
+          res.on('end', () => {
+            const msg = status === 401
+              ? `Authentication failed (${status}): ${body || 'Invalid or missing machine token. Run: claudenest-agent pair'}`
+              : `Server rejected WebSocket upgrade (${status}): ${body}`;
+            this.logger.error({ status, body }, msg);
+            reject(new Error(msg));
+          });
+        });
+
         this.ws.on('error', (error) => {
           clearTimeout(timeout);
           this.isConnecting = false;

@@ -149,7 +149,7 @@ class AgentServe extends Command
 
         // WebSocket accept handshake
         $wsKey = $headers['sec-websocket-key'] ?? '';
-        $accept = base64_encode(sha1($wsKey . '258EAFA5-E914-47DA-95CA-5AB5FC11B65B', true));
+        $accept = base64_encode(sha1($wsKey . '258EAFA5-E914-47DA-95CA-C5AB0DC85B11', true));
         $conn->write(
             "HTTP/1.1 101 Switching Protocols\r\n" .
             "Upgrade: websocket\r\n" .

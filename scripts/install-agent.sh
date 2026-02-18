@@ -301,6 +301,9 @@ main() {
     npm install -g "$PACKAGE_NAME"
   fi
 
+  # Reset bash command cache so newly installed binary is found
+  hash -r 2>/dev/null
+
   # If claudenest-agent not in PATH, add npm global bin to PATH
   if ! command_exists claudenest-agent; then
     if [[ -x "${NPM_BIN_DIR}/claudenest-agent" ]]; then
