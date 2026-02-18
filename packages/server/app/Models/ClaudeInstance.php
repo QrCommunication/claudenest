@@ -21,6 +21,11 @@ class ClaudeInstance extends Model
     public $incrementing = false;
 
     /**
+     * Disable default timestamps (table uses connected_at/last_activity_at instead).
+     */
+    public $timestamps = false;
+
+    /**
      * The primary key is not auto-incrementing.
      */
     protected $primaryKey = 'id';

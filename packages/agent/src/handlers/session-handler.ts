@@ -18,10 +18,18 @@ export function createSessionHandlers(context: HandlerContext) {
 
   /**
    * Handle session:create
+   * Backend sends flat fields (sessionId, mode, projectPath, etc.)
+   * but we also support a nested config object for flexibility.
    */
   async function handleCreateSession(payload: {
     sessionId: string;
     config?: SessionConfig;
+    mode?: string;
+    projectPath?: string;
+    initialPrompt?: string;
+    ptySize?: { cols: number; rows: number };
+    credentialEnv?: Record<string, string>;
+    env?: Record<string, string>;
   }): Promise<void> {
     logger.debug({ sessionId: payload.sessionId }, 'Handling session:create');
 
@@ -36,9 +44,19 @@ export function createSessionHandlers(context: HandlerContext) {
         return;
       }
 
+      // Build config from nested config or flat payload fields
+      const config: SessionConfig = payload.config || {
+        mode: (payload.mode as SessionConfig['mode']) || 'interactive',
+        projectPath: payload.projectPath,
+        initialPrompt: payload.initialPrompt,
+        ptySize: payload.ptySize,
+        credentialEnv: payload.credentialEnv,
+        env: payload.env,
+      };
+
       const session = await sessionManager.createSession(
         payload.sessionId,
-        payload.config || {}
+        config,
       );
 
       wsClient.send('session:status', {
