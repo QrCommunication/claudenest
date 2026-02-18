@@ -453,21 +453,26 @@ class SessionController extends Controller
             return $this->errorResponse('SES_001', 'Session not found or not running', 404);
         }
 
-        $validated = $request->validate([
-            'data' => 'required|string',
-        ]);
+        // Read raw body to bypass TrimStrings/ConvertEmptyStringsToNull middleware
+        // which corrupts terminal control characters (\r, \x03, \x1b, etc.)
+        $body = json_decode($request->getContent(), true);
+        $data = $body['data'] ?? null;
+
+        if (!is_string($data) || $data === '') {
+            return $this->errorResponse('VAL_001', 'The data field is required', 422);
+        }
 
         // Send input to agent via dedicated WebSocket server
         AgentGateway::send($session->machine_id, 'session:input', [
             'sessionId' => $session->id,
-            'data' => $validated['data'],
+            'data' => $data,
         ]);
 
         // Broadcast to dashboard via Reverb
-        broadcast(new \App\Events\SessionInput($session, $validated['data']))->toOthers();
+        broadcast(new \App\Events\SessionInput($session, $data))->toOthers();
 
         // Log input
-        $session->addLog('input', $validated['data']);
+        $session->addLog('input', $data);
 
         return response()->json([
             'success' => true,
