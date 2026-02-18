@@ -283,7 +283,7 @@ class AgentServe extends Command
         $output = $data['data'] ?? '';
 
         $session->addLog('output', $output);
-        broadcast(new \App\Events\SessionOutput($session, $output))->toOthers();
+        broadcast(new \App\Events\SessionOutput($session, $output));
     }
 
     private function onSessionStatus(string $machineId, array $data): void
@@ -319,7 +319,7 @@ class AgentServe extends Command
         $exitCode = $data['exitCode'] ?? $data['exit_code'] ?? null;
         $session->markAsCompleted($exitCode);
 
-        broadcast(new \App\Events\SessionTerminated($session))->toOthers();
+        broadcast(new \App\Events\SessionTerminated($session));
     }
 
     private function onAgentError(string $machineId, array $data): void
