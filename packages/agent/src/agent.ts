@@ -331,9 +331,12 @@ export class ClaudeNestAgent extends EventEmitter {
       this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
     }
 
-    // Add ping handler
+    // Add ping/pong handlers
     this.handlers.set('ping', () => {
       this.wsClient.send('pong', { timestamp: Date.now() });
+    });
+    this.handlers.set('pong', () => {
+      // Expected response to heartbeat, no action needed
     });
   }
 
