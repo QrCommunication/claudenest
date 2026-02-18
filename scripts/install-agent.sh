@@ -386,8 +386,14 @@ main() {
     fi
   fi
 
-  # Final verification
-  if ! command -v claudenest-agent >/dev/null 2>&1; then
+  # Final verification: prefer AGENT_BIN (direct path) over command -v
+  # In curl|bash context with nvm, command -v may fail even after PATH update
+  AGENT_CMD="${AGENT_BIN:-}"
+  if [[ -z "$AGENT_CMD" ]]; then
+    AGENT_CMD="$(command -v claudenest-agent 2>/dev/null || true)"
+  fi
+
+  if [[ -z "$AGENT_CMD" ]] || ! "$AGENT_CMD" --version >/dev/null 2>&1; then
     echo ""
     error "Installation failed. The 'claudenest-agent' command is not available."
     error ""
@@ -410,7 +416,7 @@ main() {
     exit 1
   fi
 
-  INSTALLED_VERSION=$(claudenest-agent --version 2>/dev/null || echo "unknown")
+  INSTALLED_VERSION=$("$AGENT_CMD" --version 2>/dev/null || echo "unknown")
   success "ClaudeNest Agent v${INSTALLED_VERSION} installed"
 
   # ------------------------------------------
@@ -422,11 +428,19 @@ main() {
     info "Server: ${BOLD}${SERVER_URL}${NC}"
     echo ""
 
-    read -rp "$(echo -e "${CYAN}Pair this machine now? [Y/n]:${NC} ")" PAIR_ANSWER
+    # In curl|bash context, stdin is the pipe — read from /dev/tty instead
+    if [[ -t 0 ]]; then
+      read -rp "$(echo -e "${CYAN}Pair this machine now? [Y/n]:${NC} ")" PAIR_ANSWER
+    elif [[ -e /dev/tty ]]; then
+      read -rp "$(echo -e "${CYAN}Pair this machine now? [Y/n]:${NC} ")" PAIR_ANSWER < /dev/tty
+    else
+      PAIR_ANSWER="n"
+      info "Non-interactive mode detected, skipping pairing."
+    fi
     PAIR_ANSWER=${PAIR_ANSWER:-Y}
 
     if [[ "$PAIR_ANSWER" =~ ^[Yy]$ ]]; then
-      claudenest-agent pair --server "$SERVER_URL"
+      "$AGENT_CMD" pair --server "$SERVER_URL"
     else
       info "Skipped. You can pair later with: claudenest-agent pair"
     fi
@@ -439,7 +453,14 @@ main() {
     step "Auto-start service setup"
     echo ""
 
-    read -rp "$(echo -e "${CYAN}Install as system service (auto-start on boot)? [y/N]:${NC} ")" SERVICE_ANSWER
+    if [[ -t 0 ]]; then
+      read -rp "$(echo -e "${CYAN}Install as system service (auto-start on boot)? [y/N]:${NC} ")" SERVICE_ANSWER
+    elif [[ -e /dev/tty ]]; then
+      read -rp "$(echo -e "${CYAN}Install as system service (auto-start on boot)? [y/N]:${NC} ")" SERVICE_ANSWER < /dev/tty
+    else
+      SERVICE_ANSWER="n"
+      info "Non-interactive mode detected, skipping service setup."
+    fi
     SERVICE_ANSWER=${SERVICE_ANSWER:-N}
 
     if [[ "$SERVICE_ANSWER" =~ ^[Yy]$ ]]; then
@@ -472,7 +493,7 @@ main() {
 # Service installation
 # ============================================
 install_service() {
-  AGENT_PATH=$(command -v claudenest-agent)
+  AGENT_PATH="${AGENT_CMD:-$(command -v claudenest-agent)}"
 
   if [[ "$OS" == "linux" ]]; then
     install_systemd_service "$AGENT_PATH"
