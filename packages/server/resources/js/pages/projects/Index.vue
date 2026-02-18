@@ -156,13 +156,41 @@
           />
         </div>
         <div class="form-group">
-          <label>Project Path</label>
-          <input 
-            v-model="createForm.project_path" 
-            type="text" 
-            placeholder="/path/to/project"
-            required
-          />
+          <div class="path-header">
+            <label>Project Path</label>
+            <button
+              v-if="isSelectedMachineOnline"
+              type="button"
+              class="toggle-input-btn"
+              @click="useManualInput = !useManualInput"
+            >
+              {{ useManualInput ? 'Browse files' : 'Manual input' }}
+            </button>
+          </div>
+
+          <div v-if="useManualInput || !isSelectedMachineOnline">
+            <input
+              v-model="createForm.project_path"
+              type="text"
+              placeholder="/path/to/project"
+              required
+            />
+          </div>
+
+          <template v-else>
+            <RemoteFileTree
+              :machine-id="selectedMachineId"
+              @select="onPathSelected"
+            />
+            <input
+              v-model="createForm.project_path"
+              type="text"
+              required
+              class="!hidden"
+              aria-hidden="true"
+              tabindex="-1"
+            />
+          </template>
         </div>
         <div class="form-group">
           <label>Summary</label>
@@ -237,6 +265,7 @@ import { useToast } from '@/composables/useToast';
 import Card from '@/components/common/Card.vue';
 import Button from '@/components/common/Button.vue';
 import Modal from '@/components/common/Modal.vue';
+import RemoteFileTree from '@/components/sessions/RemoteFileTree.vue';
 import type { SharedProject } from '@/types';
 
 const router = useRouter();
@@ -248,6 +277,13 @@ const selectedMachineId = ref('');
 const showCreateModal = ref(false);
 const showDeleteModal = ref(false);
 const projectToDelete = ref<SharedProject | null>(null);
+const useManualInput = ref(false);
+
+const isSelectedMachineOnline = computed(() => {
+  if (!selectedMachineId.value) return false;
+  const machine = machinesStore.machines.find(m => m.id === selectedMachineId.value);
+  return machine?.status === 'online';
+});
 
 const createForm = ref({
   name: '',
@@ -321,6 +357,10 @@ async function createProject() {
   }
 }
 
+function onPathSelected(path: string): void {
+  createForm.value.project_path = path;
+}
+
 function resetCreateForm() {
   createForm.value = {
     name: '',
@@ -329,6 +369,7 @@ function resetCreateForm() {
     architecture: '',
     conventions: '',
   };
+  useManualInput.value = false;
 }
 
 function confirmDelete(project: SharedProject) {
@@ -510,6 +551,14 @@ async function deleteProject() {
 
 .form-group label {
   @apply block text-sm font-medium text-gray-300;
+}
+
+.path-header {
+  @apply flex items-center justify-between;
+}
+
+.toggle-input-btn {
+  @apply text-xs text-brand-purple hover:underline transition-colors cursor-pointer;
 }
 
 .form-group input,
