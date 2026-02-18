@@ -351,6 +351,22 @@ main() {
     done
   fi
 
+  # Strategy 6: If only the raw .js entry point was found (no bin symlink),
+  # create a wrapper script in ~/.local/bin/
+  if [[ -n "$AGENT_BIN" && "$AGENT_BIN" == *.js ]]; then
+    info "npm did not create bin symlink. Creating wrapper script..."
+    WRAPPER_DIR="$HOME/.local/bin"
+    WRAPPER_PATH="${WRAPPER_DIR}/claudenest-agent"
+    mkdir -p "$WRAPPER_DIR"
+    cat > "$WRAPPER_PATH" <<WRAPPER
+#!/usr/bin/env bash
+exec node "${AGENT_BIN}" "\$@"
+WRAPPER
+    chmod +x "$WRAPPER_PATH"
+    AGENT_BIN="$WRAPPER_PATH"
+    info "Created wrapper: ${WRAPPER_PATH}"
+  fi
+
   # If found but not in PATH, add its directory to PATH
   if [[ -n "$AGENT_BIN" ]]; then
     AGENT_BIN_DIR="$(dirname "$AGENT_BIN")"
@@ -368,11 +384,11 @@ main() {
         *)    PROFILE="$HOME/.profile" ;;
       esac
 
-      if ! grep -q 'npm config get prefix' "$PROFILE" 2>/dev/null; then
+      if ! grep -q 'claudenest\|npm config get prefix' "$PROFILE" 2>/dev/null; then
         echo '' >> "$PROFILE"
-        echo '# npm global bin (added by ClaudeNest installer)' >> "$PROFILE"
-        echo 'export PATH="$(npm config get prefix)/bin:$PATH"' >> "$PROFILE"
-        info "Added npm global bin to ${PROFILE}"
+        echo '# ClaudeNest agent (added by installer)' >> "$PROFILE"
+        echo "export PATH=\"${AGENT_BIN_DIR}:\$PATH\"" >> "$PROFILE"
+        info "Added ${AGENT_BIN_DIR} to ${PROFILE}"
       fi
     fi
   fi
