@@ -59,6 +59,9 @@ class PersonalAccessToken extends SanctumPersonalAccessToken
             if (empty($model->id)) {
                 $model->id = (string) Str::orderedUuid();
             }
+            if (empty($model->user_id) && !empty($model->tokenable_id)) {
+                $model->user_id = $model->tokenable_id;
+            }
         });
     }
 
