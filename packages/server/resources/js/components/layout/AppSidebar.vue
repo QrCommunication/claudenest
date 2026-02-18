@@ -32,17 +32,26 @@
 
     <!-- Navigation -->
     <nav class="sidebar-nav">
-      <router-link
-        v-for="item in navItems"
-        :key="item.path"
-        :to="item.path"
-        :class="['nav-item', { active: isActive(item.path) }]"
-        :title="collapsed ? item.name : ''"
-      >
-        <component :is="item.iconComponent" class="nav-icon" />
-        <span v-if="!collapsed" class="nav-label">{{ item.name }}</span>
-        <div v-if="isActive(item.path)" class="active-indicator" />
-      </router-link>
+      <template v-for="group in navGroups" :key="group.label">
+        <!-- Group Label -->
+        <div v-if="group.label" :class="['nav-group-label', { 'nav-group-label--hidden': collapsed }]">
+          <span v-if="!collapsed">{{ group.label }}</span>
+          <span v-else class="nav-group-divider" />
+        </div>
+
+        <!-- Group Items -->
+        <router-link
+          v-for="item in group.items"
+          :key="item.path"
+          :to="item.path"
+          :class="['nav-item', { active: isActive(item.path) }]"
+          :title="collapsed ? item.name : ''"
+        >
+          <component :is="item.iconComponent" class="nav-icon" />
+          <span v-if="!collapsed" class="nav-label">{{ item.name }}</span>
+          <div v-if="isActive(item.path)" class="active-indicator" />
+        </router-link>
+      </template>
     </nav>
 
     <!-- Expand Button (Collapsed State) -->
@@ -102,23 +111,62 @@ const iconMap = {
   Cog6ToothIcon,
 };
 
-const navItemsConfig = [
-  { name: 'Dashboard', path: '/dashboard', iconName: 'HomeIcon' as const },
-  { name: 'Sessions', path: '/sessions', iconName: 'CommandLineIcon' as const },
-  { name: 'Machines', path: '/machines', iconName: 'ServerIcon' as const },
-  { name: 'Projects', path: '/projects', iconName: 'FolderIcon' as const },
-  { name: 'Tasks', path: '/tasks', iconName: 'CheckCircleIcon' as const },
-  { name: 'Credentials', path: '/credentials', iconName: 'KeyIcon' as const },
-  { name: 'Skills', path: '/skills', iconName: 'SparklesIcon' as const },
-  { name: 'MCP', path: '/mcp', iconName: 'CubeIcon' as const },
-  { name: 'Commands', path: '/commands', iconName: 'Squares2X2Icon' as const },
-  { name: 'Settings', path: '/settings', iconName: 'Cog6ToothIcon' as const },
+interface NavItem {
+  name: string;
+  path: string;
+  iconName: keyof typeof iconMap;
+}
+
+interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
+
+const navGroupsConfig: NavGroup[] = [
+  {
+    label: '',
+    items: [
+      { name: 'Dashboard', path: '/dashboard', iconName: 'HomeIcon' },
+    ],
+  },
+  {
+    label: 'Infrastructure',
+    items: [
+      { name: 'Machines', path: '/machines', iconName: 'ServerIcon' },
+      { name: 'Sessions', path: '/sessions', iconName: 'CommandLineIcon' },
+    ],
+  },
+  {
+    label: 'Multi-Agent',
+    items: [
+      { name: 'Projects', path: '/projects', iconName: 'FolderIcon' },
+      { name: 'Tasks', path: '/tasks', iconName: 'CheckCircleIcon' },
+    ],
+  },
+  {
+    label: 'Configuration',
+    items: [
+      { name: 'Credentials', path: '/credentials', iconName: 'KeyIcon' },
+      { name: 'Skills', path: '/skills', iconName: 'SparklesIcon' },
+      { name: 'MCP', path: '/mcp', iconName: 'CubeIcon' },
+      { name: 'Commands', path: '/commands', iconName: 'Squares2X2Icon' },
+    ],
+  },
+  {
+    label: '',
+    items: [
+      { name: 'Settings', path: '/settings', iconName: 'Cog6ToothIcon' },
+    ],
+  },
 ];
 
-const navItems = computed(() => {
-  return navItemsConfig.map((item) => ({
-    ...item,
-    iconComponent: iconMap[item.iconName],
+const navGroups = computed(() => {
+  return navGroupsConfig.map((group) => ({
+    ...group,
+    items: group.items.map((item) => ({
+      ...item,
+      iconComponent: iconMap[item.iconName],
+    })),
   }));
 });
 
@@ -223,6 +271,36 @@ const navigateToDashboard = () => {
   overflow-y: auto;
   overflow-x: hidden;
   padding: 8px;
+}
+
+/* Group labels */
+.nav-group-label {
+  padding: 16px 12px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.nav-group-label--hidden {
+  padding: 8px 4px;
+  display: flex;
+  justify-content: center;
+}
+
+.nav-group-divider {
+  display: block;
+  width: 16px;
+  height: 1px;
+  background-color: var(--border-color);
+}
+
+/* First group (Dashboard) has no top padding */
+.nav-group-label:first-child {
+  padding-top: 0;
 }
 
 .nav-item {

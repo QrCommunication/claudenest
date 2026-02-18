@@ -36,6 +36,9 @@ Route::middleware('throttle:10,1')->group(function () {
 
 Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
 
+    // ==================== DASHBOARD ====================
+    Route::get('dashboard/stats', [Api\DashboardController::class, 'stats']);
+
     // ==================== AUTH ====================
     Route::prefix('auth')->group(function () {
         Route::post('/logout', [Api\AuthController::class, 'logout']);

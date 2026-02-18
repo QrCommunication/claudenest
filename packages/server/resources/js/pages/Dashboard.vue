@@ -38,33 +38,77 @@
     <!-- BENTO GRID                                                        -->
     <!-- ================================================================ -->
     <section class="bento" aria-label="Dashboard overview">
-      <!-- ROW 1: Stats strip -->
-      <div class="bento-stats">
+      <!-- ROW 1: Primary KPI cards -->
+      <div class="bento-kpis">
         <button
-          v-for="stat in stats"
-          :key="stat.key"
-          class="stat-chip"
-          :class="`stat-chip--${stat.color}`"
-          @click="navigateTo(stat.route)"
+          v-for="kpi in primaryKpis"
+          :key="kpi.key"
+          class="kpi-card"
+          :class="`kpi-card--${kpi.color}`"
+          @click="navigateTo(kpi.route)"
         >
-          <span class="stat-chip-icon" :class="`stat-chip-icon--${stat.color}`">
-            <component :is="stat.icon" />
-          </span>
-          <span class="stat-chip-body">
-            <template v-if="stat.loading">
+          <div class="kpi-card-top">
+            <span class="kpi-card-icon" :class="`kpi-card-icon--${kpi.color}`">
+              <component :is="kpi.icon" />
+            </span>
+            <SparkLine
+              v-if="kpi.sparkData && kpi.sparkData.length > 0"
+              :data="kpi.sparkData"
+              :color="kpi.sparkColor"
+              :width="72"
+              :height="28"
+            />
+          </div>
+          <div class="kpi-card-body">
+            <template v-if="isLoadingStats && !dashStats">
               <span class="skel skel--num" />
               <span class="skel skel--lbl" />
             </template>
             <template v-else>
-              <span class="stat-chip-num">{{ stat.value }}</span>
-              <span class="stat-chip-lbl">{{ stat.label }}</span>
+              <span class="kpi-card-num">{{ kpi.value }}</span>
+              <span class="kpi-card-lbl">{{ kpi.label }}</span>
             </template>
-          </span>
-          <span v-if="stat.sub" class="stat-chip-sub">{{ stat.sub }}</span>
+          </div>
+          <span v-if="kpi.sub" class="kpi-card-sub">{{ kpi.sub }}</span>
         </button>
       </div>
 
-      <!-- ROW 2: Main content grid -->
+      <!-- ROW 2: Secondary KPI cards -->
+      <div class="bento-kpis">
+        <button
+          v-for="kpi in secondaryKpis"
+          :key="kpi.key"
+          class="kpi-card"
+          :class="`kpi-card--${kpi.color}`"
+          @click="navigateTo(kpi.route)"
+        >
+          <div class="kpi-card-top">
+            <span class="kpi-card-icon" :class="`kpi-card-icon--${kpi.color}`">
+              <component :is="kpi.icon" />
+            </span>
+            <SparkLine
+              v-if="kpi.sparkData && kpi.sparkData.length > 0"
+              :data="kpi.sparkData"
+              :color="kpi.sparkColor"
+              :width="72"
+              :height="28"
+            />
+          </div>
+          <div class="kpi-card-body">
+            <template v-if="isLoadingStats && !dashStats">
+              <span class="skel skel--num" />
+              <span class="skel skel--lbl" />
+            </template>
+            <template v-else>
+              <span class="kpi-card-num">{{ kpi.value }}</span>
+              <span class="kpi-card-lbl">{{ kpi.label }}</span>
+            </template>
+          </div>
+          <span v-if="kpi.sub" class="kpi-card-sub">{{ kpi.sub }}</span>
+        </button>
+      </div>
+
+      <!-- ROW 3: Main content grid -->
       <div class="bento-main">
         <!-- LEFT: Quick Actions (large card) -->
         <div class="bento-card bento-card--actions">
@@ -127,7 +171,7 @@
         </div>
       </div>
 
-      <!-- ROW 3: Activity feed (full width) -->
+      <!-- ROW 4: Activity feed (full width) -->
       <div class="bento-card bento-card--activity">
         <div class="bento-card-head">
           <h2 class="bento-card-title">Recent Activity</h2>
@@ -169,7 +213,7 @@
         </div>
       </div>
 
-      <!-- ROW 4: Resource nav cards -->
+      <!-- ROW 5: Resource nav cards -->
       <div class="bento-resources">
         <router-link
           v-for="res in resources"
@@ -206,6 +250,8 @@ import { ref, computed, onMounted, onUnmounted, h, type FunctionalComponent } fr
 import { useRouter } from 'vue-router';
 import { useMachinesStore } from '@/stores/machines';
 import { useProjectsStore } from '@/stores/projects';
+import SparkLine from '@/components/common/SparkLine.vue';
+import { fetchDashboardStats, type DashboardStats } from '@/services/dashboard';
 
 // ============================================================================
 // Stores & Router
@@ -220,11 +266,13 @@ const projectsStore = useProjectsStore();
 // ============================================================================
 
 const isRefreshing = ref(false);
+const isLoadingStats = ref(false);
 const isLoadingProjects = ref(false);
 const lastRefreshTime = ref<Date>(new Date());
 const lastRefreshLabel = ref('just now');
 const pageLoadTime = Date.now();
 const uptimeTick = ref(0);
+const dashStats = ref<DashboardStats | null>(null);
 
 interface ActivityEvent {
   id: string;
@@ -319,52 +367,125 @@ const DocSvg: FunctionalComponent = () =>
     h('line', { x1: '16', y1: '17', x2: '8', y2: '17' }),
   ]);
 
+const ChartBarSvg: FunctionalComponent = () =>
+  h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+    h('line', { x1: '12', y1: '20', x2: '12', y2: '10' }),
+    h('line', { x1: '18', y1: '20', x2: '18', y2: '4' }),
+    h('line', { x1: '6', y1: '20', x2: '6', y2: '16' }),
+  ]);
+
+const CurrencySvg: FunctionalComponent = () =>
+  h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+    h('line', { x1: '12', y1: '1', x2: '12', y2: '23' }),
+    h('path', { d: 'M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6' }),
+  ]);
+
+const ClockSvg: FunctionalComponent = () =>
+  h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+    h('circle', { cx: '12', cy: '12', r: '10' }),
+    h('polyline', { points: '12 6 12 12 16 14' }),
+  ]);
+
 // ============================================================================
-// Stats data
+// KPI data
 // ============================================================================
 
-const stats = computed(() => {
-  const ml = machinesStore.isLoading && machinesStore.machines.length === 0;
+const primaryKpis = computed(() => {
+  const s = dashStats.value;
   return [
     {
       key: 'machines',
       icon: ServerSvg,
-      value: machinesStore.onlineMachines.length,
+      value: s ? s.machines.online : machinesStore.onlineMachines.length,
       label: 'Machines Online',
-      sub: `/ ${machinesStore.machines.length}`,
+      sub: `/ ${s ? s.machines.total : machinesStore.machines.length} total`,
       color: 'purple',
       route: '/machines',
-      loading: ml,
+      sparkData: null as number[] | null,
+      sparkColor: '#a855f7',
     },
     {
       key: 'sessions',
       icon: TerminalSvg,
-      value: machinesStore.totalActiveSessions,
+      value: s ? s.sessions.active : machinesStore.totalActiveSessions,
       label: 'Active Sessions',
-      sub: null,
+      sub: s ? `${s.sessions.total_today} today` : null,
       color: 'cyan',
       route: '/sessions',
-      loading: ml,
+      sparkData: s?.sparklines.sessions_7d ?? null,
+      sparkColor: '#22d3ee',
     },
     {
       key: 'projects',
       icon: FolderSvg,
-      value: totalProjects.value,
+      value: s ? s.projects.total : totalProjects.value,
       label: 'Projects',
-      sub: null,
+      sub: s ? `${s.projects.active} active` : null,
       color: 'indigo',
       route: '/projects',
-      loading: isLoadingProjects.value,
+      sparkData: null as number[] | null,
+      sparkColor: '#6366f1',
     },
     {
       key: 'tasks',
       icon: CheckSvg,
-      value: totalPendingTasks.value,
+      value: s ? s.tasks.pending : totalPendingTasks.value,
       label: 'Tasks Pending',
+      sub: s ? `${s.tasks.in_progress} in progress` : null,
+      color: 'warning',
+      route: '/tasks',
+      sparkData: null as number[] | null,
+      sparkColor: '#fbbf24',
+    },
+  ];
+});
+
+const secondaryKpis = computed(() => {
+  const s = dashStats.value;
+  return [
+    {
+      key: 'tokens',
+      icon: ChartBarSvg,
+      value: s ? formatNumber(s.tokens.total) : '0',
+      label: 'Tokens Used',
+      sub: s ? `${formatNumber(s.tokens.today)} today` : null,
+      color: 'purple',
+      route: '/sessions',
+      sparkData: s?.sparklines.tokens_7d ?? null,
+      sparkColor: '#a855f7',
+    },
+    {
+      key: 'cost',
+      icon: CurrencySvg,
+      value: s ? `$${s.cost.total.toFixed(2)}` : '$0.00',
+      label: 'Estimated Cost',
+      sub: s ? `$${s.cost.today.toFixed(2)} today` : null,
+      color: 'cyan',
+      route: '/sessions',
+      sparkData: null as number[] | null,
+      sparkColor: '#22d3ee',
+    },
+    {
+      key: 'locks',
+      icon: LockSvg,
+      value: s ? s.locks.active : 0,
+      label: 'Active Locks',
       sub: null,
       color: 'warning',
       route: '/projects',
-      loading: isLoadingProjects.value,
+      sparkData: null as number[] | null,
+      sparkColor: '#fbbf24',
+    },
+    {
+      key: 'activity',
+      icon: ClockSvg,
+      value: s ? s.activity_24h : 0,
+      label: 'Activity 24h',
+      sub: null,
+      color: 'green',
+      route: '/projects',
+      sparkData: s?.sparklines.activity_7d ?? null,
+      sparkColor: '#22c55e',
     },
   ];
 });
@@ -465,6 +586,12 @@ const uptimeLabel = computed(() => {
 // ============================================================================
 // Methods
 // ============================================================================
+
+function formatNumber(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  return String(n);
+}
 
 function navigateTo(path: string): void {
   router.push(path);
@@ -589,13 +716,24 @@ function buildActivityFeed(): void {
 // ============================================================================
 
 async function fetchDashboardData(): Promise<void> {
+  // Fetch dashboard stats from backend
+  isLoadingStats.value = true;
   try {
-    await machinesStore.fetchMachines(1, 100);
+    dashStats.value = await fetchDashboardStats();
     systemHealth.value.api = true;
     systemHealth.value.database = true;
   } catch {
+    // Fallback to store data
     systemHealth.value.api = false;
-    systemHealth.value.database = false;
+  } finally {
+    isLoadingStats.value = false;
+  }
+
+  // Also fetch store data for activity feed & resources
+  try {
+    await machinesStore.fetchMachines(1, 100);
+  } catch {
+    // Already handled by stats fallback
   }
 
   isLoadingProjects.value = true;
@@ -789,20 +927,20 @@ onUnmounted(() => {
   .bento { padding: 0 2rem 2.5rem; gap: 1.25rem; }
 }
 
-/* ---- Stats strip ---- */
-.bento-stats {
+/* ---- KPI Cards ---- */
+.bento-kpis {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 0.75rem;
 }
 
 @media (min-width: 1024px) {
-  .bento-stats { grid-template-columns: repeat(4, 1fr); }
+  .bento-kpis { grid-template-columns: repeat(4, 1fr); }
 }
 
-.stat-chip {
+.kpi-card {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 0.75rem;
   padding: 1rem 1.25rem;
   border-radius: 14px;
@@ -813,39 +951,46 @@ onUnmounted(() => {
   text-align: left;
 }
 
-.stat-chip:hover {
+.kpi-card:hover {
   transform: translateY(-2px);
   border-color: rgba(168, 85, 247, 0.3);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
-.stat-chip-icon {
+.kpi-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kpi-card-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
   flex-shrink: 0;
 }
 
-.stat-chip-icon svg {
-  width: 22px;
-  height: 22px;
+.kpi-card-icon svg {
+  width: 18px;
+  height: 18px;
 }
 
-.stat-chip-icon--purple { background: linear-gradient(135deg, rgba(168,85,247,0.15), rgba(99,102,241,0.1)); color: var(--accent-purple, #a855f7); }
-.stat-chip-icon--cyan   { background: linear-gradient(135deg, rgba(34,211,238,0.15), rgba(99,102,241,0.08)); color: var(--accent-cyan, #22d3ee); }
-.stat-chip-icon--indigo { background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(168,85,247,0.08)); color: var(--accent-indigo, #6366f1); }
-.stat-chip-icon--warning{ background: linear-gradient(135deg, rgba(251,191,36,0.15), rgba(245,158,11,0.08)); color: var(--status-warning, #fbbf24); }
+.kpi-card-icon--purple  { background: linear-gradient(135deg, rgba(168,85,247,0.15), rgba(99,102,241,0.1)); color: var(--accent-purple, #a855f7); }
+.kpi-card-icon--cyan    { background: linear-gradient(135deg, rgba(34,211,238,0.15), rgba(99,102,241,0.08)); color: var(--accent-cyan, #22d3ee); }
+.kpi-card-icon--indigo  { background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(168,85,247,0.08)); color: var(--accent-indigo, #6366f1); }
+.kpi-card-icon--warning { background: linear-gradient(135deg, rgba(251,191,36,0.15), rgba(245,158,11,0.08)); color: var(--status-warning, #fbbf24); }
+.kpi-card-icon--green   { background: linear-gradient(135deg, rgba(34,197,94,0.15), rgba(34,197,94,0.08)); color: var(--status-success, #22c55e); }
 
-.stat-chip-body {
+.kpi-card-body {
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
 
-.stat-chip-num {
+.kpi-card-num {
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-primary);
@@ -853,10 +998,10 @@ onUnmounted(() => {
 }
 
 @media (min-width: 640px) {
-  .stat-chip-num { font-size: 1.75rem; }
+  .kpi-card-num { font-size: 1.75rem; }
 }
 
-.stat-chip-lbl {
+.kpi-card-lbl {
   font-size: 0.75rem;
   color: var(--text-secondary);
   margin-top: 2px;
@@ -865,10 +1010,9 @@ onUnmounted(() => {
   text-overflow: ellipsis;
 }
 
-.stat-chip-sub {
+.kpi-card-sub {
   font-size: 0.6875rem;
   color: var(--text-muted);
-  margin-left: auto;
   white-space: nowrap;
 }
 
@@ -1352,7 +1496,7 @@ onUnmounted(() => {
    RESPONSIVE - Mobile (< 640px)
    ============================================================ */
 @media (max-width: 639px) {
-  .stat-chip-sub { display: none; }
+  .kpi-card-sub { display: none; }
   .act-badge { display: none; }
 }
 
@@ -1360,7 +1504,7 @@ onUnmounted(() => {
    REDUCED MOTION
    ============================================================ */
 @media (prefers-reduced-motion: reduce) {
-  .stat-chip:hover,
+  .kpi-card:hover,
   .res-card:hover { transform: none; }
   .refresh-icon.spinning { animation: none; }
   .health-pill-dot { animation: none; }

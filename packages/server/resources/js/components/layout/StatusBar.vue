@@ -46,9 +46,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useTheme } from '@/composables/useTheme';
+import { useMachinesStore } from '@/stores/machines';
+import { useCredentialsStore } from '@/stores/credentials';
+import { setLocale, type SupportedLocale } from '@/i18n';
 import {
   KeyIcon,
   ServerIcon,
@@ -61,13 +65,27 @@ import {
 
 const router = useRouter();
 const { theme, toggleTheme } = useTheme();
+const { locale } = useI18n();
+const machinesStore = useMachinesStore();
+const credentialsStore = useCredentialsStore();
 
-// Mock data - replace with actual stores
-const activeCredentialName = ref<string>('Default API Key');
-const connectedMachine = ref<string>('MacBook Pro');
-const machineStatus = ref<'online' | 'offline'>('online');
-const sessionCount = ref<number>(3);
-const currentLanguage = ref<string>('EN');
+// Real data from stores
+const activeCredentialName = computed(() => credentialsStore.defaultCredential?.name ?? null);
+const connectedMachine = computed(() => machinesStore.machines[0]?.name ?? null);
+const machineStatus = computed<'online' | 'offline'>(() =>
+  machinesStore.onlineMachines.length > 0 ? 'online' : 'offline'
+);
+const sessionCount = computed(() => machinesStore.totalActiveSessions);
+const currentLanguage = computed(() => (locale.value as string).toUpperCase());
+
+onMounted(async () => {
+  if (machinesStore.machines.length === 0) {
+    machinesStore.fetchMachines().catch(() => {});
+  }
+  if (credentialsStore.credentials.length === 0) {
+    credentialsStore.fetchCredentials().catch(() => {});
+  }
+});
 
 const themeIcon = computed(() => {
   if (theme.value === 'dark') return MoonIcon;
@@ -86,8 +104,8 @@ const handleToggleTheme = () => {
 };
 
 const toggleLanguage = () => {
-  currentLanguage.value = currentLanguage.value === 'EN' ? 'FR' : 'EN';
-  // TODO: Implement i18n language switching
+  const next: SupportedLocale = locale.value === 'en' ? 'fr' : 'en';
+  setLocale(next);
 };
 
 const navigateToSettings = () => {

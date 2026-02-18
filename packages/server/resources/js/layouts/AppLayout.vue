@@ -16,6 +16,11 @@
       <!-- Tab Bar -->
       <TabBar />
 
+      <!-- Breadcrumb Bar -->
+      <div v-if="showBreadcrumb" class="breadcrumb-bar">
+        <Breadcrumb :items="breadcrumbItems" />
+      </div>
+
       <!-- Page Content -->
       <main class="app-content">
         <router-view v-slot="{ Component }">
@@ -44,16 +49,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { useRoute } from 'vue-router';
 import AppSidebar from '@/components/layout/AppSidebar.vue';
 import TabBar from '@/components/layout/TabBar.vue';
 import StatusBar from '@/components/layout/StatusBar.vue';
+import Breadcrumb from '@/components/common/Breadcrumb.vue';
 import { useTabs } from '@/composables/useTabs';
+import { useBreadcrumb } from '@/composables/useBreadcrumb';
 
+const route = useRoute();
 const sidebarCollapsed = ref(false);
 const mobileSidebarOpen = ref(false);
 
 const { loadTabs } = useTabs();
+const { breadcrumbItems } = useBreadcrumb();
+
+const showBreadcrumb = computed(() =>
+  breadcrumbItems.value.length > 0 && route.name !== 'dashboard'
+);
 
 const toggleSidebar = () => {
   sidebarCollapsed.value = !sidebarCollapsed.value;
@@ -101,6 +115,17 @@ onUnmounted(() => {
   height: 100vh;
   overflow: hidden;
   transition: margin-left 0.3s ease;
+}
+
+.breadcrumb-bar {
+  padding: 0 1.5rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color, #2a2d3e) 50%, transparent);
+  background-color: var(--bg-secondary);
+  flex-shrink: 0;
+}
+
+.breadcrumb-bar :deep(nav) {
+  margin-bottom: 0;
 }
 
 .app-content {

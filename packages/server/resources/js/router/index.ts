@@ -55,241 +55,248 @@ const routes: RouteRecordRaw[] = [
         meta: { public: true, guestOnly: true },
     },
 
-    // Protected routes
+    // Protected routes — wrapped in AppLayout
     {
-        path: '/dashboard',
-        name: 'dashboard',
-        component: Dashboard,
-        meta: {
-            requiresAuth: true,
-            breadcrumb: [
-                { label: 'Dashboard' },
-            ],
-        },
-    },
-    {
-        path: '/machines',
-        name: 'machines',
-        component: () => import('@/pages/Machines.vue'),
-        meta: {
-            requiresAuth: true,
-            breadcrumb: [
-                { label: 'Machines' },
-            ],
-        },
-    },
-    {
-        path: '/machines/:id',
-        name: 'machines.show',
-        component: () => import('@/pages/machines/Show.vue'),
-        meta: {
-            requiresAuth: true,
-            breadcrumb: [
-                { label: 'Machines', to: '/machines' },
-                { label: 'Details' },
-            ],
-        },
-    },
-    {
-        path: '/sessions',
-        name: 'sessions',
-        component: () => import('@/pages/sessions/Index.vue'),
-        meta: {
-            requiresAuth: true,
-            breadcrumb: [
-                { label: 'Sessions' },
-            ],
-        },
-    },
-    {
-        path: '/sessions/:id',
-        name: 'session.terminal',
-        component: () => import('@/pages/sessions/Terminal.vue'),
-        meta: {
-            requiresAuth: true,
-            breadcrumb: [
-                { label: 'Sessions', to: '/sessions' },
-                { label: 'Terminal' },
-            ],
-        },
-    },
-    {
-        path: '/sessions/new',
-        name: 'sessions.new',
-        component: () => import('@/pages/sessions/New.vue'),
-        meta: {
-            requiresAuth: true,
-            breadcrumb: [
-                { label: 'Sessions', to: '/sessions' },
-                { label: 'New Session' },
-            ],
-        },
-    },
+        path: '/',
+        component: () => import('@/layouts/AppLayout.vue'),
+        meta: { requiresAuth: true },
+        children: [
+            {
+                path: 'dashboard',
+                name: 'dashboard',
+                component: Dashboard,
+                meta: {
+                    requiresAuth: true,
+                    breadcrumb: [
+                        { label: 'Dashboard' },
+                    ],
+                },
+            },
+            {
+                path: 'machines',
+                name: 'machines',
+                component: () => import('@/pages/Machines.vue'),
+                meta: {
+                    requiresAuth: true,
+                    breadcrumb: [
+                        { label: 'Machines' },
+                    ],
+                },
+            },
+            {
+                path: 'machines/:id',
+                name: 'machines.show',
+                component: () => import('@/pages/machines/Show.vue'),
+                meta: {
+                    requiresAuth: true,
+                    breadcrumb: [
+                        { label: 'Machines', to: '/machines' },
+                        { label: 'Details' },
+                    ],
+                },
+            },
+            {
+                path: 'sessions',
+                name: 'sessions',
+                component: () => import('@/pages/sessions/Index.vue'),
+                meta: {
+                    requiresAuth: true,
+                    breadcrumb: [
+                        { label: 'Sessions' },
+                    ],
+                },
+            },
+            {
+                path: 'sessions/:id',
+                name: 'session.terminal',
+                component: () => import('@/pages/sessions/Terminal.vue'),
+                meta: {
+                    requiresAuth: true,
+                    breadcrumb: [
+                        { label: 'Sessions', to: '/sessions' },
+                        { label: 'Terminal' },
+                    ],
+                },
+            },
+            {
+                path: 'sessions/new',
+                name: 'sessions.new',
+                component: () => import('@/pages/sessions/New.vue'),
+                meta: {
+                    requiresAuth: true,
+                    breadcrumb: [
+                        { label: 'Sessions', to: '/sessions' },
+                        { label: 'New Session' },
+                    ],
+                },
+            },
 
-    // Multi-Agent Project Routes
-    {
-        path: '/projects',
-        name: 'projects',
-        component: () => import('@/pages/projects/Index.vue'),
-        meta: {
-            requiresAuth: true,
-            breadcrumb: [
-                { label: 'Projects' },
-            ],
-        },
-    },
-    {
-        path: '/projects/:id',
-        name: 'projects.show',
-        component: () => import('@/pages/projects/Show.vue'),
-        meta: {
-            requiresAuth: true,
-            breadcrumb: [
-                { label: 'Projects', to: '/projects' },
-                { label: 'Details' },
-            ],
-        },
-    },
-    {
-        path: '/projects/:id/tasks',
-        name: 'projects.tasks',
-        component: () => import('@/pages/projects/Tasks.vue'),
-        meta: {
-            requiresAuth: true,
-            breadcrumb: [
-                { label: 'Projects', to: '/projects' },
-                { label: 'Project', to: '/projects/:id' },
-                { label: 'Tasks' },
-            ],
-        },
-    },
-    {
-        path: '/projects/:id/context',
-        name: 'projects.context',
-        component: () => import('@/pages/projects/Context.vue'),
-        meta: {
-            requiresAuth: true,
-            breadcrumb: [
-                { label: 'Projects', to: '/projects' },
-                { label: 'Project', to: '/projects/:id' },
-                { label: 'Context' },
-            ],
-        },
-    },
-    {
-        path: '/projects/:id/locks',
-        name: 'projects.locks',
-        component: () => import('@/pages/projects/Locks.vue'),
-        meta: {
-            requiresAuth: true,
-            breadcrumb: [
-                { label: 'Projects', to: '/projects' },
-                { label: 'Project', to: '/projects/:id' },
-                { label: 'File Locks' },
-            ],
-        },
-    },
+            // Multi-Agent Project Routes
+            {
+                path: 'projects',
+                name: 'projects',
+                component: () => import('@/pages/projects/Index.vue'),
+                meta: {
+                    requiresAuth: true,
+                    breadcrumb: [
+                        { label: 'Projects' },
+                    ],
+                },
+            },
+            {
+                path: 'projects/:id',
+                name: 'projects.show',
+                component: () => import('@/pages/projects/Show.vue'),
+                meta: {
+                    requiresAuth: true,
+                    breadcrumb: [
+                        { label: 'Projects', to: '/projects' },
+                        { label: 'Details' },
+                    ],
+                },
+            },
+            {
+                path: 'projects/:id/tasks',
+                name: 'projects.tasks',
+                component: () => import('@/pages/projects/Tasks.vue'),
+                meta: {
+                    requiresAuth: true,
+                    breadcrumb: [
+                        { label: 'Projects', to: '/projects' },
+                        { label: 'Project', to: '/projects/:id' },
+                        { label: 'Tasks' },
+                    ],
+                },
+            },
+            {
+                path: 'projects/:id/context',
+                name: 'projects.context',
+                component: () => import('@/pages/projects/Context.vue'),
+                meta: {
+                    requiresAuth: true,
+                    breadcrumb: [
+                        { label: 'Projects', to: '/projects' },
+                        { label: 'Project', to: '/projects/:id' },
+                        { label: 'Context' },
+                    ],
+                },
+            },
+            {
+                path: 'projects/:id/locks',
+                name: 'projects.locks',
+                component: () => import('@/pages/projects/Locks.vue'),
+                meta: {
+                    requiresAuth: true,
+                    breadcrumb: [
+                        { label: 'Projects', to: '/projects' },
+                        { label: 'Project', to: '/projects/:id' },
+                        { label: 'File Locks' },
+                    ],
+                },
+            },
 
-    // Global Tasks View
-    {
-        path: '/tasks',
-        name: 'tasks',
-        component: () => import('@/pages/tasks/Index.vue'),
-        meta: {
-            requiresAuth: true,
-            breadcrumb: [
-                { label: 'Tasks' },
-            ],
-        },
-    },
+            // Global Tasks View
+            {
+                path: 'tasks',
+                name: 'tasks',
+                component: () => import('@/pages/tasks/Index.vue'),
+                meta: {
+                    requiresAuth: true,
+                    breadcrumb: [
+                        { label: 'Tasks' },
+                    ],
+                },
+            },
 
-    // Skills Routes
-    {
-        path: '/skills',
-        name: 'skills',
-        component: () => import('@/pages/skills/Index.vue'),
-        meta: {
-            requiresAuth: true,
-            breadcrumb: [
-                { label: 'Skills' },
-            ],
-        },
-    },
-    {
-        path: '/skills/:id',
-        name: 'skill.detail',
-        component: () => import('@/pages/skills/Show.vue'),
-        meta: {
-            requiresAuth: true,
-            breadcrumb: [
-                { label: 'Skills', to: '/skills' },
-                { label: 'Details' },
-            ],
-        },
-    },
+            // Skills Routes
+            {
+                path: 'skills',
+                name: 'skills',
+                component: () => import('@/pages/skills/Index.vue'),
+                meta: {
+                    requiresAuth: true,
+                    breadcrumb: [
+                        { label: 'Skills' },
+                    ],
+                },
+            },
+            {
+                path: 'skills/:id',
+                name: 'skill.detail',
+                component: () => import('@/pages/skills/Show.vue'),
+                meta: {
+                    requiresAuth: true,
+                    breadcrumb: [
+                        { label: 'Skills', to: '/skills' },
+                        { label: 'Details' },
+                    ],
+                },
+            },
 
-    // MCP Routes
-    {
-        path: '/mcp',
-        name: 'mcp',
-        component: () => import('@/pages/mcp/Index.vue'),
-        meta: {
-            requiresAuth: true,
-            breadcrumb: [
-                { label: 'MCP Servers' },
-            ],
-        },
-    },
-    {
-        path: '/mcp/tools',
-        name: 'mcp.tools',
-        component: () => import('@/pages/mcp/Tools.vue'),
-        meta: {
-            requiresAuth: true,
-            breadcrumb: [
-                { label: 'MCP Servers', to: '/mcp' },
-                { label: 'Tools' },
-            ],
-        },
-    },
+            // MCP Routes
+            {
+                path: 'mcp',
+                name: 'mcp',
+                component: () => import('@/pages/mcp/Index.vue'),
+                meta: {
+                    requiresAuth: true,
+                    breadcrumb: [
+                        { label: 'MCP Servers' },
+                    ],
+                },
+            },
+            {
+                path: 'mcp/tools',
+                name: 'mcp.tools',
+                component: () => import('@/pages/mcp/Tools.vue'),
+                meta: {
+                    requiresAuth: true,
+                    breadcrumb: [
+                        { label: 'MCP Servers', to: '/mcp' },
+                        { label: 'Tools' },
+                    ],
+                },
+            },
 
-    // Commands Routes
-    {
-        path: '/commands',
-        name: 'commands',
-        component: () => import('@/pages/commands/Index.vue'),
-        meta: {
-            requiresAuth: true,
-            breadcrumb: [
-                { label: 'Commands' },
-            ],
-        },
-    },
+            // Commands Routes
+            {
+                path: 'commands',
+                name: 'commands',
+                component: () => import('@/pages/commands/Index.vue'),
+                meta: {
+                    requiresAuth: true,
+                    breadcrumb: [
+                        { label: 'Commands' },
+                    ],
+                },
+            },
 
-    // Credentials
-    {
-        path: '/credentials',
-        name: 'credentials',
-        component: () => import('@/pages/credentials/Index.vue'),
-        meta: {
-            requiresAuth: true,
-            breadcrumb: [
-                { label: 'Credentials' },
-            ],
-        },
-    },
+            // Credentials
+            {
+                path: 'credentials',
+                name: 'credentials',
+                component: () => import('@/pages/credentials/Index.vue'),
+                meta: {
+                    requiresAuth: true,
+                    breadcrumb: [
+                        { label: 'Credentials' },
+                    ],
+                },
+            },
 
-    // Settings
-    {
-        path: '/settings',
-        name: 'settings',
-        component: () => import('@/pages/Settings.vue'),
-        meta: {
-            requiresAuth: true,
-            breadcrumb: [
-                { label: 'Settings' },
-            ],
-        },
+            // Settings
+            {
+                path: 'settings',
+                name: 'settings',
+                component: () => import('@/pages/Settings.vue'),
+                meta: {
+                    requiresAuth: true,
+                    breadcrumb: [
+                        { label: 'Settings' },
+                    ],
+                },
+            },
+        ],
     },
 
     // Public pages
