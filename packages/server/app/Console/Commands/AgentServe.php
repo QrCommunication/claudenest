@@ -7,6 +7,7 @@ use App\Models\Session;
 use App\Services\AgentGateway;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Str;
 use React\EventLoop\Loop;
 use React\Socket\ConnectionInterface;
@@ -230,6 +231,7 @@ class AgentServe extends Command
                 'session:output' => $this->onSessionOutput($machineId, $data),
                 'session:status' => $this->onSessionStatus($machineId, $data),
                 'session:exited' => $this->onSessionExited($machineId, $data),
+                'file:browse_result' => $this->onFileBrowseResult($data),
                 'ping' => $this->sendToAgent($machineId, 'pong', ['timestamp' => now()->getTimestampMs()]),
                 default => null,
             };
@@ -313,6 +315,16 @@ class AgentServe extends Command
         broadcast(new \App\Events\SessionTerminated($session))->toOthers();
     }
 
+    private function onFileBrowseResult(array $data): void
+    {
+        $requestId = $data['requestId'] ?? null;
+        if (!$requestId) return;
+
+        $key = "agent:response:{$requestId}";
+        Redis::rpush($key, json_encode($data));
+        Redis::expire($key, 30);
+    }
+
     // ==================== Server → Agent ====================
 
     private function sendToAgent(string $machineId, string $type, array $payload = []): void
@@ -334,6 +346,8 @@ class AgentServe extends Command
         foreach (array_keys($this->agents) as $machineId) {
             $messages = AgentGateway::consume($machineId);
             foreach ($messages as $message) {
+                $type = $message['type'] ?? 'unknown';
+                $this->line("[" . date('H:i:s') . "] Forwarding to agent: {$type}");
                 $frame = $this->encodeFrame(json_encode($message));
                 $this->agents[$machineId]['conn']->write($frame);
             }

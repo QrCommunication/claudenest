@@ -23,6 +23,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'rate.limit' => \App\Http\Middleware\RateLimitApi::class,
         ]);
 
+        $middleware->redirectGuestsTo(fn ($request) => $request->is('api/*') ? null : '/login');
+
         $middleware->validateCsrfTokens(except: [
             'webhook/*',
             'api/*',

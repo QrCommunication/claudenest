@@ -298,98 +298,91 @@ main() {
     npm install -g "$PACKAGE_NAME"
   fi
 
-  # Find the installed binary using multiple strategies
-  # (curl | bash context may not have hash table or PATH fully set up)
+  # Find the installed binary
+  # In curl|bash context, PATH and hash table may be stale.
+  # Probe npm locations, add to PATH, then verify.
   AGENT_BIN=""
+  NPM_PREFIX="$(npm config get prefix 2>/dev/null)"
+  NPM_ROOT="$(npm root -g 2>/dev/null)"
 
-  # Strategy 1: Reset bash hash table and check PATH
+  info "npm prefix: ${NPM_PREFIX:-N/A}"
+
+  # Ensure npm bin directory is in PATH for this session
+  if [[ -n "$NPM_PREFIX" && -d "${NPM_PREFIX}/bin" ]]; then
+    export PATH="${NPM_PREFIX}/bin:${PATH}"
+  fi
   hash -r 2>/dev/null
+
+  # Strategy 1: Direct command lookup (works if npm bin is now in PATH)
   if command -v claudenest-agent >/dev/null 2>&1; then
     AGENT_BIN="$(command -v claudenest-agent)"
+    info "Found via PATH: ${AGENT_BIN}"
   fi
 
-  # Strategy 2: Check npm prefix bin directory
-  if [[ -z "$AGENT_BIN" ]]; then
-    NPM_PREFIX="$(npm config get prefix 2>/dev/null)"
-    if [[ -n "$NPM_PREFIX" && -x "${NPM_PREFIX}/bin/claudenest-agent" ]]; then
-      AGENT_BIN="${NPM_PREFIX}/bin/claudenest-agent"
-      info "Found binary at npm prefix: ${AGENT_BIN}"
+  # Strategy 2: Check npm prefix bin (symlink or file)
+  if [[ -z "$AGENT_BIN" && -n "$NPM_PREFIX" ]]; then
+    local candidate="${NPM_PREFIX}/bin/claudenest-agent"
+    if [[ -x "$candidate" ]] || [[ -L "$candidate" ]]; then
+      AGENT_BIN="$candidate"
+      info "Found at npm prefix: ${AGENT_BIN}"
     fi
   fi
 
-  # Strategy 3: Derive from npm global root
-  if [[ -z "$AGENT_BIN" ]]; then
-    NPM_ROOT="$(npm root -g 2>/dev/null)"
-    if [[ -n "$NPM_ROOT" ]]; then
-      # npm root -g returns .../lib/node_modules, bin is at .../bin
-      DERIVED_BIN="$(cd "$(dirname "$NPM_ROOT")/.." 2>/dev/null && pwd)/bin"
-      if [[ -x "${DERIVED_BIN}/claudenest-agent" ]]; then
-        AGENT_BIN="${DERIVED_BIN}/claudenest-agent"
-        info "Found binary via npm root: ${AGENT_BIN}"
-      fi
+  # Strategy 3: Derive bin from npm root (lib/node_modules → ../bin)
+  if [[ -z "$AGENT_BIN" && -n "$NPM_ROOT" ]]; then
+    local derived_bin
+    derived_bin="$(cd "$(dirname "$NPM_ROOT")/.." 2>/dev/null && pwd)/bin"
+    if [[ -x "${derived_bin}/claudenest-agent" ]]; then
+      AGENT_BIN="${derived_bin}/claudenest-agent"
+      info "Found via npm root: ${AGENT_BIN}"
     fi
   fi
 
-  # Strategy 4: Check the installed package directly (fallback: run via node)
-  if [[ -z "$AGENT_BIN" ]]; then
-    NPM_ROOT="$(npm root -g 2>/dev/null)"
-    PKG_ENTRY="${NPM_ROOT}/@claudenest/agent/dist/index.js"
-    if [[ -f "$PKG_ENTRY" ]]; then
-      AGENT_BIN="$PKG_ENTRY"
-      info "Found package entry point: ${AGENT_BIN}"
-    fi
-  fi
-
-  # Strategy 5: Common global bin locations
+  # Strategy 4: Common global bin locations
   if [[ -z "$AGENT_BIN" ]]; then
     for dir in /usr/local/bin /usr/bin "$HOME/.npm-global/bin" "$HOME/.local/bin"; do
       if [[ -x "${dir}/claudenest-agent" ]]; then
         AGENT_BIN="${dir}/claudenest-agent"
-        info "Found binary in ${dir}"
+        info "Found in ${dir}"
         break
       fi
     done
   fi
 
-  # Strategy 6: If only the raw .js entry point was found (no bin symlink),
-  # create a wrapper script in ~/.local/bin/
-  if [[ -n "$AGENT_BIN" && "$AGENT_BIN" == *.js ]]; then
-    info "npm did not create bin symlink. Creating wrapper script..."
-    WRAPPER_DIR="$HOME/.local/bin"
-    WRAPPER_PATH="${WRAPPER_DIR}/claudenest-agent"
-    mkdir -p "$WRAPPER_DIR"
-    cat > "$WRAPPER_PATH" <<WRAPPER
-#!/usr/bin/env bash
-exec node "${AGENT_BIN}" "\$@"
-WRAPPER
-    chmod +x "$WRAPPER_PATH"
-    AGENT_BIN="$WRAPPER_PATH"
-    info "Created wrapper: ${WRAPPER_PATH}"
+  # Strategy 5: Locate raw .js entry point and create wrapper
+  if [[ -z "$AGENT_BIN" && -n "$NPM_ROOT" ]]; then
+    local pkg_entry="${NPM_ROOT}/@claudenest/agent/dist/index.js"
+    if [[ -f "$pkg_entry" ]]; then
+      info "Binary symlink missing. Creating wrapper script..."
+      local wrapper_dir="$HOME/.local/bin"
+      local wrapper_path="${wrapper_dir}/claudenest-agent"
+      mkdir -p "$wrapper_dir"
+      printf '#!/usr/bin/env bash\nexec node "%s" "$@"\n' "$pkg_entry" > "$wrapper_path"
+      chmod +x "$wrapper_path"
+      AGENT_BIN="$wrapper_path"
+      info "Created wrapper: ${wrapper_path}"
+    fi
   fi
 
-  # If found but not in PATH, add its directory to PATH
+  # Add binary directory to PATH if not already there
   if [[ -n "$AGENT_BIN" ]]; then
     AGENT_BIN_DIR="$(dirname "$AGENT_BIN")"
+    export PATH="${AGENT_BIN_DIR}:${PATH}"
+    hash -r 2>/dev/null
 
-    if ! command -v claudenest-agent >/dev/null 2>&1; then
-      warn "npm global bin directory not in PATH. Fixing..."
-      export PATH="${AGENT_BIN_DIR}:${PATH}"
-      hash -r 2>/dev/null
+    # Persist to shell profile
+    SHELL_NAME="$(basename "${SHELL:-bash}")"
+    case "$SHELL_NAME" in
+      zsh)  PROFILE="$HOME/.zshrc" ;;
+      bash) PROFILE="$HOME/.bashrc" ;;
+      *)    PROFILE="$HOME/.profile" ;;
+    esac
 
-      # Persist to shell profile
-      SHELL_NAME="$(basename "${SHELL:-bash}")"
-      case "$SHELL_NAME" in
-        zsh)  PROFILE="$HOME/.zshrc" ;;
-        bash) PROFILE="$HOME/.bashrc" ;;
-        *)    PROFILE="$HOME/.profile" ;;
-      esac
-
-      if ! grep -q 'claudenest\|npm config get prefix' "$PROFILE" 2>/dev/null; then
-        echo '' >> "$PROFILE"
-        echo '# ClaudeNest agent (added by installer)' >> "$PROFILE"
-        echo "export PATH=\"${AGENT_BIN_DIR}:\$PATH\"" >> "$PROFILE"
-        info "Added ${AGENT_BIN_DIR} to ${PROFILE}"
-      fi
+    if ! grep -q "claudenest" "$PROFILE" 2>/dev/null; then
+      echo '' >> "$PROFILE"
+      echo '# ClaudeNest agent (added by installer)' >> "$PROFILE"
+      echo "export PATH=\"${AGENT_BIN_DIR}:\$PATH\"" >> "$PROFILE"
+      info "Added ${AGENT_BIN_DIR} to PATH in ${PROFILE}"
     fi
   fi
 
@@ -399,10 +392,16 @@ WRAPPER
     error "Installation failed. The 'claudenest-agent' command is not available."
     error ""
     error "Diagnostics:"
-    error "  npm prefix: $(npm config get prefix 2>/dev/null || echo 'N/A')"
-    error "  npm root -g: $(npm root -g 2>/dev/null || echo 'N/A')"
+    error "  npm prefix:  ${NPM_PREFIX:-N/A}"
+    error "  npm root -g: ${NPM_ROOT:-N/A}"
     error "  PATH: $PATH"
-    error "  Agent binary found: ${AGENT_BIN:-none}"
+    error "  Binary found: ${AGENT_BIN:-none}"
+    if [[ -n "$NPM_PREFIX" ]]; then
+      error "  ls prefix/bin: $(ls "${NPM_PREFIX}/bin/" 2>/dev/null | grep claude || echo 'not found')"
+    fi
+    if [[ -n "$NPM_ROOT" ]]; then
+      error "  pkg exists: $(ls "${NPM_ROOT}/@claudenest/agent/dist/index.js" 2>/dev/null && echo 'yes' || echo 'no')"
+    fi
     error ""
     error "Try manually:"
     error "  npm install -g $PACKAGE_NAME"
