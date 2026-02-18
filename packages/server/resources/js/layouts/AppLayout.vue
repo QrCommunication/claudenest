@@ -110,8 +110,8 @@ onUnmounted(() => {
 }
 
 .app-main {
-  display: grid;
-  grid-template-rows: auto 1fr auto;
+  display: flex;
+  flex-direction: column;
   height: 100vh;
   overflow: hidden;
   transition: margin-left 0.3s ease;
@@ -126,6 +126,7 @@ onUnmounted(() => {
 
 
 .app-content {
+  flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
   background-color: var(--bg-primary);
