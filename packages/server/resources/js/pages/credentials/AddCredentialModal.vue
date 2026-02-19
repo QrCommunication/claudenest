@@ -271,22 +271,30 @@ const emit = defineEmits<{
 
 .modal-card {
   @apply w-full max-w-lg rounded-xl shadow-2xl;
-  background: linear-gradient(135deg, var(--bg-secondary, var(--surface-2)) 0%, var(--bg-tertiary, var(--surface-3)) 100%);
+  background: var(--bg-card, var(--surface-2, #24283b));
   border: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
   max-height: 90vh;
   overflow-y: auto;
 }
 
 .modal-header {
-  @apply flex items-center justify-between p-6 border-b border-gray-800;
+  @apply flex items-center justify-between p-6;
+  border-bottom: 1px solid var(--border-primary, #2d3154);
 }
 
 .modal-header h2 {
-  @apply text-xl font-bold text-white;
+  @apply text-xl font-bold;
+  color: var(--text-primary, #c0caf5);
 }
 
 .close-btn {
-  @apply p-1 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors;
+  @apply p-1 rounded-lg transition-colors;
+  color: var(--text-muted, #6b7280);
+}
+
+.close-btn:hover {
+  color: var(--text-primary, #c0caf5);
+  background: var(--bg-tertiary, rgba(0, 0, 0, 0.15));
 }
 
 .modal-body {
@@ -298,30 +306,37 @@ const emit = defineEmits<{
 }
 
 .form-label {
-  @apply block text-sm font-medium text-gray-300 mb-2;
+  @apply block text-sm font-medium mb-2;
+  color: var(--text-secondary, #9ca3af);
 }
 
 .form-input {
-  @apply w-full px-3 py-2 rounded-lg text-white bg-dark-1 border border-gray-700;
+  @apply w-full px-3 py-2 rounded-lg;
   @apply focus:outline-none focus:border-brand-purple focus:ring-1 focus:ring-brand-purple;
   @apply transition-colors;
+  color: var(--text-primary, #c0caf5);
+  background: var(--bg-secondary, var(--surface-1, #1a1b26));
+  border: 1px solid var(--border-primary, #374151);
 }
 
 .form-input::placeholder {
-  @apply text-gray-500;
+  color: var(--text-muted, #6b7280);
 }
 
 .form-hint {
-  @apply mt-1 text-xs text-gray-500;
+  @apply mt-1 text-xs;
+  color: var(--text-muted, #6b7280);
 }
 
 .tabs {
-  @apply flex gap-2 p-1 rounded-lg bg-dark-1;
+  @apply flex gap-2 p-1 rounded-lg;
+  background: var(--bg-secondary, var(--surface-1, #1a1b26));
 }
 
 .tab {
   @apply flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md;
-  @apply text-sm font-medium text-gray-400 transition-all;
+  @apply text-sm font-medium transition-all;
+  color: var(--text-muted, #6b7280);
 }
 
 .tab-active {
@@ -341,16 +356,23 @@ const emit = defineEmits<{
 }
 
 .info-text {
-  @apply text-xs text-gray-400 leading-relaxed;
+  @apply text-xs leading-relaxed;
+  color: var(--text-muted, #6b7280);
 }
 
 .manual-tokens {
-  @apply rounded-lg bg-dark-1/50 border border-gray-800;
+  @apply rounded-lg;
+  background: var(--bg-secondary, rgba(0, 0, 0, 0.1));
+  border: 1px solid var(--border-primary, #2d3154);
 }
 
 .manual-tokens-toggle {
-  @apply px-4 py-3 text-sm text-gray-400 hover:text-gray-300 cursor-pointer;
-  @apply transition-colors;
+  @apply px-4 py-3 text-sm cursor-pointer transition-colors;
+  color: var(--text-muted, #6b7280);
+}
+
+.manual-tokens-toggle:hover {
+  color: var(--text-secondary, #9ca3af);
 }
 
 .manual-tokens-content {
@@ -363,8 +385,14 @@ const emit = defineEmits<{
 
 .toggle-btn {
   @apply flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg;
-  @apply text-sm font-medium text-gray-400 bg-dark-1 border border-gray-700;
-  @apply hover:border-gray-600 transition-all;
+  @apply text-sm font-medium transition-all;
+  color: var(--text-muted, #6b7280);
+  background: var(--bg-secondary, var(--surface-1, #1a1b26));
+  border: 1px solid var(--border-primary, #374151);
+}
+
+.toggle-btn:hover {
+  border-color: var(--text-muted, #6b7280);
 }
 
 .toggle-btn-active {
@@ -384,10 +412,15 @@ const emit = defineEmits<{
 }
 
 .btn-secondary {
-  @apply px-6 py-2.5 rounded-lg font-medium text-gray-300;
-  @apply bg-dark-3 hover:text-white;
+  @apply px-6 py-2.5 rounded-lg font-medium;
   @apply disabled:opacity-50 disabled:cursor-not-allowed;
   @apply transition-colors;
+  color: var(--text-secondary, #9ca3af);
+  background: var(--bg-tertiary, #24283b);
+}
+
+.btn-secondary:hover {
+  color: var(--text-primary, #c0caf5);
 }
 
 .spinner {

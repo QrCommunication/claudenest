@@ -39,6 +39,20 @@
         </span>
       </div>
 
+      <div v-if="credential.auth_type === 'oauth' && expiresText" class="info-row">
+        <span class="info-label">Token Expiry</span>
+        <span :class="['info-value', credential.is_expired ? 'text-red-400' : 'text-green-400']">
+          {{ expiresText }}
+        </span>
+      </div>
+
+      <div v-if="credential.auth_type === 'oauth'" class="info-row">
+        <span class="info-label">Refresh Token</span>
+        <span :class="['info-value', credential.has_refresh_token ? 'text-green-400' : 'text-yellow-400']">
+          {{ credential.has_refresh_token ? 'Available' : 'Not set' }}
+        </span>
+      </div>
+
       <div v-if="credential.last_used_at" class="info-row">
         <span class="info-label">Last Used</span>
         <span class="info-value">{{ lastUsedText }}</span>
@@ -137,10 +151,10 @@ const tokenStatusText = computed(() => {
   if (!status) return 'Unknown';
 
   const statusMap: Record<string, string> = {
-    'valid': 'Valid',
+    'ok': 'Active',
     'expired': 'Expired',
     'missing': 'Missing',
-    'invalid': 'Invalid',
+    'needs_login': 'Needs Login',
   };
 
   return statusMap[status] || status;
@@ -150,10 +164,10 @@ const statusDotClass = computed(() => {
   const status = props.credential.token_status;
 
   const classMap: Record<string, string> = {
-    'valid': 'status-dot status-dot-green',
+    'ok': 'status-dot status-dot-green',
     'expired': 'status-dot status-dot-yellow',
     'missing': 'status-dot status-dot-red',
-    'invalid': 'status-dot status-dot-red',
+    'needs_login': 'status-dot status-dot-red',
   };
 
   return classMap[status || 'missing'] || 'status-dot status-dot-gray';
@@ -163,10 +177,10 @@ const statusTextClass = computed(() => {
   const status = props.credential.token_status;
 
   const classMap: Record<string, string> = {
-    'valid': 'text-green-400',
+    'ok': 'text-green-400',
     'expired': 'text-yellow-400',
     'missing': 'text-red-400',
-    'invalid': 'text-red-400',
+    'needs_login': 'text-red-400',
   };
 
   return classMap[status || 'missing'] || 'text-gray-400';
@@ -174,10 +188,26 @@ const statusTextClass = computed(() => {
 
 const maskedKey = computed(() => {
   if (props.credential.auth_type !== 'api_key') return '';
-  // Show first 8 chars and last 4 chars
-  const key = props.credential.api_key || '';
-  if (key.length <= 12) return '••••••••••••';
-  return `${key.slice(0, 8)}...${key.slice(-4)}`;
+  const key = props.credential.masked_key || '';
+  if (!key || key.length <= 12) return '••••••••••••';
+  return key;
+});
+
+const expiresText = computed(() => {
+  if (!props.credential.expires_at) return null;
+  const expires = new Date(props.credential.expires_at);
+  const now = new Date();
+  const diffMs = expires.getTime() - now.getTime();
+
+  if (diffMs <= 0) return 'Expired';
+
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 60) return `${diffMins}m remaining`;
+  if (diffHours < 24) return `${diffHours}h remaining`;
+  return `${diffDays}d remaining`;
 });
 
 const modeBadgeClass = computed(() => {
@@ -208,8 +238,8 @@ const lastUsedText = computed(() => {
 <style scoped>
 .credential-card {
   @apply rounded-lg overflow-hidden;
-  background: linear-gradient(135deg, var(--bg-secondary, var(--surface-2)) 0%, var(--bg-tertiary, var(--surface-3)) 100%);
-  border: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
+  background: var(--bg-card, var(--surface-2, #24283b));
+  border: 1px solid var(--border-primary, color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent));
   transition: all 0.3s ease;
 }
 
@@ -219,11 +249,13 @@ const lastUsedText = computed(() => {
 }
 
 .card-header {
-  @apply flex items-center justify-between p-4 border-b border-gray-800;
+  @apply flex items-center justify-between p-4;
+  border-bottom: 1px solid var(--border-primary, #2d3154);
 }
 
 .credential-name {
-  @apply text-base font-semibold text-white;
+  @apply text-base font-semibold;
+  color: var(--text-primary, #c0caf5);
 }
 
 .default-star {
@@ -247,7 +279,8 @@ const lastUsedText = computed(() => {
 }
 
 .badge-gray {
-  @apply bg-gray-700 text-gray-300;
+  background: var(--bg-tertiary, #374151);
+  color: var(--text-secondary, #9ca3af);
 }
 
 .card-body {
@@ -259,11 +292,13 @@ const lastUsedText = computed(() => {
 }
 
 .info-label {
-  @apply text-sm text-gray-400;
+  @apply text-sm;
+  color: var(--text-muted, #6b7280);
 }
 
 .info-value {
-  @apply text-sm text-gray-300;
+  @apply text-sm;
+  color: var(--text-secondary, #9ca3af);
 }
 
 .status-dot {
@@ -290,18 +325,23 @@ const lastUsedText = computed(() => {
 }
 
 .masked-key {
-  @apply text-xs font-mono text-gray-400 bg-gray-900/50 px-2 py-1 rounded;
+  @apply text-xs font-mono px-2 py-1 rounded;
+  color: var(--text-muted, #6b7280);
+  background: var(--bg-tertiary, rgba(0, 0, 0, 0.15));
 }
 
 .card-footer {
-  @apply flex items-center gap-2 p-3 bg-dark-1/50 border-t border-gray-800;
-  @apply flex-wrap;
+  @apply flex items-center gap-2 p-3 flex-wrap;
+  background: var(--bg-secondary, rgba(0, 0, 0, 0.15));
+  border-top: 1px solid var(--border-primary, #2d3154);
 }
 
 .action-btn {
   @apply flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium;
-  @apply text-gray-300 bg-dark-3 hover:bg-brand-purple/20 hover:text-brand-purple;
+  @apply hover:bg-brand-purple/20 hover:text-brand-purple;
   @apply transition-all duration-200;
+  color: var(--text-secondary, #9ca3af);
+  background: var(--bg-tertiary, #24283b);
 }
 
 .action-btn-danger {

@@ -150,11 +150,13 @@ async function handleDelete(id: string): Promise<void> {
 }
 
 .page-header h1 {
-  @apply text-2xl font-bold text-white;
+  @apply text-2xl font-bold;
+  color: var(--text-primary, #c0caf5);
 }
 
 .page-subtitle {
-  @apply text-sm text-gray-400 mt-1;
+  @apply text-sm mt-1;
+  color: var(--text-muted, #6b7280);
 }
 
 .btn-primary {
@@ -163,7 +165,13 @@ async function handleDelete(id: string): Promise<void> {
 }
 
 .btn-secondary {
-  @apply px-4 py-2 rounded-lg font-medium text-gray-300 bg-dark-3 hover:text-white transition-colors;
+  @apply px-4 py-2 rounded-lg font-medium transition-colors;
+  color: var(--text-secondary, #9ca3af);
+  background: var(--bg-tertiary, #24283b);
+}
+
+.btn-secondary:hover {
+  color: var(--text-primary, #c0caf5);
 }
 
 .credentials-grid {
@@ -192,15 +200,18 @@ async function handleDelete(id: string): Promise<void> {
 }
 
 .empty-icon {
-  @apply w-16 h-16 mx-auto text-gray-600 mb-4;
+  @apply w-16 h-16 mx-auto mb-4;
+  color: var(--text-muted, #6b7280);
 }
 
 .empty-state h3 {
-  @apply text-lg font-semibold text-white mb-2;
+  @apply text-lg font-semibold mb-2;
+  color: var(--text-primary, #c0caf5);
 }
 
 .empty-state p {
-  @apply text-gray-400 mb-6;
+  @apply mb-6;
+  color: var(--text-muted, #6b7280);
 }
 
 @keyframes spin {
