@@ -85,8 +85,9 @@ class WebSocketManager {
 
     const channel = this.echo.private(`sessions.${sessionId}`);
 
-    // Listen for output events
+    // Listen for output events (only when terminal WS is not connected — avoids double output)
     channel.listen('.session.output', (event: SessionOutputEvent) => {
+      if (this.terminalWs && this.terminalWs.readyState === WebSocket.OPEN) return;
       this.callbacks.onOutput?.(event);
     });
 
