@@ -239,11 +239,9 @@ export function useTerminal(options: UseTerminalOptions): UseTerminalReturn {
       console.warn('Cannot send input: not connected');
       return;
     }
-    
-    // Send via HTTP API
-    sessionsApi.sendInput(sessionId, data).catch((e) => {
-      console.error('Failed to send input:', e);
-    });
+
+    // Fast path: direct WebSocket to AgentServe (no HTTP/Redis overhead)
+    websocketManager.sendInput(data);
   }
 
   // ============================================================================

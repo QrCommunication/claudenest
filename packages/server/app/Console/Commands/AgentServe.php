@@ -201,30 +201,16 @@ class AgentServe extends Command
             return;
         }
 
-        // Verify Sanctum token: format is {id}|{plainText}
-        $tokenParts = explode('|', $token, 2);
-        if (count($tokenParts) !== 2) {
-            $conn->end("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\nInvalid token format");
-            return;
-        }
-
-        [$tokenId, $plainText] = $tokenParts;
-
+        // Verify token using the same lookup as API middleware
         try {
-            $accessToken = PersonalAccessToken::find($tokenId);
+            $accessToken = PersonalAccessToken::findValidToken($token);
         } catch (\Throwable $e) {
             $conn->end("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\nInvalid token");
             return;
         }
 
-        if (!$accessToken || !hash_equals($accessToken->token, hash('sha256', $plainText))) {
+        if (!$accessToken) {
             $conn->end("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\nInvalid token");
-            return;
-        }
-
-        // Check token is not expired
-        if ($accessToken->expires_at && $accessToken->expires_at->isPast()) {
-            $conn->end("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\nToken expired");
             return;
         }
 
