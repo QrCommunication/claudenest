@@ -161,8 +161,8 @@ class SessionController extends Controller
             'credentialEnv' => $credentialEnv,
         ]);
 
-        // Broadcast to dashboard via Reverb
-        broadcast(new \App\Events\SessionCreated($session, $credentialEnv))->toOthers();
+        // Broadcast to dashboard via Reverb (credentials excluded — agent-only via AgentGateway)
+        broadcast(new \App\Events\SessionCreated($session))->toOthers();
 
         return response()->json([
             'success' => true,
