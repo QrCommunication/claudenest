@@ -15,12 +15,11 @@ import {
   createContextHandlers,
   createFileHandlers,
 } from './handlers/index.js';
-import type { 
-  AgentConfig, 
-  AgentEvents, 
-  Logger, 
+import type {
+  AgentConfig,
+  Logger,
   MachineInfo,
-  SessionOutput 
+  SessionOutput
 } from './types/index.js';
 import { 
   generateId, 
@@ -130,6 +129,12 @@ export class ClaudeNestAgent extends EventEmitter {
       // Connect to WebSocket
       await this.wsClient.connect();
 
+      // Recover orphaned tmux sessions from previous agent runs
+      const recovered = await this.sessionManager.recoverSessions();
+      if (recovered.length > 0) {
+        this.logger.info({ count: recovered.length, ids: recovered }, 'Recovered tmux sessions');
+      }
+
       // Send initial machine info
       await this.sendMachineInfo();
 
@@ -223,6 +228,7 @@ export class ClaudeNestAgent extends EventEmitter {
       claudePath: this.config.claudePath,
       capabilities: {
         supportsPTY: true,
+        supportsTmux: true,
         supportsMCP: mcps.length > 0,
         supportsSkills: skills.length > 0,
         availableSkills: skills.map(s => s.name),
@@ -268,6 +274,10 @@ export class ClaudeNestAgent extends EventEmitter {
 
     this.sessionManager.on('sessionCreated', (session) => {
       this.emit('sessionCreated', session);
+    });
+
+    this.sessionManager.on('sessionRecovered', (data: { sessionId: string }) => {
+      this.wsClient.send('session:recovered', data);
     });
 
     // Context client events
@@ -435,14 +445,6 @@ export class ClaudeNestAgent extends EventEmitter {
    */
   getWebSocketClient(): WebSocketClient {
     return this.wsClient;
-  }
-}
-
-// Type augmentation for EventEmitter
-declare module 'events' {
-  interface EventEmitter {
-    on<T extends keyof AgentEvents>(event: T, listener: AgentEvents[T]): this;
-    emit<T extends keyof AgentEvents>(event: T, ...args: Parameters<AgentEvents[T]>): boolean;
   }
 }
 

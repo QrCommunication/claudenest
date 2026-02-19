@@ -299,6 +299,7 @@ export function createConfigHandlers(context: HandlerContext) {
         claudePath,
         capabilities: {
           supportsPTY: true,
+          supportsTmux: true,
           supportsMCP: mcps.length > 0,
           supportsSkills: skills.length > 0,
           availableSkills: skills.map(s => s.name),

@@ -69,6 +69,7 @@ export interface MachineInfo {
 
 export interface MachineCapabilities {
   supportsPTY: boolean;
+  supportsTmux: boolean;
   supportsMCP: boolean;
   supportsSkills: boolean;
   availableSkills: string[];
@@ -373,6 +374,7 @@ export interface AgentEvents {
   stopped: () => void;
   error: (error: Error) => void;
   sessionCreated: (session: Session) => void;
+  sessionRecovered: (data: { sessionId: string }) => void;
   sessionEnded: (data: { sessionId: string; exitCode: number }) => void;
   output: (data: SessionOutput) => void;
   status: (data: { sessionId: string; status: SessionStatus }) => void;
