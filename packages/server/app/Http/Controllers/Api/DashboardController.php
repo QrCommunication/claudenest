@@ -40,7 +40,7 @@ class DashboardController extends Controller
         $machinesOnline = $user->machines()->where('status', 'online')->count();
 
         // Sessions
-        $sessionsActive = $user->sessions()->whereIn('status', ['running', 'active'])->count();
+        $sessionsActive = $user->sessions()->whereIn('status', ['running', 'starting'])->count();
         $sessionsToday = $user->sessions()->whereDate('created_at', today())->count();
 
         // Projects
@@ -138,7 +138,7 @@ class DashboardController extends Controller
         }
 
         // Sessions per day
-        $sessionsByDay = DB::table('sessions')
+        $sessionsByDay = DB::table('claude_sessions')
             ->where('user_id', $user->id)
             ->where('created_at', '>=', now()->subDays(7)->startOfDay())
             ->selectRaw('DATE(created_at) as day, COUNT(*) as cnt')
@@ -147,7 +147,7 @@ class DashboardController extends Controller
             ->toArray();
 
         // Tokens per day
-        $tokensByDay = DB::table('sessions')
+        $tokensByDay = DB::table('claude_sessions')
             ->where('user_id', $user->id)
             ->where('created_at', '>=', now()->subDays(7)->startOfDay())
             ->selectRaw('DATE(created_at) as day, COALESCE(SUM(total_tokens), 0) as cnt')

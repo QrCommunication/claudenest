@@ -380,16 +380,16 @@ export function useTerminal(options: UseTerminalOptions): UseTerminalReturn {
     resizeObserver?.disconnect();
     resizeObserver = null;
     
-    webglAddon?.dispose();
+    try { webglAddon?.dispose(); } catch { /* already disposed */ }
     webglAddon = null;
-    
-    fitAddon.value?.dispose();
+
+    try { fitAddon.value?.dispose(); } catch { /* already disposed */ }
     fitAddon.value = null;
-    
-    searchAddon.value?.dispose();
+
+    try { searchAddon.value?.dispose(); } catch { /* already disposed */ }
     searchAddon.value = null;
-    
-    terminal.value?.dispose();
+
+    try { terminal.value?.dispose(); } catch { /* already disposed */ }
     terminal.value = null;
     
     isReady.value = false;

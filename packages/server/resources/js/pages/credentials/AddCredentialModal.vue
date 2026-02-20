@@ -24,7 +24,7 @@
               type="text"
               class="form-input"
               placeholder="my-credential"
-              pattern="[a-z0-9-]+"
+              pattern="[a-z0-9\-]+"
               title="Only lowercase letters, numbers, and dashes allowed"
               required
             />
