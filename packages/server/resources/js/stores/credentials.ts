@@ -74,8 +74,8 @@ export const useCredentialsStore = defineStore('credentials', () => {
     return response.data.data;
   }
 
-  async function captureOAuth(id: string): Promise<Record<string, unknown>> {
-    const response = await api.post<ApiResponse<Record<string, unknown>>>(`/credentials/${id}/capture`);
+  async function captureOAuth(id: string, payload?: { access_token?: string; refresh_token?: string; expires_at?: number; credentials_json?: string }): Promise<Record<string, unknown>> {
+    const response = await api.post<ApiResponse<Record<string, unknown>>>(`/credentials/${id}/capture`, payload || {});
     await fetchCredentials();
     return response.data.data;
   }

@@ -6,9 +6,12 @@
         <h1 class="text-2xl font-bold text-white">Commands</h1>
         <p class="text-dark-4 mt-1">Discover and execute available commands</p>
       </div>
-      <Badge variant="info" size="md">
-        {{ commandsStore.pagination.total }} total
-      </Badge>
+      <div class="flex items-center gap-3">
+        <MachineSelector />
+        <Badge variant="info" size="md">
+          {{ commandsStore.pagination.total }} total
+        </Badge>
+      </div>
     </div>
 
     <!-- Command Palette -->
@@ -249,6 +252,7 @@ import { useCommandsStore } from '@/stores/commands';
 import { useMachinesStore } from '@/stores/machines';
 import { useToast } from '@/composables/useToast';
 import CommandPalette from '@/components/commands/CommandPalette.vue';
+import MachineSelector from '@/components/common/MachineSelector.vue';
 import Button from '@/components/common/Button.vue';
 import Badge from '@/components/common/Badge.vue';
 import Input from '@/components/common/Input.vue';

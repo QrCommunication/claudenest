@@ -7,11 +7,12 @@
         <p class="text-dark-4 mt-1">Manage Model Context Protocol servers and tools</p>
       </div>
       <div class="flex items-center gap-3">
+        <MachineSelector />
         <Badge v-if="mcpStore.stats" variant="info" size="md">
           {{ mcpStore.stats.running }}/{{ mcpStore.stats.total }} running
         </Badge>
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           @click="refreshServers"
           :loading="mcpStore.isLoading"
         >
@@ -215,13 +216,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useMCPStore } from '@/stores/mcp';
 import { useMachinesStore } from '@/stores/machines';
 import { useToast } from '@/composables/useToast';
 import ServerCard from './ServerCard.vue';
 import AddServerModal from './AddServerModal.vue';
 import ToolsModal from './ToolsModal.vue';
+import MachineSelector from '@/components/common/MachineSelector.vue';
 import Card from '@/components/common/Card.vue';
 import Button from '@/components/common/Button.vue';
 import Badge from '@/components/common/Badge.vue';
@@ -263,6 +265,12 @@ const filteredServers = computed(() => {
 
 onMounted(() => {
   if (currentMachineId.value) {
+    loadServers();
+  }
+});
+
+watch(currentMachineId, (newId) => {
+  if (newId) {
     loadServers();
   }
 });

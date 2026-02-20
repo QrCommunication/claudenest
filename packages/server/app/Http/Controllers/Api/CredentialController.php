@@ -470,7 +470,8 @@ class CredentialController extends Controller
         $credential = $request->user()->credentials()->findOrFail($id);
 
         try {
-            $result = $this->credentialService->captureFromCredentialsFile($credential);
+            $params = $request->only(['access_token', 'refresh_token', 'expires_at', 'credentials_json']);
+            $result = $this->credentialService->captureOAuthTokens($credential, $params);
             return response()->json([
                 'success' => true,
                 'data' => $result,

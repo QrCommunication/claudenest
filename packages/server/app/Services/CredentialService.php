@@ -62,7 +62,7 @@ class CredentialService
         $refreshToken = $credential->getRefreshToken();
         if (!$refreshToken) {
             throw new \RuntimeException(
-                "No refresh token for '{$credential->name}'. Re-authenticate."
+                "No refresh token stored for '{$credential->name}'. Use 'Capture' to import your OAuth tokens first."
             );
         }
 
@@ -108,28 +108,58 @@ class CredentialService
     }
 
     /**
-     * Capture OAuth tokens from ~/.claude/.credentials.json
+     * Capture OAuth tokens from direct input or credentials JSON.
+     *
+     * Accepts tokens directly (for remote/production use) or parses
+     * the raw JSON content of ~/.claude/.credentials.json.
      */
-    public function captureFromCredentialsFile(ClaudeCredential $credential): array
+    public function captureOAuthTokens(ClaudeCredential $credential, array $params = []): array
     {
-        $home = getenv('HOME') ?: posix_getpwuid(posix_getuid())['dir'] ?? '/root';
-        $credPath = $home . '/.claude/.credentials.json';
-
-        if (!file_exists($credPath)) {
-            throw new \RuntimeException(
-                "Credentials file not found: {$credPath}. Run 'claude' first to authenticate."
-            );
+        if ($credential->auth_type !== 'oauth') {
+            throw new \InvalidArgumentException("Credential '{$credential->name}' is not OAuth type.");
         }
 
-        $data = json_decode(file_get_contents($credPath), true);
-        $oauth = $data['claudeAiOauth'] ?? [];
+        $accessToken = '';
+        $refreshToken = '';
+        $expiresAt = 0;
 
-        $accessToken = $oauth['accessToken'] ?? '';
-        $refreshToken = $oauth['refreshToken'] ?? '';
-        $expiresAt = $oauth['expiresAt'] ?? 0;
+        // Option 1: Direct token parameters
+        if (!empty($params['access_token'])) {
+            $accessToken = $params['access_token'];
+            $refreshToken = $params['refresh_token'] ?? '';
+            $expiresAt = $params['expires_at'] ?? 0;
+        }
+        // Option 2: Raw JSON from credentials file content
+        elseif (!empty($params['credentials_json'])) {
+            $data = json_decode($params['credentials_json'], true);
+            if (!$data) {
+                throw new \RuntimeException('Invalid JSON provided.');
+            }
+            $oauth = $data['claudeAiOauth'] ?? [];
+            $accessToken = $oauth['accessToken'] ?? '';
+            $refreshToken = $oauth['refreshToken'] ?? '';
+            $expiresAt = $oauth['expiresAt'] ?? 0;
+        }
+        // Option 3: Fallback to reading local file (dev/self-hosted only)
+        else {
+            $home = getenv('HOME') ?: (function_exists('posix_getpwuid') ? (posix_getpwuid(posix_getuid())['dir'] ?? '/root') : '/root');
+            $credPath = $home . '/.claude/.credentials.json';
+
+            if (!file_exists($credPath)) {
+                throw new \RuntimeException(
+                    'No tokens provided. Paste your tokens directly or provide the JSON content from ~/.claude/.credentials.json'
+                );
+            }
+
+            $data = json_decode(file_get_contents($credPath), true);
+            $oauth = $data['claudeAiOauth'] ?? [];
+            $accessToken = $oauth['accessToken'] ?? '';
+            $refreshToken = $oauth['refreshToken'] ?? '';
+            $expiresAt = $oauth['expiresAt'] ?? 0;
+        }
 
         if (!$accessToken) {
-            throw new \RuntimeException('No accessToken found in credentials file.');
+            throw new \RuntimeException('No access token found. Provide access_token or valid credentials JSON.');
         }
 
         $hint = 'oat01-...' . substr($accessToken, -6);

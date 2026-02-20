@@ -7,19 +7,20 @@
         <p class="text-dark-4 mt-1">Manage discovered skills and their configurations</p>
       </div>
       <div class="flex items-center gap-3">
+        <MachineSelector />
         <Badge variant="info" size="md">
           {{ skillsStore.pagination.total }} total
         </Badge>
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           @click="refreshSkills"
           :loading="skillsStore.isLoading"
         >
           <RefreshCwIcon class="w-4 h-4" />
           Refresh
         </Button>
-        <Button 
-          variant="primary" 
+        <Button
+          variant="primary"
           @click="createSkill"
         >
           <PlusIcon class="w-4 h-4" />
@@ -206,6 +207,7 @@ import { useMachinesStore } from '@/stores/machines';
 import { useToast } from '@/composables/useToast';
 import SkillCard from './SkillCard.vue';
 import SkillPreview from '@/components/skills/SkillPreview.vue';
+import MachineSelector from '@/components/common/MachineSelector.vue';
 import Input from '@/components/common/Input.vue';
 import Button from '@/components/common/Button.vue';
 import Badge from '@/components/common/Badge.vue';

@@ -57,6 +57,13 @@
       @close="editingCredential = null"
       @updated="onCredentialUpdated"
     />
+
+    <CaptureOAuthModal
+      v-if="capturingCredentialId"
+      :credential-id="capturingCredentialId"
+      @close="capturingCredentialId = null"
+      @captured="onCaptureComplete"
+    />
   </div>
 </template>
 
@@ -69,6 +76,7 @@ import { storeToRefs } from 'pinia';
 import CredentialCard from './CredentialCard.vue';
 import AddCredentialModal from './AddCredentialModal.vue';
 import EditCredentialModal from './EditCredentialModal.vue';
+import CaptureOAuthModal from './CaptureOAuthModal.vue';
 import type { Credential } from '@/types';
 
 const store = useCredentialsStore();
@@ -76,6 +84,7 @@ const toast = useToast();
 const { credentials, isLoading, error } = storeToRefs(store);
 const showAddModal = ref(false);
 const editingCredential = ref<Credential | null>(null);
+const capturingCredentialId = ref<string | null>(null);
 
 onMounted(() => {
   loadCredentials();
@@ -116,13 +125,13 @@ async function handleRefresh(id: string): Promise<void> {
   }
 }
 
-async function handleCapture(id: string): Promise<void> {
-  try {
-    await store.captureOAuth(id);
-    toast.success('OAuth tokens captured');
-  } catch (error) {
-    toast.error('Capture failed', getErrorMessage(error));
-  }
+function handleCapture(id: string): void {
+  capturingCredentialId.value = id;
+}
+
+function onCaptureComplete(): void {
+  capturingCredentialId.value = null;
+  loadCredentials();
 }
 
 async function handleSetDefault(id: string): Promise<void> {
