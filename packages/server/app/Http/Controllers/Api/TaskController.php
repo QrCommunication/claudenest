@@ -435,16 +435,6 @@ class TaskController extends Controller
 
     /**
      * Get next available task.
-     *
-     * @OA\Get(
-     *     path="/api/projects/{projectId}/tasks/next-available",
-     *     tags={"Tasks"},
-     *     summary="Get next available unclaimed task",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(name="projectId", in="path", required=true, @OA\Schema(type="string", format="uuid")),
-     *     @OA\Response(response=200, description="Next available task or null", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-     *     @OA\Response(response=404, description="Project not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
-     * )
      */
     public function nextAvailable(Request $request, string $projectId): JsonResponse
     {
@@ -466,6 +456,47 @@ class TaskController extends Controller
                 ],
             ]);
         }
+
+        return response()->json([
+            'success' => true,
+            'data' => $this->formatTask($task),
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
+    }
+
+    /**
+     * Atomically claim the next available task for a worker instance.
+     */
+    public function claimNext(Request $request, string $projectId): JsonResponse
+    {
+        $project = $this->getUserProject($request, $projectId);
+
+        if (!$project) {
+            return $this->errorResponse('CTX_001', 'Project not found', 404);
+        }
+
+        $validated = $request->validate([
+            'instance_id' => 'required|string',
+        ]);
+
+        $task = SharedTask::claimNextAvailable($projectId, $validated['instance_id']);
+
+        if (!$task) {
+            return response()->json([
+                'success' => true,
+                'data' => null,
+                'meta' => [
+                    'message' => 'No tasks available',
+                    'timestamp' => now()->toIso8601String(),
+                    'request_id' => $request->header('X-Request-ID', uniqid()),
+                ],
+            ]);
+        }
+
+        broadcast(new \App\Events\TaskClaimed($task))->toOthers();
 
         return response()->json([
             'success' => true,

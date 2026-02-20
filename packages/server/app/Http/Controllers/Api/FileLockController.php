@@ -7,6 +7,7 @@ use App\Models\FileLock;
 use App\Models\SharedProject;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class FileLockController extends Controller
 {
@@ -411,52 +412,62 @@ class FileLockController extends Controller
 
         FileLock::cleanupExpired();
 
-        $results = [];
-        $failed = [];
+        try {
+            $result = DB::transaction(function () use ($projectId, $validated) {
+                $results = [];
 
-        foreach ($validated['paths'] as $path) {
-            $existingOwner = FileLock::getOwner($projectId, $path);
+                foreach ($validated['paths'] as $path) {
+                    $existingOwner = FileLock::getOwner($projectId, $path);
 
-            if ($existingOwner && $existingOwner !== $validated['instance_id']) {
-                $failed[] = [
-                    'path' => $path,
-                    'error' => 'Already locked by ' . $existingOwner,
-                ];
-                continue;
-            }
+                    if ($existingOwner && $existingOwner !== $validated['instance_id']) {
+                        throw new \RuntimeException("Path '{$path}' already locked by {$existingOwner}");
+                    }
 
-            $lock = FileLock::acquire(
-                $projectId,
-                $path,
-                $validated['instance_id'],
-                $validated['reason'] ?? 'bulk lock'
-            );
+                    $lock = FileLock::acquire(
+                        $projectId,
+                        $path,
+                        $validated['instance_id'],
+                        $validated['reason'] ?? 'bulk lock'
+                    );
 
-            if ($lock) {
-                $results[] = [
-                    'path' => $lock->path,
-                    'id' => $lock->id,
-                    'expires_at' => $lock->expires_at,
-                ];
-            } else {
-                $failed[] = [
-                    'path' => $path,
-                    'error' => 'Failed to acquire lock',
-                ];
-            }
+                    if (!$lock) {
+                        throw new \RuntimeException("Failed to acquire lock on '{$path}'");
+                    }
+
+                    $results[] = [
+                        'path' => $lock->path,
+                        'id' => $lock->id,
+                        'expires_at' => $lock->expires_at,
+                    ];
+                }
+
+                return $results;
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'locked' => $result,
+                    'failed' => [],
+                ],
+                'meta' => [
+                    'timestamp' => now()->toIso8601String(),
+                    'request_id' => $request->header('X-Request-ID', uniqid()),
+                ],
+            ]);
+        } catch (\RuntimeException $e) {
+            return response()->json([
+                'success' => false,
+                'data' => [
+                    'locked' => [],
+                    'failed' => [['error' => $e->getMessage()]],
+                ],
+                'meta' => [
+                    'timestamp' => now()->toIso8601String(),
+                    'request_id' => $request->header('X-Request-ID', uniqid()),
+                ],
+            ], 409);
         }
-
-        return response()->json([
-            'success' => empty($failed),
-            'data' => [
-                'locked' => $results,
-                'failed' => $failed,
-            ],
-            'meta' => [
-                'timestamp' => now()->toIso8601String(),
-                'request_id' => $request->header('X-Request-ID', uniqid()),
-            ],
-        ]);
     }
 
     /**

@@ -443,7 +443,12 @@ class CredentialController extends Controller
     public function capture(Request $request, string $id): JsonResponse
     {
         $credential = $request->user()->credentials()->findOrFail($id);
-        $path = $request->input('credentials_path');
+
+        $validated = $request->validate([
+            'credentials_path' => 'nullable|string|max:1024',
+        ]);
+
+        $path = $validated['credentials_path'] ?? null;
 
         try {
             $result = $this->credentialService->captureFromCredentialsFile($credential, $path);

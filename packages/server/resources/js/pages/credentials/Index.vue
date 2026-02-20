@@ -50,6 +50,13 @@
       @close="showAddModal = false"
       @created="onCredentialCreated"
     />
+
+    <EditCredentialModal
+      v-if="editingCredential"
+      :credential="editingCredential"
+      @close="editingCredential = null"
+      @updated="onCredentialUpdated"
+    />
   </div>
 </template>
 
@@ -60,12 +67,14 @@ import { useToast } from '@/composables/useToast';
 import { storeToRefs } from 'pinia';
 import CredentialCard from './CredentialCard.vue';
 import AddCredentialModal from './AddCredentialModal.vue';
+import EditCredentialModal from './EditCredentialModal.vue';
 import type { Credential } from '@/types';
 
 const store = useCredentialsStore();
 const toast = useToast();
 const { credentials, isLoading, error } = storeToRefs(store);
 const showAddModal = ref(false);
+const editingCredential = ref<Credential | null>(null);
 
 onMounted(() => {
   loadCredentials();
@@ -125,8 +134,12 @@ async function handleSetDefault(id: string): Promise<void> {
 }
 
 function handleEdit(credential: Credential): void {
-  // TODO: open edit modal
-  toast.info('Edit coming soon');
+  editingCredential.value = credential;
+}
+
+function onCredentialUpdated(): void {
+  editingCredential.value = null;
+  toast.success('Credential updated');
 }
 
 async function handleDelete(id: string): Promise<void> {

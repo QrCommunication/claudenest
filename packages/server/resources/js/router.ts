@@ -141,6 +141,11 @@ const routes: RouteRecordRaw[] = [
         name: 'projects.locks',
         component: () => import('./pages/projects/Locks.vue'),
       },
+      {
+        path: '/projects/:id/orchestration',
+        name: 'projects.orchestration',
+        component: () => import('./pages/projects/Orchestration.vue'),
+      },
     ],
   },
   // Documentation routes with dedicated layout

@@ -5,12 +5,18 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\SharedProject;
 use App\Models\ContextChunk;
+use App\Services\EmbeddingService;
+use App\Services\ContextRAGService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 
 class ContextController extends Controller
 {
+    public function __construct(
+        private EmbeddingService $embeddingService,
+        private ContextRAGService $ragService,
+    ) {}
+
     /**
      * @OA\Get(
      *     path="/api/projects/{projectId}/context",
@@ -222,7 +228,7 @@ class ContextController extends Controller
         if ($useEmbeddings) {
             try {
                 // Get embedding for query
-                $embedding = $this->getEmbedding($query);
+                $embedding = $this->embeddingService->generate($query);
 
                 if ($embedding) {
                     $chunks = ContextChunk::findSimilar(
@@ -437,7 +443,7 @@ class ContextController extends Controller
         // Get embedding if requested and service available
         $embedding = null;
         if ($validated['generate_embedding'] ?? false) {
-            $embedding = $this->getEmbedding($validated['content']);
+            $embedding = $this->embeddingService->generate($validated['content']);
         }
 
         $chunk = ContextChunk::create([
@@ -593,6 +599,73 @@ class ContextController extends Controller
     }
 
     /**
+     * Batch create context chunks from agent sync queue.
+     * Accepts updates across multiple projects in a single request.
+     */
+    public function batch(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'updates' => 'required|array|min:1|max:100',
+            'updates.*.projectId' => 'required|uuid',
+            'updates.*.content' => 'required|string|min:1',
+            'updates.*.type' => 'required|string|in:task_completion,context_update,file_change,decision,summary,broadcast',
+            'updates.*.files' => 'nullable|array',
+            'updates.*.files.*' => 'string',
+            'updates.*.importanceScore' => 'nullable|numeric|min:0|max:1',
+        ]);
+
+        $userId = $request->user()->id;
+        $created = [];
+        $errors = [];
+
+        // Group updates by project for efficient ownership check
+        $projectIds = collect($validated['updates'])->pluck('projectId')->unique();
+        $userProjects = SharedProject::forUser($userId)
+            ->whereIn('id', $projectIds)
+            ->pluck('id')
+            ->flip();
+
+        foreach ($validated['updates'] as $i => $update) {
+            if (!$userProjects->has($update['projectId'])) {
+                $errors[] = ['index' => $i, 'error' => 'Project not found or not owned'];
+                continue;
+            }
+
+            $chunk = ContextChunk::create([
+                'project_id' => $update['projectId'],
+                'content' => $update['content'],
+                'type' => $update['type'],
+                'instance_id' => $request->header('X-Instance-ID'),
+                'files' => $update['files'] ?? [],
+                'importance_score' => $update['importanceScore'] ?? 0.5,
+                'expires_at' => now()->addDays(30),
+            ]);
+
+            $created[] = $chunk->id;
+
+            // Dispatch embedding generation asynchronously if service is available
+            if ($this->embeddingService->isAvailable()) {
+                \App\Jobs\GenerateChunkEmbedding::dispatch($chunk);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'created' => $created,
+                'errors' => $errors,
+            ],
+            'meta' => [
+                'total_received' => count($validated['updates']),
+                'total_created' => count($created),
+                'total_errors' => count($errors),
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ], 201);
+    }
+
+    /**
      * @OA\Delete(
      *     path="/api/projects/{projectId}/context/chunks/{chunkId}",
      *     tags={"Context"},
@@ -640,34 +713,6 @@ class ContextController extends Controller
                 'request_id' => $request->header('X-Request-ID', uniqid()),
             ],
         ]);
-    }
-
-    /**
-     * Helper: Get embedding from Ollama.
-     */
-    private function getEmbedding(string $text): ?array
-    {
-        $ollamaUrl = config('services.ollama.url');
-        $model = config('services.ollama.embedding_model', 'nomic-embed-text');
-
-        if (empty($ollamaUrl)) {
-            return null;
-        }
-
-        try {
-            $response = Http::timeout(30)->post("{$ollamaUrl}/api/embeddings", [
-                'model' => $model,
-                'prompt' => $text,
-            ]);
-
-            if ($response->successful()) {
-                return $response->json('embedding');
-            }
-        } catch (\Exception $e) {
-            report($e);
-        }
-
-        return null;
     }
 
     /**

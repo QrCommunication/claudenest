@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class SharedTask extends Model
@@ -140,8 +141,8 @@ class SharedTask extends Model
         return $query->where('status', 'pending')
                      ->whereNull('assigned_to')
                      ->where(function ($q) {
-                         $q->whereRaw('ARRAY_LENGTH(dependencies, 1) IS NULL')
-                           ->orWhereRaw('ARRAY_LENGTH(dependencies, 1) = 0');
+                         $q->whereNull('dependencies')
+                           ->orWhereJsonLength('dependencies', 0);
                      });
     }
 
@@ -186,23 +187,32 @@ class SharedTask extends Model
 
     public function claim(string $instanceId): bool
     {
-        if ($this->is_claimed) {
-            return false;
-        }
+        return DB::transaction(function () use ($instanceId) {
+            $task = static::where('id', $this->id)
+                ->whereNull('assigned_to')
+                ->where('status', 'pending')
+                ->lockForUpdate()
+                ->first();
 
-        $this->update([
-            'assigned_to' => $instanceId,
-            'status' => 'in_progress',
-            'claimed_at' => now(),
-        ]);
+            if (!$task) {
+                return false;
+            }
 
-        // Log activity
-        $this->project->logActivity('task_claimed', $instanceId, [
-            'task_id' => $this->id,
-            'task_title' => $this->title,
-        ]);
+            $task->update([
+                'assigned_to' => $instanceId,
+                'status' => 'in_progress',
+                'claimed_at' => now(),
+            ]);
 
-        return true;
+            $this->refresh();
+
+            $this->project->logActivity('task_claimed', $instanceId, [
+                'task_id' => $this->id,
+                'task_title' => $this->title,
+            ]);
+
+            return true;
+        });
     }
 
     public function release(?string $reason = null): void
@@ -300,5 +310,42 @@ class SharedTask extends Model
             ")
             ->orderBy('created_at', 'asc')
             ->first();
+    }
+
+    public static function claimNextAvailable(string $projectId, string $instanceId): ?self
+    {
+        return DB::transaction(function () use ($projectId, $instanceId) {
+            $task = static::forProject($projectId)
+                ->readyToStart()
+                ->orderByRaw("
+                    CASE priority
+                        WHEN 'critical' THEN 4
+                        WHEN 'high' THEN 3
+                        WHEN 'medium' THEN 2
+                        WHEN 'low' THEN 1
+                        ELSE 0
+                    END DESC
+                ")
+                ->orderBy('created_at', 'asc')
+                ->lockForUpdate()
+                ->first();
+
+            if (!$task) {
+                return null;
+            }
+
+            $task->update([
+                'assigned_to' => $instanceId,
+                'status' => 'in_progress',
+                'claimed_at' => now(),
+            ]);
+
+            $task->project->logActivity('task_claimed', $instanceId, [
+                'task_id' => $task->id,
+                'task_title' => $task->title,
+            ]);
+
+            return $task;
+        });
     }
 }

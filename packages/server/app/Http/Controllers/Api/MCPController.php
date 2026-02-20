@@ -1211,6 +1211,66 @@ class MCPController extends Controller
         ]);
     }
 
+    /**
+     * Bulk upsert MCP servers from agent sync.
+     */
+    public function sync(Request $request, string $machine): JsonResponse
+    {
+        $machineModel = $this->getMachine($request, $machine);
+
+        if (!$machineModel) {
+            return $this->errorResponse('MCP_001', 'Machine not found', 404);
+        }
+
+        $validated = $request->validate([
+            'servers' => 'required|array',
+            'servers.*.name' => 'required|string|max:255',
+            'servers.*.description' => 'nullable|string',
+            'servers.*.command' => 'nullable|string',
+            'servers.*.args' => 'nullable|array',
+            'servers.*.env' => 'nullable|array',
+            'servers.*.enabled' => 'nullable|boolean',
+            'servers.*.auto_start' => 'nullable|boolean',
+            'servers.*.status' => 'nullable|string|in:' . implode(',', MCPServer::STATUSES),
+            'servers.*.tools' => 'nullable|array',
+            'servers.*.tools.*.name' => 'required|string',
+            'servers.*.tools.*.description' => 'nullable|string',
+            'servers.*.tools.*.parameters' => 'nullable|array',
+        ]);
+
+        $synced = 0;
+        foreach ($validated['servers'] as $serverData) {
+            MCPServer::updateOrCreate(
+                [
+                    'machine_id' => $machineModel->id,
+                    'name' => $serverData['name'],
+                ],
+                [
+                    'description' => $serverData['description'] ?? null,
+                    'transport' => 'stdio',
+                    'command' => $serverData['command'] ?? null,
+                    'env_vars' => $serverData['env'] ?? [],
+                    'config' => [
+                        'args' => $serverData['args'] ?? [],
+                        'auto_start' => $serverData['auto_start'] ?? false,
+                    ],
+                    'status' => $serverData['status'] ?? 'stopped',
+                    'tools' => $serverData['tools'] ?? [],
+                ]
+            );
+            $synced++;
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => ['synced' => $synced],
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
+    }
+
     // ==================== PRIVATE HELPERS ====================
 
     /**

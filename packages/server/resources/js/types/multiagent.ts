@@ -260,6 +260,34 @@ export const KANBAN_COLUMNS: KanbanColumn[] = [
   { id: 'done', title: 'Done', color: 'bg-green-500' },
 ];
 
+// ==================== ORCHESTRATION TYPES ====================
+
+export type OrchestratorStatus = 'idle' | 'running' | 'stopping' | 'stopped';
+
+export interface OrchestrationStats {
+  instances: {
+    total: number;
+    idle: number;
+    busy: number;
+    active: number;
+  };
+  tasks: {
+    pending: number;
+    in_progress: number;
+    completed: number;
+    blocked: number;
+  };
+  total_tasks_completed: number;
+}
+
+export interface DispatchResult {
+  dispatched: Array<{
+    task_id: string;
+    instance_id: string;
+  }>;
+  count: number;
+}
+
 // ==================== API RESPONSE TYPES ====================
 
 export interface ApiResponse<T> {

@@ -107,18 +107,6 @@ const routes: RouteRecordRaw[] = [
                 },
             },
             {
-                path: 'sessions/:id',
-                name: 'session.terminal',
-                component: () => import('@/pages/sessions/Terminal.vue'),
-                meta: {
-                    requiresAuth: true,
-                    breadcrumb: [
-                        { label: 'Sessions', to: '/sessions' },
-                        { label: 'Terminal' },
-                    ],
-                },
-            },
-            {
                 path: 'sessions/new',
                 name: 'sessions.new',
                 component: () => import('@/pages/sessions/New.vue'),
@@ -127,6 +115,18 @@ const routes: RouteRecordRaw[] = [
                     breadcrumb: [
                         { label: 'Sessions', to: '/sessions' },
                         { label: 'New Session' },
+                    ],
+                },
+            },
+            {
+                path: 'sessions/:id',
+                name: 'session.terminal',
+                component: () => import('@/pages/sessions/Terminal.vue'),
+                meta: {
+                    requiresAuth: true,
+                    breadcrumb: [
+                        { label: 'Sessions', to: '/sessions' },
+                        { label: 'Terminal' },
                     ],
                 },
             },

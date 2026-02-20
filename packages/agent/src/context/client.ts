@@ -402,28 +402,71 @@ export class ContextClient extends EventEmitter {
   }
 
   /**
-   * Force full sync - pull all data from server
+   * Force full sync - pull all data from server for all known projects
    */
   async fullSync(): Promise<void> {
     this.logger.info({}, 'Performing full sync');
 
     try {
-      // Sync pending updates first
+      // Flush pending updates first
       await this.sync();
-      
-      // Clear cache
-      this.cache.projects.clear();
+
+      // Clear stale cache
       this.cache.chunks.clear();
       this.cache.tasks.clear();
       this.cache.locks.clear();
-      
-      // TODO: Implement full sync endpoint
-      this.cache.lastSync = Date.now();
 
+      // Re-fetch data for each cached project
+      const projectIds = Array.from(this.cache.projects.keys());
+
+      for (const projectId of projectIds) {
+        await this.syncProject(projectId);
+      }
+
+      this.cache.lastSync = Date.now();
       this.emit('fullSync');
+
+      this.logger.info({ projects: projectIds.length }, 'Full sync completed');
     } catch (error) {
       this.logger.error({ err: error }, 'Full sync failed');
       throw error;
+    }
+  }
+
+  /**
+   * Sync a single project's data (context, tasks, locks)
+   */
+  private async syncProject(projectId: string): Promise<void> {
+    const results = await Promise.allSettled([
+      this.getProjectContext(projectId),
+      this.getTasks(projectId),
+      this.getFileLocks(projectId),
+      this.fetchRecentChunks(projectId),
+    ]);
+
+    for (const result of results) {
+      if (result.status === 'rejected') {
+        this.logger.warn({ err: result.reason, projectId }, 'Partial sync failure for project');
+      }
+    }
+  }
+
+  /**
+   * Fetch recent context chunks for a project
+   */
+  private async fetchRecentChunks(projectId: string): Promise<ContextChunk[]> {
+    try {
+      const response = await this.fetchApi(`/projects/${projectId}/context/chunks?limit=50`);
+      const chunks = response.data as ContextChunk[];
+
+      for (const chunk of chunks) {
+        this.cache.chunks.set(chunk.id, chunk);
+      }
+
+      return chunks;
+    } catch (error) {
+      this.logger.error({ err: error, projectId }, 'Failed to fetch recent chunks');
+      return [];
     }
   }
 

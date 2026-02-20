@@ -63,6 +63,9 @@ return [
         'max_context_tokens' => 8000,
         'summarize_threshold' => 0.8,
         'context_retention_days' => 30,
+        'embedding_model' => env('OLLAMA_EMBEDDING_MODEL', 'bge-small-en-v1.5'),
+        'summarization_model' => env('OLLAMA_SUMMARIZATION_MODEL', 'mistral:7b'),
+        'ollama_host' => env('OLLAMA_HOST', 'http://localhost:11434'),
     ],
 
     /*

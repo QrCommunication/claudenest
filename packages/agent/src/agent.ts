@@ -8,12 +8,16 @@ import { SessionManager } from './sessions/manager.js';
 import { SkillsDiscovery } from './discovery/skills.js';
 import { MCPManager } from './discovery/mcp.js';
 import { ContextClient } from './context/client.js';
+import { RestApiClient } from './api/client.js';
+import { SyncService } from './sync/service.js';
+import { Orchestrator } from './orchestrator/orchestrator.js';
 import { createLogger } from './utils/logger.js';
 import {
   createSessionHandlers,
   createConfigHandlers,
   createContextHandlers,
   createFileHandlers,
+  createOrchestratorHandlers,
 } from './handlers/index.js';
 import type {
   AgentConfig,
@@ -45,6 +49,9 @@ export class ClaudeNestAgent extends EventEmitter {
   private skillsDiscovery!: SkillsDiscovery;
   private mcpManager!: MCPManager;
   private contextClient!: ContextClient;
+  private apiClient!: RestApiClient;
+  private syncService!: SyncService;
+  private orchestrator!: Orchestrator;
   
   private isRunning = false;
   private handlers = new Map<string, (payload: unknown) => Promise<void> | void>();
@@ -91,6 +98,23 @@ export class ClaudeNestAgent extends EventEmitter {
       logger: this.logger,
     });
 
+    // Initialize REST API client
+    this.apiClient = new RestApiClient({
+      baseUrl: this.config.serverUrl,
+      machineToken: this.config.machineToken,
+      machineId: this.machineId,
+      logger: this.logger,
+    });
+
+    // Initialize sync service
+    this.syncService = new SyncService({
+      apiClient: this.apiClient,
+      machineId: this.machineId,
+      skillsDiscovery: this.skillsDiscovery,
+      mcpManager: this.mcpManager,
+      logger: this.logger,
+    });
+
     // Initialize context client
     const cachePath = this.config.cachePath || path.join(getCacheDir(), 'context-cache.json');
     await ensureDir(path.dirname(cachePath));
@@ -100,6 +124,14 @@ export class ClaudeNestAgent extends EventEmitter {
       token: this.config.machineToken,
       machineId: this.machineId,
       cachePath,
+      logger: this.logger,
+    });
+
+    // Initialize orchestrator
+    this.orchestrator = new Orchestrator({
+      sessionManager: this.sessionManager,
+      contextClient: this.contextClient,
+      wsClient: this.wsClient,
       logger: this.logger,
     });
 
@@ -138,6 +170,10 @@ export class ClaudeNestAgent extends EventEmitter {
       // Send initial machine info
       await this.sendMachineInfo();
 
+      // Sync skills/MCP to server (bulk upsert)
+      await this.syncService.fullSync();
+      this.syncService.startPeriodicSync();
+
       this.isRunning = true;
       this.emit('started');
 
@@ -159,8 +195,16 @@ export class ClaudeNestAgent extends EventEmitter {
     this.logger.info('Stopping agent...');
 
     try {
-      // Terminate all sessions
+      // Stop orchestrator first (terminates worker sessions)
+      if (this.orchestrator.isRunning()) {
+        await this.orchestrator.stop();
+      }
+
+      // Terminate remaining sessions
       await this.sessionManager.terminateAll();
+
+      // Stop sync service
+      await this.syncService.stop();
 
       // Stop MCP servers
       await this.mcpManager.stopAll();
@@ -337,6 +381,13 @@ export class ClaudeNestAgent extends EventEmitter {
       logger: this.logger,
     });
 
+    // Orchestrator handlers
+    const orchestratorHandlers = createOrchestratorHandlers({
+      orchestrator: this.orchestrator,
+      wsClient: this.wsClient,
+      logger: this.logger,
+    });
+
     // Register all handlers
     for (const [type, handler] of Object.entries(sessionHandlers)) {
       this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
@@ -348,6 +399,9 @@ export class ClaudeNestAgent extends EventEmitter {
       this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
     }
     for (const [type, handler] of Object.entries(fileHandlers)) {
+      this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
+    }
+    for (const [type, handler] of Object.entries(orchestratorHandlers)) {
       this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
     }
 
@@ -445,6 +499,13 @@ export class ClaudeNestAgent extends EventEmitter {
    */
   getWebSocketClient(): WebSocketClient {
     return this.wsClient;
+  }
+
+  /**
+   * Get orchestrator
+   */
+  getOrchestrator(): Orchestrator {
+    return this.orchestrator;
   }
 }
 

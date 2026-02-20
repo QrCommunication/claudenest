@@ -104,10 +104,14 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::post('projects/{project}/context/chunks', [Api\ContextController::class, 'storeChunk']);
     Route::delete('projects/{project}/context/chunks/{chunkId}', [Api\ContextController::class, 'destroyChunk']);
 
+    // Context Batch (agent sync queue — cross-project)
+    Route::post('context/batch', [Api\ContextController::class, 'batch']);
+
     // ==================== TASKS ====================
     Route::get('projects/{project}/tasks', [Api\TaskController::class, 'index']);
     Route::post('projects/{project}/tasks', [Api\TaskController::class, 'store']);
     Route::get('projects/{project}/tasks/next-available', [Api\TaskController::class, 'nextAvailable']);
+    Route::post('projects/{project}/tasks/claim-next', [Api\TaskController::class, 'claimNext']);
     Route::get('tasks/{task}', [Api\TaskController::class, 'show']);
     Route::patch('tasks/{task}', [Api\TaskController::class, 'update']);
     Route::delete('tasks/{task}', [Api\TaskController::class, 'destroy']);
@@ -130,6 +134,14 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::get('projects/{project}/activity', [Api\ProjectController::class, 'activity']);
     Route::post('projects/{project}/broadcast', [Api\ProjectController::class, 'broadcast']);
 
+    // ==================== ORCHESTRATOR ====================
+    Route::post('instances/register', [Api\InstanceController::class, 'register']);
+    Route::post('instances/{instanceId}/heartbeat', [Api\InstanceController::class, 'heartbeat']);
+    Route::post('instances/{instanceId}/disconnect', [Api\InstanceController::class, 'disconnect']);
+    Route::get('instances/{instanceId}', [Api\InstanceController::class, 'show']);
+    Route::post('projects/{project}/dispatch', [Api\InstanceController::class, 'dispatch']);
+    Route::get('projects/{project}/orchestration-stats', [Api\InstanceController::class, 'orchestrationStats']);
+
     // ==================== SKILLS ====================
     Route::get('machines/{machine}/skills', [Api\SkillsController::class, 'index']);
     Route::get('machines/{machine}/skills/{path}', [Api\SkillsController::class, 'show']);
@@ -138,12 +150,14 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::post('machines/{machine}/skills/{path}/toggle', [Api\SkillsController::class, 'toggle']);
     Route::delete('machines/{machine}/skills/{path}', [Api\SkillsController::class, 'destroy']);
     Route::post('machines/{machine}/skills/bulk', [Api\SkillsController::class, 'bulkUpdate']);
+    Route::post('machines/{machine}/skills/sync', [Api\SkillsController::class, 'sync']);
 
     // ==================== MCP SERVERS ====================
     Route::get('machines/{machine}/mcp', [Api\MCPController::class, 'index']);
     Route::get('machines/{machine}/mcp/all-tools', [Api\MCPController::class, 'allTools']);
     Route::get('machines/{machine}/mcp/{name}', [Api\MCPController::class, 'show']);
     Route::post('machines/{machine}/mcp', [Api\MCPController::class, 'store']);
+    Route::post('machines/{machine}/mcp/sync', [Api\MCPController::class, 'sync']);
     Route::patch('machines/{machine}/mcp/{name}', [Api\MCPController::class, 'update']);
     Route::post('machines/{machine}/mcp/{name}/start', [Api\MCPController::class, 'start']);
     Route::post('machines/{machine}/mcp/{name}/stop', [Api\MCPController::class, 'stop']);

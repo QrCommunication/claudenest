@@ -352,7 +352,7 @@ class SkillsController extends Controller
             'display_name' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'category' => 'required|string|in:' . implode(',', Skill::CATEGORIES),
-            'path' => 'required|string|unique:skills,path',
+            'path' => ['required', 'string', \Illuminate\Validation\Rule::unique('skills', 'path')->where('machine_id', $machineModel->id)],
             'version' => 'nullable|string|max:50',
             'enabled' => 'boolean',
             'config' => 'nullable|array',
@@ -383,6 +383,58 @@ class SkillsController extends Controller
                 'request_id' => $request->header('X-Request-ID', uniqid()),
             ],
         ], 201);
+    }
+
+    /**
+     * Bulk upsert skills from agent sync.
+     */
+    public function sync(Request $request, string $machine): JsonResponse
+    {
+        $machineModel = $this->getMachine($request, $machine);
+
+        if (!$machineModel) {
+            return $this->errorResponse('SKL_001', 'Machine not found', 404);
+        }
+
+        $validated = $request->validate([
+            'skills' => 'required|array',
+            'skills.*.name' => 'required|string|max:255',
+            'skills.*.path' => 'required|string',
+            'skills.*.description' => 'nullable|string',
+            'skills.*.category' => 'required|string',
+            'skills.*.version' => 'nullable|string|max:50',
+            'skills.*.config' => 'nullable|array',
+            'skills.*.tags' => 'nullable|array',
+        ]);
+
+        $synced = 0;
+        foreach ($validated['skills'] as $skillData) {
+            Skill::updateOrCreate(
+                [
+                    'machine_id' => $machineModel->id,
+                    'path' => $skillData['path'],
+                ],
+                [
+                    'name' => $skillData['name'],
+                    'description' => $skillData['description'] ?? null,
+                    'category' => $skillData['category'],
+                    'version' => $skillData['version'] ?? '1.0.0',
+                    'config' => $skillData['config'] ?? [],
+                    'tags' => $skillData['tags'] ?? [],
+                    'discovered_at' => now(),
+                ]
+            );
+            $synced++;
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => ['synced' => $synced],
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
     }
 
     /**

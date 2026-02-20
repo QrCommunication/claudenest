@@ -166,6 +166,7 @@ export type IncomingMessageType =
   | 'file:lock'
   | 'file:unlock'
   | 'file:browse'
+  | OrchestratorIncomingMessage
   | 'ping';
 
 // Messages sortants (agent → serveur)
@@ -181,6 +182,7 @@ export type OutgoingMessageType =
   | 'task:update'
   | 'file:lock_update'
   | 'file:browse_result'
+  | OrchestratorOutgoingMessage
   | 'pong'
   | 'error';
 
@@ -389,6 +391,86 @@ export interface AgentEvents {
   fileUnlocked: (data: { projectId: string; path: string }) => void;
   fullSync: () => void;
 }
+
+// ============================================
+// Orchestrator
+// ============================================
+
+export interface OrchestratorConfig {
+  /** Project ID to orchestrate */
+  projectId: string;
+  /** Project path on disk */
+  projectPath: string;
+  /** Min workers (always running) */
+  minWorkers: number;
+  /** Max workers (hard cap) */
+  maxWorkers: number;
+  /** Polling interval for new tasks (ms) */
+  pollIntervalMs: number;
+  /** Worker idle timeout before termination (ms) */
+  workerIdleTimeoutMs: number;
+  /** Whether to auto-scale based on pending tasks */
+  autoScale: boolean;
+}
+
+export type OrchestratorStatus = 'idle' | 'running' | 'stopping' | 'stopped';
+
+export interface OrchestratorState {
+  status: OrchestratorStatus;
+  projectId: string;
+  workers: WorkerInfo[];
+  pendingTasks: number;
+  completedTasks: number;
+  startedAt?: Date;
+}
+
+export interface WorkerInfo {
+  id: string;
+  sessionId: string;
+  status: WorkerStatus;
+  currentTaskId?: string;
+  currentTaskTitle?: string;
+  tasksCompleted: number;
+  startedAt: Date;
+  lastActivityAt: Date;
+}
+
+export type WorkerStatus =
+  | 'starting'
+  | 'idle'
+  | 'claiming'
+  | 'executing'
+  | 'completing'
+  | 'stopping'
+  | 'exited';
+
+export interface WorkerResult {
+  workerId: string;
+  taskId: string;
+  success: boolean;
+  summary?: string;
+  filesModified?: string[];
+  exitCode?: number;
+  error?: string;
+}
+
+// Orchestrator WS message types (server → agent)
+export type OrchestratorIncomingMessage =
+  | 'orchestrator:start'
+  | 'orchestrator:stop'
+  | 'orchestrator:status'
+  | 'orchestrator:scale';
+
+// Orchestrator WS message types (agent → server)
+export type OrchestratorOutgoingMessage =
+  | 'orchestrator:started'
+  | 'orchestrator:stopped'
+  | 'orchestrator:state'
+  | 'orchestrator:worker_spawned'
+  | 'orchestrator:worker_exited'
+  | 'orchestrator:task_claimed'
+  | 'orchestrator:task_completed'
+  | 'orchestrator:error';
 
 // ============================================
 // Utility Types
