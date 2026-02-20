@@ -217,7 +217,7 @@ const expiresText = computed(() => {
   const diffDays = Math.floor(diffMs / 86400000);
 
   if (diffMins < 60) return `${diffMins}m remaining`;
-  if (diffHours < 24) return `${diffHours}h remaining`;
+  if (diffHours < 48) return `${diffHours}h remaining`;
   return `${diffDays}d remaining`;
 });
 

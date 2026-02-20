@@ -73,8 +73,13 @@ class CredentialService
         ]);
 
         if (!$response->successful()) {
+            \Log::warning('OAuth refresh failed', [
+                'credential_id' => $credential->id,
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
             throw new \RuntimeException(
-                "OAuth refresh failed ({$response->status()}): " . $response->body()
+                "OAuth refresh failed (HTTP {$response->status()}). Check server logs for details."
             );
         }
 
@@ -87,15 +92,17 @@ class CredentialService
             throw new \RuntimeException('OAuth refresh response missing access_token');
         }
 
+        $hint = 'oat01-...' . substr($newAccess, -6);
         $credential->update([
             'access_token_enc' => Crypt::encryptString($newAccess),
             'refresh_token_enc' => $newRefresh ? Crypt::encryptString($newRefresh) : $credential->refresh_token_enc,
             'expires_at' => $expiresIn ? now()->addSeconds($expiresIn) : null,
+            'key_hint' => $hint,
         ]);
 
         return [
             'refreshed' => true,
-            'token_preview' => 'oat01-...' . substr($newAccess, -6),
+            'token_preview' => $hint,
             'expires_in_min' => $expiresIn ? intdiv($expiresIn, 60) : null,
         ];
     }
@@ -103,9 +110,10 @@ class CredentialService
     /**
      * Capture OAuth tokens from ~/.claude/.credentials.json
      */
-    public function captureFromCredentialsFile(ClaudeCredential $credential, ?string $path = null): array
+    public function captureFromCredentialsFile(ClaudeCredential $credential): array
     {
-        $credPath = $path ?? (getenv('HOME') ?: '/root') . '/.claude/.credentials.json';
+        $home = getenv('HOME') ?: posix_getpwuid(posix_getuid())['dir'] ?? '/root';
+        $credPath = $home . '/.claude/.credentials.json';
 
         if (!file_exists($credPath)) {
             throw new \RuntimeException(
@@ -124,10 +132,12 @@ class CredentialService
             throw new \RuntimeException('No accessToken found in credentials file.');
         }
 
+        $hint = 'oat01-...' . substr($accessToken, -6);
         $credential->update([
             'access_token_enc' => Crypt::encryptString($accessToken),
             'refresh_token_enc' => $refreshToken ? Crypt::encryptString($refreshToken) : null,
             'expires_at' => $expiresAt > 0 ? \Carbon\Carbon::createFromTimestampMs($expiresAt) : null,
+            'key_hint' => $hint,
         ]);
 
         $remainingMin = null;
@@ -137,7 +147,7 @@ class CredentialService
 
         return [
             'captured' => true,
-            'token_preview' => 'oat01-...' . substr($accessToken, -6),
+            'token_preview' => $hint,
             'has_refresh' => (bool) $refreshToken,
             'expires_in_min' => $remainingMin,
         ];

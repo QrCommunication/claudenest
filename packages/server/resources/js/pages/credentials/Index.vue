@@ -64,6 +64,7 @@
 import { ref, onMounted } from 'vue';
 import { useCredentialsStore } from '@/stores/credentials';
 import { useToast } from '@/composables/useToast';
+import { getErrorMessage } from '@/utils/api';
 import { storeToRefs } from 'pinia';
 import CredentialCard from './CredentialCard.vue';
 import AddCredentialModal from './AddCredentialModal.vue';
@@ -83,8 +84,8 @@ onMounted(() => {
 async function loadCredentials(): Promise<void> {
   try {
     await store.fetchCredentials();
-  } catch {
-    toast.error('Failed to load credentials');
+  } catch (error) {
+    toast.error('Failed to load credentials', getErrorMessage(error));
   }
 }
 
@@ -101,8 +102,8 @@ async function handleTest(id: string): Promise<void> {
     } else {
       toast.error('Credential is invalid', String(result.reason || result.token_status || ''));
     }
-  } catch {
-    toast.error('Test failed');
+  } catch (error) {
+    toast.error('Test failed', getErrorMessage(error));
   }
 }
 
@@ -110,8 +111,8 @@ async function handleRefresh(id: string): Promise<void> {
   try {
     await store.refreshCredential(id);
     toast.success('Token refreshed');
-  } catch {
-    toast.error('Refresh failed');
+  } catch (error) {
+    toast.error('Refresh failed', getErrorMessage(error));
   }
 }
 
@@ -119,8 +120,8 @@ async function handleCapture(id: string): Promise<void> {
   try {
     await store.captureOAuth(id);
     toast.success('OAuth tokens captured');
-  } catch {
-    toast.error('Capture failed');
+  } catch (error) {
+    toast.error('Capture failed', getErrorMessage(error));
   }
 }
 
@@ -128,8 +129,8 @@ async function handleSetDefault(id: string): Promise<void> {
   try {
     await store.setDefault(id);
     toast.success('Default credential updated');
-  } catch {
-    toast.error('Failed to set default');
+  } catch (error) {
+    toast.error('Failed to set default', getErrorMessage(error));
   }
 }
 
@@ -147,8 +148,8 @@ async function handleDelete(id: string): Promise<void> {
   try {
     await store.deleteCredential(id);
     toast.success('Credential deleted');
-  } catch {
-    toast.error('Failed to delete');
+  } catch (error) {
+    toast.error('Failed to delete', getErrorMessage(error));
   }
 }
 </script>

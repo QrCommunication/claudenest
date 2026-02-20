@@ -51,8 +51,10 @@ export const useCredentialsStore = defineStore('credentials', () => {
 
   async function updateCredential(id: string, form: UpdateCredentialForm): Promise<void> {
     const response = await api.patch<ApiResponse<Credential>>(`/credentials/${id}`, form);
+    const updated = response.data.data;
     const idx = credentials.value.findIndex(c => c.id === id);
-    if (idx >= 0) credentials.value[idx] = response.data.data;
+    if (idx >= 0) credentials.value[idx] = updated;
+    if (selectedCredential.value?.id === id) selectedCredential.value = updated;
   }
 
   async function deleteCredential(id: string): Promise<void> {

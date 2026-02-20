@@ -75,47 +75,43 @@
             <p class="form-hint">Your Claude API key from Anthropic Console</p>
           </div>
 
-          <!-- OAuth Instructions -->
+          <!-- OAuth Token Inputs -->
           <div v-if="form.auth_type === 'oauth'" class="oauth-section">
             <div class="info-box">
               <svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-brand-cyan">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
               </svg>
               <div>
-                <h4 class="info-title">OAuth Token Capture</h4>
+                <h4 class="info-title">OAuth Tokens</h4>
                 <p class="info-text">
-                  ClaudeNest will automatically capture OAuth tokens from your browser session.
-                  After creating this credential, use the "Capture" button to extract tokens.
+                  Paste your OAuth tokens from <code>~/.claude/.credentials.json</code> on your machine.
+                  You can also use the "Capture" button after creating this credential (requires agent running locally).
                 </p>
               </div>
             </div>
 
-            <!-- Optional Manual Token Input -->
-            <details class="manual-tokens">
-              <summary class="manual-tokens-toggle">Or enter tokens manually (advanced)</summary>
-              <div class="manual-tokens-content">
-                <div class="form-group">
-                  <label for="access_token" class="form-label">Access Token</label>
-                  <input
-                    id="access_token"
-                    v-model="form.access_token"
-                    type="password"
-                    class="form-input font-mono text-sm"
-                    placeholder="Optional"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="refresh_token" class="form-label">Refresh Token</label>
-                  <input
-                    id="refresh_token"
-                    v-model="form.refresh_token"
-                    type="password"
-                    class="form-input font-mono text-sm"
-                    placeholder="Optional"
-                  />
-                </div>
-              </div>
-            </details>
+            <div class="form-group">
+              <label for="access_token" class="form-label">Access Token</label>
+              <input
+                id="access_token"
+                v-model="form.access_token"
+                type="password"
+                class="form-input font-mono text-sm"
+                placeholder="oat01-..."
+              />
+              <p class="form-hint">From claudeAiOauth.accessToken in credentials file</p>
+            </div>
+            <div class="form-group">
+              <label for="refresh_token" class="form-label">Refresh Token</label>
+              <input
+                id="refresh_token"
+                v-model="form.refresh_token"
+                type="password"
+                class="form-input font-mono text-sm"
+                placeholder="ort01-..."
+              />
+              <p class="form-hint">From claudeAiOauth.refreshToken in credentials file</p>
+            </div>
           </div>
 
           <!-- Claude Dir Mode -->
@@ -182,17 +178,17 @@
 import { ref, reactive } from 'vue';
 import { useCredentialsStore } from '@/stores/credentials';
 import { useToast } from '@/composables/useToast';
+import { getErrorMessage } from '@/utils/api';
 import type { CreateCredentialForm } from '@/types';
 
 interface CredentialForm {
   name: string;
   auth_type: 'api_key' | 'oauth';
-  api_key: string | null;
-  access_token: string | null;
-  refresh_token: string | null;
+  api_key: string;
+  access_token: string;
+  refresh_token: string;
   claude_dir_mode: 'shared' | 'isolated';
 }
-
 
 const store = useCredentialsStore();
 const toast = useToast();
@@ -201,9 +197,9 @@ const isSubmitting = ref(false);
 const form = reactive<CredentialForm>({
   name: '',
   auth_type: 'api_key',
-  api_key: null,
-  access_token: null,
-  refresh_token: null,
+  api_key: '',
+  access_token: '',
+  refresh_token: '',
   claude_dir_mode: 'shared',
 });
 
@@ -218,13 +214,13 @@ async function handleSubmit(): Promise<void> {
     }
 
     // Validate API key for api_key type
-    if (form.auth_type === 'api_key' && !form.api_key?.trim()) {
+    if (form.auth_type === 'api_key' && !form.api_key.trim()) {
       toast.error('API key is required');
       return;
     }
 
     // Prepare payload
-    const payload: Record<string, unknown> = {
+    const payload: CreateCredentialForm = {
       name: form.name,
       auth_type: form.auth_type,
       claude_dir_mode: form.claude_dir_mode,
@@ -233,24 +229,19 @@ async function handleSubmit(): Promise<void> {
     if (form.auth_type === 'api_key') {
       payload.api_key = form.api_key;
     } else {
-      // Only include tokens if provided
-      if (form.access_token?.trim()) {
+      if (form.access_token.trim()) {
         payload.access_token = form.access_token;
       }
-      if (form.refresh_token?.trim()) {
+      if (form.refresh_token.trim()) {
         payload.refresh_token = form.refresh_token;
       }
     }
 
-    await store.createCredential(payload as unknown as CreateCredentialForm);
+    await store.createCredential(payload);
 
     emit('created');
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      toast.error('Failed to create credential', error.message);
-    } else {
-      toast.error('Failed to create credential');
-    }
+    toast.error('Failed to create credential', getErrorMessage(error));
   } finally {
     isSubmitting.value = false;
   }
@@ -358,25 +349,6 @@ const emit = defineEmits<{
 .info-text {
   @apply text-xs leading-relaxed;
   color: var(--text-muted, #6b7280);
-}
-
-.manual-tokens {
-  @apply rounded-lg;
-  background: var(--bg-secondary, rgba(0, 0, 0, 0.1));
-  border: 1px solid var(--border-primary, #2d3154);
-}
-
-.manual-tokens-toggle {
-  @apply px-4 py-3 text-sm cursor-pointer transition-colors;
-  color: var(--text-muted, #6b7280);
-}
-
-.manual-tokens-toggle:hover {
-  color: var(--text-secondary, #9ca3af);
-}
-
-.manual-tokens-content {
-  @apply px-4 pb-4 space-y-4;
 }
 
 .toggle-group {

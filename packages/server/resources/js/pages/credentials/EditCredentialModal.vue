@@ -125,6 +125,7 @@
 import { ref, reactive, computed } from 'vue';
 import { useCredentialsStore } from '@/stores/credentials';
 import { useToast } from '@/composables/useToast';
+import { getErrorMessage } from '@/utils/api';
 import type { Credential, UpdateCredentialForm } from '@/types';
 
 interface Props {
@@ -196,11 +197,7 @@ async function handleSubmit(): Promise<void> {
     await store.updateCredential(props.credential.id, payload);
     emit('updated');
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      toast.error('Failed to update credential', error.message);
-    } else {
-      toast.error('Failed to update credential');
-    }
+    toast.error('Failed to update credential', getErrorMessage(error));
   } finally {
     isSubmitting.value = false;
   }

@@ -11,7 +11,7 @@ use App\Services\CredentialService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class CredentialController extends Controller
 {
@@ -95,36 +95,49 @@ class CredentialController extends Controller
         $data = $request->validated();
         $user = $request->user();
 
-        if ($user->credentials()->where('name', $data['name'])->exists()) {
-            return $this->errorResponse('DUPLICATE_NAME', "Credential '{$data['name']}' already exists", 409);
-        }
+        try {
+            $credential = DB::transaction(function () use ($data, $user) {
+                if ($user->credentials()->where('name', $data['name'])->lockForUpdate()->exists()) {
+                    throw new \RuntimeException('DUPLICATE_NAME');
+                }
 
-        $credential = new ClaudeCredential([
-            'id' => (string) Str::orderedUuid(),
-            'user_id' => $user->id,
-            'name' => $data['name'],
-            'auth_type' => $data['auth_type'],
-            'claude_dir_mode' => $data['claude_dir_mode'] ?? 'shared',
-        ]);
+                $credential = new ClaudeCredential([
+                    'user_id' => $user->id,
+                    'name' => $data['name'],
+                    'auth_type' => $data['auth_type'],
+                    'claude_dir_mode' => $data['claude_dir_mode'] ?? 'shared',
+                ]);
 
-        if (!empty($data['api_key'])) {
-            $credential->api_key_enc = Crypt::encryptString($data['api_key']);
-        }
-        if (!empty($data['access_token'])) {
-            $credential->access_token_enc = Crypt::encryptString($data['access_token']);
-        }
-        if (!empty($data['refresh_token'])) {
-            $credential->refresh_token_enc = Crypt::encryptString($data['refresh_token']);
-        }
-        if (!empty($data['expires_at'])) {
-            $credential->expires_at = \Carbon\Carbon::createFromTimestampMs($data['expires_at']);
-        }
+                if (!empty($data['api_key'])) {
+                    $credential->api_key_enc = Crypt::encryptString($data['api_key']);
+                    $credential->key_hint = 'sk-ant-...' . substr($data['api_key'], -6);
+                }
+                if (!empty($data['access_token'])) {
+                    $credential->access_token_enc = Crypt::encryptString($data['access_token']);
+                    if ($credential->auth_type === 'oauth') {
+                        $credential->key_hint = 'oat01-...' . substr($data['access_token'], -6);
+                    }
+                }
+                if (!empty($data['refresh_token'])) {
+                    $credential->refresh_token_enc = Crypt::encryptString($data['refresh_token']);
+                }
+                if (!empty($data['expires_at'])) {
+                    $credential->expires_at = \Carbon\Carbon::createFromTimestampMs($data['expires_at']);
+                }
 
-        if ($user->credentials()->count() === 0) {
-            $credential->is_default = true;
-        }
+                if ($user->credentials()->count() === 0) {
+                    $credential->is_default = true;
+                }
 
-        $credential->save();
+                $credential->save();
+                return $credential;
+            });
+        } catch (\RuntimeException $e) {
+            if ($e->getMessage() === 'DUPLICATE_NAME') {
+                return $this->errorResponse('DUPLICATE_NAME', "Credential '{$data['name']}' already exists", 409);
+            }
+            throw $e;
+        }
 
         return response()->json([
             'success' => true,
@@ -213,9 +226,13 @@ class CredentialController extends Controller
 
         if (!empty($data['api_key'])) {
             $credential->api_key_enc = Crypt::encryptString($data['api_key']);
+            $credential->key_hint = 'sk-ant-...' . substr($data['api_key'], -6);
         }
         if (!empty($data['access_token'])) {
             $credential->access_token_enc = Crypt::encryptString($data['access_token']);
+            if ($credential->auth_type === 'oauth') {
+                $credential->key_hint = 'oat01-...' . substr($data['access_token'], -6);
+            }
         }
         if (!empty($data['refresh_token'])) {
             $credential->refresh_token_enc = Crypt::encryptString($data['refresh_token']);
@@ -269,7 +286,15 @@ class CredentialController extends Controller
     public function destroy(Request $request, string $id): JsonResponse
     {
         $credential = $request->user()->credentials()->findOrFail($id);
+        $wasDefault = $credential->is_default;
+        $userId = $credential->user_id;
+
         $credential->delete();
+
+        if ($wasDefault) {
+            $next = ClaudeCredential::where('user_id', $userId)->orderBy('created_at')->first();
+            $next?->update(['is_default' => true]);
+        }
 
         return response()->json([
             'success' => true,
@@ -444,14 +469,8 @@ class CredentialController extends Controller
     {
         $credential = $request->user()->credentials()->findOrFail($id);
 
-        $validated = $request->validate([
-            'credentials_path' => 'nullable|string|max:1024',
-        ]);
-
-        $path = $validated['credentials_path'] ?? null;
-
         try {
-            $result = $this->credentialService->captureFromCredentialsFile($credential, $path);
+            $result = $this->credentialService->captureFromCredentialsFile($credential);
             return response()->json([
                 'success' => true,
                 'data' => $result,
