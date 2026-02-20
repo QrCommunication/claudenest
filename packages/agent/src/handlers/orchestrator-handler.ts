@@ -17,6 +17,7 @@ export function createOrchestratorHandlers(context: HandlerContext) {
   const { orchestrator, wsClient, logger } = context;
 
   async function handleStart(payload: {
+    requestId?: string;
     projectId: string;
     projectPath: string;
     minWorkers?: number;
@@ -39,32 +40,47 @@ export function createOrchestratorHandlers(context: HandlerContext) {
       };
 
       await orchestrator.start(config);
+
+      const state = orchestrator.getState();
+      wsClient.send('orchestrator:state', {
+        ...state,
+        requestId: payload.requestId,
+      });
     } catch (error) {
       logger.error({ err: error }, 'Failed to start orchestrator');
       wsClient.send('orchestrator:error', {
+        requestId: payload.requestId,
         type: 'start_failed',
-        message: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
 
-  async function handleStop(): Promise<void> {
+  async function handleStop(payload: { requestId?: string; projectId?: string } = {}): Promise<void> {
     logger.info('Handling orchestrator:stop');
 
     try {
       await orchestrator.stop();
+      wsClient.send('orchestrator:state', {
+        status: 'stopped',
+        requestId: payload.requestId,
+      });
     } catch (error) {
       logger.error({ err: error }, 'Failed to stop orchestrator');
       wsClient.send('orchestrator:error', {
+        requestId: payload.requestId,
         type: 'stop_failed',
-        message: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
 
-  function handleStatus(): void {
+  function handleStatus(payload: { requestId?: string; projectId?: string } = {}): void {
     const state = orchestrator.getState();
-    wsClient.send('orchestrator:state', state);
+    wsClient.send('orchestrator:state', {
+      ...state,
+      requestId: payload.requestId,
+    });
   }
 
   async function handleScale(payload: { workerCount: number }): Promise<void> {

@@ -88,10 +88,17 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     // ==================== SHARED PROJECTS (MULTI-AGENT) ====================
     Route::get('machines/{machine}/projects', [Api\ProjectController::class, 'index']);
     Route::post('machines/{machine}/projects', [Api\ProjectController::class, 'store']);
+    Route::post('machines/{machine}/projects/scan', [Api\ProjectScanController::class, 'scan']);
+    Route::post('machines/{machine}/projects/generate-context', [Api\ProjectContextGeneratorController::class, 'generate']);
     Route::get('projects/{project}', [Api\ProjectController::class, 'show']);
     Route::patch('projects/{project}', [Api\ProjectController::class, 'update']);
     Route::delete('projects/{project}', [Api\ProjectController::class, 'destroy']);
     Route::get('projects/{project}/stats', [Api\ProjectController::class, 'stats']);
+
+    // Orchestrator controls
+    Route::post('projects/{project}/orchestrator/start', [Api\ProjectController::class, 'startOrchestrator']);
+    Route::post('projects/{project}/orchestrator/stop', [Api\ProjectController::class, 'stopOrchestrator']);
+    Route::get('projects/{project}/orchestrator/status', [Api\ProjectController::class, 'orchestratorStatus']);
 
     // ==================== CONTEXT (RAG) ====================
     Route::get('projects/{project}/context', [Api\ContextController::class, 'show']);

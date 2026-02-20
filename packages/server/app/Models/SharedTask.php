@@ -141,8 +141,19 @@ class SharedTask extends Model
         return $query->where('status', 'pending')
                      ->whereNull('assigned_to')
                      ->where(function ($q) {
-                         $q->whereNull('dependencies')
-                           ->orWhereJsonLength('dependencies', 0);
+                         // No dependencies at all
+                         $q->where(function ($sub) {
+                             $sub->whereNull('dependencies')
+                                 ->orWhereJsonLength('dependencies', 0);
+                         })
+                         // OR all dependencies are completed
+                         ->orWhereRaw("NOT EXISTS (
+                             SELECT 1 FROM shared_tasks AS dep
+                             WHERE dep.id::text = ANY(
+                                 SELECT jsonb_array_elements_text(shared_tasks.dependencies)
+                             )
+                             AND dep.status != 'done'
+                         )");
                      });
     }
 

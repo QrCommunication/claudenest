@@ -276,6 +276,64 @@
       "force_release": "Force Release",
       "locked_by": "Locked by",
       "expires_at": "Expires at"
+    },
+    "wizard": {
+      "title": "New Project",
+      "subtitle": "Set up a multi-agent project in {steps} steps",
+      "steps": {
+        "machine": "Machine",
+        "path": "Path",
+        "context": "Context",
+        "tasks": "Tasks",
+        "launch": "Launch"
+      },
+      "machine": {
+        "title": "Select a Machine",
+        "description": "Choose the machine where this project is located.",
+        "no_machines": "No machines registered.",
+        "add_machine": "Add a machine first"
+      },
+      "path": {
+        "title": "Project Path",
+        "description": "Enter the project path on the remote machine, then scan to detect the tech stack.",
+        "scan": "Scan",
+        "scanning": "Scanning...",
+        "browse": "Browse Files",
+        "hide_browser": "Hide Browser",
+        "project_name": "Project Name",
+        "detected_stack": "Detected Stack",
+        "structure": "Structure"
+      },
+      "context": {
+        "title": "Project Context",
+        "description": "Generate or edit the project context. This helps agents understand the codebase.",
+        "generate": "Generate with AI",
+        "generating": "Generating with AI...",
+        "summary": "Summary",
+        "architecture": "Architecture",
+        "conventions": "Conventions"
+      },
+      "tasks": {
+        "title": "Tasks",
+        "description": "Define the initial tasks for this project. Agents will pick them up automatically.",
+        "add_task": "Add Task",
+        "no_tasks": "No tasks yet. Click \"Add Task\" or go back to generate them from context."
+      },
+      "orchestrator": {
+        "title": "Launch Configuration",
+        "description": "Configure the orchestrator and review your project before creation.",
+        "auto_start": "Start orchestrator immediately",
+        "auto_start_hint": "The orchestrator will auto-dispatch tasks to available agents.",
+        "min_workers": "Min Workers",
+        "max_workers": "Max Workers",
+        "poll_interval": "Poll Interval (ms)",
+        "manual_start": "Manual start"
+      },
+      "summary": "Project Summary",
+      "previous": "Previous",
+      "next": "Next",
+      "create": "Create Project",
+      "creating": "Creating..."
     }
   },
   "tasks": {

@@ -18,7 +18,29 @@
           Refresh
         </button>
         <button
+          v-if="!isOrchestratorRunning"
           class="btn btn-primary"
+          @click="handleStartOrchestrator"
+          :disabled="isOrchestratorLoading"
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor" class="btn-icon">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+          {{ isOrchestratorLoading ? 'Starting...' : 'Start Orchestrator' }}
+        </button>
+        <button
+          v-else
+          class="btn btn-danger"
+          @click="handleStopOrchestrator"
+          :disabled="isOrchestratorLoading"
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor" class="btn-icon">
+            <path d="M6 6h12v12H6z"/>
+          </svg>
+          {{ isOrchestratorLoading ? 'Stopping...' : 'Stop Orchestrator' }}
+        </button>
+        <button
+          class="btn btn-secondary"
           @click="handleDispatch"
           :disabled="isDispatching || !hasAvailableCapacity"
         >
@@ -169,11 +191,16 @@ const isDispatching = computed(() => orchestratorStore.isDispatching);
 const hasAvailableCapacity = computed(() => orchestratorStore.hasAvailableCapacity);
 const lastDispatchResult = computed(() => orchestratorStore.lastDispatchResult);
 const activityLogs = computed(() => projectsStore.activityLogs);
+const isOrchestratorRunning = computed(() =>
+  orchestratorStore.orchestratorStatus?.status === 'running'
+);
+const isOrchestratorLoading = computed(() => orchestratorStore.isOrchestratorLoading);
 
 async function refreshAll(): Promise<void> {
   await Promise.all([
     orchestratorStore.fetchStats(projectId.value),
     orchestratorStore.fetchInstances(projectId.value),
+    orchestratorStore.fetchOrchestratorStatus(projectId.value),
     projectsStore.fetchActivity(projectId.value),
   ]);
 }
@@ -182,10 +209,19 @@ async function handleDispatch(): Promise<void> {
   await orchestratorStore.dispatch(projectId.value);
 }
 
+async function handleStartOrchestrator(): Promise<void> {
+  await orchestratorStore.startOrchestrator(projectId.value);
+}
+
+async function handleStopOrchestrator(): Promise<void> {
+  await orchestratorStore.stopOrchestrator(projectId.value);
+}
+
 onMounted(async () => {
   if (!project.value || project.value.id !== projectId.value) {
     await projectsStore.fetchProject(projectId.value);
   }
+  orchestratorStore.fetchOrchestratorStatus(projectId.value);
   orchestratorStore.startPolling(projectId.value);
   projectsStore.fetchActivity(projectId.value);
 });
@@ -237,6 +273,14 @@ onUnmounted(() => {
 }
 
 .btn-secondary:disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+.btn-danger {
+  @apply bg-red-600 text-white hover:bg-red-700;
+}
+
+.btn-danger:disabled {
   @apply opacity-50 cursor-not-allowed;
 }
 

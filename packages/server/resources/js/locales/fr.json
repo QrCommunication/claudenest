@@ -276,6 +276,64 @@
       "force_release": "Forcer la liberation",
       "locked_by": "Verrouille par",
       "expires_at": "Expire le"
+    },
+    "wizard": {
+      "title": "Nouveau projet",
+      "subtitle": "Configurez un projet multi-agent en {steps} etapes",
+      "steps": {
+        "machine": "Machine",
+        "path": "Chemin",
+        "context": "Contexte",
+        "tasks": "Taches",
+        "launch": "Lancement"
+      },
+      "machine": {
+        "title": "Selectionner une machine",
+        "description": "Choisissez la machine ou se trouve ce projet.",
+        "no_machines": "Aucune machine enregistree.",
+        "add_machine": "Ajoutez d'abord une machine"
+      },
+      "path": {
+        "title": "Chemin du projet",
+        "description": "Entrez le chemin du projet sur la machine distante, puis scannez pour detecter le stack technique.",
+        "scan": "Scanner",
+        "scanning": "Scan en cours...",
+        "browse": "Parcourir",
+        "hide_browser": "Masquer",
+        "project_name": "Nom du projet",
+        "detected_stack": "Stack detecte",
+        "structure": "Structure"
+      },
+      "context": {
+        "title": "Contexte du projet",
+        "description": "Generez ou editez le contexte du projet. Cela aide les agents a comprendre le codebase.",
+        "generate": "Generer avec l'IA",
+        "generating": "Generation en cours...",
+        "summary": "Resume",
+        "architecture": "Architecture",
+        "conventions": "Conventions"
+      },
+      "tasks": {
+        "title": "Taches",
+        "description": "Definissez les taches initiales du projet. Les agents les prendront automatiquement.",
+        "add_task": "Ajouter une tache",
+        "no_tasks": "Aucune tache. Cliquez sur \"Ajouter\" ou revenez en arriere pour les generer depuis le contexte."
+      },
+      "orchestrator": {
+        "title": "Configuration du lancement",
+        "description": "Configurez l'orchestrateur et verifiez votre projet avant la creation.",
+        "auto_start": "Demarrer l'orchestrateur immediatement",
+        "auto_start_hint": "L'orchestrateur distribuera automatiquement les taches aux agents disponibles.",
+        "min_workers": "Workers min",
+        "max_workers": "Workers max",
+        "poll_interval": "Intervalle de poll (ms)",
+        "manual_start": "Demarrage manuel"
+      },
+      "summary": "Resume du projet",
+      "previous": "Precedent",
+      "next": "Suivant",
+      "create": "Creer le projet",
+      "creating": "Creation..."
     }
   },
   "tasks": {

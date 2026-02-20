@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Machine;
 use App\Models\SharedProject;
+use App\Services\AgentGateway;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -616,6 +617,125 @@ class ProjectController extends Controller
         return response()->json([
             'success' => true,
             'data' => $stats,
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
+    }
+
+    // ==================== ORCHESTRATOR ====================
+
+    /**
+     * Start the orchestrator for a project.
+     */
+    public function startOrchestrator(Request $request, string $id): JsonResponse
+    {
+        $project = $this->getUserProject($request, $id);
+        if (!$project) {
+            return $this->errorResponse('CTX_001', 'Project not found', 404);
+        }
+
+        $machine = $project->machine;
+        if (!$machine || $machine->status !== 'online') {
+            return $this->errorResponse('MACHINE_OFFLINE', 'Machine is not online', 422);
+        }
+
+        $validated = $request->validate([
+            'min_workers' => 'integer|min:1|max:5',
+            'max_workers' => 'integer|min:1|max:10',
+            'poll_interval_ms' => 'integer|min:1000|max:60000',
+        ]);
+
+        $result = AgentGateway::sendAndWait($machine->id, 'orchestrator:start', [
+            'projectId' => $project->id,
+            'projectPath' => $project->project_path,
+            'minWorkers' => $validated['min_workers'] ?? 1,
+            'maxWorkers' => $validated['max_workers'] ?? 3,
+            'pollIntervalMs' => $validated['poll_interval_ms'] ?? 5000,
+        ], 15);
+
+        if ($result === null) {
+            return $this->errorResponse('AGENT_TIMEOUT', 'Agent did not respond in time', 504);
+        }
+
+        if (!empty($result['error'])) {
+            return $this->errorResponse('ORCHESTRATOR_ERROR', $result['error'], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $result,
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
+    }
+
+    /**
+     * Stop the orchestrator for a project.
+     */
+    public function stopOrchestrator(Request $request, string $id): JsonResponse
+    {
+        $project = $this->getUserProject($request, $id);
+        if (!$project) {
+            return $this->errorResponse('CTX_001', 'Project not found', 404);
+        }
+
+        $machine = $project->machine;
+        if (!$machine || $machine->status !== 'online') {
+            return $this->errorResponse('MACHINE_OFFLINE', 'Machine is not online', 422);
+        }
+
+        AgentGateway::send($machine->id, 'orchestrator:stop', [
+            'projectId' => $project->id,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => ['message' => 'Stop signal sent'],
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
+    }
+
+    /**
+     * Get orchestrator status for a project.
+     */
+    public function orchestratorStatus(Request $request, string $id): JsonResponse
+    {
+        $project = $this->getUserProject($request, $id);
+        if (!$project) {
+            return $this->errorResponse('CTX_001', 'Project not found', 404);
+        }
+
+        $machine = $project->machine;
+        if (!$machine || $machine->status !== 'online') {
+            return response()->json([
+                'success' => true,
+                'data' => ['status' => 'offline', 'workers' => [], 'pendingTasks' => 0, 'completedTasks' => 0],
+                'meta' => ['timestamp' => now()->toIso8601String()],
+            ]);
+        }
+
+        $result = AgentGateway::sendAndWait($machine->id, 'orchestrator:status', [
+            'projectId' => $project->id,
+        ], 5);
+
+        if ($result === null) {
+            return response()->json([
+                'success' => true,
+                'data' => ['status' => 'unknown', 'workers' => [], 'pendingTasks' => 0, 'completedTasks' => 0],
+                'meta' => ['timestamp' => now()->toIso8601String()],
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $result,
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),

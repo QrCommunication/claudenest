@@ -340,6 +340,9 @@ class AgentServe extends Command
                 'session:status' => $this->onSessionStatus($machineId, $data),
                 'session:exited' => $this->onSessionExited($machineId, $data),
                 'file:browse_result' => $this->onFileBrowseResult($data),
+                'project:scan_result' => $this->onRequestResponse($data),
+                'orchestrator:state' => $this->onRequestResponse($data),
+                'orchestrator:error' => $this->onRequestResponse($data),
                 'ping' => $this->sendToAgent($machineId, 'pong', ['timestamp' => now()->getTimestampMs()]),
                 'error' => $this->onAgentError($machineId, $data),
                 default => $this->warn("[" . date('H:i:s') . "] Unknown agent message type: {$type}"),
@@ -497,6 +500,15 @@ class AgentServe extends Command
     }
 
     private function onFileBrowseResult(array $data): void
+    {
+        $this->onRequestResponse($data);
+    }
+
+    /**
+     * Generic handler for request-response pattern messages.
+     * Pushes the response to Redis so the waiting controller can retrieve it.
+     */
+    private function onRequestResponse(array $data): void
     {
         $requestId = $data['requestId'] ?? null;
         if (!$requestId) return;

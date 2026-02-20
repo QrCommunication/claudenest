@@ -21,10 +21,9 @@
               {{ machine.name }}
             </option>
           </select>
-          <Button 
-            variant="primary" 
-            @click="showCreateModal = true"
-            :disabled="!selectedMachineId"
+          <Button
+            variant="primary"
+            @click="$router.push({ name: 'projects.new' })"
           >
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
@@ -53,10 +52,9 @@
       <p v-else>
         Select a machine to view or create projects.
       </p>
-      <Button 
-        v-if="selectedMachineId"
-        variant="primary" 
-        @click="showCreateModal = true"
+      <Button
+        variant="primary"
+        @click="$router.push({ name: 'projects.new' })"
       >
         Create Project
       </Button>

@@ -113,6 +113,64 @@ export const useOrchestratorStore = defineStore('orchestrator', () => {
     }
   }
 
+  // ==================== ORCHESTRATOR CONTROLS ====================
+
+  const orchestratorStatus = ref<{
+    status: string;
+    workers: Array<{ id: string; status: string; currentTaskTitle?: string; tasksCompleted: number }>;
+    pendingTasks: number;
+    completedTasks: number;
+  } | null>(null);
+  const isOrchestratorLoading = ref(false);
+
+  async function startOrchestrator(projectId: string, config?: {
+    min_workers?: number;
+    max_workers?: number;
+    poll_interval_ms?: number;
+  }): Promise<void> {
+    isOrchestratorLoading.value = true;
+    error.value = null;
+
+    try {
+      const response = await api.post<ApiResponse<Record<string, unknown>>>(
+        `/projects/${projectId}/orchestrator/start`,
+        config ?? {},
+      );
+      orchestratorStatus.value = response.data.data as typeof orchestratorStatus.value;
+    } catch (err: unknown) {
+      error.value = err instanceof Error ? err.message : 'Failed to start orchestrator';
+      throw err;
+    } finally {
+      isOrchestratorLoading.value = false;
+    }
+  }
+
+  async function stopOrchestrator(projectId: string): Promise<void> {
+    isOrchestratorLoading.value = true;
+    error.value = null;
+
+    try {
+      await api.post(`/projects/${projectId}/orchestrator/stop`);
+      orchestratorStatus.value = null;
+    } catch (err: unknown) {
+      error.value = err instanceof Error ? err.message : 'Failed to stop orchestrator';
+      throw err;
+    } finally {
+      isOrchestratorLoading.value = false;
+    }
+  }
+
+  async function fetchOrchestratorStatus(projectId: string): Promise<void> {
+    try {
+      const response = await api.get<ApiResponse<Record<string, unknown>>>(
+        `/projects/${projectId}/orchestrator/status`,
+      );
+      orchestratorStatus.value = response.data.data as typeof orchestratorStatus.value;
+    } catch {
+      // Silently fail — status is informational
+    }
+  }
+
   function startPolling(projectId: string, intervalMs: number = 10_000): void {
     stopPolling();
     // Initial fetch
@@ -201,6 +259,13 @@ export const useOrchestratorStore = defineStore('orchestrator', () => {
     stopPolling,
     clearError,
     $reset,
+
+    // Orchestrator controls
+    orchestratorStatus,
+    isOrchestratorLoading,
+    startOrchestrator,
+    stopOrchestrator,
+    fetchOrchestratorStatus,
 
     // Local updates
     updateInstanceLocal,

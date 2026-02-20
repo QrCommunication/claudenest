@@ -166,6 +166,7 @@ export type IncomingMessageType =
   | 'file:lock'
   | 'file:unlock'
   | 'file:browse'
+  | 'project:scan'
   | OrchestratorIncomingMessage
   | 'ping';
 
@@ -182,6 +183,7 @@ export type OutgoingMessageType =
   | 'task:update'
   | 'file:lock_update'
   | 'file:browse_result'
+  | 'project:scan_result'
   | OrchestratorOutgoingMessage
   | 'pong'
   | 'error';
@@ -451,6 +453,25 @@ export interface WorkerResult {
   summary?: string;
   filesModified?: string[];
   exitCode?: number;
+  error?: string;
+}
+
+// ============================================
+// Project Scan
+// ============================================
+
+export interface ProjectScanRequest {
+  requestId: string;
+  path: string;
+}
+
+export interface ProjectScanResult {
+  requestId: string;
+  projectName: string;
+  techStack: string[];
+  hasGit: boolean;
+  readme: string | null;
+  structure: string[];
   error?: string;
 }
 
