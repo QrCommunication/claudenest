@@ -341,10 +341,12 @@ class ContextController extends Controller
         }
 
         $validated = $request->validate([
-            'type' => 'string|in:task_completion,context_update,file_change,decision,summary,broadcast',
-            'instance_id' => 'string',
-            'limit' => 'integer|min:1|max:100|default:50',
+            'type' => 'nullable|string|in:task_completion,context_update,file_change,decision,summary,broadcast',
+            'instance_id' => 'nullable|string',
+            'limit' => 'nullable|integer|min:1|max:100',
         ]);
+
+        $limit = $request->integer('limit', 50);
 
         $query = $project->contextChunks()->active();
 
@@ -358,7 +360,7 @@ class ContextController extends Controller
 
         $chunks = $query
             ->orderBy('created_at', 'desc')
-            ->paginate($validated['limit'] ?? 50);
+            ->paginate($limit);
 
         return response()->json([
             'success' => true,

@@ -15,4 +15,9 @@ export default defineConfig({
             '@': '/resources/js',
         },
     },
+    build: {
+        modulePreload: {
+            polyfill: false,
+        },
+    },
 });

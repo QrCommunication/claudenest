@@ -203,6 +203,10 @@ class WebSocketManager {
    * Disconnect from WebSocket
    */
   disconnect(): void {
+    this.status = 'disconnected';
+    this.reconnectAttempts = 0;
+    this.terminalReconnectAttempts = 0;
+
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
@@ -214,21 +218,24 @@ class WebSocketManager {
     }
 
     if (this.terminalWs) {
+      this.terminalWs.onclose = null;
+      this.terminalWs.onerror = null;
+      this.terminalWs.onmessage = null;
       this.terminalWs.close();
       this.terminalWs = null;
     }
 
     if (this.echo) {
-      if (this.config) {
-        this.echo.leave(`private-sessions.${this.config.session_id}`);
+      try {
+        if (this.config) {
+          this.echo.leave(`private-sessions.${this.config.session_id}`);
+        }
+        this.echo.disconnect();
+      } catch {
+        // Ignore errors during cleanup (WebSocket already closed)
       }
-      this.echo.disconnect();
       this.echo = null;
     }
-
-    this.status = 'disconnected';
-    this.reconnectAttempts = 0;
-    this.terminalReconnectAttempts = 0;
   }
 
   /**
