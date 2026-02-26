@@ -157,21 +157,23 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::get('projects/{project}/orchestration-stats', [Api\InstanceController::class, 'orchestrationStats']);
 
     // ==================== SKILLS ====================
+    // Literal routes BEFORE wildcard {path} routes to prevent matching conflicts
     Route::get('machines/{machine}/skills', [Api\SkillsController::class, 'index']);
-    Route::get('machines/{machine}/skills/{path}', [Api\SkillsController::class, 'show']);
     Route::post('machines/{machine}/skills', [Api\SkillsController::class, 'store']);
+    Route::post('machines/{machine}/skills/bulk', [Api\SkillsController::class, 'bulkUpdate']);
+    Route::post('machines/{machine}/skills/sync', [Api\SkillsController::class, 'sync']);
+    Route::get('machines/{machine}/skills/{path}', [Api\SkillsController::class, 'show']);
     Route::patch('machines/{machine}/skills/{path}', [Api\SkillsController::class, 'update']);
     Route::post('machines/{machine}/skills/{path}/toggle', [Api\SkillsController::class, 'toggle']);
     Route::delete('machines/{machine}/skills/{path}', [Api\SkillsController::class, 'destroy']);
-    Route::post('machines/{machine}/skills/bulk', [Api\SkillsController::class, 'bulkUpdate']);
-    Route::post('machines/{machine}/skills/sync', [Api\SkillsController::class, 'sync']);
 
     // ==================== MCP SERVERS ====================
+    // Literal routes BEFORE wildcard {name} routes
     Route::get('machines/{machine}/mcp', [Api\MCPController::class, 'index']);
     Route::get('machines/{machine}/mcp/all-tools', [Api\MCPController::class, 'allTools']);
-    Route::get('machines/{machine}/mcp/{name}', [Api\MCPController::class, 'show']);
     Route::post('machines/{machine}/mcp', [Api\MCPController::class, 'store']);
     Route::post('machines/{machine}/mcp/sync', [Api\MCPController::class, 'sync']);
+    Route::get('machines/{machine}/mcp/{name}', [Api\MCPController::class, 'show']);
     Route::patch('machines/{machine}/mcp/{name}', [Api\MCPController::class, 'update']);
     Route::post('machines/{machine}/mcp/{name}/start', [Api\MCPController::class, 'start']);
     Route::post('machines/{machine}/mcp/{name}/stop', [Api\MCPController::class, 'stop']);

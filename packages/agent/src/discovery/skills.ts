@@ -5,6 +5,7 @@
 import { EventEmitter } from 'events';
 import fs from 'fs/promises';
 import path from 'path';
+import os from 'os';
 import type { Logger } from '../utils/logger.js';
 import type { Skill, DiscoveredCommand } from '../types/index.js';
 
@@ -75,7 +76,7 @@ export class SkillsDiscovery extends EventEmitter {
       }
     }
 
-    // Also check global skills location
+    // Discover global skills from ~/.claude/skills/
     try {
       const globalSkills = await this.discoverGlobalSkills();
       discoveredSkills.push(...globalSkills);
@@ -83,7 +84,14 @@ export class SkillsDiscovery extends EventEmitter {
       this.logger.error({ err: error }, 'Failed to discover global skills');
     }
 
-    this.logger.info(`Discovered ${discoveredSkills.length} skills`);
+    // Discover global commands from ~/.claude/commands/
+    try {
+      await this.discoverGlobalCommands();
+    } catch (error) {
+      this.logger.error({ err: error }, 'Failed to discover global commands');
+    }
+
+    this.logger.info(`Discovered ${discoveredSkills.length} skills, ${this.commands.size} commands`);
     (this as any).emit('discovered', discoveredSkills);
 
     return discoveredSkills;
@@ -242,25 +250,97 @@ export class SkillsDiscovery extends EventEmitter {
   }
 
   /**
-   * Discover global skills
+   * Discover global skills from ~/.claude/skills/ (Claude Code's native location)
    */
   private async discoverGlobalSkills(): Promise<Skill[]> {
-    const { getConfigDir } = await import('../utils/index.js');
-    const configDir = getConfigDir();
-    const globalSkillsPath = path.join(configDir, 'skills');
-    
+    const claudeDir = path.join(os.homedir(), '.claude');
+    const globalSkillsPath = path.join(claudeDir, 'skills');
+
     try {
       const stat = await fs.stat(globalSkillsPath);
       if (stat.isDirectory()) {
-        return this.scanSkillsDirectory(globalSkillsPath);
+        const skills = await this.scanSkillsDirectory(globalSkillsPath);
+        this.logger.info(`Found ${skills.length} global skills in ${globalSkillsPath}`);
+        return skills;
       }
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
         throw error;
       }
     }
-    
+
     return [];
+  }
+
+  /**
+   * Discover global commands from ~/.claude/commands/
+   */
+  private async discoverGlobalCommands(): Promise<void> {
+    const commandsPath = path.join(os.homedir(), '.claude', 'commands');
+
+    try {
+      const stat = await fs.stat(commandsPath);
+      if (!stat.isDirectory()) return;
+
+      const entries = await fs.readdir(commandsPath, { withFileTypes: true });
+
+      for (const entry of entries) {
+        if (entry.isFile() && entry.name.endsWith('.md')) {
+          await this.loadCommandFile(path.join(commandsPath, entry.name));
+        } else if (entry.isDirectory()) {
+          // Scan subdirectories for .md command files
+          const subEntries = await fs.readdir(path.join(commandsPath, entry.name), { withFileTypes: true });
+          for (const sub of subEntries) {
+            if (sub.isFile() && sub.name.endsWith('.md')) {
+              await this.loadCommandFile(path.join(commandsPath, entry.name, sub.name));
+            }
+          }
+        }
+      }
+
+      this.logger.info(`Discovered ${this.commands.size} global commands from ${commandsPath}`);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        this.logger.error({ err: error }, 'Failed to discover global commands');
+      }
+    }
+  }
+
+  /**
+   * Load a single command .md file with YAML frontmatter
+   */
+  private async loadCommandFile(filePath: string): Promise<void> {
+    try {
+      const content = await fs.readFile(filePath, 'utf-8');
+      const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
+
+      const baseName = path.basename(filePath, '.md');
+      const dirName = path.basename(path.dirname(filePath));
+      // Use dir/name for nested commands, just name for top-level
+      const cmdName = dirName === 'commands' ? baseName : `${dirName}/${baseName}`;
+
+      let description = '';
+      let category = 'command';
+
+      if (frontmatterMatch) {
+        const lines = frontmatterMatch[1].split('\n');
+        for (const line of lines) {
+          const [key, ...valueParts] = line.split(':');
+          if (key?.trim() === 'description') {
+            description = valueParts.join(':').trim();
+          }
+        }
+      }
+
+      this.commands.set(cmdName, {
+        name: cmdName,
+        description,
+        category,
+        source: 'claude-commands',
+      });
+    } catch (error) {
+      this.logger.warn({ err: error }, `Failed to load command file: ${filePath}`);
+    }
   }
 
   /**

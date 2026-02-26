@@ -6,6 +6,7 @@ import { EventEmitter } from 'events';
 import { spawn, ChildProcess } from 'child_process';
 import fs from 'fs/promises';
 import path from 'path';
+import os from 'os';
 import type { Logger } from '../utils/logger.js';
 import { getConfigDir } from '../utils/index.js';
 import type { MCPServer, MCPStatus, MCPTool } from '../types/index.js';
@@ -42,7 +43,7 @@ export class MCPManager extends EventEmitter {
   constructor(options: MCPManagerOptions) {
     super();
     this.logger = options.logger.child({ component: 'MCPManager' });
-    
+
     this.configPath = options.configPath || path.join(getConfigDir(), 'mcp.json');
   }
 
@@ -55,43 +56,116 @@ export class MCPManager extends EventEmitter {
   }
 
   /**
-   * Load MCP configuration
+   * Load MCP configuration from multiple sources:
+   * 1. ~/.claude/settings.json (Claude Code native config)
+   * 2. ~/.config/claudenest/mcp.json (legacy/custom config)
    */
   async loadConfig(): Promise<void> {
+    let totalLoaded = 0;
+
+    // Source 1: Claude Code's native settings.json
+    try {
+      const claudeSettingsPath = path.join(os.homedir(), '.claude', 'settings.json');
+      const content = await fs.readFile(claudeSettingsPath, 'utf-8');
+      const settings = JSON.parse(content);
+
+      if (settings.mcpServers && typeof settings.mcpServers === 'object') {
+        totalLoaded += this.loadServersFromConfig(settings.mcpServers);
+        this.logger.info(`Loaded ${totalLoaded} MCP servers from ${claudeSettingsPath}`);
+      }
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        this.logger.warn({ err: error }, 'Failed to read Claude settings.json');
+      }
+    }
+
+    // Source 2: Project-level .claude/settings.json files
+    try {
+      const cwd = process.cwd();
+      const projectSettingsPath = path.join(cwd, '.claude', 'settings.json');
+      const content = await fs.readFile(projectSettingsPath, 'utf-8');
+      const settings = JSON.parse(content);
+
+      if (settings.mcpServers && typeof settings.mcpServers === 'object') {
+        const count = this.loadServersFromConfig(settings.mcpServers);
+        totalLoaded += count;
+        if (count > 0) {
+          this.logger.info(`Loaded ${count} project MCP servers from ${projectSettingsPath}`);
+        }
+      }
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        this.logger.debug({ err: error }, 'No project-level MCP config');
+      }
+    }
+
+    // Source 3: Legacy ClaudeNest config
     try {
       const content = await fs.readFile(this.configPath, 'utf-8');
       const config: MCPConfig = JSON.parse(content);
-      
-      for (const [name, serverConfig] of Object.entries(config.mcpServers)) {
-        const server: MCPServer = {
-          name,
-          description: serverConfig.description || '',
-          command: serverConfig.command,
-          args: serverConfig.args || [],
-          env: serverConfig.env,
-          enabled: serverConfig.enabled ?? true,
-          autoStart: serverConfig.autoStart ?? false,
-          status: 'stopped',
-        };
-        
-        this.servers.set(name, server);
-        
-        // Auto-start if configured
-        if (server.autoStart && server.enabled) {
-          await this.startServer(name).catch(error => {
-            this.logger.error({ err: error }, `Failed to auto-start MCP server ${name}`);
-          });
+
+      if (config.mcpServers) {
+        const count = this.loadServersFromConfig(config.mcpServers);
+        totalLoaded += count;
+        if (count > 0) {
+          this.logger.info(`Loaded ${count} MCP servers from ${this.configPath}`);
         }
       }
-      
-      this.logger.info(`Loaded ${this.servers.size} MCP servers`);
     } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-        this.logger.info('No MCP config found, starting empty');
-      } else {
-        throw error;
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        this.logger.warn({ err: error }, 'Failed to read legacy MCP config');
       }
     }
+
+    if (totalLoaded === 0) {
+      this.logger.info('No MCP servers found in any config source');
+    } else {
+      this.logger.info(`Total MCP servers loaded: ${totalLoaded}`);
+    }
+  }
+
+  /**
+   * Load servers from a mcpServers config object, returns count loaded
+   */
+  private loadServersFromConfig(
+    mcpServers: Record<string, {
+      command: string;
+      args?: string[];
+      env?: Record<string, string>;
+      description?: string;
+      autoStart?: boolean;
+      enabled?: boolean;
+    }>
+  ): number {
+    let count = 0;
+
+    for (const [name, serverConfig] of Object.entries(mcpServers)) {
+      // Skip if already loaded (first source wins)
+      if (this.servers.has(name)) continue;
+
+      const server: MCPServer = {
+        name,
+        description: serverConfig.description || '',
+        command: serverConfig.command,
+        args: serverConfig.args || [],
+        env: serverConfig.env,
+        enabled: serverConfig.enabled ?? true,
+        autoStart: serverConfig.autoStart ?? false,
+        status: 'stopped',
+      };
+
+      this.servers.set(name, server);
+      count++;
+
+      // Auto-start if configured
+      if (server.autoStart && server.enabled) {
+        this.startServer(name).catch(error => {
+          this.logger.error({ err: error }, `Failed to auto-start MCP server ${name}`);
+        });
+      }
+    }
+
+    return count;
   }
 
   /**
