@@ -13,6 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->api(prepend: [
+            \App\Http\Middleware\AuthenticateAgentToken::class,
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         ]);
 
@@ -20,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
             'machine.owner' => \App\Http\Middleware\EnsureMachineOwner::class,
             'rate.limit' => \App\Http\Middleware\RateLimitApi::class,
+            'auth.agent' => \App\Http\Middleware\AuthenticateAgentToken::class,
         ]);
 
         $middleware->redirectGuestsTo(fn ($request) => $request->is('api/*', 'broadcasting/*') ? null : '/login');
