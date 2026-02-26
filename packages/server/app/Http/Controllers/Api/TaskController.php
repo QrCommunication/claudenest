@@ -98,7 +98,7 @@ class TaskController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'priority' => 'string|in:low,medium,high,critical|default:medium',
+            'priority' => 'string|in:low,medium,high,critical',
             'files' => 'array',
             'files.*' => 'string',
             'estimated_tokens' => 'integer|min:1',
