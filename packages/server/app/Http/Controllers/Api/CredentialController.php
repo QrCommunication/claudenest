@@ -412,8 +412,11 @@ class CredentialController extends Controller
                 'data' => $result,
                 'meta' => ['timestamp' => now()->toIso8601String()],
             ]);
+        } catch (\InvalidArgumentException $e) {
+            return $this->errorResponse('NOT_OAUTH', $e->getMessage(), 422);
         } catch (\Exception $e) {
-            return $this->errorResponse('REFRESH_FAILED', $e->getMessage(), 400);
+            $code = str_contains($e->getMessage(), 'expired or revoked') ? 'TOKEN_EXPIRED' : 'REFRESH_FAILED';
+            return $this->errorResponse($code, $e->getMessage(), 400);
         }
     }
 

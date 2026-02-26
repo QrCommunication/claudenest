@@ -4,6 +4,7 @@ import { useProjectsStore } from '@/stores/projects';
 import { useOrchestratorStore } from '@/stores/orchestrator';
 import type { TaskPriority } from '@/types/multiagent';
 import type { ScanResult, GeneratedContext } from './useProjectScan';
+import type { MasterPlan } from './useDecomposition';
 
 export interface WizardTask {
   title: string;
@@ -19,12 +20,21 @@ export interface OrchestratorConfig {
   pollIntervalMs: number;
 }
 
+export type WizardMode = 'prd' | 'manual';
+
 export interface WizardState {
   currentStep: number;
+  wizardMode: WizardMode;
   machineId: string | null;
   path: string;
   projectName: string;
   scanResult: ScanResult | null;
+  // PRD mode
+  prd: string;
+  credentialId: string;
+  masterPlan: MasterPlan | null;
+  _projectId: string | null; // Set when project created during decomposition
+  // Manual mode
   context: {
     summary: string;
     architecture: string;
@@ -43,10 +53,17 @@ export function useProjectWizard() {
 
   const state = reactive<WizardState>({
     currentStep: 1,
+    wizardMode: 'prd',
     machineId: null,
     path: '',
     projectName: '',
     scanResult: null,
+    // PRD mode
+    prd: '',
+    credentialId: '',
+    masterPlan: null,
+    _projectId: null,
+    // Manual mode
     context: {
       summary: '',
       architecture: '',
@@ -68,8 +85,16 @@ export function useProjectWizard() {
     switch (state.currentStep) {
       case 1: return !!state.machineId;
       case 2: return !!state.path && !!state.scanResult;
-      case 3: return !!state.context.summary;
-      case 4: return state.tasks.length > 0;
+      case 3:
+        if (state.wizardMode === 'prd') {
+          return !!state.masterPlan;
+        }
+        return !!state.context.summary;
+      case 4:
+        if (state.wizardMode === 'prd') {
+          return !!state.masterPlan && state.masterPlan.waves.length > 0;
+        }
+        return state.tasks.length > 0;
       case 5: return true;
       default: return false;
     }
@@ -127,6 +152,14 @@ export function useProjectWizard() {
     state.tasks.splice(index, 1);
   }
 
+  function setWizardMode(mode: WizardMode): void {
+    state.wizardMode = mode;
+  }
+
+  function setMasterPlan(plan: MasterPlan): void {
+    state.masterPlan = plan;
+  }
+
   function moveTask(index: number, direction: 'up' | 'down'): void {
     const newIndex = direction === 'up' ? index - 1 : index + 1;
     if (newIndex < 0 || newIndex >= state.tasks.length) return;
@@ -142,23 +175,46 @@ export function useProjectWizard() {
     submitError.value = null;
 
     try {
-      // 1. Create project
-      const project = await projectsStore.createProject(state.machineId, {
-        name: state.projectName,
-        project_path: state.path,
-        summary: state.context.summary,
-        architecture: state.context.architecture,
-        conventions: state.context.conventions,
-      });
+      const isPrd = state.wizardMode === 'prd' && state.masterPlan;
+      let projectId: string;
 
-      // 2. Create tasks
-      for (const task of state.tasks) {
-        await api_createTask(project.id, task);
+      if (isPrd && state._projectId) {
+        // Project already created during decomposition — update it
+        projectId = state._projectId;
+        await api.patch<ApiResponse<unknown>>(
+          `/projects/${projectId}`,
+          {
+            name: state.projectName,
+            summary: state.masterPlan!.prd_summary,
+            prd: state.prd,
+            master_plan: state.masterPlan,
+          },
+        );
+
+        // Apply master plan — creates tasks from waves server-side
+        await api.post<ApiResponse<{ created: number }>>(
+          `/projects/${projectId}/master-plan/apply`,
+        );
+      } else {
+        // Create project fresh (manual mode or no prior project)
+        const project = await projectsStore.createProject(state.machineId, {
+          name: state.projectName,
+          project_path: state.path,
+          summary: state.context.summary,
+          architecture: state.context.architecture,
+          conventions: state.context.conventions,
+        });
+        projectId = project.id;
+
+        // Create tasks manually
+        for (const task of state.tasks) {
+          await api_createTask(projectId, task);
+        }
       }
 
-      // 3. Start orchestrator if configured
+      // Start orchestrator if configured
       if (state.orchestratorConfig.autoStart) {
-        await orchestratorStore.startOrchestrator(project.id, {
+        await orchestratorStore.startOrchestrator(projectId, {
           min_workers: state.orchestratorConfig.minWorkers,
           max_workers: state.orchestratorConfig.maxWorkers,
           poll_interval_ms: state.orchestratorConfig.pollIntervalMs,
@@ -166,7 +222,7 @@ export function useProjectWizard() {
       }
 
       // Navigate to project
-      router.push({ name: 'projects.show', params: { id: project.id } });
+      router.push({ name: 'projects.show', params: { id: projectId } });
     } catch (err: unknown) {
       submitError.value = err instanceof Error ? err.message : 'Failed to create project';
       throw err;
@@ -189,6 +245,8 @@ export function useProjectWizard() {
     goToStep,
     setScanResult,
     setGeneratedContext,
+    setWizardMode,
+    setMasterPlan,
     addTask,
     removeTask,
     moveTask,

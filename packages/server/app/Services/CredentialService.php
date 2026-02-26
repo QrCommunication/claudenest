@@ -73,14 +73,31 @@ class CredentialService
         ]);
 
         if (!$response->successful()) {
+            $body = $response->json() ?? [];
+            $oauthError = $body['error'] ?? 'unknown';
+            $oauthDesc = $body['error_description'] ?? '';
+
             \Log::warning('OAuth refresh failed', [
                 'credential_id' => $credential->id,
                 'status' => $response->status(),
-                'body' => $response->body(),
+                'oauth_error' => $oauthError,
+                'oauth_description' => $oauthDesc,
             ]);
-            throw new \RuntimeException(
-                "OAuth refresh failed (HTTP {$response->status()}). Check server logs for details."
-            );
+
+            // Mark token as expired when grant is invalid
+            if ($oauthError === 'invalid_grant') {
+                $credential->update(['token_status' => 'expired']);
+            }
+
+            // Actionable message based on OAuth error type
+            $message = match ($oauthError) {
+                'invalid_grant' => "Refresh token expired or revoked. Please use 'Capture' to re-import your OAuth tokens from ~/.claude/.credentials.json.",
+                'invalid_client' => "OAuth client rejected. This may be a server configuration issue.",
+                'unauthorized_client' => "OAuth client not authorized for refresh. Please re-capture your tokens.",
+                default => "OAuth refresh failed (HTTP {$response->status()}): {$oauthError}. {$oauthDesc}",
+            };
+
+            throw new \RuntimeException($message);
         }
 
         $data = $response->json();

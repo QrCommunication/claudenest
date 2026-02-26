@@ -34,6 +34,7 @@ class SharedTask extends Model
      */
     protected $fillable = [
         'project_id',
+        'wave',
         'title',
         'description',
         'priority',
@@ -54,6 +55,7 @@ class SharedTask extends Model
      * The attributes that should be cast.
      */
     protected $casts = [
+        'wave' => 'integer',
         'dependencies' => 'array',
         'files' => 'array',
         'files_modified' => 'array',
@@ -124,6 +126,11 @@ class SharedTask extends Model
     public function scopeByPriority($query, string $priority)
     {
         return $query->where('priority', $priority);
+    }
+
+    public function scopeByWave($query, int $wave)
+    {
+        return $query->where('wave', $wave);
     }
 
     public function scopeAssignedTo($query, string $instanceId)
@@ -310,6 +317,7 @@ class SharedTask extends Model
     {
         return static::forProject($projectId)
             ->readyToStart()
+            ->orderByRaw("COALESCE(wave, 999) ASC")
             ->orderByRaw("
                 CASE priority
                     WHEN 'critical' THEN 4
@@ -328,6 +336,7 @@ class SharedTask extends Model
         return DB::transaction(function () use ($projectId, $instanceId) {
             $task = static::forProject($projectId)
                 ->readyToStart()
+                ->orderByRaw("COALESCE(wave, 999) ASC")
                 ->orderByRaw("
                     CASE priority
                         WHEN 'critical' THEN 4

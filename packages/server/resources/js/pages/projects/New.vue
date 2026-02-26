@@ -42,18 +42,76 @@
         :state="state"
         @scanned="setScanResult"
       />
-      <StepContext
-        v-else-if="state.currentStep === 3"
-        :state="state"
-        @generated="setGeneratedContext"
-      />
-      <StepTasks
-        v-else-if="state.currentStep === 4"
-        :state="state"
-        @add="addTask"
-        @remove="removeTask"
-        @move="(i, d) => moveTask(i, d)"
-      />
+
+      <!-- Step 3: PRD or Context -->
+      <template v-else-if="state.currentStep === 3">
+        <!-- Mode Toggle -->
+        <div class="mode-toggle">
+          <button
+            class="mode-btn"
+            :class="{ 'mode-btn-active': isPrdMode }"
+            @click="handleModeSwitch('prd')"
+          >
+            PRD / Feature
+          </button>
+          <button
+            class="mode-btn"
+            :class="{ 'mode-btn-active': !isPrdMode }"
+            @click="handleModeSwitch('manual')"
+          >
+            Manual Context
+          </button>
+        </div>
+
+        <!-- PRD Mode -->
+        <div v-if="isPrdMode" class="prd-step">
+          <PrdInput
+            v-model="state.prd"
+            :credential-id="state.credentialId"
+            :is-decomposing="isDecomposing"
+            :error="decompositionError"
+            @update:credential-id="(v: string) => state.credentialId = v"
+            @decompose="handleDecompose"
+          />
+          <DecompositionProgress
+            v-if="isDecomposing"
+            :output="decompositionOutput"
+          />
+          <div v-if="state.masterPlan && !isDecomposing" class="decompose-success">
+            <svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-green-400">
+              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+            </svg>
+            <span class="text-sm text-green-400">
+              Master Plan generated — {{ state.masterPlan.waves.length }} waves,
+              {{ state.masterPlan.waves.reduce((s, w) => s + w.tasks.length, 0) }} tasks
+            </span>
+          </div>
+        </div>
+
+        <!-- Manual Mode -->
+        <StepContext
+          v-else
+          :state="state"
+          @generated="setGeneratedContext"
+        />
+      </template>
+
+      <!-- Step 4: Master Plan or Tasks -->
+      <template v-else-if="state.currentStep === 4">
+        <MasterPlanEditor
+          v-if="isPrdMode && state.masterPlan"
+          :model-value="state.masterPlan"
+          @update:model-value="handleMasterPlanUpdate"
+        />
+        <StepTasks
+          v-else
+          :state="state"
+          @add="addTask"
+          @remove="removeTask"
+          @move="(i, d) => moveTask(i, d)"
+        />
+      </template>
+
       <StepOrchestrator
         v-else-if="state.currentStep === 5"
         :state="state"
@@ -99,12 +157,19 @@
 </template>
 
 <script setup lang="ts">
+import { computed, watch } from 'vue';
 import { useProjectWizard } from '@/composables/useProjectWizard';
+import { useDecomposition } from '@/composables/useDecomposition';
 import StepMachine from './wizard/StepMachine.vue';
 import StepPath from './wizard/StepPath.vue';
 import StepContext from './wizard/StepContext.vue';
 import StepTasks from './wizard/StepTasks.vue';
 import StepOrchestrator from './wizard/StepOrchestrator.vue';
+import PrdInput from '@/components/projects/PrdInput.vue';
+import DecompositionProgress from '@/components/projects/DecompositionProgress.vue';
+import MasterPlanEditor from '@/components/projects/MasterPlanEditor.vue';
+import type { WizardMode } from '@/composables/useProjectWizard';
+import type { MasterPlan } from '@/composables/useDecomposition';
 
 const {
   state,
@@ -120,19 +185,71 @@ const {
   goToStep,
   setScanResult,
   setGeneratedContext,
+  setWizardMode,
+  setMasterPlan,
   addTask,
   removeTask,
   moveTask,
   submit,
 } = useProjectWizard();
 
-const steps = [
+const {
+  masterPlan: decomposedPlan,
+  isDecomposing,
+  decompositionOutput,
+  decompositionError,
+  startDecomposition,
+} = useDecomposition();
+
+const isPrdMode = computed(() => state.wizardMode === 'prd');
+
+const steps = computed(() => [
   { number: 1, label: 'Machine' },
   { number: 2, label: 'Path' },
-  { number: 3, label: 'Context' },
-  { number: 4, label: 'Tasks' },
+  { number: 3, label: isPrdMode.value ? 'PRD' : 'Context' },
+  { number: 4, label: isPrdMode.value ? 'Plan' : 'Tasks' },
   { number: 5, label: 'Launch' },
-];
+]);
+
+function handleModeSwitch(mode: WizardMode): void {
+  setWizardMode(mode);
+}
+
+async function handleDecompose(): Promise<void> {
+  if (!state.machineId || !state.prd || !state.credentialId) return;
+
+  try {
+    let projectId = state._projectId;
+
+    if (!projectId) {
+      // Create project silently for decomposition
+      const { useProjectsStore } = await import('@/stores/projects');
+      const store = useProjectsStore();
+      const project = await store.createProject(state.machineId, {
+        name: state.projectName || state.path.split('/').pop() || 'New Project',
+        project_path: state.path,
+        summary: '',
+      });
+      projectId = project.id;
+      state._projectId = projectId;
+    }
+
+    await startDecomposition(projectId, state.prd, state.credentialId);
+  } catch {
+    // Error handled by useDecomposition composable
+  }
+}
+
+// Watch for decomposition completion
+watch(decomposedPlan, (plan) => {
+  if (plan) {
+    setMasterPlan(plan);
+  }
+});
+
+function handleMasterPlanUpdate(plan: MasterPlan): void {
+  setMasterPlan(plan);
+}
 </script>
 
 <style scoped>
@@ -247,5 +364,27 @@ const steps = [
 
 .btn-secondary:disabled {
   @apply opacity-50 cursor-not-allowed;
+}
+
+/* Mode Toggle */
+.mode-toggle {
+  @apply flex gap-1 p-1 bg-dark-3 rounded-lg w-fit mb-4;
+}
+
+.mode-btn {
+  @apply px-4 py-2 text-sm font-medium rounded-md text-gray-400 hover:text-white transition-colors;
+}
+
+.mode-btn-active {
+  @apply bg-brand-purple text-white;
+}
+
+/* PRD Step */
+.prd-step {
+  @apply space-y-4;
+}
+
+.decompose-success {
+  @apply flex items-center gap-2 p-3 bg-green-500/10 border border-green-500/20 rounded-lg;
 }
 </style>

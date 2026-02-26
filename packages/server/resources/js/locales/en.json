@@ -334,6 +334,29 @@
       "next": "Next",
       "create": "Create Project",
       "creating": "Creating..."
+    },
+    "decompose": {
+      "prd_title": "PRD / Feature Description",
+      "prd_description": "Describe the feature or paste a PRD. Claude will decompose it into a structured plan.",
+      "prd_placeholder": "Describe the feature to build, the acceptance criteria, technical constraints...\n\nExample:\n## Feature: User Authentication\n\n### Requirements\n- Email/password login\n- OAuth with Google\n- JWT token management\n\n### Technical Constraints\n- Laravel Sanctum for API auth\n- Vue.js SPA frontend",
+      "credential": "AI Credential",
+      "select_credential": "Select a credential...",
+      "decompose_btn": "Decompose with AI",
+      "decomposing": "Decomposing...",
+      "in_progress": "Decomposition in progress",
+      "waiting_output": "Waiting for Claude output...",
+      "mode_prd": "PRD / Feature",
+      "mode_manual": "Manual Context"
+    },
+    "masterplan": {
+      "title": "Master Plan",
+      "waves": "waves",
+      "tasks": "tasks",
+      "add_wave": "Add Wave",
+      "add_task": "Add Task",
+      "task_title": "Task title...",
+      "task_description": "Task description...",
+      "no_plan": "No master plan generated yet. Go back to step 3 to decompose a PRD."
     }
   },
   "tasks": {

@@ -100,6 +100,7 @@ const {
   connect,
   disconnect,
   fit,
+  writeInitialLogs,
   search,
   findNext,
   findPrevious,
@@ -173,6 +174,7 @@ defineExpose({
   fit,
   connect,
   disconnect,
+  writeInitialLogs,
   openSearch,
   closeSearch,
 });

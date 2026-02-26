@@ -5,7 +5,9 @@ namespace App\Console\Commands;
 use App\Models\Machine;
 use App\Models\PersonalAccessToken;
 use App\Models\Session;
+use App\Models\SharedProject;
 use App\Services\AgentGateway;
+use App\Services\DecompositionService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
@@ -343,6 +345,8 @@ class AgentServe extends Command
                 'project:scan_result' => $this->onRequestResponse($data),
                 'orchestrator:state' => $this->onRequestResponse($data),
                 'orchestrator:error' => $this->onRequestResponse($data),
+                'decompose:progress' => $this->onDecomposeProgress($data),
+                'decompose:result' => $this->onDecomposeResult($data),
                 'ping' => $this->sendToAgent($machineId, 'pong', ['timestamp' => now()->getTimestampMs()]),
                 'error' => $this->onAgentError($machineId, $data),
                 default => $this->warn("[" . date('H:i:s') . "] Unknown agent message type: {$type}"),
@@ -516,6 +520,59 @@ class AgentServe extends Command
         $key = "agent:response:{$requestId}";
         Redis::rpush($key, json_encode($data));
         Redis::expire($key, 30);
+    }
+
+    private function onDecomposeProgress(array $data): void
+    {
+        $projectId = $data['projectId'] ?? null;
+        if (!$projectId) return;
+
+        // Broadcast progress to frontend via Reverb
+        broadcast(new \App\Events\ProjectBroadcast(
+            SharedProject::find($projectId),
+            [
+                'type' => 'decompose:progress',
+                'data' => $data['output'] ?? '',
+                'percent' => $data['percent'] ?? null,
+            ],
+        ));
+    }
+
+    private function onDecomposeResult(array $data): void
+    {
+        $projectId = $data['projectId'] ?? null;
+        if (!$projectId) return;
+
+        $project = SharedProject::find($projectId);
+        if (!$project) return;
+
+        if (!empty($data['success']) && !empty($data['plan'])) {
+            $service = app(DecompositionService::class);
+            $validation = $service->validateMasterPlan($data['plan']);
+
+            if ($validation['valid']) {
+                $project->update(['master_plan' => $validation['plan']]);
+            }
+
+            broadcast(new \App\Events\ProjectBroadcast(
+                $project,
+                [
+                    'type' => 'decompose:result',
+                    'success' => $validation['valid'],
+                    'plan' => $validation['plan'],
+                    'errors' => $validation['errors'],
+                ],
+            ));
+        } else {
+            broadcast(new \App\Events\ProjectBroadcast(
+                $project,
+                [
+                    'type' => 'decompose:result',
+                    'success' => false,
+                    'error' => $data['error'] ?? 'Unknown decomposition error',
+                ],
+            ));
+        }
     }
 
     // ==================== Server → Agent ====================

@@ -93,6 +93,32 @@ async function main(): Promise<void> {
 }
 
 async function handleStart(options: CLIOptions): Promise<void> {
+  // Daemon mode: fork a detached child and exit the parent
+  if (options.daemon && !process.env.__CLAUDENEST_DAEMONIZED) {
+    const { spawn } = await import('child_process');
+    const logDir = getCacheDir();
+    await ensureDir(logDir);
+
+    const outFile = path.join(logDir, 'agent.out.log');
+    const errFile = path.join(logDir, 'agent.err.log');
+    const { openSync } = await import('fs');
+    const out = openSync(outFile, 'a');
+    const err = openSync(errFile, 'a');
+
+    // Re-launch the same command without --daemon, as a detached process
+    const args = process.argv.slice(1).filter(a => a !== '--daemon' && a !== '-d');
+    const child = spawn(process.argv[0], args, {
+      detached: true,
+      stdio: ['ignore', out, err],
+      env: { ...process.env, __CLAUDENEST_DAEMONIZED: '1' },
+    });
+
+    child.unref();
+    console.log(`Agent started in background (PID: ${child.pid})`);
+    console.log(`Logs: ${outFile}`);
+    process.exit(0);
+  }
+
   logger.info({}, 'Starting ClaudeNest Agent...');
 
   // Check for updates (non-blocking, 5s timeout, 24h cache)
@@ -154,12 +180,6 @@ async function handleStart(options: CLIOptions): Promise<void> {
     logger.info({}, 'Agent started successfully');
     logger.info({ server: config.serverUrl }, `Server: ${config.serverUrl}`);
     logger.info({ machineId }, `Machine ID: ${machineId}`);
-
-    // Keep process alive
-    if (options.daemon) {
-      // TODO: Implement proper daemonization
-      logger.info({}, 'Running in daemon mode');
-    }
 
     // Handle graceful shutdown
     process.on('SIGINT', async () => {

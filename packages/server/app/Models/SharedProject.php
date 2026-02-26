@@ -39,6 +39,8 @@ class SharedProject extends Model
         'summary',
         'architecture',
         'conventions',
+        'prd',
+        'master_plan',
         'current_focus',
         'recent_changes',
         'total_tokens',
@@ -52,6 +54,7 @@ class SharedProject extends Model
     protected $casts = [
         'total_tokens' => 'integer',
         'max_tokens' => 'integer',
+        'master_plan' => 'array',
         'settings' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',

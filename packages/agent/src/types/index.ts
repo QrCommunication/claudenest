@@ -167,6 +167,7 @@ export type IncomingMessageType =
   | 'file:unlock'
   | 'file:browse'
   | 'project:scan'
+  | 'decompose:start'
   | OrchestratorIncomingMessage
   | 'ping';
 
@@ -184,6 +185,8 @@ export type OutgoingMessageType =
   | 'file:lock_update'
   | 'file:browse_result'
   | 'project:scan_result'
+  | 'decompose:progress'
+  | 'decompose:result'
   | OrchestratorOutgoingMessage
   | 'pong'
   | 'error';
@@ -492,6 +495,52 @@ export type OrchestratorOutgoingMessage =
   | 'orchestrator:task_claimed'
   | 'orchestrator:task_completed'
   | 'orchestrator:error';
+
+// ============================================
+// Decomposition (PRD → Master Plan)
+// ============================================
+
+export interface DecomposeStartPayload {
+  projectId: string;
+  projectPath: string;
+  prompt: string;
+  credentialEnv?: Record<string, string>;
+}
+
+export interface DecomposeProgressPayload {
+  projectId: string;
+  output: string;
+  percent?: number;
+}
+
+export interface DecomposeResultPayload {
+  projectId: string;
+  success: boolean;
+  plan?: MasterPlan;
+  error?: string;
+}
+
+export interface MasterPlan {
+  version: 1;
+  prd_summary: string;
+  waves: MasterPlanWave[];
+}
+
+export interface MasterPlanWave {
+  id: number;
+  name: string;
+  description: string;
+  tasks: MasterPlanTask[];
+}
+
+export interface MasterPlanTask {
+  title: string;
+  description: string;
+  priority: TaskPriority;
+  files: string[];
+  estimated_tokens?: number;
+  depends_on: string[];
+}
 
 // ============================================
 // Utility Types

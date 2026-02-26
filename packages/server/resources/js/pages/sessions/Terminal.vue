@@ -153,12 +153,6 @@ async function loadSession(): Promise<void> {
   
   try {
     await sessionsStore.fetchSession(sessionId.value);
-    
-    // If session has recent logs, they will be loaded
-    const currentSession = sessionsStore.currentSession;
-    if (currentSession?.recent_logs && currentSession.recent_logs.length > 0) {
-      // Logs are already in the session object
-    }
   } catch (err) {
     error.value = err instanceof Error ? err.message : t('sessions.terminal.loading_session');
   } finally {
@@ -201,6 +195,14 @@ function handleFit(): void {
 }
 
 function handleConnected(): void {
+  // Replay recent_logs into terminal on first connection
+  if (!hasConnected.value) {
+    const logs = sessionsStore.currentSession?.recent_logs;
+    if (logs && logs.length > 0) {
+      terminalRef.value?.writeInitialLogs(logs);
+    }
+  }
+
   hasConnected.value = true;
   showReconnectToast.value = false;
   reconnectAttempts.value = 0;

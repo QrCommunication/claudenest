@@ -95,6 +95,13 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::delete('projects/{project}', [Api\ProjectController::class, 'destroy']);
     Route::get('projects/{project}/stats', [Api\ProjectController::class, 'stats']);
 
+    // ==================== DECOMPOSITION (PRD → Master Plan) ====================
+    Route::post('projects/{project}/decompose', [Api\DecompositionController::class, 'decompose']);
+    Route::get('projects/{project}/master-plan', [Api\DecompositionController::class, 'getMasterPlan']);
+    Route::put('projects/{project}/master-plan', [Api\DecompositionController::class, 'updateMasterPlan']);
+    Route::post('projects/{project}/master-plan/apply', [Api\DecompositionController::class, 'applyMasterPlan']);
+    Route::post('projects/{project}/master-plan/regenerate', [Api\DecompositionController::class, 'regenerate']);
+
     // Orchestrator controls
     Route::post('projects/{project}/orchestrator/start', [Api\ProjectController::class, 'startOrchestrator']);
     Route::post('projects/{project}/orchestrator/stop', [Api\ProjectController::class, 'stopOrchestrator']);

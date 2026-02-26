@@ -19,6 +19,7 @@ import {
   createFileHandlers,
   createOrchestratorHandlers,
   createScanHandlers,
+  createDecomposeHandlers,
 } from './handlers/index.js';
 import type {
   AgentConfig,
@@ -395,6 +396,13 @@ export class ClaudeNestAgent extends EventEmitter {
       logger: this.logger,
     });
 
+    // Decompose handlers
+    const decomposeHandlers = createDecomposeHandlers({
+      sessionManager: this.sessionManager,
+      wsClient: this.wsClient,
+      logger: this.logger,
+    });
+
     // Register all handlers
     for (const [type, handler] of Object.entries(sessionHandlers)) {
       this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
@@ -412,6 +420,9 @@ export class ClaudeNestAgent extends EventEmitter {
       this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
     }
     for (const [type, handler] of Object.entries(scanHandlers)) {
+      this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
+    }
+    for (const [type, handler] of Object.entries(decomposeHandlers)) {
       this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
     }
 

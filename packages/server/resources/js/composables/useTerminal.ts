@@ -74,7 +74,7 @@ export interface UseTerminalReturn {
   searchAddon: Ref<SearchAddon | null>;
   connectionStatus: Ref<ConnectionStatus>;
   isReady: Ref<boolean>;
-  
+
   // Methods
   initialize: (container: HTMLElement) => void;
   connect: () => Promise<void>;
@@ -82,6 +82,7 @@ export interface UseTerminalReturn {
   fit: () => void;
   sendInput: (data: string) => void;
   clear: () => void;
+  writeInitialLogs: (logs: Array<{ type: string; data: string }>) => void;
   search: (query: string, options?: { backwards?: boolean }) => boolean;
   findNext: (query: string) => boolean;
   findPrevious: (query: string) => boolean;
@@ -342,7 +343,16 @@ export function useTerminal(options: UseTerminalOptions): UseTerminalReturn {
   // ============================================================================
   // Terminal Methods
   // ============================================================================
-  
+
+  function writeInitialLogs(logs: Array<{ type: string; data: string }>): void {
+    if (!terminal.value || logs.length === 0) return;
+    for (const log of logs) {
+      if (log.type === 'output' || log.type === 'input') {
+        terminal.value.write(log.data);
+      }
+    }
+  }
+
   function clear(): void {
     terminal.value?.clear();
   }
@@ -427,6 +437,7 @@ export function useTerminal(options: UseTerminalOptions): UseTerminalReturn {
     fit: fitTerminal,
     sendInput,
     clear,
+    writeInitialLogs,
     search,
     findNext,
     findPrevious,
