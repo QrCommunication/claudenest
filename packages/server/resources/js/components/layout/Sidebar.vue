@@ -116,6 +116,7 @@ import {
   SparklesIcon,
   WrenchScrewdriverIcon,
   Squares2X2Icon,
+  KeyIcon,
   Cog6ToothIcon,
 } from '@heroicons/vue/24/outline';
 import type { NavItem } from '@/types';
@@ -143,6 +144,7 @@ const iconMap = {
   SparklesIcon,
   WrenchScrewdriverIcon,
   Squares2X2Icon,
+  KeyIcon,
   Cog6ToothIcon,
 };
 
@@ -155,6 +157,7 @@ const navItemsConfig: Array<NavItem & { iconName: keyof typeof iconMap }> = [
   { name: 'Skills', path: '/skills', icon: 'sparkles', iconName: 'SparklesIcon' },
   { name: 'MCP', path: '/mcp', icon: 'wrench', iconName: 'WrenchScrewdriverIcon' },
   { name: 'Commands', path: '/commands', icon: 'command', iconName: 'Squares2X2Icon' },
+  { name: 'Credentials', path: '/credentials', icon: 'key', iconName: 'KeyIcon' },
   { name: 'Settings', path: '/settings', icon: 'gear', iconName: 'Cog6ToothIcon' },
 ];
 

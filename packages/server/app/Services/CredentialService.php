@@ -185,13 +185,15 @@ class CredentialService
 
     /**
      * Test if a credential is valid.
+     *
+     * Always returns a consistent shape: {valid, message, ...extras}
      */
     public function testCredential(ClaudeCredential $credential): array
     {
         if ($credential->auth_type === 'api_key') {
             $key = $credential->getApiKey();
             if (!$key) {
-                return ['valid' => false, 'reason' => 'No API key stored'];
+                return ['valid' => false, 'message' => 'No API key stored for this credential'];
             }
             $response = Http::timeout(10)
                 ->withHeaders(['x-api-key' => $key, 'anthropic-version' => '2023-06-01'])
@@ -200,15 +202,39 @@ class CredentialService
                     'max_tokens' => 1,
                     'messages' => [['role' => 'user', 'content' => 'hi']],
                 ]);
+
+            if ($response->successful()) {
+                return ['valid' => true, 'message' => 'API key is valid'];
+            }
+
+            $status = $response->status();
+            $messages = [
+                401 => 'Invalid API key (authentication failed)',
+                403 => 'API key lacks required permissions',
+                429 => 'Rate limited — try again later',
+            ];
+
             return [
-                'valid' => $response->successful(),
-                'status' => $response->status(),
+                'valid' => false,
+                'message' => $messages[$status] ?? "API returned HTTP {$status}",
+                'status' => $status,
             ];
         }
 
+        $tokenStatus = $credential->token_status;
+        $isValid = !$credential->is_expired && $tokenStatus === 'ok';
+
+        $messages = [
+            'ok' => 'OAuth token is active',
+            'expired' => 'OAuth token has expired — use Refresh',
+            'needs_login' => 'No access token — use Capture to import tokens',
+            'missing' => 'No token stored',
+        ];
+
         return [
-            'valid' => !$credential->is_expired,
-            'token_status' => $credential->token_status,
+            'valid' => $isValid,
+            'message' => $messages[$tokenStatus] ?? "Token status: {$tokenStatus}",
+            'token_status' => $tokenStatus,
             'expires_at' => $credential->expires_at?->toIso8601String(),
         ];
     }

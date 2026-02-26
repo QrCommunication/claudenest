@@ -194,6 +194,19 @@ const routes: RouteRecordRaw[] = [
                     ],
                 },
             },
+            {
+                path: 'projects/:id/orchestration',
+                name: 'projects.orchestration',
+                component: () => import('@/pages/projects/Orchestration.vue'),
+                meta: {
+                    requiresAuth: true,
+                    breadcrumb: [
+                        { label: 'Projects', to: '/projects' },
+                        { label: 'Project', to: '/projects/:id' },
+                        { label: 'Orchestration' },
+                    ],
+                },
+            },
 
             // Global Tasks View
             {

@@ -107,9 +107,9 @@ async function handleTest(id: string): Promise<void> {
   try {
     const result = await store.testCredential(id);
     if (result.valid) {
-      toast.success('Credential is valid');
+      toast.success('Credential is valid', String(result.message || ''));
     } else {
-      toast.error('Credential is invalid', String(result.reason || result.token_status || ''));
+      toast.error('Credential is invalid', String(result.message || 'Unknown error'));
     }
   } catch (error) {
     toast.error('Test failed', getErrorMessage(error));

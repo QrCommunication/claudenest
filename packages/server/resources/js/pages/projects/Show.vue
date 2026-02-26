@@ -170,6 +170,11 @@
           <ContextViewer :project-id="projectId" />
         </div>
 
+        <!-- Orchestration Tab -->
+        <div v-else-if="activeTab === 'orchestration'" class="tab-panel">
+          <OrchestrationPanel />
+        </div>
+
         <!-- Instances Tab -->
         <div v-else-if="activeTab === 'instances'" class="tab-panel">
           <div class="instances-grid">
@@ -273,6 +278,7 @@ import Card from '@/components/common/Card.vue';
 import InstanceBadge from '@/components/projects/InstanceBadge.vue';
 import TasksBoard from './Tasks.vue';
 import ContextViewer from './Context.vue';
+import OrchestrationPanel from './Orchestration.vue';
 
 const route = useRoute();
 const projectsStore = useProjectsStore();
@@ -291,6 +297,7 @@ const tabs = [
   { id: 'overview', label: 'Overview', icon: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z' },
   { id: 'tasks', label: 'Tasks', icon: 'M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z' },
   { id: 'context', label: 'Context', icon: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z' },
+  { id: 'orchestration', label: 'Orchestration', icon: 'M22 11V3h-7v3H9V3H2v8h7V8h2v10h4v3h7v-8h-7v3h-2V8h2v3h7zM7 9H4V5h3v4zm10 6h3v4h-3v-4zm0-10h3v4h-3V5z' },
   { id: 'instances', label: 'Instances', icon: 'M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z' },
   { id: 'activity', label: 'Activity', icon: 'M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z' },
 ];
