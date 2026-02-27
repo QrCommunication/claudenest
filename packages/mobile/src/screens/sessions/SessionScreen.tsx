@@ -9,7 +9,6 @@ import {
   StyleSheet,
   Alert,
   TouchableOpacity,
-  KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -19,7 +18,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { SessionsStackParamList } from '@/navigation/types';
 
 import { LoadingSpinner, Button, ErrorMessage } from '@/components/common';
-import { SessionOutput, SessionInput } from '@/components/sessions';
+import { TerminalWebView } from '@/components/sessions';
 
 type Props = NativeStackScreenProps<SessionsStackParamList, 'Session'>;
 
@@ -30,6 +29,7 @@ export const SessionScreen: React.FC<Props> = ({ route, navigation }) => {
     fetchSession,
     terminateSession,
     subscribeToSession,
+    sendInput,
     clearError,
     error,
   } = useSessionsStore();
@@ -94,6 +94,13 @@ export const SessionScreen: React.FC<Props> = ({ route, navigation }) => {
     );
   }, [sessionId, terminateSession, navigation]);
 
+  const handleInput = useCallback(
+    (data: string) => {
+      sendInput(sessionId, data);
+    },
+    [sessionId, sendInput]
+  );
+
   if (!session) {
     return <LoadingSpinner text="Loading session..." fullScreen />;
   }
@@ -103,24 +110,17 @@ export const SessionScreen: React.FC<Props> = ({ route, navigation }) => {
   );
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-    >
+    <View style={styles.container}>
       {error && (
         <ErrorMessage message={error} onDismiss={clearError} />
       )}
 
       <View style={styles.outputContainer}>
-        <SessionOutput sessionId={sessionId} />
+        <TerminalWebView
+          sessionId={sessionId}
+          onInput={isActive ? handleInput : undefined}
+        />
       </View>
-
-      {isActive && (
-        <View style={styles.inputContainer}>
-          <SessionInput sessionId={sessionId} disabled={!isActive} />
-        </View>
-      )}
 
       {!isActive && (
         <View style={styles.endedContainer}>
@@ -132,7 +132,7 @@ export const SessionScreen: React.FC<Props> = ({ route, navigation }) => {
           />
         </View>
       )}
-    </KeyboardAvoidingView>
+    </View>
   );
 };
 
@@ -147,12 +147,6 @@ const styles = StyleSheet.create({
   },
   outputContainer: {
     flex: 1,
-    padding: spacing.md,
-  },
-  inputContainer: {
-    padding: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.background.dark4,
   },
   endedContainer: {
     padding: spacing.md,

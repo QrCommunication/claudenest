@@ -12,13 +12,13 @@ import axios, {
 import type { ApiResponse, ApiError } from '@/types';
 import { useAuthStore } from '@/stores/authStore';
 
-// API Configuration
-const API_BASE_URL = process.env.CLAUDENEST_API_URL || 'https://api.claudenest.app';
-const API_VERSION = 'v1';
+// API Configuration — override via EXPO_PUBLIC_API_URL in .env
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://api.claudenest.app';
+// Server routes are /api/* (no /v1 prefix)
 
 // Create axios instance
 const apiClient: AxiosInstance = axios.create({
-  baseURL: `${API_BASE_URL}/api/${API_VERSION}`,
+  baseURL: `${API_BASE_URL}/api`,
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
@@ -108,9 +108,17 @@ export const api = {
 
 // Specific API endpoints
 export const authApi = {
+  // Email + password login (standard Sanctum)
+  loginWithPassword: (email: string, password: string) =>
+    api.post<{ user: import('@/types').User; token: string; expires_at: string }>(
+      '/auth/login',
+      { email, password }
+    ),
+
+  // Magic link (kept for compatibility)
   login: (email: string) =>
     api.post<{ message: string }>('/auth/magic-link', { email }),
-  
+
   verifyMagicLink: (token: string) =>
     api.post<{
       user: import('@/types').User;
@@ -118,7 +126,7 @@ export const authApi = {
     }>('/auth/magic-link/verify', { token }),
 
   logout: () => api.post('/auth/logout'),
-  
+
   me: () => api.get<import('@/types').User>('/auth/me'),
 };
 
@@ -249,18 +257,51 @@ export const tasksApi = {
 export const locksApi = {
   list: (projectId: string) =>
     api.get<import('@/types').FileLock[]>(`/projects/${projectId}/locks`),
-  
+
   create: (projectId: string, path: string, reason?: string) =>
     api.post<import('@/types').FileLock>(`/projects/${projectId}/locks`, {
       path,
       reason,
     }),
-  
+
   delete: (projectId: string, path: string) =>
     api.delete(`/projects/${projectId}/locks/${path}`),
-  
+
   forceDelete: (projectId: string, path: string) =>
     api.delete(`/projects/${projectId}/locks/${path}/force`),
+};
+
+export const credentialsApi = {
+  list: () => apiClient.get('/credentials'),
+
+  get: (id: string) => apiClient.get(`/credentials/${id}`),
+
+  create: (data: {
+    name: string;
+    auth_type: 'api_key' | 'oauth';
+    claude_dir_mode: 'shared' | 'isolated';
+    api_key?: string;
+    access_token?: string;
+    refresh_token?: string;
+  }) => apiClient.post('/credentials', data),
+
+  update: (id: string, data: {
+    name?: string;
+    api_key?: string;
+    access_token?: string;
+    refresh_token?: string;
+    claude_dir_mode?: 'shared' | 'isolated';
+  }) => apiClient.patch(`/credentials/${id}`, data),
+
+  delete: (id: string) => apiClient.delete(`/credentials/${id}`),
+
+  setDefault: (id: string) => apiClient.patch(`/credentials/${id}/default`),
+
+  test: (id: string) => apiClient.post(`/credentials/${id}/test`),
+
+  refresh: (id: string) => apiClient.post(`/credentials/${id}/refresh`),
+
+  initiateOAuth: (id: string) => apiClient.post(`/credentials/${id}/oauth/initiate`),
 };
 
 export default apiClient;

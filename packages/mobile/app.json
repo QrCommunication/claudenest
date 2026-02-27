@@ -1,4 +1,37 @@
 {
-  "name": "ClaudeNest",
-  "displayName": "ClaudeNest"
+  "expo": {
+    "name": "ClaudeNest",
+    "slug": "claudenest",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "scheme": "claudenest",
+    "splash": {
+      "backgroundColor": "#0f0f1a"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "io.claudenest.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0f0f1a"
+      },
+      "package": "io.claudenest.app",
+      "softwareKeyboardLayoutMode": "pan"
+    },
+    "plugins": [
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0f0f1a",
+          "dark": {
+            "backgroundColor": "#0f0f1a"
+          }
+        }
+      ]
+    ]
+  }
 }

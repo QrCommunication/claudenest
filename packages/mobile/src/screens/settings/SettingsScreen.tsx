@@ -133,6 +133,12 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
         <Text style={styles.sectionTitle}>App</Text>
         <Card>
           <SettingsItem
+            icon="key"
+            title="Credentials"
+            subtitle="Manage API keys & OAuth tokens"
+            onPress={() => navigation.navigate('Credentials')}
+          />
+          <SettingsItem
             icon="help-outline"
             title="Help & Documentation"
             onPress={handleHelp}
