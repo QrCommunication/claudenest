@@ -44,6 +44,8 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
         Route::post('/logout', [Api\AuthController::class, 'logout']);
         Route::get('/me', [Api\AuthController::class, 'me']);
         Route::post('/refresh', [Api\AuthController::class, 'refresh']);
+        Route::patch('/profile', [Api\AuthController::class, 'updateProfile']);
+        Route::post('/avatar', [Api\AuthController::class, 'updateAvatar']);
         Route::get('/tokens', [Api\AuthController::class, 'listTokens']);
         Route::post('/tokens', [Api\AuthController::class, 'createToken']);
         Route::delete('/tokens/{id}', [Api\AuthController::class, 'revokeToken']);

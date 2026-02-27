@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password as PasswordRule;
 use Illuminate\Validation\ValidationException;
@@ -394,6 +395,60 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'data' => $tokens,
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
+    }
+
+    /**
+     * Update current user profile (name, email).
+     */
+    public function updateProfile(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => 'sometimes|string|max:255',
+            'email' => 'sometimes|email|max:255|unique:users,email,' . $request->user()->id,
+        ]);
+
+        $request->user()->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'data' => ['user' => $this->formatUser($request->user()->fresh())],
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
+    }
+
+    /**
+     * Upload and update user avatar.
+     */
+    public function updateAvatar(Request $request): JsonResponse
+    {
+        $request->validate([
+            'avatar' => 'required|image|max:2048',
+        ]);
+
+        $user = $request->user();
+
+        // Delete old local avatar
+        if ($user->avatar_url && str_contains($user->avatar_url, '/storage/avatars/')) {
+            $oldPath = 'avatars/' . basename($user->avatar_url);
+            Storage::disk('public')->delete($oldPath);
+        }
+
+        $path = $request->file('avatar')->store('avatars', 'public');
+        $url = config('app.url') . '/storage/' . $path;
+
+        $user->update(['avatar_url' => $url]);
+
+        return response()->json([
+            'success' => true,
+            'data' => ['user' => $this->formatUser($user->fresh())],
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),

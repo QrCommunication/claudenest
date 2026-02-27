@@ -32,14 +32,24 @@
         <Card v-if="activeSection === 'profile'" title="Profile Settings">
           <div class="space-y-4">
             <div class="flex items-center gap-4 mb-6">
-              <div class="w-20 h-20 rounded-full bg-gradient-to-br from-brand-purple to-brand-indigo flex items-center justify-center text-2xl font-bold text-white">
-                {{ userInitials }}
+              <div class="relative w-20 h-20">
+                <div v-if="!authStore.user?.avatar_url" class="w-20 h-20 rounded-full bg-gradient-to-br from-brand-purple to-brand-indigo flex items-center justify-center text-2xl font-bold text-white">
+                  {{ userInitials }}
+                </div>
+                <img v-else :src="authStore.user.avatar_url" :alt="authStore.user.name" class="w-20 h-20 rounded-full object-cover" />
+                <input
+                  ref="avatarInput"
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  class="hidden"
+                  @change="handleAvatarChange"
+                />
               </div>
               <div>
-                <Button variant="secondary" size="sm">
-                  Change Avatar
+                <Button variant="secondary" size="sm" :disabled="isUploadingAvatar" @click="avatarInput?.click()">
+                  {{ isUploadingAvatar ? 'Uploading...' : 'Change Avatar' }}
                 </Button>
-                <p class="text-xs text-dark-4 mt-2">JPG, PNG or GIF. Max 2MB.</p>
+                <p class="text-xs text-dark-4 mt-2">JPG, PNG, GIF or WebP. Max 2MB.</p>
               </div>
             </div>
 
@@ -58,8 +68,8 @@
             </div>
 
             <div class="pt-4 border-t border-dark-4">
-              <Button @click="saveProfile">
-                Save Changes
+              <Button :disabled="isSavingProfile" @click="saveProfile">
+                {{ isSavingProfile ? 'Saving...' : 'Save Changes' }}
               </Button>
             </div>
           </div>
@@ -208,8 +218,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useToast } from '@/composables/useToast';
+import { useAuthStore } from '@/stores/auth';
+import { api } from '@/composables/useApi';
 import Card from '@/components/common/Card.vue';
 import Button from '@/components/common/Button.vue';
 import Input from '@/components/common/Input.vue';
@@ -221,10 +233,14 @@ import {
 } from '@heroicons/vue/24/outline';
 
 const toast = useToast();
+const authStore = useAuthStore();
 
 const activeSection = ref('profile');
 const theme = ref('dark');
 const sidebarCollapsed = ref(false);
+const avatarInput = ref<HTMLInputElement | null>(null);
+const isUploadingAvatar = ref(false);
+const isSavingProfile = ref(false);
 
 const sections = [
   { id: 'profile', name: 'Profile', icon: UserCircleIcon },
@@ -234,8 +250,8 @@ const sections = [
 ];
 
 const profile = ref({
-  name: 'John Doe',
-  email: 'john@example.com',
+  name: authStore.user?.name || '',
+  email: authStore.user?.email || '',
 });
 
 const password = ref({
@@ -244,50 +260,75 @@ const password = ref({
   confirm: '',
 });
 
-const apiKey = ref('cn_live_1234567890abcdef');
+const apiKey = ref('cn_live_****');
 
 const notificationSettings = ref([
-  {
-    id: 'email_sessions',
-    name: 'Session Notifications',
-    description: 'Get notified when sessions start or end',
-    enabled: true,
-  },
-  {
-    id: 'email_tasks',
-    name: 'Task Updates',
-    description: 'Receive updates about task completions',
-    enabled: true,
-  },
-  {
-    id: 'email_machines',
-    name: 'Machine Status',
-    description: 'Get alerts when machines go offline',
-    enabled: false,
-  },
-  {
-    id: 'browser',
-    name: 'Browser Notifications',
-    description: 'Show desktop notifications',
-    enabled: true,
-  },
+  { id: 'email_sessions', name: 'Session Notifications', description: 'Get notified when sessions start or end', enabled: true },
+  { id: 'email_tasks', name: 'Task Updates', description: 'Receive updates about task completions', enabled: true },
+  { id: 'email_machines', name: 'Machine Status', description: 'Get alerts when machines go offline', enabled: false },
+  { id: 'browser', name: 'Browser Notifications', description: 'Show desktop notifications', enabled: true },
 ]);
 
 const userInitials = computed(() => {
-  return profile.value.name
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase();
+  const name = authStore.user?.name || profile.value.name || 'U';
+  return name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
 });
+
+onMounted(() => {
+  if (authStore.user) {
+    profile.value.name = authStore.user.name;
+    profile.value.email = authStore.user.email;
+  }
+});
+
+const handleAvatarChange = async (event: Event) => {
+  const file = (event.target as HTMLInputElement).files?.[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) {
+    toast.error('File too large', 'Avatar must be under 2MB');
+    return;
+  }
+  isUploadingAvatar.value = true;
+  try {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    const response = await api.post('/auth/avatar', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    if (authStore.user) {
+      authStore.user.avatar_url = response.data.data.user.avatar_url;
+    }
+    toast.success('Avatar Updated', 'Your profile picture has been updated');
+  } catch {
+    toast.error('Upload Failed', 'Could not update avatar');
+  } finally {
+    isUploadingAvatar.value = false;
+    if (avatarInput.value) avatarInput.value.value = '';
+  }
+};
 
 const setTheme = (newTheme: string) => {
   theme.value = newTheme;
   toast.success('Theme Updated', `Theme set to ${newTheme}`);
 };
 
-const saveProfile = () => {
-  toast.success('Profile Updated', 'Your profile has been saved');
+const saveProfile = async () => {
+  isSavingProfile.value = true;
+  try {
+    const response = await api.patch('/auth/profile', {
+      name: profile.value.name,
+      email: profile.value.email,
+    });
+    if (authStore.user) {
+      authStore.user.name = response.data.data.user.name;
+      authStore.user.email = response.data.data.user.email;
+    }
+    toast.success('Profile Updated', 'Your profile has been saved');
+  } catch {
+    toast.error('Error', 'Could not save profile');
+  } finally {
+    isSavingProfile.value = false;
+  }
 };
 
 const changePassword = () => {

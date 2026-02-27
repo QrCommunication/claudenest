@@ -32,6 +32,11 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
       </svg>
     </button>
+
+    <!-- User Menu -->
+    <div class="tab-bar-user">
+      <UserMenu :user="authStore.user" />
+    </div>
   </div>
 </template>
 
@@ -39,6 +44,8 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useTabs } from '@/composables/useTabs';
+import { useAuthStore } from '@/stores/auth';
+import UserMenu from '@/components/layout/UserMenu.vue';
 import {
   HomeIcon,
   CommandLineIcon,
@@ -53,6 +60,7 @@ import {
 } from '@heroicons/vue/24/outline';
 
 const router = useRouter();
+const authStore = useAuthStore();
 const { tabs, activeTabId, setActiveTab, closeTab, openTab } = useTabs();
 
 const tabsContainer = ref<HTMLElement | null>(null);
@@ -231,5 +239,14 @@ const handleNewSession = () => {
 .icon {
   width: 16px;
   height: 16px;
+}
+
+.tab-bar-user {
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  border-left: 1px solid var(--border-color);
+  height: 100%;
+  flex-shrink: 0;
 }
 </style>
