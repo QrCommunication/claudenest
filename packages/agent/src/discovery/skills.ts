@@ -79,6 +79,9 @@ export class SkillsDiscovery extends EventEmitter {
     // Discover global skills from ~/.claude/skills/
     try {
       const globalSkills = await this.discoverGlobalSkills();
+      for (const skill of globalSkills) {
+        this.skills.set(skill.path, skill);
+      }
       discoveredSkills.push(...globalSkills);
     } catch (error) {
       this.logger.error({ err: error }, 'Failed to discover global skills');

@@ -4,7 +4,7 @@
  */
 
 import type { Logger, Skill, MCPServer } from '../types/index.js';
-import type { RestApiClient, SkillSyncPayload, MCPSyncPayload } from '../api/client.js';
+import type { RestApiClient, SkillSyncPayload, MCPSyncPayload, CommandSyncPayload } from '../api/client.js';
 import type { SkillsDiscovery } from '../discovery/skills.js';
 import type { MCPManager } from '../discovery/mcp.js';
 
@@ -41,6 +41,7 @@ export class SyncService {
     const results = await Promise.allSettled([
       this.syncSkills(),
       this.syncMCP(),
+      this.syncCommands(),
     ]);
 
     for (const result of results) {
@@ -124,6 +125,28 @@ export class SyncService {
       this.logger.info({ count: servers.length }, 'MCP servers synced');
     } else {
       this.logger.warn({ error: response.error }, 'MCP sync failed');
+    }
+  }
+
+  private async syncCommands(): Promise<void> {
+    const commands = this.skillsDiscovery.getAllCommands();
+    if (commands.length === 0) {
+      this.logger.debug('No commands to sync');
+      return;
+    }
+
+    const payload: CommandSyncPayload[] = commands.map(c => ({
+      name: c.name,
+      description: c.description,
+      category: c.category,
+      source: c.source,
+    }));
+
+    const response = await this.apiClient.syncCommands(this.machineId, payload);
+    if (response.success) {
+      this.logger.info({ count: commands.length }, 'Commands synced');
+    } else {
+      this.logger.warn({ error: response.error }, 'Commands sync failed');
     }
   }
 

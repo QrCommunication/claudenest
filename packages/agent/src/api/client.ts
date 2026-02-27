@@ -33,9 +33,11 @@ export class RestApiClient {
       .replace(/^wss:\/\//, 'https://')
       .replace(/:\d+$/, ''); // Remove WS port, use default HTTP port
 
-    // If baseUrl doesn't include /api, assume standard Laravel setup
-    if (!this.baseUrl.includes('/api')) {
-      this.baseUrl = `${this.baseUrl}/api`;
+    // Check URL *path* (not hostname) for /api — avoids false positive
+    // from subdomains like api.example.com where "://api." matches "/api"
+    const urlPath = this.baseUrl.replace(/^https?:\/\/[^/]+/, '');
+    if (!urlPath.includes('/api')) {
+      this.baseUrl = this.baseUrl.replace(/\/$/, '') + '/api';
     }
 
     this.headers = {
