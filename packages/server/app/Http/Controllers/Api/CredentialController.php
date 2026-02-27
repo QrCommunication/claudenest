@@ -9,9 +9,14 @@ use App\Http\Resources\CredentialResource;
 use App\Models\ClaudeCredential;
 use App\Services\CredentialService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class CredentialController extends Controller
 {
@@ -519,6 +524,117 @@ class CredentialController extends Controller
             'data' => new CredentialResource($credential->fresh()),
             'meta' => ['timestamp' => now()->toIso8601String()],
         ]);
+    }
+
+    /**
+     * Initiate OAuth flow — generate PKCE + auth URL for popup.
+     */
+    public function initiateOAuth(Request $request, string $id): JsonResponse
+    {
+        $credential = $request->user()->credentials()->findOrFail($id);
+
+        if ($credential->auth_type !== 'oauth') {
+            return $this->errorResponse('NOT_OAUTH', 'This credential does not use OAuth', 422);
+        }
+
+        // Generate PKCE code_verifier (RFC 7636)
+        $codeVerifier = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
+        $codeChallenge = rtrim(strtr(base64_encode(hash('sha256', $codeVerifier, true)), '+/', '-_'), '=');
+
+        $state = Str::random(40);
+
+        Cache::put("oauth_pkce_{$state}", [
+            'code_verifier' => $codeVerifier,
+            'credential_id' => $id,
+            'user_id' => $request->user()->id,
+        ], now()->addMinutes(10));
+
+        $redirectUri = config('app.url') . '/api/oauth/callback';
+
+        $authUrl = 'https://claude.ai/oauth/authorize?' . http_build_query([
+            'response_type' => 'code',
+            'client_id' => '9d1c250a-e61b-44d9-88ed-5944d1962f5e',
+            'redirect_uri' => $redirectUri,
+            'scope' => 'user:inference',
+            'state' => $state,
+            'code_challenge' => $codeChallenge,
+            'code_challenge_method' => 'S256',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => ['auth_url' => $authUrl],
+            'meta' => ['timestamp' => now()->toIso8601String()],
+        ]);
+    }
+
+    /**
+     * Public OAuth callback — exchange code for tokens, update credential, redirect popup.
+     */
+    public function oauthCallback(Request $request): RedirectResponse
+    {
+        $state = $request->query('state');
+        $code = $request->query('code');
+        $error = $request->query('error');
+
+        $completePage = config('app.url') . '/oauth-complete';
+        $pkceData = $state ? Cache::pull("oauth_pkce_{$state}") : null;
+
+        if (!$pkceData) {
+            return redirect($completePage . '?error=' . urlencode('Invalid or expired state. Please try again.'));
+        }
+
+        if ($error) {
+            return redirect($completePage . '?error=' . urlencode($error));
+        }
+
+        if (!$code) {
+            return redirect($completePage . '?error=' . urlencode('No authorization code received.'));
+        }
+
+        try {
+            $response = Http::asForm()->post('https://platform.claude.com/v1/oauth/token', [
+                'grant_type' => 'authorization_code',
+                'client_id' => '9d1c250a-e61b-44d9-88ed-5944d1962f5e',
+                'code' => $code,
+                'redirect_uri' => config('app.url') . '/api/oauth/callback',
+                'code_verifier' => $pkceData['code_verifier'],
+            ]);
+
+            if (!$response->successful()) {
+                $body = $response->json();
+                $msg = $body['error_description'] ?? $body['error'] ?? 'Token exchange failed';
+                return redirect($completePage . '?error=' . urlencode($msg));
+            }
+
+            $tokens = $response->json();
+
+            $credential = ClaudeCredential::find($pkceData['credential_id']);
+            if (!$credential) {
+                return redirect($completePage . '?error=' . urlencode('Credential not found.'));
+            }
+
+            $accessToken = $tokens['access_token'];
+            $credential->access_token_enc = Crypt::encryptString($accessToken);
+            $credential->key_hint = 'oat01-...' . substr($accessToken, -6);
+
+            if (!empty($tokens['refresh_token'])) {
+                $credential->refresh_token_enc = Crypt::encryptString($tokens['refresh_token']);
+            }
+
+            if (!empty($tokens['expires_in'])) {
+                $credential->expires_at = now()->addSeconds((int) $tokens['expires_in']);
+            } elseif (!empty($tokens['expires_at'])) {
+                $credential->expires_at = \Carbon\Carbon::createFromTimestampMs($tokens['expires_at']);
+            }
+
+            $credential->save();
+
+            return redirect($completePage . '?success=' . urlencode($pkceData['credential_id']));
+        } catch (\Exception $e) {
+            Log::error('OAuth callback error', ['message' => $e->getMessage()]);
+            return redirect($completePage . '?error=' . urlencode('Connection error. Please try again.'));
+        }
     }
 
     private function errorResponse(string $code, string $message, int $status): JsonResponse

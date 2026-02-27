@@ -72,7 +72,7 @@
       </button>
 
       <button
-        v-if="credential.auth_type === 'oauth'"
+        v-if="credential.auth_type === 'oauth' && credential.has_refresh_token && !needsReconnect"
         class="action-btn"
         @click="$emit('refresh', credential.id)"
         title="Refresh OAuth token"
@@ -83,11 +83,24 @@
         Refresh
       </button>
 
+      <!-- Connect button: shown when missing tokens or needs re-auth -->
+      <button
+        v-if="credential.auth_type === 'oauth' && needsReconnect"
+        class="action-btn action-btn-connect"
+        @click="$emit('connect', credential.id)"
+        title="Connect with your Claude account"
+      >
+        <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+        </svg>
+        Connect
+      </button>
+
       <button
         v-if="credential.auth_type === 'oauth'"
         class="action-btn"
         @click="$emit('capture', credential.id)"
-        title="Capture OAuth tokens"
+        title="Capture OAuth tokens manually"
       >
         <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
           <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
@@ -146,10 +159,17 @@ defineEmits<{
   (e: 'test', id: string): void;
   (e: 'refresh', id: string): void;
   (e: 'capture', id: string): void;
+  (e: 'connect', id: string): void;
   (e: 'set-default', id: string): void;
   (e: 'edit', credential: Credential): void;
   (e: 'delete', id: string): void;
 }>();
+
+const needsReconnect = computed(() =>
+  props.credential.token_status === 'missing' ||
+  props.credential.token_status === 'needs_login' ||
+  (props.credential.token_status === 'expired' && !props.credential.has_refresh_token)
+);
 
 const authTypeBadgeClass = computed(() => {
   return props.credential.auth_type === 'api_key'
@@ -373,6 +393,12 @@ const lastUsedText = computed(() => {
 
 .action-btn-danger {
   @apply hover:bg-red-500/20 hover:text-red-400;
+}
+
+.action-btn-connect {
+  @apply hover:bg-brand-purple/20 hover:text-brand-purple;
+  color: var(--accent-purple, #a855f7);
+  border: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 30%, transparent);
 }
 
 .action-btn svg {

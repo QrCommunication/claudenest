@@ -75,21 +75,32 @@
             <p class="form-hint">Your Claude API key from Anthropic Console</p>
           </div>
 
-          <!-- OAuth Token Inputs -->
+          <!-- OAuth Section -->
           <div v-if="form.auth_type === 'oauth'" class="oauth-section">
-            <div class="info-box">
-              <svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-brand-cyan">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+            <!-- Primary: Connect button -->
+            <button
+              type="button"
+              class="btn-connect-claude"
+              :disabled="!form.name || isConnecting"
+              @click="handleConnectClaude"
+              title="Connect directly with your Claude account"
+            >
+              <svg v-if="isConnecting" class="spinner-sm" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" stroke-dasharray="32" stroke-dashoffset="10"/>
               </svg>
-              <div>
-                <h4 class="info-title">OAuth Tokens</h4>
-                <p class="info-text">
-                  Paste your OAuth tokens from <code>~/.claude/.credentials.json</code> on your machine.
-                  You can also use the "Capture" button after creating this credential (requires agent running locally).
-                </p>
-              </div>
+              <svg v-else viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+              </svg>
+              {{ isConnecting ? 'Waiting for connection…' : 'Connect with Claude' }}
+            </button>
+            <p v-if="!form.name" class="form-hint text-center">Enter a name above to enable connection</p>
+
+            <!-- Divider -->
+            <div class="oauth-divider">
+              <span>or enter tokens manually</span>
             </div>
 
+            <!-- Manual token inputs (collapsed by default) -->
             <div class="form-group">
               <label for="access_token" class="form-label">Access Token</label>
               <input
@@ -99,7 +110,7 @@
                 class="form-input font-mono text-sm"
                 placeholder="oat01-..."
               />
-              <p class="form-hint">From claudeAiOauth.accessToken in credentials file</p>
+              <p class="form-hint">From claudeAiOauth.accessToken in ~/.claude/.credentials.json</p>
             </div>
             <div class="form-group">
               <label for="refresh_token" class="form-label">Refresh Token</label>
@@ -175,7 +186,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, reactive, onMounted, onUnmounted } from 'vue';
 import { useCredentialsStore } from '@/stores/credentials';
 import { useToast } from '@/composables/useToast';
 import { getErrorMessage } from '@/utils/api';
@@ -190,10 +201,18 @@ interface CredentialForm {
   claude_dir_mode: 'shared' | 'isolated';
 }
 
+const emit = defineEmits<{
+  (e: 'close'): void;
+  (e: 'created'): void;
+}>();
+
 const store = useCredentialsStore();
 const toast = useToast();
 
 const isSubmitting = ref(false);
+const isConnecting = ref(false);
+let oauthPopup: Window | null = null;
+
 const form = reactive<CredentialForm>({
   name: '',
   auth_type: 'api_key',
@@ -207,19 +226,16 @@ async function handleSubmit(): Promise<void> {
   isSubmitting.value = true;
 
   try {
-    // Validate name pattern
     if (!/^[a-z0-9-]+$/.test(form.name)) {
       toast.error('Invalid name format', 'Use only lowercase letters, numbers, and dashes');
       return;
     }
 
-    // Validate API key for api_key type
     if (form.auth_type === 'api_key' && !form.api_key.trim()) {
       toast.error('API key is required');
       return;
     }
 
-    // Prepare payload
     const payload: CreateCredentialForm = {
       name: form.name,
       auth_type: form.auth_type,
@@ -229,16 +245,11 @@ async function handleSubmit(): Promise<void> {
     if (form.auth_type === 'api_key') {
       payload.api_key = form.api_key;
     } else {
-      if (form.access_token.trim()) {
-        payload.access_token = form.access_token;
-      }
-      if (form.refresh_token.trim()) {
-        payload.refresh_token = form.refresh_token;
-      }
+      if (form.access_token.trim()) payload.access_token = form.access_token;
+      if (form.refresh_token.trim()) payload.refresh_token = form.refresh_token;
     }
 
     await store.createCredential(payload);
-
     emit('created');
   } catch (error: unknown) {
     toast.error('Failed to create credential', getErrorMessage(error));
@@ -247,10 +258,62 @@ async function handleSubmit(): Promise<void> {
   }
 }
 
-const emit = defineEmits<{
-  (e: 'close'): void;
-  (e: 'created'): void;
-}>();
+async function handleConnectClaude(): Promise<void> {
+  if (!form.name || !/^[a-z0-9-]+$/.test(form.name)) {
+    toast.error('Enter a valid name first', 'Use only lowercase letters, numbers, and dashes');
+    return;
+  }
+
+  isConnecting.value = true;
+
+  try {
+    // 1. Create the credential (empty OAuth shell)
+    const payload: CreateCredentialForm = {
+      name: form.name,
+      auth_type: 'oauth',
+      claude_dir_mode: form.claude_dir_mode,
+    };
+    const created = await store.createCredential(payload);
+
+    // 2. Initiate OAuth and open popup
+    const authUrl = await store.initiateOAuth(created.id);
+    const popup = window.open(authUrl, 'claude_oauth', 'width=620,height=720,scrollbars=yes,resizable=yes');
+    oauthPopup = popup;
+
+    if (!popup) {
+      toast.error('Popup blocked', 'Please allow popups for this site and try again.');
+      isConnecting.value = false;
+      return;
+    }
+
+    // 3. Wait for postMessage from oauth-complete page
+    // (handled by Index.vue — emit close and let it refresh)
+    emit('created');
+  } catch (error: unknown) {
+    toast.error('Connection failed', getErrorMessage(error));
+    isConnecting.value = false;
+  }
+}
+
+function handleOAuthMessage(event: MessageEvent): void {
+  if (event.origin !== window.location.origin) return;
+  if (event.data?.type !== 'oauth_complete') return;
+
+  isConnecting.value = false;
+  oauthPopup = null;
+
+  if (event.data.success) {
+    toast.success('Claude connected!');
+  } else if (event.data.error) {
+    toast.error('OAuth failed', event.data.error);
+  }
+}
+
+onMounted(() => window.addEventListener('message', handleOAuthMessage));
+onUnmounted(() => {
+  window.removeEventListener('message', handleOAuthMessage);
+  oauthPopup?.close();
+});
 </script>
 
 <style scoped>
@@ -338,17 +401,34 @@ const emit = defineEmits<{
   @apply space-y-4;
 }
 
-.info-box {
-  @apply flex gap-3 p-4 rounded-lg bg-brand-cyan/10 border border-brand-cyan/20;
+.btn-connect-claude {
+  @apply w-full flex items-center justify-center gap-3 px-6 py-3.5 rounded-xl font-semibold text-white;
+  @apply transition-all duration-200;
+  @apply disabled:opacity-40 disabled:cursor-not-allowed;
+  background: linear-gradient(135deg, #a855f7, #6366f1);
+  box-shadow: 0 0 20px color-mix(in srgb, #a855f7 30%, transparent);
 }
 
-.info-title {
-  @apply text-sm font-semibold text-brand-cyan mb-1;
+.btn-connect-claude:not(:disabled):hover {
+  box-shadow: 0 0 30px color-mix(in srgb, #a855f7 50%, transparent);
+  transform: translateY(-1px);
 }
 
-.info-text {
-  @apply text-xs leading-relaxed;
+.oauth-divider {
+  @apply flex items-center gap-3 text-xs;
   color: var(--text-muted, #6b7280);
+}
+
+.oauth-divider::before,
+.oauth-divider::after {
+  content: '';
+  @apply flex-1 h-px;
+  background: var(--border-primary, #374151);
+}
+
+.spinner-sm {
+  @apply w-4 h-4;
+  animation: spin 0.8s linear infinite;
 }
 
 .toggle-group {

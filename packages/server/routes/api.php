@@ -26,6 +26,10 @@ Route::get('/auth/{provider}/redirect', [Api\AuthController::class, 'redirect'])
 Route::get('/auth/{provider}/callback', [Api\AuthController::class, 'callback'])
     ->where('provider', 'google|github');
 
+// Claude OAuth callback (public — no auth required, state validated server-side)
+Route::get('/oauth/callback', [Api\CredentialController::class, 'oauthCallback'])
+    ->middleware('throttle:20,1');
+
 // ==================== PAIRING (PUBLIC) ====================
 // Agent initiates pairing by registering its code, then polls for completion.
 // Rate-limited to prevent abuse on unauthenticated endpoints.
@@ -65,6 +69,7 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
         Route::post('/{id}/refresh', [Api\CredentialController::class, 'refresh']);
         Route::post('/{id}/capture', [Api\CredentialController::class, 'capture']);
         Route::patch('/{id}/default', [Api\CredentialController::class, 'setDefault']);
+        Route::post('/{id}/oauth/initiate', [Api\CredentialController::class, 'initiateOAuth']);
     });
 
     // ==================== MACHINES ====================

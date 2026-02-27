@@ -85,6 +85,11 @@ export const useCredentialsStore = defineStore('credentials', () => {
     await fetchCredentials();
   }
 
+  async function initiateOAuth(id: string): Promise<string> {
+    const response = await api.post<ApiResponse<{ auth_url: string }>>(`/credentials/${id}/oauth/initiate`);
+    return response.data.data.auth_url;
+  }
+
   function clearError(): void {
     error.value = null;
   }
@@ -93,6 +98,6 @@ export const useCredentialsStore = defineStore('credentials', () => {
     credentials, selectedCredential, isLoading, error,
     defaultCredential, apiKeyCredentials, oauthCredentials, expiredCredentials,
     fetchCredentials, createCredential, updateCredential, deleteCredential,
-    testCredential, refreshCredential, captureOAuth, setDefault, clearError,
+    testCredential, refreshCredential, captureOAuth, setDefault, initiateOAuth, clearError,
   };
 });

@@ -39,6 +39,7 @@
         @test="handleTest"
         @refresh="handleRefresh"
         @capture="handleCapture"
+        @connect="handleConnect"
         @set-default="handleSetDefault"
         @edit="handleEdit"
         @delete="handleDelete"
@@ -68,7 +69,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
+import { useRoute } from 'vue-router';
 import { useCredentialsStore } from '@/stores/credentials';
 import { useToast } from '@/composables/useToast';
 import { getErrorMessage } from '@/utils/api';
@@ -81,13 +83,31 @@ import type { Credential } from '@/types';
 
 const store = useCredentialsStore();
 const toast = useToast();
+const route = useRoute();
 const { credentials, isLoading, error } = storeToRefs(store);
 const showAddModal = ref(false);
 const editingCredential = ref<Credential | null>(null);
 const capturingCredentialId = ref<string | null>(null);
+let oauthPopup: Window | null = null;
 
 onMounted(() => {
   loadCredentials();
+  window.addEventListener('message', handleOAuthMessage);
+
+  // Handle return from non-popup OAuth flow (direct redirect)
+  const successId = route.query.oauth_success as string | undefined;
+  const oauthError = route.query.oauth_error as string | undefined;
+  if (successId) {
+    toast.success('Claude connected successfully!');
+    loadCredentials();
+  } else if (oauthError) {
+    toast.error('OAuth failed', decodeURIComponent(oauthError));
+  }
+});
+
+onUnmounted(() => {
+  window.removeEventListener('message', handleOAuthMessage);
+  oauthPopup?.close();
 });
 
 async function loadCredentials(): Promise<void> {
@@ -132,6 +152,33 @@ function handleCapture(id: string): void {
 function onCaptureComplete(): void {
   capturingCredentialId.value = null;
   loadCredentials();
+}
+
+async function handleConnect(id: string): Promise<void> {
+  try {
+    const authUrl = await store.initiateOAuth(id);
+    const popup = window.open(authUrl, 'claude_oauth', 'width=620,height=720,scrollbars=yes,resizable=yes');
+    oauthPopup = popup;
+    if (!popup) {
+      toast.error('Popup blocked', 'Please allow popups for this site and try again.');
+    }
+  } catch (err) {
+    toast.error('Failed to initiate OAuth', getErrorMessage(err));
+  }
+}
+
+function handleOAuthMessage(event: MessageEvent): void {
+  if (event.origin !== window.location.origin) return;
+  if (event.data?.type !== 'oauth_complete') return;
+
+  oauthPopup = null;
+
+  if (event.data.success) {
+    toast.success('Claude connected!');
+    loadCredentials();
+  } else if (event.data.error) {
+    toast.error('OAuth failed', event.data.error);
+  }
 }
 
 async function handleSetDefault(id: string): Promise<void> {

@@ -72,6 +72,11 @@ Route::get('/install-agent.ps1', function () {
     ]);
 });
 
+// OAuth popup completion page (before SPA catch-all)
+Route::get('/oauth-complete', function () {
+    return view('oauth-complete');
+});
+
 // Serve Vue SPA for all other routes (dashboard, login, etc.)
 Route::get('/{any}', function () {
     return view('app');
