@@ -90,9 +90,28 @@ const editingCredential = ref<Credential | null>(null);
 const capturingCredentialId = ref<string | null>(null);
 let oauthPopup: Window | null = null;
 
+function handleStorageEvent(event: StorageEvent): void {
+  if (event.key !== 'claudenest_oauth_result' || !event.newValue) return;
+  localStorage.removeItem('claudenest_oauth_result');
+  try {
+    const data = JSON.parse(event.newValue);
+    oauthPopup?.close();
+    oauthPopup = null;
+    if (data.success) {
+      toast.success('Claude connected!');
+      loadCredentials();
+    } else if (data.error) {
+      toast.error('OAuth failed', data.error);
+    }
+  } catch {
+    // Ignore parse errors
+  }
+}
+
 onMounted(() => {
   loadCredentials();
   window.addEventListener('message', handleOAuthMessage);
+  window.addEventListener('storage', handleStorageEvent);
 
   // Handle return from non-popup OAuth flow (direct redirect)
   const successId = route.query.oauth_success as string | undefined;
@@ -107,7 +126,8 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('message', handleOAuthMessage);
-  oauthPopup?.close();
+  window.removeEventListener('storage', handleStorageEvent);
+  // Do NOT close popup — let the OAuth flow complete
 });
 
 async function loadCredentials(): Promise<void> {

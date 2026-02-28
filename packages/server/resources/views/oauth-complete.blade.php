@@ -57,24 +57,37 @@
         sub.textContent = error ? decodeURIComponent(error) : 'An unknown error occurred.';
     }
 
+    var result = {
+        type: 'oauth_complete',
+        success: success || null,
+        error: error ? decodeURIComponent(error) : null,
+        timestamp: Date.now()
+    };
+
+    // Channel 1: localStorage (most reliable — works even if window.opener is null)
+    try {
+        localStorage.setItem('claudenest_oauth_result', JSON.stringify(result));
+    } catch (e) {
+        // Storage full or unavailable — fallback to other channels
+    }
+
+    // Channel 2: postMessage (works when window.opener is preserved)
     if (window.opener) {
         try {
-            window.opener.postMessage(
-                { type: 'oauth_complete', success: success || null, error: error ? decodeURIComponent(error) : null },
-                window.location.origin
-            );
+            window.opener.postMessage(result, window.location.origin);
         } catch (e) {
             // Cross-origin protection — ignore
         }
-        setTimeout(function () { window.close(); }, 1500);
-    } else {
-        // Fallback: not in popup, redirect to credentials page
-        setTimeout(function () {
-            window.location.href = success
-                ? '/credentials?oauth_success=' + encodeURIComponent(success)
-                : '/credentials?oauth_error=' + encodeURIComponent(error || '');
-        }, 2500);
     }
+
+    // Always close the popup after a brief delay
+    setTimeout(function () {
+        try { window.close(); } catch (e) {}
+        // If window.close() fails (not opened via script), redirect
+        setTimeout(function () {
+            window.location.href = '/credentials';
+        }, 1000);
+    }, 1500);
 })();
 </script>
 </body>

@@ -212,6 +212,7 @@ const toast = useToast();
 const isSubmitting = ref(false);
 const isConnecting = ref(false);
 let oauthPopup: Window | null = null;
+let oauthPollInterval: ReturnType<typeof setInterval> | null = null;
 
 const form = reactive<CredentialForm>({
   name: '',
@@ -286,12 +287,71 @@ async function handleConnectClaude(): Promise<void> {
       return;
     }
 
-    // 3. Wait for postMessage from oauth-complete page
-    // (handled by Index.vue — emit close and let it refresh)
-    emit('created');
+    // 3. Clear any stale localStorage result
+    localStorage.removeItem('claudenest_oauth_result');
+
+    // 4. Poll for popup close as fallback (handles window.opener=null case)
+    startOAuthPolling();
   } catch (error: unknown) {
     toast.error('Connection failed', getErrorMessage(error));
     isConnecting.value = false;
+  }
+}
+
+function startOAuthPolling(): void {
+  if (oauthPollInterval) clearInterval(oauthPollInterval);
+
+  oauthPollInterval = setInterval(() => {
+    if (!oauthPopup || oauthPopup.closed) {
+      stopOAuthPolling();
+
+      // Check localStorage for result (fallback when postMessage fails)
+      const raw = localStorage.getItem('claudenest_oauth_result');
+      if (raw) {
+        localStorage.removeItem('claudenest_oauth_result');
+        try {
+          const data = JSON.parse(raw);
+          handleOAuthResult(data.success, data.error);
+        } catch {
+          handleOAuthResult(null, 'Failed to parse OAuth result');
+        }
+      } else if (isConnecting.value) {
+        // Popup closed without result — reload credentials (may have succeeded server-side)
+        isConnecting.value = false;
+        emit('created');
+      }
+    }
+  }, 500);
+
+  // Timeout after 5 minutes
+  setTimeout(() => {
+    if (oauthPollInterval) {
+      stopOAuthPolling();
+      if (isConnecting.value) {
+        isConnecting.value = false;
+        toast.error('Connection timeout', 'The authorization window was open too long. Please try again.');
+      }
+    }
+  }, 5 * 60 * 1000);
+}
+
+function stopOAuthPolling(): void {
+  if (oauthPollInterval) {
+    clearInterval(oauthPollInterval);
+    oauthPollInterval = null;
+  }
+  oauthPopup = null;
+}
+
+function handleOAuthResult(success: string | null, error: string | null): void {
+  isConnecting.value = false;
+  stopOAuthPolling();
+
+  if (success) {
+    toast.success('Claude connected!');
+    emit('created');
+  } else if (error) {
+    toast.error('OAuth failed', error);
   }
 }
 
@@ -299,20 +359,31 @@ function handleOAuthMessage(event: MessageEvent): void {
   if (event.origin !== window.location.origin) return;
   if (event.data?.type !== 'oauth_complete') return;
 
-  isConnecting.value = false;
-  oauthPopup = null;
+  oauthPopup?.close();
+  handleOAuthResult(event.data.success, event.data.error);
+}
 
-  if (event.data.success) {
-    toast.success('Claude connected!');
-  } else if (event.data.error) {
-    toast.error('OAuth failed', event.data.error);
+function handleStorageEvent(event: StorageEvent): void {
+  if (event.key !== 'claudenest_oauth_result' || !event.newValue) return;
+  localStorage.removeItem('claudenest_oauth_result');
+  try {
+    const data = JSON.parse(event.newValue);
+    oauthPopup?.close();
+    handleOAuthResult(data.success, data.error);
+  } catch {
+    // Ignore parse errors
   }
 }
 
-onMounted(() => window.addEventListener('message', handleOAuthMessage));
+onMounted(() => {
+  window.addEventListener('message', handleOAuthMessage);
+  window.addEventListener('storage', handleStorageEvent);
+});
 onUnmounted(() => {
   window.removeEventListener('message', handleOAuthMessage);
-  oauthPopup?.close();
+  window.removeEventListener('storage', handleStorageEvent);
+  stopOAuthPolling();
+  // Do NOT close popup on unmount — let the OAuth flow complete
 });
 </script>
 
