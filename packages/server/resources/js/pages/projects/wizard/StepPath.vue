@@ -125,11 +125,11 @@ async function handleScan(): Promise<void> {
 }
 
 .step-title {
-  @apply text-lg font-semibold text-white;
+  @apply text-lg font-semibold text-skin-primary;
 }
 
 .step-desc {
-  @apply text-sm text-gray-400;
+  @apply text-sm text-skin-secondary;
 }
 
 .path-input-row {
@@ -137,7 +137,7 @@ async function handleScan(): Promise<void> {
 }
 
 .path-input {
-  @apply flex-1 px-4 py-2.5 bg-dark-2 border border-dark-4 rounded-lg text-white text-sm font-mono placeholder-gray-600 focus:outline-none focus:border-brand-purple;
+  @apply flex-1 px-4 py-2.5 bg-surface-2 border border-skin rounded-lg text-skin-primary text-sm font-mono placeholder-skin-secondary focus:outline-none focus:border-brand-purple;
 }
 
 .btn {
@@ -157,7 +157,7 @@ async function handleScan(): Promise<void> {
 }
 
 .browse-toggle {
-  @apply inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors;
+  @apply inline-flex items-center gap-2 text-sm text-skin-secondary hover:text-skin-primary transition-colors;
 }
 
 .browse-icon {
@@ -165,7 +165,7 @@ async function handleScan(): Promise<void> {
 }
 
 .browser-container {
-  @apply border border-dark-4 rounded-xl overflow-hidden max-h-64 overflow-y-auto;
+  @apply border border-skin rounded-xl overflow-hidden max-h-64 overflow-y-auto;
 }
 
 .scan-error {
@@ -173,7 +173,7 @@ async function handleScan(): Promise<void> {
 }
 
 .scan-result {
-  @apply p-4 bg-dark-2 border border-dark-4 rounded-xl space-y-3;
+  @apply p-4 bg-surface-2 border border-skin rounded-xl space-y-3;
 }
 
 .result-header {
@@ -185,7 +185,7 @@ async function handleScan(): Promise<void> {
 }
 
 .result-name {
-  @apply text-base font-semibold text-white;
+  @apply text-base font-semibold text-skin-primary;
 }
 
 .git-badge {
@@ -197,7 +197,7 @@ async function handleScan(): Promise<void> {
 }
 
 .stack-label {
-  @apply text-xs text-gray-500 uppercase tracking-wider;
+  @apply text-xs text-skin-secondary uppercase tracking-wider;
 }
 
 .stack-badges {
@@ -213,7 +213,7 @@ async function handleScan(): Promise<void> {
 }
 
 .structure-code {
-  @apply text-xs text-gray-400 bg-dark-3 p-3 rounded-lg overflow-x-auto font-mono leading-relaxed;
+  @apply text-xs text-skin-secondary bg-surface-3 p-3 rounded-lg overflow-x-auto font-mono leading-relaxed;
 }
 
 .name-override {
@@ -221,10 +221,10 @@ async function handleScan(): Promise<void> {
 }
 
 .field-label {
-  @apply text-xs text-gray-500 uppercase tracking-wider;
+  @apply text-xs text-skin-secondary uppercase tracking-wider;
 }
 
 .field-input {
-  @apply w-full px-3 py-2 bg-dark-3 border border-dark-4 rounded-lg text-white text-sm focus:outline-none focus:border-brand-purple;
+  @apply w-full px-3 py-2 bg-surface-3 border border-skin rounded-lg text-skin-primary text-sm focus:outline-none focus:border-brand-purple;
 }
 </style>

@@ -377,7 +377,7 @@ function formatDuration(seconds: number): string {
 }
 
 .loading-state p {
-  @apply mt-4 text-gray-400;
+  @apply mt-4 text-skin-secondary;
 }
 
 .project-header {
@@ -389,7 +389,7 @@ function formatDuration(seconds: number): string {
 }
 
 .back-link {
-  @apply flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm mb-2;
+  @apply flex items-center gap-2 text-skin-secondary hover:text-skin-primary transition-colors text-sm mb-2;
 }
 
 .back-link svg {
@@ -397,11 +397,11 @@ function formatDuration(seconds: number): string {
 }
 
 .header-title h1 {
-  @apply text-2xl font-bold text-white;
+  @apply text-2xl font-bold text-skin-primary;
 }
 
 .project-path {
-  @apply text-sm text-gray-400 mt-1;
+  @apply text-sm text-skin-secondary mt-1;
 }
 
 .token-usage {
@@ -409,11 +409,11 @@ function formatDuration(seconds: number): string {
 }
 
 .token-label {
-  @apply text-sm text-gray-400;
+  @apply text-sm text-skin-secondary;
 }
 
 .token-bar {
-  @apply w-32 h-2 bg-dark-3 rounded-full overflow-hidden;
+  @apply w-32 h-2 bg-surface-3 rounded-full overflow-hidden;
 }
 
 .token-progress {
@@ -425,19 +425,19 @@ function formatDuration(seconds: number): string {
 }
 
 .token-value {
-  @apply text-sm font-medium text-white;
+  @apply text-sm font-medium text-skin-primary;
 }
 
 .tabs {
-  @apply flex items-center gap-1 border-b border-dark-4;
+  @apply flex items-center gap-1 border-b border-skin;
 }
 
 .tab {
-  @apply flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-400 transition-colors relative;
+  @apply flex items-center gap-2 px-4 py-3 text-sm font-medium text-skin-secondary transition-colors relative;
 }
 
 .tab:hover {
-  @apply text-white;
+  @apply text-skin-primary;
 }
 
 .tab.active {
@@ -470,11 +470,11 @@ function formatDuration(seconds: number): string {
 }
 
 .info-label {
-  @apply text-sm text-gray-400;
+  @apply text-sm text-skin-secondary;
 }
 
 .info-value {
-  @apply text-sm text-white font-medium;
+  @apply text-sm text-skin-primary font-medium;
 }
 
 .stats-grid {
@@ -486,16 +486,16 @@ function formatDuration(seconds: number): string {
 }
 
 .stat-number {
-  @apply block text-2xl font-bold text-white;
+  @apply block text-2xl font-bold text-skin-primary;
 }
 
 .stat-label {
-  @apply text-xs text-gray-400 mt-1;
+  @apply text-xs text-skin-secondary mt-1;
 }
 
 .empty-instances,
 .empty-activity {
-  @apply text-center text-gray-400 py-8;
+  @apply text-center text-skin-secondary py-8;
 }
 
 .instances-list {
@@ -503,7 +503,7 @@ function formatDuration(seconds: number): string {
 }
 
 .instance-item {
-  @apply flex items-center justify-between p-3 bg-dark-3 rounded-lg;
+  @apply flex items-center justify-between p-3 bg-surface-3 rounded-lg;
 }
 
 .instance-details {
@@ -531,7 +531,7 @@ function formatDuration(seconds: number): string {
 }
 
 .instance-tokens {
-  @apply text-gray-400;
+  @apply text-skin-secondary;
 }
 
 .activity-list {
@@ -547,11 +547,11 @@ function formatDuration(seconds: number): string {
 }
 
 .activity-message {
-  @apply text-white flex-1 truncate;
+  @apply text-skin-primary flex-1 truncate;
 }
 
 .activity-time {
-  @apply text-gray-400 text-xs;
+  @apply text-skin-secondary text-xs;
 }
 
 .focus-card {
@@ -559,11 +559,11 @@ function formatDuration(seconds: number): string {
 }
 
 .context-preview {
-  @apply text-gray-300 whitespace-pre-wrap;
+  @apply text-skin-primary whitespace-pre-wrap;
 }
 
 .empty-context {
-  @apply text-gray-400 text-center py-4;
+  @apply text-skin-secondary text-center py-4;
 }
 
 .empty-context button {
@@ -583,7 +583,7 @@ function formatDuration(seconds: number): string {
 }
 
 .instance-uptime {
-  @apply text-sm text-gray-400;
+  @apply text-sm text-skin-secondary;
 }
 
 .instance-metrics {
@@ -595,11 +595,11 @@ function formatDuration(seconds: number): string {
 }
 
 .metric-label {
-  @apply text-sm text-gray-400 w-28;
+  @apply text-sm text-skin-secondary w-28;
 }
 
 .metric-bar {
-  @apply flex-1 h-2 bg-dark-3 rounded-full overflow-hidden;
+  @apply flex-1 h-2 bg-surface-3 rounded-full overflow-hidden;
 }
 
 .metric-progress {
@@ -607,7 +607,7 @@ function formatDuration(seconds: number): string {
 }
 
 .metric-value {
-  @apply text-sm text-white w-12 text-right;
+  @apply text-sm text-skin-primary w-12 text-right;
 }
 
 .metric-value.active {
@@ -647,15 +647,15 @@ function formatDuration(seconds: number): string {
 }
 
 .activity-title {
-  @apply block text-white text-sm;
+  @apply block text-skin-primary text-sm;
 }
 
 .activity-meta {
-  @apply block text-xs text-gray-400 mt-0.5;
+  @apply block text-xs text-skin-secondary mt-0.5;
 }
 
 .activity-instance {
-  @apply text-xs text-gray-500 font-mono;
+  @apply text-xs text-skin-secondary font-mono;
 }
 
 .not-found {
@@ -663,7 +663,7 @@ function formatDuration(seconds: number): string {
 }
 
 .not-found h2 {
-  @apply text-xl font-semibold text-white mb-4;
+  @apply text-xl font-semibold text-skin-primary mb-4;
 }
 
 .btn-primary {

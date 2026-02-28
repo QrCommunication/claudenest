@@ -3,8 +3,8 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-bold text-white">Machines</h1>
-        <p class="text-dark-4 mt-1">Manage your connected machines and devices</p>
+        <h1 class="text-2xl font-bold text-skin-primary">Machines</h1>
+        <p class="text-skin-secondary mt-1">Manage your connected machines and devices</p>
       </div>
       <Button @click="openPairModal">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -19,8 +19,8 @@
       <Card hoverable>
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm text-dark-4">Total Machines</p>
-            <p class="text-2xl font-bold text-white">{{ store.machines.length }}</p>
+            <p class="text-sm text-skin-secondary">Total Machines</p>
+            <p class="text-2xl font-bold text-skin-primary">{{ store.machines.length }}</p>
           </div>
           <div class="w-10 h-10 bg-brand-purple/10 rounded-lg flex items-center justify-center">
             <svg class="w-5 h-5 text-brand-purple" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -32,7 +32,7 @@
       <Card hoverable>
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm text-dark-4">Online</p>
+            <p class="text-sm text-skin-secondary">Online</p>
             <p class="text-2xl font-bold text-green-400">{{ store.onlineMachines.length }}</p>
           </div>
           <div class="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
@@ -45,7 +45,7 @@
       <Card hoverable>
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm text-dark-4">Offline</p>
+            <p class="text-sm text-skin-secondary">Offline</p>
             <p class="text-2xl font-bold text-red-400">{{ store.offlineMachines.length }}</p>
           </div>
           <div class="w-10 h-10 bg-red-500/10 rounded-lg flex items-center justify-center">
@@ -115,15 +115,15 @@
                 />
               </div>
               <div>
-                <p class="text-sm font-medium text-white">{{ (rawRow as Machine).display_name || (rawRow as Machine).name }}</p>
-                <p class="text-xs text-dark-4">{{ (rawRow as Machine).id }}</p>
+                <p class="text-sm font-medium text-skin-primary">{{ (rawRow as Machine).display_name || (rawRow as Machine).name }}</p>
+                <p class="text-xs text-skin-secondary">{{ (rawRow as Machine).id }}</p>
               </div>
             </div>
           </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-dark-4">
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-skin-secondary">
             {{ (rawRow as Machine).hostname || '-' }}
           </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-dark-4 capitalize">
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-skin-secondary capitalize">
             {{ (rawRow as Machine).platform }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap">
@@ -135,7 +135,7 @@
               {{ (rawRow as Machine).status }}
             </Badge>
           </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-dark-4">
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-skin-secondary">
             {{ (rawRow as Machine).last_seen_human || formatTime((rawRow as Machine).last_seen_at) }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -176,18 +176,18 @@
     <!-- Pair Machine Modal -->
     <Modal v-model="showPairModal" title="Pair a Machine">
       <div class="space-y-4">
-        <div class="bg-dark-3/50 rounded-lg p-4 border border-dark-4">
-          <p class="text-sm text-dark-4 leading-relaxed">
-            Run <code class="bg-dark-1 text-brand-cyan px-1.5 py-0.5 rounded text-xs font-mono">claudenest-agent pair</code>
+        <div class="bg-surface-3/50 rounded-lg p-4 border border-skin">
+          <p class="text-sm text-skin-secondary leading-relaxed">
+            Run <code class="bg-surface-1 text-brand-cyan px-1.5 py-0.5 rounded text-xs font-mono">claudenest-agent pair</code>
             on your machine to get a pairing code, then enter it below.
           </p>
         </div>
         <div>
-          <label class="block text-sm font-medium text-white mb-1.5">Pairing Code</label>
+          <label class="block text-sm font-medium text-skin-primary mb-1.5">Pairing Code</label>
           <input
             v-model="pairingCodeDisplay"
             type="text"
-            class="w-full bg-dark-1 border border-dark-4 rounded-lg px-4 py-3 text-center text-2xl font-mono tracking-[0.3em] text-white placeholder-dark-4 focus:outline-none focus:border-brand-purple focus:ring-1 focus:ring-brand-purple uppercase"
+            class="w-full bg-surface-1 border border-skin rounded-lg px-4 py-3 text-center text-2xl font-mono tracking-[0.3em] text-skin-primary placeholder-skin-secondary focus:outline-none focus:border-brand-purple focus:ring-1 focus:ring-brand-purple uppercase"
             placeholder="XXX-XXX"
             maxlength="7"
             autocomplete="off"
@@ -240,9 +240,9 @@
     <!-- Delete Confirmation Modal -->
     <Modal v-model="showDeleteModal" title="Delete Machine" size="sm">
       <div class="space-y-4">
-        <p class="text-sm text-dark-4">
+        <p class="text-sm text-skin-secondary">
           Are you sure you want to remove
-          <span class="text-white font-medium">{{ machineToDelete?.display_name || machineToDelete?.name }}</span>?
+          <span class="text-skin-primary font-medium">{{ machineToDelete?.display_name || machineToDelete?.name }}</span>?
           This action cannot be undone.
         </p>
         <div class="flex justify-end gap-3 pt-4">
@@ -368,7 +368,7 @@ const platformBg = (platform: string) => {
     linux: 'bg-brand-cyan/10',
     win32: 'bg-brand-indigo/10',
   };
-  return bgs[platform] || 'bg-dark-3';
+  return bgs[platform] || 'bg-surface-3';
 };
 
 const platformColor = (platform: string) => {
@@ -377,7 +377,7 @@ const platformColor = (platform: string) => {
     linux: 'text-brand-cyan',
     win32: 'text-brand-indigo',
   };
-  return colors[platform] || 'text-dark-4';
+  return colors[platform] || 'text-skin-secondary';
 };
 
 const formatTime = (timestamp: string | null) => {

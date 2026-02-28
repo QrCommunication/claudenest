@@ -275,7 +275,7 @@ async function startSession() {
 }
 
 .back-btn {
-  @apply p-2 rounded-lg text-gray-400 hover:text-white hover:bg-dark-2 transition-colors;
+  @apply p-2 rounded-lg text-skin-secondary hover:text-skin-primary hover:bg-surface-2 transition-colors;
 }
 
 .back-btn svg {
@@ -283,7 +283,7 @@ async function startSession() {
 }
 
 .page-header h1 {
-  @apply text-2xl font-bold text-white;
+  @apply text-2xl font-bold text-skin-primary;
 }
 
 .form-container {
@@ -291,15 +291,15 @@ async function startSession() {
 }
 
 .card {
-  @apply bg-dark-2 rounded-xl border border-dark-4 p-6;
+  @apply bg-surface-2 rounded-xl border border-skin p-6;
 }
 
 .card-title {
-  @apply text-xl font-semibold text-white mb-2;
+  @apply text-xl font-semibold text-skin-primary mb-2;
 }
 
 .card-desc {
-  @apply text-gray-400 mb-6;
+  @apply text-skin-secondary mb-6;
 }
 
 .form-group {
@@ -307,13 +307,13 @@ async function startSession() {
 }
 
 .form-group label {
-  @apply block text-sm font-medium text-gray-300 mb-2;
+  @apply block text-sm font-medium text-skin-primary mb-2;
 }
 
 .form-group input,
 .form-group textarea,
 .form-group select {
-  @apply w-full px-3 py-2 bg-dark-3 border border-dark-4 rounded-lg text-white;
+  @apply w-full px-3 py-2 bg-surface-3 border border-skin rounded-lg text-skin-primary;
   @apply focus:outline-none focus:border-brand-purple focus:ring-1 focus:ring-brand-purple;
   @apply transition-colors;
 }
@@ -340,7 +340,7 @@ async function startSession() {
 }
 
 .field-hint {
-  @apply text-xs text-gray-500 mt-1;
+  @apply text-xs text-skin-secondary mt-1;
 }
 
 .path-header {
@@ -360,8 +360,8 @@ async function startSession() {
 }
 
 .mode-option {
-  @apply flex items-start gap-3 p-3 rounded-lg bg-dark-3 cursor-pointer;
-  @apply hover:bg-dark-4 transition-colors border border-transparent;
+  @apply flex items-start gap-3 p-3 rounded-lg bg-surface-3 cursor-pointer;
+  @apply hover:bg-surface-4 transition-colors border border-transparent;
 }
 
 .mode-option.mode-selected {
@@ -373,19 +373,19 @@ async function startSession() {
 }
 
 .mode-label {
-  @apply block text-sm font-medium text-white;
+  @apply block text-sm font-medium text-skin-primary;
 }
 
 .mode-desc {
-  @apply block text-xs text-gray-500;
+  @apply block text-xs text-skin-secondary;
 }
 
 .form-actions {
-  @apply flex items-center justify-end gap-3 pt-4 border-t border-dark-4;
+  @apply flex items-center justify-end gap-3 pt-4 border-t border-skin;
 }
 
 .btn-secondary {
-  @apply px-4 py-2 rounded-lg font-medium text-gray-300 hover:text-white transition-colors;
+  @apply px-4 py-2 rounded-lg font-medium text-skin-primary hover:text-skin-primary transition-colors;
 }
 
 .btn-primary {

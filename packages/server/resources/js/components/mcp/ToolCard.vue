@@ -6,8 +6,8 @@
           <WrenchIcon class="w-4 h-4 text-brand-purple" />
         </div>
         <div>
-          <h3 class="font-medium text-white">{{ tool.name }}</h3>
-          <p v-if="serverName" class="text-xs text-dark-4">{{ serverName }}</p>
+          <h3 class="font-medium text-skin-primary">{{ tool.name }}</h3>
+          <p v-if="serverName" class="text-xs text-skin-secondary">{{ serverName }}</p>
         </div>
       </div>
       <Button 
@@ -20,29 +20,29 @@
       </Button>
     </div>
 
-    <p class="mt-3 text-sm text-dark-4">
+    <p class="mt-3 text-sm text-skin-secondary">
       {{ tool.description || 'No description available' }}
     </p>
 
     <div v-if="hasParameters" class="mt-4">
-      <p class="text-xs font-medium text-dark-4 mb-2">Parameters</p>
+      <p class="text-xs font-medium text-skin-secondary mb-2">Parameters</p>
       <div class="space-y-1.5">
-        <div 
-          v-for="(param, name) in parameters" 
+        <div
+          v-for="(param, name) in parameters"
           :key="name"
           class="flex items-center gap-2 text-xs"
         >
           <code class="text-brand-purple bg-brand-purple/10 px-1.5 py-0.5 rounded">
             {{ name }}
           </code>
-          <span class="text-dark-4">{{ param.type }}</span>
+          <span class="text-skin-secondary">{{ param.type }}</span>
           <span v-if="isRequired(name)" class="text-red-400">*</span>
         </div>
       </div>
     </div>
 
     <div v-if="requiredParams.length > 0" class="mt-3 flex items-center gap-2">
-      <span class="text-xs text-dark-4">Required:</span>
+      <span class="text-xs text-skin-secondary">Required:</span>
       <div class="flex gap-1 flex-wrap">
         <Badge 
           v-for="param in requiredParams" 

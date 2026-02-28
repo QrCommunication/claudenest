@@ -12,7 +12,7 @@
         <!-- Modal Content -->
         <div
           :class="[
-            'relative bg-dark-2 rounded-card border border-dark-4 shadow-2xl',
+            'relative bg-surface-2 rounded-card border border-skin shadow-2xl',
             'w-full transform transition-all',
             sizeClasses[size],
             className,
@@ -21,7 +21,7 @@
           <!-- Close Button -->
           <button
             v-if="showClose"
-            class="absolute right-4 top-4 text-dark-4 hover:text-white transition-colors"
+            class="absolute right-4 top-4 text-skin-secondary hover:text-skin-primary transition-colors"
             @click="close"
           >
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -30,10 +30,10 @@
           </button>
 
           <!-- Header -->
-          <div v-if="$slots.header || title" class="px-6 py-4 border-b border-dark-4">
+          <div v-if="$slots.header || title" class="px-6 py-4 border-b border-skin">
             <slot name="header">
-              <h3 class="text-lg font-semibold text-white pr-8">{{ title }}</h3>
-              <p v-if="description" class="mt-1 text-sm text-dark-4">{{ description }}</p>
+              <h3 class="text-lg font-semibold text-skin-primary pr-8">{{ title }}</h3>
+              <p v-if="description" class="mt-1 text-sm text-skin-secondary">{{ description }}</p>
             </slot>
           </div>
 
@@ -43,7 +43,7 @@
           </div>
 
           <!-- Footer -->
-          <div v-if="$slots.footer" class="px-6 py-4 border-t border-dark-4">
+          <div v-if="$slots.footer" class="px-6 py-4 border-t border-skin">
             <slot name="footer" />
           </div>
         </div>

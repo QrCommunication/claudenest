@@ -1,36 +1,36 @@
 <template>
   <Modal :model-value="show" @close="$emit('close')" size="md">
     <template #header>
-      <h3 class="text-lg font-semibold text-white">Add MCP Server</h3>
-      <p class="mt-1 text-sm text-dark-4">Register a new Model Context Protocol server</p>
+      <h3 class="text-lg font-semibold text-skin-primary">Add MCP Server</h3>
+      <p class="mt-1 text-sm text-skin-secondary">Register a new Model Context Protocol server</p>
     </template>
 
     <form @submit.prevent="handleSubmit" class="space-y-4">
       <div>
-        <label class="block text-sm font-medium text-gray-300 mb-1">Name</label>
+        <label class="block text-sm font-medium text-skin-primary mb-1">Name</label>
         <Input v-model="form.name" placeholder="server-name" required />
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-300 mb-1">Display Name</label>
+        <label class="block text-sm font-medium text-skin-primary mb-1">Display Name</label>
         <Input v-model="form.display_name" placeholder="My MCP Server" />
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-300 mb-1">Description</label>
+        <label class="block text-sm font-medium text-skin-primary mb-1">Description</label>
         <textarea
           v-model="form.description"
           rows="2"
           placeholder="What does this server do?"
-          class="w-full bg-dark-1 border border-dark-4 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-brand-purple resize-none"
+          class="w-full bg-surface-1 border border-skin rounded-lg px-3 py-2 text-skin-primary text-sm focus:outline-none focus:border-brand-purple resize-none"
         />
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-300 mb-1">Transport</label>
+        <label class="block text-sm font-medium text-skin-primary mb-1">Transport</label>
         <select
           v-model="form.transport"
-          class="w-full bg-dark-1 border border-dark-4 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-brand-purple appearance-none"
+          class="w-full bg-surface-1 border border-skin rounded-lg px-3 py-2 text-skin-primary text-sm focus:outline-none focus:border-brand-purple appearance-none"
         >
           <option value="stdio">stdio</option>
           <option value="sse">SSE</option>
@@ -39,12 +39,12 @@
       </div>
 
       <div v-if="form.transport === 'stdio'">
-        <label class="block text-sm font-medium text-gray-300 mb-1">Command</label>
+        <label class="block text-sm font-medium text-skin-primary mb-1">Command</label>
         <Input v-model="form.command" placeholder="npx -y @modelcontextprotocol/server" />
       </div>
 
       <div v-else>
-        <label class="block text-sm font-medium text-gray-300 mb-1">URL</label>
+        <label class="block text-sm font-medium text-skin-primary mb-1">URL</label>
         <Input v-model="form.url" placeholder="http://localhost:3000/mcp" />
       </div>
     </form>

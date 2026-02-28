@@ -121,7 +121,7 @@ function applySyntaxHighlighting(element: HTMLElement, language: string) {
   margin: 1.5rem 0;
   border-radius: 12px;
   overflow: hidden;
-  background: var(--bg-code, var(--bg-primary, #0f0f1a));
+  background: var(--code-bg, var(--surface-1));
   border: 1px solid var(--border-color, var(--border));
 }
 
@@ -191,7 +191,7 @@ code {
   font-family: inherit;
 }
 
-/* Syntax Highlighting Tokens */
+/* Syntax Highlighting Tokens — dark mode defaults */
 :deep(.token-key) {
   color: #7dd3fc;
 }
@@ -209,7 +209,7 @@ code {
 }
 
 :deep(.token-comment) {
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 :deep(.token-keyword) {
@@ -222,6 +222,35 @@ code {
 
 :deep(.token-variable) {
   color: #fca5a5;
+}
+
+/* Syntax Highlighting Tokens — light mode overrides */
+html:not(.dark) :deep(.token-key) {
+  color: #1d4ed8;
+}
+
+html:not(.dark) :deep(.token-string) {
+  color: #16a34a;
+}
+
+html:not(.dark) :deep(.token-number) {
+  color: #dc2626;
+}
+
+html:not(.dark) :deep(.token-boolean) {
+  color: #9333ea;
+}
+
+html:not(.dark) :deep(.token-keyword) {
+  color: #9333ea;
+}
+
+html:not(.dark) :deep(.token-flag) {
+  color: #b45309;
+}
+
+html:not(.dark) :deep(.token-variable) {
+  color: #dc2626;
 }
 
 /* Scrollbar */

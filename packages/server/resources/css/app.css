@@ -300,6 +300,41 @@
   50% { opacity: 0; }
 }
 
+/* ====================== LIGHT MODE COMPATIBILITY ====================== */
+/* Safety net: override dark-first Tailwind classes for proper light mode */
+/* These apply to components not yet migrated to semantic surface classes */
+
+html:not(.dark) .bg-dark-1 { background-color: var(--surface-1); }
+html:not(.dark) .bg-dark-2 { background-color: var(--surface-2); }
+html:not(.dark) .bg-dark-3 { background-color: var(--surface-3); }
+html:not(.dark) .bg-dark-4 { background-color: var(--surface-4); }
+html:not(.dark) .hover\:bg-dark-3:hover { background-color: var(--surface-3); }
+html:not(.dark) .hover\:bg-dark-4:hover { background-color: var(--surface-4); }
+
+html:not(.dark) .border-dark-3 { border-color: var(--border); }
+html:not(.dark) .border-dark-4 { border-color: var(--border); }
+html:not(.dark) .hover\:border-dark-4:hover { border-color: var(--border); }
+
+html:not(.dark) .text-dark-4 { color: var(--text-secondary); }
+html:not(.dark) .placeholder-dark-4::placeholder { color: var(--text-muted); }
+
+/* text-white on light surfaces becomes primary text */
+html:not(.dark) .bg-dark-1 .text-white,
+html:not(.dark) .bg-dark-2 .text-white,
+html:not(.dark) .bg-dark-3 .text-white,
+html:not(.dark) .bg-dark-4 .text-white { color: var(--text-primary); }
+
+html:not(.dark) .bg-dark-1.text-white,
+html:not(.dark) .bg-dark-2.text-white,
+html:not(.dark) .bg-dark-3.text-white,
+html:not(.dark) .bg-dark-4.text-white { color: var(--text-primary); }
+
+/* hover:text-white on light surfaces */
+html:not(.dark) .bg-dark-1 .hover\:text-white:hover,
+html:not(.dark) .bg-dark-2 .hover\:text-white:hover,
+html:not(.dark) .bg-dark-3 .hover\:text-white:hover,
+html:not(.dark) .bg-dark-4 .hover\:text-white:hover { color: var(--text-primary); }
+
 /* ====================== REDUCED MOTION ====================== */
 @media (prefers-reduced-motion: reduce) {
   *,

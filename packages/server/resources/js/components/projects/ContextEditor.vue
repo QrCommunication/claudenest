@@ -59,7 +59,7 @@ const computedRows = computed(() => {
 }
 
 .editor-textarea {
-  @apply w-full px-4 py-3 bg-dark-2 border border-dark-4 rounded-lg text-white text-sm;
+  @apply w-full px-4 py-3 bg-surface-2 border border-skin rounded-lg text-skin-primary text-sm;
   @apply focus:outline-none focus:border-brand-purple;
   @apply resize-none;
   font-family: inherit;
@@ -67,12 +67,12 @@ const computedRows = computed(() => {
 }
 
 .context-preview {
-  @apply px-4 py-3 bg-dark-3 rounded-lg text-sm text-gray-300 whitespace-pre-wrap;
+  @apply px-4 py-3 bg-surface-3 rounded-lg text-sm text-skin-primary whitespace-pre-wrap;
   line-height: 1.6;
   min-height: 3rem;
 }
 
 .context-preview.is-empty {
-  @apply text-gray-500 italic;
+  @apply text-skin-secondary italic;
 }
 </style>

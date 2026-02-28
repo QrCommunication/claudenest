@@ -91,11 +91,11 @@ async function handleGenerate(): Promise<void> {
 }
 
 .step-title {
-  @apply text-lg font-semibold text-white;
+  @apply text-lg font-semibold text-skin-primary;
 }
 
 .step-desc {
-  @apply text-sm text-gray-400;
+  @apply text-sm text-skin-secondary;
 }
 
 .btn-generate {
@@ -127,10 +127,10 @@ async function handleGenerate(): Promise<void> {
 }
 
 .field-label {
-  @apply text-xs text-gray-500 uppercase tracking-wider font-medium;
+  @apply text-xs text-skin-secondary uppercase tracking-wider font-medium;
 }
 
 .field-textarea {
-  @apply w-full px-4 py-3 bg-dark-2 border border-dark-4 rounded-lg text-white text-sm leading-relaxed placeholder-gray-600 focus:outline-none focus:border-brand-purple resize-y;
+  @apply w-full px-4 py-3 bg-surface-2 border border-skin rounded-lg text-skin-primary text-sm leading-relaxed placeholder-skin-secondary focus:outline-none focus:border-brand-purple resize-y;
 }
 </style>

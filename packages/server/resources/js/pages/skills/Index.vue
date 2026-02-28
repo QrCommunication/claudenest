@@ -3,8 +3,8 @@
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-white">Skills</h1>
-        <p class="text-dark-4 mt-1">Manage discovered skills and their configurations</p>
+        <h1 class="text-2xl font-bold text-skin-primary">Skills</h1>
+        <p class="text-skin-secondary mt-1">Manage discovered skills and their configurations</p>
       </div>
       <div class="flex items-center gap-3">
         <MachineSelector />
@@ -39,7 +39,7 @@
           class="w-full"
         >
           <template #left-icon>
-            <SearchIcon class="w-4 h-4 text-dark-4" />
+            <SearchIcon class="w-4 h-4 text-skin-secondary" />
           </template>
         </Input>
       </div>
@@ -66,7 +66,7 @@
           'px-3 py-1.5 rounded-lg text-sm transition-colors',
           selectedCategory === stat.category
             ? 'bg-brand-purple text-white'
-            : 'bg-dark-2 text-dark-4 hover:bg-dark-3'
+            : 'bg-surface-2 text-skin-secondary hover:bg-surface-3'
         ]"
         @click="selectedCategory = selectedCategory === stat.category ? '' : stat.category"
       >
@@ -81,9 +81,9 @@
     </div>
 
     <div v-else-if="filteredSkills.length === 0" class="text-center py-12">
-      <ZapIcon class="w-12 h-12 text-dark-4 mx-auto mb-4" />
-      <h3 class="text-lg font-medium text-white mb-2">No skills found</h3>
-      <p class="text-dark-4 mb-4">
+      <ZapIcon class="w-12 h-12 text-skin-secondary mx-auto mb-4" />
+      <h3 class="text-lg font-medium text-skin-primary mb-2">No skills found</h3>
+      <p class="text-skin-secondary mb-4">
         {{ searchQuery ? 'Try adjusting your search filters' : 'Create your first skill to get started' }}
       </p>
       <Button variant="primary" @click="createSkill">
@@ -116,7 +116,7 @@
         >
           <ChevronLeftIcon class="w-4 h-4" />
         </Button>
-        <span class="text-sm text-dark-4">
+        <span class="text-sm text-skin-secondary">
           Page {{ skillsStore.pagination.currentPage }} of {{ skillsStore.pagination.lastPage }}
         </span>
         <Button
@@ -176,8 +176,8 @@
         </div>
       </template>
       
-      <p class="text-dark-4">
-        Are you sure you want to delete <strong class="text-white">{{ skillToDelete?.display_name }}</strong>? 
+      <p class="text-skin-secondary">
+        Are you sure you want to delete <strong class="text-skin-primary">{{ skillToDelete?.display_name }}</strong>? 
         This action cannot be undone.
       </p>
       

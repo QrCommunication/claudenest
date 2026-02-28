@@ -3,8 +3,8 @@
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-white">Commands</h1>
-        <p class="text-dark-4 mt-1">Discover and execute available commands</p>
+        <h1 class="text-2xl font-bold text-skin-primary">Commands</h1>
+        <p class="text-skin-secondary mt-1">Discover and execute available commands</p>
       </div>
       <div class="flex items-center gap-3">
         <MachineSelector />
@@ -49,7 +49,7 @@
           'px-3 py-1.5 rounded-lg text-sm transition-colors',
           selectedCategory === stat.category
             ? 'bg-brand-purple text-white'
-            : 'bg-dark-2 text-dark-4 hover:bg-dark-3'
+            : 'bg-surface-2 text-skin-secondary hover:bg-surface-3'
         ]"
         @click="selectedCategory = selectedCategory === stat.category ? '' : stat.category"
       >
@@ -64,9 +64,9 @@
     </div>
 
     <div v-else-if="filteredCommands.length === 0" class="text-center py-12">
-      <TerminalIcon class="w-12 h-12 text-dark-4 mx-auto mb-4" />
-      <h3 class="text-lg font-medium text-white mb-2">No commands found</h3>
-      <p class="text-dark-4">
+      <TerminalIcon class="w-12 h-12 text-skin-secondary mx-auto mb-4" />
+      <h3 class="text-lg font-medium text-skin-primary mb-2">No commands found</h3>
+      <p class="text-skin-secondary">
         {{ searchQuery ? 'Try adjusting your search filters' : 'Commands will appear here once discovered' }}
       </p>
     </div>
@@ -75,16 +75,16 @@
       <div
         v-for="command in paginatedCommands"
         :key="command.id"
-        class="bg-dark-2 border border-dark-4 rounded-card p-4 hover:border-brand-purple/30 transition-colors cursor-pointer"
+        class="bg-surface-2 border border-skin rounded-card p-4 hover:border-brand-purple/30 transition-colors cursor-pointer"
         @click="selectCommand(command)"
       >
         <div class="flex items-start gap-4">
-          <div class="w-10 h-10 rounded-lg bg-dark-3 flex items-center justify-center flex-shrink-0">
+          <div class="w-10 h-10 rounded-lg bg-surface-3 flex items-center justify-center flex-shrink-0">
             <TerminalIcon class="w-5 h-5 text-brand-purple" />
           </div>
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
-              <code class="text-white font-mono">{{ command.name }}</code>
+              <code class="text-skin-primary font-mono">{{ command.name }}</code>
               <Badge :variant="categoryVariant(command.category)" size="sm">
                 {{ command.category }}
               </Badge>
@@ -92,10 +92,10 @@
                 {{ command.aliases.length }} alias{{ command.aliases.length > 1 ? 'es' : '' }}
               </Badge>
             </div>
-            <p v-if="command.description" class="text-sm text-dark-4 mt-1">
+            <p v-if="command.description" class="text-sm text-skin-secondary mt-1">
               {{ command.description }}
             </p>
-            <code class="text-xs text-dark-4 mt-2 block font-mono">{{ command.signature }}</code>
+            <code class="text-xs text-skin-secondary mt-2 block font-mono">{{ command.signature }}</code>
             
             <div v-if="command.parameters.length > 0" class="flex flex-wrap gap-2 mt-2">
               <span 
@@ -108,7 +108,7 @@
                     'px-1.5 py-0.5 rounded',
                     param.required 
                       ? 'bg-red-500/10 text-red-400' 
-                      : 'bg-dark-3 text-dark-4'
+                      : 'bg-surface-3 text-skin-secondary'
                   ]"
                 >
                   {{ param.name }}: {{ param.type }}
@@ -134,7 +134,7 @@
         >
           <ChevronLeftIcon class="w-4 h-4" />
         </Button>
-        <span class="text-sm text-dark-4">
+        <span class="text-sm text-skin-secondary">
           Page {{ currentPage }} of {{ totalPages }}
         </span>
         <Button
@@ -167,29 +167,29 @@
           </Badge>
         </div>
 
-        <p v-if="selectedCommand.description" class="text-dark-4">
+        <p v-if="selectedCommand.description" class="text-skin-secondary">
           {{ selectedCommand.description }}
         </p>
 
-        <div class="bg-dark-1 rounded-lg p-3">
-          <p class="text-xs text-dark-4 mb-1">Usage</p>
+        <div class="bg-surface-1 rounded-lg p-3">
+          <p class="text-xs text-skin-secondary mb-1">Usage</p>
           <code class="text-brand-purple font-mono text-sm">{{ selectedCommand.signature }}</code>
         </div>
 
         <div v-if="selectedCommand.parameters.length > 0">
-          <p class="text-sm font-medium text-white mb-2">Parameters</p>
+          <p class="text-sm font-medium text-skin-primary mb-2">Parameters</p>
           <div class="space-y-2">
-            <div 
-              v-for="param in selectedCommand.parameters" 
+            <div
+              v-for="param in selectedCommand.parameters"
               :key="param.name"
-              class="bg-dark-1 rounded-lg p-3"
+              class="bg-surface-1 rounded-lg p-3"
             >
               <div class="flex items-center gap-2">
-                <code class="text-white font-mono">{{ param.name }}</code>
+                <code class="text-skin-primary font-mono">{{ param.name }}</code>
                 <Badge size="sm" variant="default">{{ param.type }}</Badge>
                 <Badge v-if="param.required" size="sm" variant="error">required</Badge>
               </div>
-              <p v-if="param.description" class="text-xs text-dark-4 mt-1">
+              <p v-if="param.description" class="text-xs text-skin-secondary mt-1">
                 {{ param.description }}
               </p>
             </div>
@@ -197,7 +197,7 @@
         </div>
 
         <div v-if="selectedCommand.aliases.length > 0">
-          <p class="text-sm font-medium text-white mb-2">Aliases</p>
+          <p class="text-sm font-medium text-skin-primary mb-2">Aliases</p>
           <div class="flex gap-2">
             <code 
               v-for="alias in selectedCommand.aliases" 
@@ -210,15 +210,15 @@
         </div>
 
         <div v-if="selectedCommand.examples?.length">
-          <p class="text-sm font-medium text-white mb-2">Examples</p>
+          <p class="text-sm font-medium text-skin-primary mb-2">Examples</p>
           <div class="space-y-2">
-            <div 
-              v-for="(example, index) in selectedCommand.examples" 
+            <div
+              v-for="(example, index) in selectedCommand.examples"
               :key="index"
-              class="bg-dark-1 rounded-lg p-3"
+              class="bg-surface-1 rounded-lg p-3"
             >
-              <p class="font-medium text-white text-sm">{{ example.title }}</p>
-              <p v-if="example.description" class="text-xs text-dark-4 mt-1">
+              <p class="font-medium text-skin-primary text-sm">{{ example.title }}</p>
+              <p v-if="example.description" class="text-xs text-skin-secondary mt-1">
                 {{ example.description }}
               </p>
               <code class="block mt-2 text-brand-purple font-mono text-sm">{{ example.command }}</code>

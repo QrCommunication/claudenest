@@ -172,15 +172,15 @@ function toggleDetails(activityId: string) {
 
 <style scoped>
 .activity-feed {
-  @apply bg-dark-2 rounded-xl border border-dark-4 flex flex-col h-full max-h-[600px];
+  @apply bg-surface-2 rounded-xl border border-skin flex flex-col h-full max-h-[600px];
 }
 
 .feed-header {
-  @apply flex items-center justify-between p-4 border-b border-dark-4;
+  @apply flex items-center justify-between p-4 border-b border-skin;
 }
 
 .feed-title {
-  @apply flex items-center gap-2 text-lg font-semibold text-white;
+  @apply flex items-center gap-2 text-lg font-semibold text-skin-primary;
 }
 
 .feed-title svg {
@@ -192,7 +192,7 @@ function toggleDetails(activityId: string) {
 }
 
 .refresh-btn {
-  @apply p-2 rounded-lg text-gray-400 hover:text-white hover:bg-dark-3 transition-colors;
+  @apply p-2 rounded-lg text-skin-secondary hover:text-skin-primary hover:bg-surface-3 transition-colors;
 }
 
 .refresh-btn svg {
@@ -204,7 +204,7 @@ function toggleDetails(activityId: string) {
 }
 
 .filter-select {
-  @apply px-3 py-1.5 bg-dark-3 border border-dark-4 rounded-lg text-sm text-white;
+  @apply px-3 py-1.5 bg-surface-3 border border-skin rounded-lg text-sm text-skin-primary;
   @apply focus:outline-none focus:border-brand-purple;
 }
 
@@ -221,7 +221,7 @@ function toggleDetails(activityId: string) {
 }
 
 .feed-loading p {
-  @apply mt-3 text-gray-400 text-sm;
+  @apply mt-3 text-skin-secondary text-sm;
 }
 
 .feed-empty {
@@ -229,11 +229,11 @@ function toggleDetails(activityId: string) {
 }
 
 .feed-empty svg {
-  @apply w-12 h-12 text-gray-600 mb-3;
+  @apply w-12 h-12 text-skin-muted mb-3;
 }
 
 .feed-empty p {
-  @apply text-gray-400;
+  @apply text-skin-secondary;
 }
 
 .feed-list {
@@ -241,7 +241,7 @@ function toggleDetails(activityId: string) {
 }
 
 .activity-item {
-  @apply flex gap-3 p-3 rounded-lg bg-dark-3/50 hover:bg-dark-3 transition-colors;
+  @apply flex gap-3 p-3 rounded-lg bg-surface-3/50 hover:bg-surface-3 transition-colors;
 }
 
 .activity-icon {
@@ -261,15 +261,15 @@ function toggleDetails(activityId: string) {
 }
 
 .activity-type {
-  @apply text-xs font-medium text-gray-400 uppercase tracking-wide;
+  @apply text-xs font-medium text-skin-secondary uppercase tracking-wide;
 }
 
 .activity-time {
-  @apply text-xs text-gray-500;
+  @apply text-xs text-skin-muted;
 }
 
 .activity-message {
-  @apply text-sm text-white leading-relaxed;
+  @apply text-sm text-skin-primary leading-relaxed;
 }
 
 .activity-meta {
@@ -277,7 +277,7 @@ function toggleDetails(activityId: string) {
 }
 
 .instance-badge {
-  @apply inline-flex items-center px-2 py-0.5 bg-dark-4 rounded text-xs text-gray-400 font-mono;
+  @apply inline-flex items-center px-2 py-0.5 bg-surface-4 rounded text-xs text-skin-secondary font-mono;
 }
 
 .activity-details {
@@ -289,11 +289,11 @@ function toggleDetails(activityId: string) {
 }
 
 .details-content {
-  @apply mt-2 p-2 bg-dark-4 rounded-lg overflow-x-auto;
+  @apply mt-2 p-2 bg-surface-4 rounded-lg overflow-x-auto;
 }
 
 .details-content pre {
-  @apply text-xs text-gray-400 font-mono;
+  @apply text-xs text-skin-secondary font-mono;
 }
 
 .load-more {
@@ -301,7 +301,7 @@ function toggleDetails(activityId: string) {
 }
 
 .load-more-btn {
-  @apply px-4 py-2 text-sm text-gray-400 hover:text-white bg-dark-3 hover:bg-dark-4 rounded-lg transition-colors;
+  @apply px-4 py-2 text-sm text-skin-secondary hover:text-skin-primary bg-surface-3 hover:bg-surface-4 rounded-lg transition-colors;
 }
 
 .load-more-btn:disabled {
@@ -335,10 +335,10 @@ function toggleDetails(activityId: string) {
 }
 
 .feed-content::-webkit-scrollbar-thumb {
-  @apply bg-dark-4 rounded-full;
+  @apply bg-surface-4 rounded-full;
 }
 
 .feed-content::-webkit-scrollbar-thumb:hover {
-  @apply bg-dark-3;
+  @apply bg-surface-3;
 }
 </style>

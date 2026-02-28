@@ -16,8 +16,8 @@
           <ServerIcon :class="['w-5 h-5', statusIconClass]" />
         </div>
         <div>
-          <h3 class="font-semibold text-white">{{ server.display_name }}</h3>
-          <div class="flex items-center gap-2 text-xs text-dark-4">
+          <h3 class="font-semibold text-skin-primary">{{ server.display_name }}</h3>
+          <div class="flex items-center gap-2 text-xs text-skin-secondary">
             <span class="font-mono">{{ server.name }}</span>
             <span>•</span>
             <span>{{ server.transport }}</span>
@@ -28,21 +28,21 @@
     </div>
 
     <!-- Description -->
-    <p class="mt-3 text-sm text-dark-4 line-clamp-2">
+    <p class="mt-3 text-sm text-skin-secondary line-clamp-2">
       {{ server.description || 'No description available' }}
     </p>
 
     <!-- Connection Details -->
     <div class="mt-4 space-y-2">
       <div v-if="server.command" class="flex items-center gap-2 text-xs">
-        <TerminalIcon class="w-3.5 h-3.5 text-dark-4 flex-shrink-0" />
-        <code class="text-dark-4 bg-dark-3 px-2 py-0.5 rounded truncate flex-1 font-mono">
+        <TerminalIcon class="w-3.5 h-3.5 text-skin-secondary flex-shrink-0" />
+        <code class="text-skin-secondary bg-surface-3 px-2 py-0.5 rounded truncate flex-1 font-mono">
           {{ server.command }}
         </code>
       </div>
       <div v-if="server.url" class="flex items-center gap-2 text-xs">
-        <LinkIcon class="w-3.5 h-3.5 text-dark-4 flex-shrink-0" />
-        <span class="text-dark-4 truncate">{{ server.url }}</span>
+        <LinkIcon class="w-3.5 h-3.5 text-skin-secondary flex-shrink-0" />
+        <span class="text-skin-secondary truncate">{{ server.url }}</span>
       </div>
     </div>
 
@@ -53,12 +53,12 @@
         @click="$emit('view-tools', server)"
       >
         <WrenchIcon class="w-4 h-4 text-brand-purple" />
-        <span class="text-white font-medium">{{ server.tools_count }}</span>
-        <span class="text-dark-4">tools</span>
+        <span class="text-skin-primary font-medium">{{ server.tools_count }}</span>
+        <span class="text-skin-secondary">tools</span>
       </div>
       <div v-if="server.uptime" class="flex items-center gap-1.5">
-        <ClockIcon class="w-4 h-4 text-dark-4" />
-        <span class="text-dark-4">{{ server.uptime }}</span>
+        <ClockIcon class="w-4 h-4 text-skin-secondary" />
+        <span class="text-skin-secondary">{{ server.uptime }}</span>
       </div>
     </div>
 
@@ -175,12 +175,12 @@ const hasErrors = computed(() => props.server.status === 'error');
 const statusBgClass = computed(() => {
   if (isRunning.value) return 'bg-green-500/10';
   if (hasErrors.value) return 'bg-red-500/10';
-  return 'bg-dark-3';
+  return 'bg-surface-3';
 });
 
 const statusIconClass = computed(() => {
   if (isRunning.value) return 'text-green-400';
   if (hasErrors.value) return 'text-red-400';
-  return 'text-dark-4';
+  return 'text-skin-secondary';
 });
 </script>

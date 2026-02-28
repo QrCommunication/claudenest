@@ -109,7 +109,7 @@
 
     <!-- Empty state -->
     <div v-else class="empty-state">
-      <p class="text-gray-400">{{ $t('projects.masterplan.no_plan') }}</p>
+      <p class="text-skin-secondary">{{ $t('projects.masterplan.no_plan') }}</p>
     </div>
   </div>
 </template>
@@ -206,19 +206,19 @@ function priorityClass(priority: string): string {
 }
 
 .plan-title {
-  @apply text-lg font-semibold text-white;
+  @apply text-lg font-semibold text-skin-primary;
 }
 
 .plan-summary {
-  @apply text-sm text-gray-400;
+  @apply text-sm text-skin-secondary;
 }
 
 .plan-stats {
-  @apply flex items-center gap-2 text-xs text-gray-500;
+  @apply flex items-center gap-2 text-xs text-skin-muted;
 }
 
 .stat-sep {
-  @apply text-gray-600;
+  @apply text-skin-secondary;
 }
 
 /* Waves */
@@ -227,15 +227,15 @@ function priorityClass(priority: string): string {
 }
 
 .wave {
-  @apply bg-dark-3 border border-dark-4 rounded-lg overflow-hidden;
+  @apply bg-surface-3 border border-skin rounded-lg overflow-hidden;
 }
 
 .wave-header {
-  @apply flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-dark-4/50 transition-colors;
+  @apply flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-surface-4/50 transition-colors;
 }
 
 .chevron {
-  @apply w-5 h-5 text-gray-500 transition-transform duration-200;
+  @apply w-5 h-5 text-skin-muted transition-transform duration-200;
 }
 
 .chevron-open {
@@ -247,7 +247,7 @@ function priorityClass(priority: string): string {
 }
 
 .wave-name-input {
-  @apply bg-transparent border-none text-sm font-medium text-white focus:outline-none focus:ring-0;
+  @apply bg-transparent border-none text-sm font-medium text-skin-primary focus:outline-none focus:ring-0;
 }
 
 .wave-meta {
@@ -255,20 +255,20 @@ function priorityClass(priority: string): string {
 }
 
 .task-count {
-  @apply text-xs text-gray-500;
+  @apply text-xs text-skin-muted;
 }
 
 .btn-icon {
-  @apply p-1 rounded hover:bg-red-500/10 text-gray-500 hover:text-red-400 transition-colors;
+  @apply p-1 rounded hover:bg-red-500/10 text-skin-secondary hover:text-red-400 transition-colors;
 }
 
 /* Tasks */
 .wave-tasks {
-  @apply px-4 pb-3 space-y-2 border-t border-dark-4;
+  @apply px-4 pb-3 space-y-2 border-t border-skin;
 }
 
 .task-row {
-  @apply mt-2 space-y-1 p-2 bg-dark-2 rounded-lg;
+  @apply mt-2 space-y-1 p-2 bg-surface-2 rounded-lg;
 }
 
 .task-main {
@@ -276,26 +276,26 @@ function priorityClass(priority: string): string {
 }
 
 .priority-select {
-  @apply bg-dark-3 border border-dark-4 rounded text-xs px-2 py-1 focus:outline-none;
+  @apply bg-surface-3 border border-skin rounded text-xs px-2 py-1 focus:outline-none;
 }
 
 .priority-critical { @apply text-red-400; }
 .priority-high { @apply text-orange-400; }
 .priority-medium { @apply text-yellow-400; }
-.priority-low { @apply text-gray-400; }
+.priority-low { @apply text-skin-muted; }
 
 .task-title-input {
-  @apply flex-1 bg-transparent border-none text-sm text-gray-200 placeholder-gray-600
+  @apply flex-1 bg-transparent border-none text-sm text-skin-primary placeholder-skin-secondary
          focus:outline-none focus:ring-0;
 }
 
 .btn-icon-sm {
-  @apply p-1 rounded hover:bg-red-500/10 text-gray-600 hover:text-red-400 transition-colors;
+  @apply p-1 rounded hover:bg-red-500/10 text-skin-secondary hover:text-red-400 transition-colors;
 }
 
 .task-desc-input {
-  @apply w-full bg-dark-3 border border-dark-4 rounded text-xs text-gray-400 p-2
-         placeholder-gray-600 resize-none focus:outline-none focus:ring-1 focus:ring-brand-purple/30;
+  @apply w-full bg-surface-3 border border-skin rounded text-xs text-skin-secondary p-2
+         placeholder-skin-secondary resize-none focus:outline-none focus:ring-1 focus:ring-brand-purple/30;
 }
 
 .task-files {
@@ -308,11 +308,11 @@ function priorityClass(priority: string): string {
 
 /* Add buttons */
 .btn-add-task {
-  @apply mt-2 inline-flex items-center gap-1 text-xs text-gray-500 hover:text-brand-purple transition-colors;
+  @apply mt-2 inline-flex items-center gap-1 text-xs text-skin-muted hover:text-brand-purple transition-colors;
 }
 
 .btn-add-wave {
-  @apply inline-flex items-center gap-1 px-4 py-2 text-sm text-gray-500 hover:text-brand-purple
-         border border-dashed border-dark-4 rounded-lg hover:border-brand-purple/30 transition-colors;
+  @apply inline-flex items-center gap-1 px-4 py-2 text-sm text-skin-muted hover:text-brand-purple
+         border border-dashed border-skin rounded-lg hover:border-brand-purple/30 transition-colors;
 }
 </style>

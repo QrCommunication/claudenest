@@ -116,7 +116,7 @@ const machineHasWakeOnLan = computed(() =>
 
 <style scoped>
 .machine-card {
-  @apply relative bg-dark-2 border border-dark-4 rounded-xl p-4 transition-all duration-200;
+  @apply relative bg-surface-2 border border-skin rounded-xl p-4 transition-all duration-200;
 }
 
 .machine-card:hover {
@@ -150,7 +150,7 @@ const machineHasWakeOnLan = computed(() =>
 
 .action-btn {
   @apply p-1.5 rounded-lg transition-colors duration-150;
-  @apply text-gray-400 hover:text-white hover:bg-dark-3;
+  @apply text-skin-secondary hover:text-skin-primary hover:bg-surface-3;
 }
 
 .action-btn:disabled {
@@ -182,11 +182,11 @@ const machineHasWakeOnLan = computed(() =>
 }
 
 .machine-name {
-  @apply text-lg font-semibold text-white mb-1 truncate;
+  @apply text-lg font-semibold text-skin-primary mb-1 truncate;
 }
 
 .machine-hostname {
-  @apply text-sm text-gray-400 mb-3;
+  @apply text-sm text-skin-secondary mb-3;
 }
 
 .machine-meta {
@@ -194,7 +194,7 @@ const machineHasWakeOnLan = computed(() =>
 }
 
 .meta-item {
-  @apply flex items-center gap-1.5 text-xs text-gray-500;
+  @apply flex items-center gap-1.5 text-xs text-skin-muted;
 }
 
 .meta-item svg {
@@ -210,7 +210,7 @@ const machineHasWakeOnLan = computed(() =>
 }
 
 .tag {
-  @apply px-2 py-0.5 text-xs rounded-full bg-dark-3 text-gray-400;
+  @apply px-2 py-0.5 text-xs rounded-full bg-surface-3 text-skin-secondary;
 }
 
 .machine-warning {

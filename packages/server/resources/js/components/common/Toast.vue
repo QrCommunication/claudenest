@@ -57,14 +57,14 @@
 
           <!-- Content -->
           <div class="ml-3 w-0 flex-1 pt-0.5">
-            <p class="text-sm font-medium text-white">{{ toast.title }}</p>
-            <p v-if="toast.message" class="mt-1 text-sm text-dark-4">{{ toast.message }}</p>
+            <p class="text-sm font-medium text-skin-primary">{{ toast.title }}</p>
+            <p v-if="toast.message" class="mt-1 text-sm text-skin-secondary">{{ toast.message }}</p>
           </div>
 
           <!-- Close Button -->
           <div class="ml-4 flex flex-shrink-0">
             <button
-              class="inline-flex rounded-md text-dark-4 hover:text-white focus:outline-none"
+              class="inline-flex rounded-md text-skin-muted hover:text-skin-primary focus:outline-none"
               @click="remove"
             >
               <span class="sr-only">Close</span>
@@ -105,10 +105,10 @@ const emit = defineEmits<{
 }>();
 
 const variantClasses = {
-  success: 'bg-dark-2 border border-green-500/20',
-  error: 'bg-dark-2 border border-red-500/20',
-  warning: 'bg-dark-2 border border-yellow-500/20',
-  info: 'bg-dark-2 border border-brand-cyan/20',
+  success: 'bg-surface-2 border border-green-500/20',
+  error: 'bg-surface-2 border border-red-500/20',
+  warning: 'bg-surface-2 border border-yellow-500/20',
+  info: 'bg-surface-2 border border-brand-cyan/20',
 };
 
 const progress = ref(100);

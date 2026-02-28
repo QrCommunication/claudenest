@@ -6,8 +6,8 @@
           <WrenchIcon class="w-5 h-5 text-brand-purple" />
         </div>
         <div>
-          <h2 class="text-lg font-semibold text-white">{{ server?.display_name }}</h2>
-          <p class="text-sm text-dark-4">
+          <h2 class="text-lg font-semibold text-skin-primary">{{ server?.display_name }}</h2>
+          <p class="text-sm text-skin-secondary">
             {{ filteredTools.length }} tools available
           </p>
         </div>
@@ -24,7 +24,7 @@
           class="flex-1"
         >
           <template #left-icon>
-            <SearchIcon class="w-4 h-4 text-dark-4" />
+            <SearchIcon class="w-4 h-4 text-skin-secondary" />
           </template>
         </Input>
       </div>
@@ -36,9 +36,9 @@
 
       <!-- Empty State -->
       <div v-else-if="filteredTools.length === 0" class="text-center py-12">
-        <WrenchIcon class="w-12 h-12 text-dark-4 mx-auto mb-4" />
-        <h3 class="text-lg font-medium text-white mb-2">No tools found</h3>
-        <p class="text-dark-4">
+        <WrenchIcon class="w-12 h-12 text-skin-secondary mx-auto mb-4" />
+        <h3 class="text-lg font-medium text-skin-primary mb-2">No tools found</h3>
+        <p class="text-skin-secondary">
           {{ searchQuery ? 'Try adjusting your search' : 'This server has no tools configured' }}
         </p>
       </div>

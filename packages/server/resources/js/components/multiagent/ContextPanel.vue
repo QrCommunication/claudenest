@@ -235,15 +235,15 @@ function saveChanges() {
 
 <style scoped>
 .context-panel {
-  @apply bg-dark-2 rounded-xl border border-dark-4 flex flex-col;
+  @apply bg-surface-2 rounded-xl border border-skin flex flex-col;
 }
 
 .panel-header {
-  @apply flex items-center justify-between p-4 border-b border-dark-4;
+  @apply flex items-center justify-between p-4 border-b border-skin;
 }
 
 .panel-title {
-  @apply flex items-center gap-2 text-lg font-semibold text-white;
+  @apply flex items-center gap-2 text-lg font-semibold text-skin-primary;
 }
 
 .panel-title svg {
@@ -255,7 +255,7 @@ function saveChanges() {
 }
 
 .action-btn {
-  @apply p-2 rounded-lg text-gray-400 hover:text-white hover:bg-dark-3 transition-colors;
+  @apply p-2 rounded-lg text-skin-secondary hover:text-skin-primary hover:bg-surface-3 transition-colors;
 }
 
 .action-btn svg {
@@ -279,15 +279,15 @@ function saveChanges() {
 }
 
 .context-tabs {
-  @apply flex items-center gap-1 p-2 border-b border-dark-4 overflow-x-auto;
+  @apply flex items-center gap-1 p-2 border-b border-skin overflow-x-auto;
 }
 
 .context-tab {
-  @apply px-4 py-2 text-sm font-medium text-gray-400 rounded-lg transition-colors whitespace-nowrap;
+  @apply px-4 py-2 text-sm font-medium text-skin-secondary rounded-lg transition-colors whitespace-nowrap;
 }
 
 .context-tab:hover {
-  @apply text-white bg-dark-3;
+  @apply text-skin-primary bg-surface-3;
 }
 
 .context-tab.active {
@@ -307,24 +307,24 @@ function saveChanges() {
 }
 
 .context-text {
-  @apply text-gray-300 leading-relaxed whitespace-pre-wrap;
+  @apply text-skin-secondary leading-relaxed whitespace-pre-wrap;
 }
 
 .context-pre {
-  @apply text-gray-300 leading-relaxed whitespace-pre-wrap font-mono text-sm bg-dark-3 p-4 rounded-lg;
+  @apply text-skin-secondary leading-relaxed whitespace-pre-wrap font-mono text-sm bg-surface-3 p-4 rounded-lg;
 }
 
 .context-empty {
-  @apply text-gray-500 italic text-center py-8;
+  @apply text-skin-muted italic text-center py-8;
 }
 
 .context-editor {
-  @apply w-full px-4 py-3 bg-dark-3 border border-dark-4 rounded-lg text-white resize-none;
+  @apply w-full px-4 py-3 bg-surface-3 border border-skin rounded-lg text-skin-primary resize-none;
   @apply focus:outline-none focus:border-brand-purple font-mono text-sm leading-relaxed;
 }
 
 .panel-footer {
-  @apply p-4 border-t border-dark-4 space-y-2;
+  @apply p-4 border-t border-skin space-y-2;
 }
 
 .token-usage {
@@ -332,11 +332,11 @@ function saveChanges() {
 }
 
 .token-label {
-  @apply text-sm text-gray-400 w-24;
+  @apply text-sm text-skin-secondary w-24;
 }
 
 .token-bar {
-  @apply flex-1 h-2 bg-dark-3 rounded-full overflow-hidden;
+  @apply flex-1 h-2 bg-surface-3 rounded-full overflow-hidden;
 }
 
 .token-progress {
@@ -348,11 +348,11 @@ function saveChanges() {
 }
 
 .token-value {
-  @apply text-sm font-medium text-white w-12 text-right;
+  @apply text-sm font-medium text-skin-primary w-12 text-right;
 }
 
 .token-detail {
-  @apply text-xs text-gray-500 text-right block;
+  @apply text-xs text-skin-muted text-right block;
 }
 
 /* Custom scrollbar for tabs */
@@ -365,6 +365,6 @@ function saveChanges() {
 }
 
 .context-tabs::-webkit-scrollbar-thumb {
-  @apply bg-dark-4 rounded-full;
+  @apply bg-surface-4 rounded-full;
 }
 </style>

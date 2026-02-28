@@ -102,7 +102,7 @@ const tooltip = computed(() => {
 }
 
 .instance-icon {
-  @apply flex items-center justify-center rounded-full bg-dark-4;
+  @apply flex items-center justify-center rounded-full bg-surface-4;
 }
 
 .instance-badge.sm .instance-icon {
@@ -118,7 +118,7 @@ const tooltip = computed(() => {
 }
 
 .instance-icon svg {
-  @apply w-4 h-4 text-gray-400;
+  @apply w-4 h-4 text-skin-secondary;
 }
 
 .instance-badge.sm .instance-icon svg {
@@ -130,7 +130,7 @@ const tooltip = computed(() => {
 }
 
 .instance-id {
-  @apply font-mono text-sm text-white;
+  @apply font-mono text-sm text-skin-primary;
 }
 
 .instance-badge.sm .instance-id {

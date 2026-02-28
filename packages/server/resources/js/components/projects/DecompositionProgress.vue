@@ -56,10 +56,10 @@ watch(() => props.output, async () => {
 }
 
 .output-viewer {
-  @apply bg-dark-1 border border-dark-4 rounded-lg p-4 max-h-[300px] overflow-y-auto;
+  @apply bg-surface-1 border border-skin rounded-lg p-4 max-h-[300px] overflow-y-auto;
 }
 
 .output-text {
-  @apply text-xs text-gray-400 font-mono whitespace-pre-wrap break-words;
+  @apply text-xs text-skin-secondary font-mono whitespace-pre-wrap break-words;
 }
 </style>

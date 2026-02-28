@@ -445,15 +445,15 @@ async function extendLock(lock: FileLock) {
 }
 
 .stat-box {
-  @apply flex flex-col items-center px-4 py-2 bg-dark-2 rounded-lg border border-dark-4;
+  @apply flex flex-col items-center px-4 py-2 bg-surface-2 rounded-lg border border-skin;
 }
 
 .stat-number {
-  @apply text-2xl font-bold text-white;
+  @apply text-2xl font-bold text-skin-primary;
 }
 
 .stat-label {
-  @apply text-xs text-gray-400;
+  @apply text-xs text-skin-secondary;
 }
 
 .loading-state {
@@ -469,15 +469,15 @@ async function extendLock(lock: FileLock) {
 }
 
 .empty-state svg {
-  @apply w-16 h-16 text-gray-600 mb-4;
+  @apply w-16 h-16 text-skin-secondary mb-4;
 }
 
 .empty-state h3 {
-  @apply text-xl font-semibold text-white mb-2;
+  @apply text-xl font-semibold text-skin-primary mb-2;
 }
 
 .empty-state p {
-  @apply text-gray-400;
+  @apply text-skin-secondary;
 }
 
 .locks-layout {
@@ -501,7 +501,7 @@ async function extendLock(lock: FileLock) {
 }
 
 .tree-dir-header {
-  @apply flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-dark-3;
+  @apply flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-surface-3;
 }
 
 .tree-dir-header svg {
@@ -514,11 +514,11 @@ async function extendLock(lock: FileLock) {
 }
 
 .tree-dir-header span {
-  @apply text-sm font-medium text-white;
+  @apply text-sm font-medium text-skin-primary;
 }
 
 .dir-count {
-  @apply ml-auto text-xs text-gray-400 bg-dark-3 px-2 py-0.5 rounded-full;
+  @apply ml-auto text-xs text-skin-secondary bg-surface-3 px-2 py-0.5 rounded-full;
 }
 
 .tree-files {
@@ -526,7 +526,7 @@ async function extendLock(lock: FileLock) {
 }
 
 .tree-file {
-  @apply flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-dark-3;
+  @apply flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-surface-3;
 }
 
 .tree-file.selected {
@@ -534,7 +534,7 @@ async function extendLock(lock: FileLock) {
 }
 
 .file-name {
-  @apply text-sm text-gray-300 truncate;
+  @apply text-sm text-skin-primary truncate;
 }
 
 .locks-table-container {
@@ -546,15 +546,15 @@ async function extendLock(lock: FileLock) {
 }
 
 .locks-table th {
-  @apply text-left text-gray-400 font-medium py-3 px-4 border-b border-dark-4;
+  @apply text-left text-skin-secondary font-medium py-3 px-4 border-b border-skin;
 }
 
 .locks-table td {
-  @apply py-3 px-4 border-b border-dark-4;
+  @apply py-3 px-4 border-b border-skin;
 }
 
 .locks-table tbody tr {
-  @apply hover:bg-dark-3/50 cursor-pointer transition-colors;
+  @apply hover:bg-surface-3/50 cursor-pointer transition-colors;
 }
 
 .locks-table tbody tr.is-selected {
@@ -566,19 +566,19 @@ async function extendLock(lock: FileLock) {
 }
 
 .file-path {
-  @apply text-white truncate max-w-[200px];
+  @apply text-skin-primary truncate max-w-[200px];
 }
 
 .instance-cell code {
-  @apply text-xs text-gray-400;
+  @apply text-xs text-skin-secondary;
 }
 
 .reason-cell {
-  @apply text-gray-300 max-w-[150px] truncate;
+  @apply text-skin-primary max-w-[150px] truncate;
 }
 
 .time-cell span {
-  @apply text-gray-300;
+  @apply text-skin-primary;
 }
 
 .time-cell span.is-expiring {
@@ -590,7 +590,7 @@ async function extendLock(lock: FileLock) {
 }
 
 .action-btn {
-  @apply p-1.5 rounded text-gray-400 hover:text-white transition-colors;
+  @apply p-1.5 rounded text-skin-secondary hover:text-skin-primary transition-colors;
 }
 
 .action-btn svg {
@@ -618,15 +618,15 @@ async function extendLock(lock: FileLock) {
 }
 
 .detail-row {
-  @apply flex items-center justify-between py-2 border-b border-dark-4 last:border-0;
+  @apply flex items-center justify-between py-2 border-b border-skin last:border-0;
 }
 
 .detail-label {
-  @apply text-sm text-gray-400;
+  @apply text-sm text-skin-secondary;
 }
 
 .detail-value {
-  @apply text-sm text-white;
+  @apply text-sm text-skin-primary;
 }
 
 .detail-value.is-expiring {
@@ -642,12 +642,12 @@ async function extendLock(lock: FileLock) {
 }
 
 .form-group label {
-  @apply block text-sm font-medium text-gray-300;
+  @apply block text-sm font-medium text-skin-primary;
 }
 
 .form-group input,
 .form-group select {
-  @apply w-full px-4 py-2 bg-dark-2 border border-dark-4 rounded-lg text-white;
+  @apply w-full px-4 py-2 bg-surface-2 border border-skin rounded-lg text-skin-primary;
   @apply focus:outline-none focus:border-brand-purple;
 }
 

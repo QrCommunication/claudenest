@@ -1,10 +1,10 @@
 <template>
-  <header class="h-16 bg-dark-2/80 backdrop-blur-xl border-b border-dark-4 flex items-center justify-between px-6 sticky top-0 z-30">
+  <header class="h-16 bg-glass backdrop-blur-xl border-b border-skin flex items-center justify-between px-6 sticky top-0 z-30">
     <!-- Left Section -->
     <div class="flex items-center gap-4">
       <!-- Mobile Menu Button -->
       <button
-        class="lg:hidden p-2 -ml-2 text-dark-4 hover:text-white rounded-lg hover:bg-dark-3 transition-colors"
+        class="lg:hidden p-2 -ml-2 text-skin-secondary hover:text-skin-primary rounded-lg hover:bg-surface-3 transition-colors"
         @click="$emit('toggle-sidebar')"
       >
         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -13,7 +13,7 @@
       </button>
 
       <!-- Page Title -->
-      <h1 class="text-xl font-semibold text-white hidden sm:block">
+      <h1 class="text-xl font-semibold text-skin-primary hidden sm:block">
         {{ pageTitle }}
       </h1>
     </div>
@@ -22,7 +22,7 @@
     <div class="flex items-center gap-2">
       <!-- Search Button -->
       <button
-        class="p-2 text-dark-4 hover:text-white rounded-lg hover:bg-dark-3 transition-colors"
+        class="p-2 text-skin-secondary hover:text-skin-primary rounded-lg hover:bg-surface-3 transition-colors"
         @click="$emit('search')"
         :title="$t('header.search')"
       >
@@ -33,7 +33,7 @@
 
       <!-- Notifications -->
       <button
-        class="relative p-2 text-dark-4 hover:text-white rounded-lg hover:bg-dark-3 transition-colors"
+        class="relative p-2 text-skin-secondary hover:text-skin-primary rounded-lg hover:bg-surface-3 transition-colors"
         @click="$emit('notifications')"
         :title="$t('header.notifications')"
       >
@@ -53,7 +53,7 @@
       <LanguageSwitcher variant="ghost" :show-label="false" />
 
       <!-- Divider -->
-      <div class="w-px h-6 bg-dark-4 mx-1" />
+      <div class="w-px h-6 bg-skin mx-1" />
 
       <!-- User Menu -->
       <UserMenu :user="user" />

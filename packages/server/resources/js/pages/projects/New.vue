@@ -262,11 +262,11 @@ function handleMasterPlanUpdate(plan: MasterPlan): void {
 }
 
 .wizard-title {
-  @apply text-2xl font-bold text-white;
+  @apply text-2xl font-bold text-skin-primary;
 }
 
 .wizard-subtitle {
-  @apply text-sm text-gray-400;
+  @apply text-sm text-skin-secondary;
 }
 
 /* Stepper */
@@ -291,7 +291,7 @@ function handleMasterPlanUpdate(plan: MasterPlan): void {
 }
 
 .step-upcoming .step-indicator {
-  @apply bg-dark-3 text-gray-500;
+  @apply bg-surface-3 text-skin-secondary;
 }
 
 .step-check {
@@ -303,7 +303,7 @@ function handleMasterPlanUpdate(plan: MasterPlan): void {
 }
 
 .step-active .step-label {
-  @apply text-white;
+  @apply text-skin-primary;
 }
 
 .step-completed .step-label {
@@ -311,12 +311,12 @@ function handleMasterPlanUpdate(plan: MasterPlan): void {
 }
 
 .step-upcoming .step-label {
-  @apply text-gray-500;
+  @apply text-skin-secondary;
 }
 
 /* Progress */
 .progress-bar {
-  @apply w-full h-1 bg-dark-3 rounded-full overflow-hidden;
+  @apply w-full h-1 bg-surface-3 rounded-full overflow-hidden;
 }
 
 .progress-fill {
@@ -339,7 +339,7 @@ function handleMasterPlanUpdate(plan: MasterPlan): void {
 
 /* Navigation */
 .wizard-nav {
-  @apply flex items-center pt-4 border-t border-dark-4;
+  @apply flex items-center pt-4 border-t border-skin;
 }
 
 .nav-spacer {
@@ -359,7 +359,7 @@ function handleMasterPlanUpdate(plan: MasterPlan): void {
 }
 
 .btn-secondary {
-  @apply bg-dark-3 text-gray-300 hover:bg-dark-4 hover:text-white;
+  @apply bg-surface-3 text-skin-secondary hover:bg-surface-4 hover:text-skin-primary;
 }
 
 .btn-secondary:disabled {
@@ -368,11 +368,11 @@ function handleMasterPlanUpdate(plan: MasterPlan): void {
 
 /* Mode Toggle */
 .mode-toggle {
-  @apply flex gap-1 p-1 bg-dark-3 rounded-lg w-fit mb-4;
+  @apply flex gap-1 p-1 bg-surface-3 rounded-lg w-fit mb-4;
 }
 
 .mode-btn {
-  @apply px-4 py-2 text-sm font-medium rounded-md text-gray-400 hover:text-white transition-colors;
+  @apply px-4 py-2 text-sm font-medium rounded-md text-skin-secondary hover:text-skin-primary transition-colors;
 }
 
 .mode-btn-active {

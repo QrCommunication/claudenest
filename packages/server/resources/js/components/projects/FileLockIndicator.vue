@@ -121,7 +121,7 @@ function formatRemaining(seconds: number): string {
 }
 
 .file-lock-indicator:not(.is-locked) {
-  @apply text-gray-500;
+  @apply text-skin-secondary;
 }
 
 .file-lock-indicator.compact {
@@ -137,6 +137,6 @@ function formatRemaining(seconds: number): string {
 }
 
 .lock-time {
-  @apply text-xs text-gray-400;
+  @apply text-xs text-skin-secondary;
 }
 </style>

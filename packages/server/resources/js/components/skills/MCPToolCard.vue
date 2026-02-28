@@ -6,7 +6,7 @@
           <WrenchIcon class="w-4 h-4 text-brand-purple" />
         </div>
         <div>
-          <h3 class="font-medium text-white">{{ tool.name }}</h3>
+          <h3 class="font-medium text-skin-primary">{{ tool.name }}</h3>
         </div>
       </div>
       <Button 
@@ -18,13 +18,13 @@
       </Button>
     </div>
 
-    <p class="mt-3 text-sm text-dark-4">
+    <p class="mt-3 text-sm text-skin-secondary">
       {{ tool.description || 'No description available' }}
     </p>
 
     <div v-if="hasParameters" class="mt-4">
       <div class="flex items-center justify-between mb-2">
-        <p class="text-xs font-medium text-dark-4">Parameters</p>
+        <p class="text-xs font-medium text-skin-secondary">Parameters</p>
         <Badge v-if="requiredParams.length > 0" variant="error" size="sm">
           {{ requiredParams.length }} required
         </Badge>
@@ -38,19 +38,19 @@
           <code class="text-brand-purple bg-brand-purple/10 px-1.5 py-0.5 rounded font-mono">
             {{ name }}
           </code>
-          <span class="text-dark-4">{{ param.type }}</span>
+          <span class="text-skin-secondary">{{ param.type }}</span>
           <span v-if="isRequired(name)" class="text-red-400">*</span>
         </div>
-        <div v-if="hiddenParamsCount > 0" class="text-xs text-dark-4">
+        <div v-if="hiddenParamsCount > 0" class="text-xs text-skin-secondary">
           +{{ hiddenParamsCount }} more
         </div>
       </div>
     </div>
 
-    <div v-if="tool.parameters?.properties" class="mt-3 pt-3 border-t border-dark-4">
+    <div v-if="tool.parameters?.properties" class="mt-3 pt-3 border-t border-skin">
       <div class="flex items-center gap-2">
-        <BoxIcon class="w-3.5 h-3.5 text-dark-4" />
-        <span class="text-xs text-dark-4">
+        <BoxIcon class="w-3.5 h-3.5 text-skin-secondary" />
+        <span class="text-xs text-skin-secondary">
           {{ Object.keys(tool.parameters.properties).length }} parameters
         </span>
       </div>

@@ -355,7 +355,7 @@ function formatRelativeTime(date: string): string {
 }
 
 .search-results {
-  @apply bg-dark-2 rounded-xl border border-dark-4 p-4;
+  @apply bg-surface-2 rounded-xl border border-skin p-4;
 }
 
 .results-header {
@@ -363,11 +363,11 @@ function formatRelativeTime(date: string): string {
 }
 
 .results-header h3 {
-  @apply text-lg font-semibold text-white;
+  @apply text-lg font-semibold text-skin-primary;
 }
 
 .close-btn {
-  @apply p-1 text-gray-400 hover:text-white transition-colors;
+  @apply p-1 text-skin-secondary hover:text-skin-primary transition-colors;
 }
 
 .close-btn svg {
@@ -379,7 +379,7 @@ function formatRelativeTime(date: string): string {
 }
 
 .result-item {
-  @apply p-4 bg-dark-3 rounded-lg;
+  @apply p-4 bg-surface-3 rounded-lg;
 }
 
 .result-header {
@@ -415,15 +415,15 @@ function formatRelativeTime(date: string): string {
 }
 
 .result-score {
-  @apply text-xs text-gray-400;
+  @apply text-xs text-skin-secondary;
 }
 
 .result-content {
-  @apply text-sm text-gray-300 line-clamp-3;
+  @apply text-sm text-skin-primary line-clamp-3;
 }
 
 .result-meta {
-  @apply flex items-center gap-4 mt-2 text-xs text-gray-500;
+  @apply flex items-center gap-4 mt-2 text-xs text-skin-secondary;
 }
 
 .context-layout {
@@ -451,7 +451,7 @@ function formatRelativeTime(date: string): string {
 }
 
 .section-header h4 {
-  @apply text-sm font-semibold text-white uppercase tracking-wide;
+  @apply text-sm font-semibold text-skin-primary uppercase tracking-wide;
 }
 
 .edit-btn {
@@ -459,7 +459,7 @@ function formatRelativeTime(date: string): string {
 }
 
 .context-actions {
-  @apply pt-4 border-t border-dark-4;
+  @apply pt-4 border-t border-skin;
 }
 
 .context-sidebar {
@@ -483,7 +483,7 @@ function formatRelativeTime(date: string): string {
 }
 
 .token-bg {
-  @apply fill-none stroke-dark-4;
+  @apply fill-none stroke-skin;
   stroke-width: 3;
 }
 
@@ -495,7 +495,7 @@ function formatRelativeTime(date: string): string {
 }
 
 .token-percent {
-  @apply absolute inset-0 flex items-center justify-center text-xl font-bold text-white;
+  @apply absolute inset-0 flex items-center justify-center text-xl font-bold text-skin-primary;
 }
 
 .token-stats {
@@ -507,11 +507,11 @@ function formatRelativeTime(date: string): string {
 }
 
 .token-value {
-  @apply text-lg font-semibold text-white;
+  @apply text-lg font-semibold text-skin-primary;
 }
 
 .token-label {
-  @apply text-xs text-gray-400;
+  @apply text-xs text-skin-secondary;
 }
 
 .chunks-card {
@@ -527,7 +527,7 @@ function formatRelativeTime(date: string): string {
 }
 
 .empty-chunks {
-  @apply text-center text-gray-400 py-8;
+  @apply text-center text-skin-secondary py-8;
 }
 
 .chunks-list {
@@ -535,7 +535,7 @@ function formatRelativeTime(date: string): string {
 }
 
 .chunk-item {
-  @apply p-3 bg-dark-3 rounded-lg;
+  @apply p-3 bg-surface-3 rounded-lg;
 }
 
 .chunk-header {
@@ -571,14 +571,14 @@ function formatRelativeTime(date: string): string {
 }
 
 .chunk-score {
-  @apply text-xs text-gray-400;
+  @apply text-xs text-skin-secondary;
 }
 
 .chunk-preview {
-  @apply text-sm text-gray-300 line-clamp-2;
+  @apply text-sm text-skin-primary line-clamp-2;
 }
 
 .chunk-meta {
-  @apply flex items-center gap-3 mt-2 text-xs text-gray-500;
+  @apply flex items-center gap-3 mt-2 text-xs text-skin-secondary;
 }
 </style>

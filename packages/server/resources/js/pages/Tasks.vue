@@ -3,8 +3,8 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-bold text-white">Tasks</h1>
-        <p class="text-dark-4 mt-1">Manage and track automated tasks</p>
+        <h1 class="text-2xl font-bold text-skin-primary">Tasks</h1>
+        <p class="text-skin-secondary mt-1">Manage and track automated tasks</p>
       </div>
       <Button @click="showCreateModal = true">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -18,26 +18,26 @@
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
       <Card hoverable>
         <div class="text-center">
-          <p class="text-2xl font-bold text-white">{{ tasks.length }}</p>
-          <p class="text-xs text-dark-4 mt-1">Total Tasks</p>
+          <p class="text-2xl font-bold text-skin-primary">{{ tasks.length }}</p>
+          <p class="text-xs text-skin-secondary mt-1">Total Tasks</p>
         </div>
       </Card>
       <Card hoverable>
         <div class="text-center">
           <p class="text-2xl font-bold text-yellow-400">{{ pendingCount }}</p>
-          <p class="text-xs text-dark-4 mt-1">Pending</p>
+          <p class="text-xs text-skin-secondary mt-1">Pending</p>
         </div>
       </Card>
       <Card hoverable>
         <div class="text-center">
           <p class="text-2xl font-bold text-brand-cyan">{{ inProgressCount }}</p>
-          <p class="text-xs text-dark-4 mt-1">In Progress</p>
+          <p class="text-xs text-skin-secondary mt-1">In Progress</p>
         </div>
       </Card>
       <Card hoverable>
         <div class="text-center">
           <p class="text-2xl font-bold text-green-400">{{ completedCount }}</p>
-          <p class="text-xs text-dark-4 mt-1">Completed</p>
+          <p class="text-xs text-skin-secondary mt-1">Completed</p>
         </div>
       </Card>
     </div>
@@ -87,7 +87,7 @@
                   'w-5 h-5 rounded border-2 flex items-center justify-center transition-colors',
                   (rawRow as Task).status === 'completed'
                     ? 'bg-green-500 border-green-500'
-                    : 'border-dark-4 hover:border-brand-purple',
+                    : 'border-skin hover:border-brand-purple',
                 ]"
                 @click="toggleTask(rawRow as Task)"
               >
@@ -105,12 +105,12 @@
                 <p
                   :class="[
                     'text-sm font-medium',
-                    (rawRow as Task).status === 'completed' ? 'text-dark-4 line-through' : 'text-white',
+                    (rawRow as Task).status === 'completed' ? 'text-skin-secondary line-through' : 'text-skin-primary',
                   ]"
                 >
                   {{ (rawRow as Task).title }}
                 </p>
-                <p class="text-xs text-dark-4">{{ (rawRow as Task).description }}</p>
+                <p class="text-xs text-skin-secondary">{{ (rawRow as Task).description }}</p>
               </div>
             </div>
           </td>
@@ -124,7 +124,7 @@
               {{ formatStatus((rawRow as Task).status) }}
             </Badge>
           </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-dark-4">
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-skin-secondary">
             {{ formatTime((rawRow as Task).created_at) }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-right">
@@ -152,11 +152,11 @@
           required
         />
         <div>
-          <label class="block text-sm font-medium text-dark-4 mb-1.5">Description</label>
+          <label class="block text-sm font-medium text-skin-secondary mb-1.5">Description</label>
           <textarea
             v-model="newTask.description"
             rows="2"
-            class="block w-full rounded-button bg-dark-3 border border-dark-4 text-white placeholder-dark-4 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-purple/50 focus:border-brand-purple transition-colors resize-none"
+            class="block w-full rounded-button bg-surface-3 border border-skin text-skin-primary placeholder-skin-secondary px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-purple/50 focus:border-brand-purple transition-colors resize-none"
             placeholder="Optional description..."
           />
         </div>

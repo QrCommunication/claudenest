@@ -77,7 +77,7 @@ const buttonClasses = computed(() => {
     'focus:outline-none',
     'focus:ring-2',
     'focus:ring-offset-2',
-    'focus:ring-offset-dark-1',
+    'focus:ring-offset-[var(--surface-1)]',
     'disabled:opacity-50',
     'disabled:cursor-not-allowed',
   ];
@@ -85,9 +85,9 @@ const buttonClasses = computed(() => {
   // Variant classes
   const variantClasses: Record<ButtonVariant, string> = {
     primary: 'bg-gradient-to-r from-brand-purple to-brand-indigo text-white hover:opacity-90 focus:ring-brand-purple',
-    secondary: 'bg-dark-3 text-white border border-dark-4 hover:bg-dark-4 focus:ring-dark-4',
+    secondary: 'bg-surface-3 text-skin-primary border border-skin hover:bg-surface-4 focus:ring-surface-4',
     danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
-    ghost: 'bg-transparent text-dark-4 hover:bg-dark-3 hover:text-white focus:ring-dark-4',
+    ghost: 'bg-transparent text-skin-secondary hover:bg-surface-3 hover:text-skin-primary focus:ring-surface-4',
     success: 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500',
     warning: 'bg-yellow-600 text-white hover:bg-yellow-700 focus:ring-yellow-500',
     error: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',

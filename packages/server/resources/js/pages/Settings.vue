@@ -2,8 +2,8 @@
   <div class="space-y-6">
     <!-- Header -->
     <div>
-      <h1 class="text-2xl font-bold text-white">Settings</h1>
-      <p class="text-dark-4 mt-1">Manage your account and application preferences</p>
+      <h1 class="text-2xl font-bold text-skin-primary">Settings</h1>
+      <p class="text-skin-secondary mt-1">Manage your account and application preferences</p>
     </div>
 
     <!-- Settings Sections -->
@@ -17,7 +17,7 @@
             'w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors',
             activeSection === section.id
               ? 'bg-brand-purple/10 text-brand-purple border border-brand-purple/20'
-              : 'text-dark-4 hover:bg-dark-3 hover:text-white',
+              : 'text-skin-secondary hover:bg-surface-3 hover:text-skin-primary',
           ]"
           @click="activeSection = section.id"
         >
@@ -49,7 +49,7 @@
                 <Button variant="secondary" size="sm" :disabled="isUploadingAvatar" @click="avatarInput?.click()">
                   {{ isUploadingAvatar ? 'Uploading...' : 'Change Avatar' }}
                 </Button>
-                <p class="text-xs text-dark-4 mt-2">JPG, PNG, GIF or WebP. Max 2MB.</p>
+                <p class="text-xs text-skin-secondary mt-2">JPG, PNG, GIF or WebP. Max 2MB.</p>
               </div>
             </div>
 
@@ -67,7 +67,7 @@
               />
             </div>
 
-            <div class="pt-4 border-t border-dark-4">
+            <div class="pt-4 border-t border-skin">
               <Button :disabled="isSavingProfile" @click="saveProfile">
                 {{ isSavingProfile ? 'Saving...' : 'Save Changes' }}
               </Button>
@@ -79,7 +79,7 @@
         <Card v-if="activeSection === 'security'" title="Security">
           <div class="space-y-6">
             <div>
-              <h4 class="text-sm font-medium text-white mb-4">Change Password</h4>
+              <h4 class="text-sm font-medium text-skin-primary mb-4">Change Password</h4>
               <div class="space-y-4">
                 <Input
                   v-model="password.current"
@@ -105,8 +105,8 @@
               </Button>
             </div>
 
-            <div class="pt-6 border-t border-dark-4">
-              <h4 class="text-sm font-medium text-white mb-4">API Key</h4>
+            <div class="pt-6 border-t border-skin">
+              <h4 class="text-sm font-medium text-skin-primary mb-4">API Key</h4>
               <div class="flex items-center gap-3">
                 <Input
                   v-model="apiKey"
@@ -117,7 +117,7 @@
                   Regenerate
                 </Button>
               </div>
-              <p class="text-xs text-dark-4 mt-2">
+              <p class="text-xs text-skin-secondary mt-2">
                 This key grants full access to your account. Keep it secure.
               </p>
             </div>
@@ -128,62 +128,62 @@
         <Card v-if="activeSection === 'appearance'" title="Appearance">
           <div class="space-y-6">
             <div>
-              <h4 class="text-sm font-medium text-white mb-4">Theme</h4>
+              <h4 class="text-sm font-medium text-skin-primary mb-4">Theme</h4>
               <div class="grid grid-cols-3 gap-3">
                 <button
                   :class="[
                     'p-4 rounded-lg border-2 transition-colors text-center',
                     theme === 'dark'
                       ? 'border-brand-purple bg-brand-purple/10'
-                      : 'border-dark-4 hover:border-dark-4/80',
+                      : 'border-skin hover:border-skin/80',
                   ]"
                   @click="setTheme('dark')"
                 >
-                  <svg class="w-8 h-8 mx-auto mb-2 text-dark-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg class="w-8 h-8 mx-auto mb-2 text-skin-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                   </svg>
-                  <span class="text-sm text-white">Dark</span>
+                  <span class="text-sm text-skin-primary">Dark</span>
                 </button>
                 <button
                   :class="[
                     'p-4 rounded-lg border-2 transition-colors text-center',
                     theme === 'light'
                       ? 'border-brand-purple bg-brand-purple/10'
-                      : 'border-dark-4 hover:border-dark-4/80',
+                      : 'border-skin hover:border-skin/80',
                   ]"
                   @click="setTheme('light')"
                 >
-                  <svg class="w-8 h-8 mx-auto mb-2 text-dark-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg class="w-8 h-8 mx-auto mb-2 text-skin-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
                   </svg>
-                  <span class="text-sm text-white">Light</span>
+                  <span class="text-sm text-skin-primary">Light</span>
                 </button>
                 <button
                   :class="[
                     'p-4 rounded-lg border-2 transition-colors text-center',
                     theme === 'system'
                       ? 'border-brand-purple bg-brand-purple/10'
-                      : 'border-dark-4 hover:border-dark-4/80',
+                      : 'border-skin hover:border-skin/80',
                   ]"
                   @click="setTheme('system')"
                 >
-                  <svg class="w-8 h-8 mx-auto mb-2 text-dark-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg class="w-8 h-8 mx-auto mb-2 text-skin-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
-                  <span class="text-sm text-white">System</span>
+                  <span class="text-sm text-skin-primary">System</span>
                 </button>
               </div>
             </div>
 
-            <div class="pt-6 border-t border-dark-4">
-              <h4 class="text-sm font-medium text-white mb-4">Sidebar</h4>
+            <div class="pt-6 border-t border-skin">
+              <h4 class="text-sm font-medium text-skin-primary mb-4">Sidebar</h4>
               <label class="flex items-center gap-3 cursor-pointer">
                 <input
                   v-model="sidebarCollapsed"
                   type="checkbox"
-                  class="w-4 h-4 rounded border-dark-4 bg-dark-3 text-brand-purple focus:ring-brand-purple"
+                  class="w-4 h-4 rounded border-skin bg-surface-3 text-brand-purple focus:ring-brand-purple"
                 >
-                <span class="text-sm text-dark-4">Start with collapsed sidebar</span>
+                <span class="text-sm text-skin-secondary">Start with collapsed sidebar</span>
               </label>
             </div>
           </div>
@@ -195,11 +195,11 @@
             <div
               v-for="setting in notificationSettings"
               :key="setting.id"
-              class="flex items-center justify-between py-3 border-b border-dark-4 last:border-0"
+              class="flex items-center justify-between py-3 border-b border-skin last:border-0"
             >
               <div>
-                <p class="text-sm font-medium text-white">{{ setting.name }}</p>
-                <p class="text-xs text-dark-4">{{ setting.description }}</p>
+                <p class="text-sm font-medium text-skin-primary">{{ setting.name }}</p>
+                <p class="text-xs text-skin-secondary">{{ setting.description }}</p>
               </div>
               <label class="relative inline-flex items-center cursor-pointer">
                 <input
@@ -207,7 +207,7 @@
                   type="checkbox"
                   class="sr-only peer"
                 >
-                <div class="w-11 h-6 bg-dark-4 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-purple/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-purple" />
+                <div class="w-11 h-6 bg-surface-4 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-purple/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-purple" />
               </label>
             </div>
           </div>

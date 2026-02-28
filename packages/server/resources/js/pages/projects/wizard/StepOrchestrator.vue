@@ -108,11 +108,11 @@ defineProps<Props>();
 }
 
 .step-title {
-  @apply text-lg font-semibold text-white;
+  @apply text-lg font-semibold text-skin-primary;
 }
 
 .step-desc {
-  @apply text-sm text-gray-400;
+  @apply text-sm text-skin-secondary;
 }
 
 /* Toggle */
@@ -129,7 +129,7 @@ defineProps<Props>();
 }
 
 .toggle-switch {
-  @apply relative w-10 h-5 bg-dark-4 rounded-full transition-colors duration-200;
+  @apply relative w-10 h-5 bg-surface-4 rounded-full transition-colors duration-200;
 }
 
 .toggle-switch::after {
@@ -146,16 +146,16 @@ defineProps<Props>();
 }
 
 .toggle-text {
-  @apply text-sm text-white font-medium;
+  @apply text-sm text-skin-primary font-medium;
 }
 
 .toggle-hint {
-  @apply text-xs text-gray-500 ml-[52px];
+  @apply text-xs text-skin-secondary ml-[52px];
 }
 
 /* Config */
 .config-section {
-  @apply p-4 bg-dark-2 border border-dark-4 rounded-xl;
+  @apply p-4 bg-surface-2 border border-skin rounded-xl;
 }
 
 .config-grid {
@@ -167,20 +167,20 @@ defineProps<Props>();
 }
 
 .field-label {
-  @apply text-xs text-gray-500 uppercase tracking-wider font-medium;
+  @apply text-xs text-skin-secondary uppercase tracking-wider font-medium;
 }
 
 .field-input {
-  @apply w-full px-3 py-2 bg-dark-3 border border-dark-4 rounded-lg text-white text-sm focus:outline-none focus:border-brand-purple;
+  @apply w-full px-3 py-2 bg-surface-3 border border-skin rounded-lg text-skin-primary text-sm focus:outline-none focus:border-brand-purple;
 }
 
 /* Summary */
 .summary-section {
-  @apply p-4 bg-dark-2 border border-dark-4 rounded-xl space-y-3;
+  @apply p-4 bg-surface-2 border border-skin rounded-xl space-y-3;
 }
 
 .summary-title {
-  @apply text-sm font-semibold text-white;
+  @apply text-sm font-semibold text-skin-primary;
 }
 
 .summary-grid {
@@ -188,15 +188,15 @@ defineProps<Props>();
 }
 
 .summary-item {
-  @apply flex items-start justify-between py-1.5 border-b border-dark-4 last:border-0;
+  @apply flex items-start justify-between py-1.5 border-b border-skin last:border-0;
 }
 
 .summary-label {
-  @apply text-xs text-gray-500 uppercase tracking-wider;
+  @apply text-xs text-skin-secondary uppercase tracking-wider;
 }
 
 .summary-value {
-  @apply text-sm text-white text-right;
+  @apply text-sm text-skin-primary text-right;
 }
 
 .stack-badges {

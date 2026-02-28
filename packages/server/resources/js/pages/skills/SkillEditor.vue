@@ -8,10 +8,10 @@
           Back
         </Button>
         <div>
-          <h1 class="text-2xl font-bold text-white">
+          <h1 class="text-2xl font-bold text-skin-primary">
             {{ isEditing ? 'Edit Skill' : 'Create Skill' }}
           </h1>
-          <p class="text-dark-4 mt-1">
+          <p class="text-skin-secondary mt-1">
             {{ isEditing ? 'Modify your skill content and metadata' : 'Create a new skill with markdown content' }}
           </p>
         </div>
@@ -87,16 +87,16 @@
             />
           </div>
           <div class="mt-4">
-            <label class="block text-sm font-medium text-white mb-2">Description</label>
+            <label class="block text-sm font-medium text-skin-primary mb-2">Description</label>
             <textarea
               v-model="skillForm.description"
               rows="2"
               placeholder="Brief description of what this skill does..."
-              class="w-full bg-dark-1 border border-dark-4 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-brand-purple resize-none"
+              class="w-full bg-surface-1 border border-skin rounded-lg px-3 py-2 text-skin-primary text-sm focus:outline-none focus:border-brand-purple resize-none"
             />
           </div>
           <div class="mt-4">
-            <label class="block text-sm font-medium text-white mb-2">Tags (comma-separated)</label>
+            <label class="block text-sm font-medium text-skin-primary mb-2">Tags (comma-separated)</label>
             <Input
               v-model="tagsInput"
               placeholder="tag1, tag2, tag3"
@@ -140,8 +140,8 @@
         </div>
       </template>
 
-      <p class="text-dark-4">
-        Are you sure you want to delete <strong class="text-white">{{ skillForm.name }}</strong>? 
+      <p class="text-skin-secondary">
+        Are you sure you want to delete <strong class="text-skin-primary">{{ skillForm.name }}</strong>? 
         This action cannot be undone.
       </p>
 

@@ -176,17 +176,17 @@
             >
               {{ truncatePath(asSession(rawRow).project_path ?? '') }}
             </span>
-            <span v-else class="text-gray-600">N/A</span>
+            <span v-else class="text-skin-secondary">N/A</span>
           </td>
           <td class="px-6 py-4 whitespace-nowrap">
             <Badge :variant="statusBadgeVariant(asSession(rawRow).status)" :dot="true" size="sm">
               {{ formatStatus(asSession(rawRow).status) }}
             </Badge>
           </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-skin-primary">
             {{ asSession(rawRow).formatted_duration || '--' }}
           </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-skin-secondary">
             {{ formatRelativeTime(asSession(rawRow).created_at) }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap">
@@ -245,7 +245,7 @@
         </div>
         <p class="confirm-text">
           Are you sure you want to terminate session
-          <strong class="text-white">{{ truncateId(sessionToTerminate ?? '') }}</strong>?
+          <strong class="text-skin-primary">{{ truncateId(sessionToTerminate ?? '') }}</strong>?
           This will end the running Claude instance.
         </p>
         <div class="confirm-actions">
@@ -442,11 +442,11 @@ function formatRelativeTime(dateString: string): string {
 }
 
 .header-content h1 {
-  @apply text-3xl font-bold text-white;
+  @apply text-3xl font-bold text-skin-primary;
 }
 
 .subtitle {
-  @apply text-gray-400 mt-1;
+  @apply text-skin-secondary mt-1;
 }
 
 .btn-add {
@@ -464,7 +464,7 @@ function formatRelativeTime(dateString: string): string {
 }
 
 .stat-card {
-  @apply flex items-center gap-3 p-4 bg-dark-2 rounded-xl border border-dark-4;
+  @apply flex items-center gap-3 p-4 bg-surface-2 rounded-xl border border-skin;
 }
 
 .stat-icon {
@@ -496,16 +496,16 @@ function formatRelativeTime(dateString: string): string {
 }
 
 .stat-value {
-  @apply text-2xl font-bold text-white;
+  @apply text-2xl font-bold text-skin-primary;
 }
 
 .stat-label {
-  @apply text-sm text-gray-400;
+  @apply text-sm text-skin-secondary;
 }
 
 /* Machine Selector */
 .machine-selector {
-  @apply flex items-end gap-3 p-4 bg-dark-2 rounded-xl border border-dark-4;
+  @apply flex items-end gap-3 p-4 bg-surface-2 rounded-xl border border-skin;
 }
 
 .machine-selector > :first-child {
@@ -513,14 +513,14 @@ function formatRelativeTime(dateString: string): string {
 }
 
 .btn-refresh {
-  @apply p-2.5 rounded-lg bg-dark-3 border border-dark-4 text-gray-400;
-  @apply hover:text-white hover:border-brand-purple/50 transition-all duration-200;
+  @apply p-2.5 rounded-lg bg-surface-3 border border-skin text-skin-secondary;
+  @apply hover:text-skin-primary hover:border-brand-purple/50 transition-all duration-200;
   @apply disabled:opacity-50 disabled:cursor-not-allowed;
 }
 
 /* Sessions Table */
 .sessions-table-wrapper {
-  @apply bg-dark-2 rounded-xl border border-dark-4 overflow-hidden;
+  @apply bg-surface-2 rounded-xl border border-skin overflow-hidden;
 }
 
 .sessions-table-wrapper :deep(.rounded-card) {
@@ -532,7 +532,7 @@ function formatRelativeTime(dateString: string): string {
 }
 
 .project-path {
-  @apply text-sm text-gray-300 font-mono truncate max-w-[200px] block;
+  @apply text-sm text-skin-primary font-mono truncate max-w-[200px] block;
 }
 
 /* Actions */
@@ -556,8 +556,8 @@ function formatRelativeTime(dateString: string): string {
 }
 
 .action-btn.view {
-  @apply bg-dark-3 text-gray-400 border border-dark-4;
-  @apply hover:text-white hover:border-brand-purple/50;
+  @apply bg-surface-3 text-skin-secondary border border-skin;
+  @apply hover:text-skin-primary hover:border-brand-purple/50;
 }
 
 /* Loading & Error & Empty States */
@@ -577,27 +577,27 @@ function formatRelativeTime(dateString: string): string {
 }
 
 .error-state p {
-  @apply text-gray-400 mb-4;
+  @apply text-skin-secondary mb-4;
 }
 
 .btn-secondary {
-  @apply px-4 py-2 text-gray-300 hover:text-white transition-colors;
+  @apply px-4 py-2 text-skin-primary hover:text-skin-primary transition-colors;
 }
 
 .empty-icon {
-  @apply w-20 h-20 rounded-full bg-dark-3 flex items-center justify-center mb-4;
+  @apply w-20 h-20 rounded-full bg-surface-3 flex items-center justify-center mb-4;
 }
 
 .empty-icon svg {
-  @apply w-10 h-10 text-gray-500;
+  @apply w-10 h-10 text-skin-secondary;
 }
 
 .empty-state h3 {
-  @apply text-xl font-semibold text-white mb-2;
+  @apply text-xl font-semibold text-skin-primary mb-2;
 }
 
 .empty-state p {
-  @apply text-gray-400 max-w-md mb-6;
+  @apply text-skin-secondary max-w-md mb-6;
 }
 
 .btn-primary-link {
@@ -617,7 +617,7 @@ function formatRelativeTime(dateString: string): string {
 }
 
 .confirm-dialog {
-  @apply w-full max-w-md bg-dark-2 rounded-2xl border border-dark-4 p-6;
+  @apply w-full max-w-md bg-surface-2 rounded-2xl border border-skin p-6;
   animation: modalIn 0.2s ease-out;
 }
 
@@ -634,11 +634,11 @@ function formatRelativeTime(dateString: string): string {
 }
 
 .confirm-header h3 {
-  @apply text-xl font-semibold text-white;
+  @apply text-xl font-semibold text-skin-primary;
 }
 
 .confirm-text {
-  @apply text-gray-400 mb-6;
+  @apply text-skin-secondary mb-6;
 }
 
 .confirm-actions {
@@ -646,7 +646,7 @@ function formatRelativeTime(dateString: string): string {
 }
 
 .btn-cancel {
-  @apply px-4 py-2 text-gray-300 hover:text-white transition-colors;
+  @apply px-4 py-2 text-skin-primary hover:text-skin-primary transition-colors;
 }
 
 .btn-danger {

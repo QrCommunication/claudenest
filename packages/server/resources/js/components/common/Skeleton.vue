@@ -1,7 +1,7 @@
 <template>
   <div
     :class="[
-      'animate-pulse bg-dark-3 rounded',
+      'animate-pulse bg-surface-3 rounded',
       className,
     ]"
     :style="{

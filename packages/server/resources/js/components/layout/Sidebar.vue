@@ -1,13 +1,13 @@
 <template>
   <aside
     :class="[
-      'fixed left-0 top-0 h-full bg-dark-2 border-r border-dark-4 z-40',
+      'fixed left-0 top-0 h-full bg-surface-2 border-r border-skin z-40',
       'transition-all duration-300 ease-in-out flex flex-col',
       collapsed ? 'w-16' : 'w-60',
     ]"
   >
     <!-- Logo -->
-    <div class="h-16 flex items-center px-4 border-b border-dark-4">
+    <div class="h-16 flex items-center px-4 border-b border-skin">
       <div class="flex items-center gap-3 overflow-hidden">
         <!-- Logo Icon -->
         <svg class="w-8 h-8 flex-shrink-0" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
@@ -48,7 +48,7 @@
           'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group',
           isActive(item.path)
             ? 'bg-brand-purple/10 text-brand-purple border border-brand-purple/20'
-            : 'text-dark-4 hover:bg-dark-3 hover:text-white',
+            : 'text-skin-secondary hover:bg-surface-3 hover:text-skin-primary',
           collapsed ? 'justify-center' : '',
         ]"
       >
@@ -56,7 +56,7 @@
           :is="item.iconComponent"
           :class="[
             'w-5 h-5 flex-shrink-0 transition-colors',
-            isActive(item.path) ? 'text-brand-purple' : 'text-dark-4 group-hover:text-white',
+            isActive(item.path) ? 'text-brand-purple' : 'text-skin-secondary group-hover:text-skin-primary',
           ]"
         />
         <span
@@ -71,11 +71,11 @@
     </nav>
 
     <!-- Collapse Button -->
-    <div class="p-2 border-t border-dark-4">
+    <div class="p-2 border-t border-skin">
       <button
         :class="[
           'flex items-center gap-3 px-3 py-2.5 w-full rounded-lg transition-all duration-200',
-          'text-dark-4 hover:bg-dark-3 hover:text-white',
+          'text-skin-secondary hover:bg-surface-3 hover:text-skin-primary',
           collapsed ? 'justify-center' : '',
         ]"
         @click="$emit('toggle')"

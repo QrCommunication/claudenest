@@ -126,11 +126,11 @@ onMounted(async () => {
 }
 
 .prd-title {
-  @apply text-lg font-semibold text-white;
+  @apply text-lg font-semibold text-skin-primary;
 }
 
 .prd-subtitle {
-  @apply text-sm text-gray-400;
+  @apply text-sm text-skin-secondary;
 }
 
 .prd-field {
@@ -138,8 +138,8 @@ onMounted(async () => {
 }
 
 .prd-textarea {
-  @apply w-full bg-dark-3 border border-dark-4 rounded-lg p-3 text-sm text-gray-200
-         placeholder-gray-500 resize-y focus:outline-none focus:ring-1 focus:ring-brand-purple/50
+  @apply w-full bg-surface-3 border border-skin rounded-lg p-3 text-sm text-skin-primary
+         placeholder-skin-secondary resize-y focus:outline-none focus:ring-1 focus:ring-brand-purple/50
          font-mono;
 }
 
@@ -148,7 +148,7 @@ onMounted(async () => {
 }
 
 .char-count {
-  @apply text-xs text-gray-500;
+  @apply text-xs text-skin-muted;
 }
 
 .credential-field {
@@ -156,11 +156,11 @@ onMounted(async () => {
 }
 
 .field-label {
-  @apply block text-sm font-medium text-gray-300;
+  @apply block text-sm font-medium text-skin-primary;
 }
 
 .credential-select {
-  @apply w-full bg-dark-3 border border-dark-4 rounded-lg px-3 py-2 text-sm text-gray-200
+  @apply w-full bg-surface-3 border border-skin rounded-lg px-3 py-2 text-sm text-skin-primary
          focus:outline-none focus:ring-1 focus:ring-brand-purple/50;
 }
 

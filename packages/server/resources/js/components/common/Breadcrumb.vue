@@ -8,7 +8,7 @@
       <li class="flex items-center">
         <RouterLink
           to="/dashboard"
-          class="group flex items-center gap-1.5 rounded-md px-2 py-1 text-gray-400 transition-all duration-200 hover:bg-dark-3 hover:text-white"
+          class="group flex items-center gap-1.5 rounded-md px-2 py-1 text-skin-muted transition-all duration-200 hover:bg-surface-3 hover:text-skin-primary"
           aria-label="Dashboard"
         >
           <svg
@@ -34,7 +34,7 @@
       >
         <!-- Chevron separator -->
         <svg
-          class="mx-1 h-3.5 w-3.5 flex-shrink-0 text-dark-4"
+          class="mx-1 h-3.5 w-3.5 flex-shrink-0 text-skin-muted"
           viewBox="0 0 20 20"
           fill="currentColor"
           aria-hidden="true"
@@ -50,7 +50,7 @@
         <RouterLink
           v-if="item.to && !isLast(index)"
           :to="item.to"
-          class="group flex items-center gap-1.5 rounded-md px-2 py-1 text-gray-400 transition-all duration-200 hover:bg-dark-3 hover:text-white"
+          class="group flex items-center gap-1.5 rounded-md px-2 py-1 text-skin-muted transition-all duration-200 hover:bg-surface-3 hover:text-skin-primary"
         >
           <span
             v-if="item.icon"
@@ -63,7 +63,7 @@
         <!-- Current page (last item, no link) -->
         <span
           v-else
-          class="flex items-center gap-1.5 rounded-md px-2 py-1 font-medium text-white"
+          class="flex items-center gap-1.5 rounded-md px-2 py-1 font-medium text-skin-primary"
           :aria-current="isLast(index) ? 'page' : undefined"
         >
           <span

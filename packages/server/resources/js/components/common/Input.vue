@@ -3,7 +3,7 @@
     <label
       v-if="label"
       :for="inputId"
-      class="block text-sm font-medium text-dark-4 mb-1.5"
+      class="block text-sm font-medium text-skin-secondary mb-1.5"
     >
       {{ label }}
       <span v-if="required" class="text-red-400">*</span>
@@ -13,7 +13,7 @@
       <!-- Left Icon -->
       <div
         v-if="$slots['left-icon']"
-        class="absolute left-3 top-1/2 -translate-y-1/2 text-dark-4"
+        class="absolute left-3 top-1/2 -translate-y-1/2 text-skin-secondary"
       >
         <slot name="left-icon" />
       </div>
@@ -26,11 +26,11 @@
         :disabled="disabled"
         :required="required"
         :class="[
-          'block w-full rounded-button bg-dark-3 border text-white placeholder-dark-4',
+          'block w-full rounded-button bg-surface-3 border text-skin-primary placeholder-skin-secondary',
           'focus:outline-none focus:ring-2 focus:ring-brand-purple/50 focus:border-brand-purple',
           'transition-colors duration-200',
           'disabled:opacity-50 disabled:cursor-not-allowed',
-          error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/50' : 'border-dark-4',
+          error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/50' : 'border-skin',
           $slots['left-icon'] ? 'pl-10' : 'pl-4',
           $slots['right-icon'] || type === 'password' ? 'pr-10' : 'pr-4',
           sizeClasses[size],
@@ -49,7 +49,7 @@
           <button
             v-if="type === 'password' || showPassword"
             type="button"
-            class="text-dark-4 hover:text-white transition-colors"
+            class="text-skin-secondary hover:text-skin-primary transition-colors"
             @click="togglePassword"
           >
             <svg
@@ -82,7 +82,7 @@
     </p>
 
     <!-- Helper Text -->
-    <p v-else-if="helperText" class="mt-1.5 text-sm text-dark-4">
+    <p v-else-if="helperText" class="mt-1.5 text-sm text-skin-secondary">
       {{ helperText }}
     </p>
   </div>

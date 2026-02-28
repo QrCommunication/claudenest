@@ -2,7 +2,7 @@
   <div class="relative">
     <div class="flex items-center justify-between mb-2">
       <div class="flex items-center gap-2">
-        <span class="text-xs text-dark-4 font-medium">Markdown</span>
+        <span class="text-xs text-skin-secondary font-medium">Markdown</span>
       </div>
       <div class="flex items-center gap-1">
         <Button
@@ -25,7 +25,7 @@
       :value="modelValue"
       :rows="rows"
       :placeholder="placeholder"
-      class="w-full bg-dark-1 border border-dark-4 rounded-lg px-4 py-3 text-white text-sm font-mono focus:outline-none focus:border-brand-purple resize-y transition-colors"
+      class="w-full bg-surface-1 border border-skin rounded-lg px-4 py-3 text-skin-primary text-sm font-mono focus:outline-none focus:border-brand-purple resize-y transition-colors"
       :class="{ 'border-red-500': error }"
       @input="handleInput"
       @keydown="handleKeydown"
@@ -33,7 +33,7 @@
     
     <div v-if="error" class="text-xs text-red-400 mt-1">{{ error }}</div>
     
-    <div class="flex items-center justify-between mt-2 text-xs text-dark-4">
+    <div class="flex items-center justify-between mt-2 text-xs text-skin-secondary">
       <span>{{ lineCount }} lines</span>
       <span>{{ charCount }} characters</span>
     </div>

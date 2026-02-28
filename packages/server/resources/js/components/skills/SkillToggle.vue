@@ -3,8 +3,8 @@
     type="button"
     :disabled="loading"
     :class="[
-      'relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brand-purple focus:ring-offset-2 focus:ring-offset-dark-1',
-      enabled ? 'bg-brand-purple' : 'bg-dark-4',
+      'relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brand-purple focus:ring-offset-2 focus:ring-offset-surface-1',
+      enabled ? 'bg-brand-purple' : 'bg-surface-4',
       loading ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:opacity-90',
     ]"
     @click="$emit('toggle')"
@@ -17,9 +17,9 @@
         loading && 'animate-pulse',
       ]"
     >
-      <LoaderIcon 
-        v-if="loading" 
-        class="w-3 h-3 text-dark-2 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-spin" 
+      <LoaderIcon
+        v-if="loading"
+        class="w-3 h-3 text-surface-2 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-spin"
       />
     </span>
   </button>

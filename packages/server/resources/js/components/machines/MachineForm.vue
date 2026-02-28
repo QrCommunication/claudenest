@@ -266,7 +266,7 @@ defineExpose({ showToken });
 }
 
 .modal-content {
-  @apply w-full max-w-lg bg-dark-2 rounded-2xl border border-dark-4 shadow-2xl;
+  @apply w-full max-w-lg bg-surface-2 rounded-2xl border border-skin shadow-2xl;
   animation: modalIn 0.2s ease-out;
 }
 
@@ -282,15 +282,15 @@ defineExpose({ showToken });
 }
 
 .modal-header {
-  @apply flex items-center justify-between px-6 py-4 border-b border-dark-4;
+  @apply flex items-center justify-between px-6 py-4 border-b border-skin;
 }
 
 .modal-header h2 {
-  @apply text-xl font-semibold text-white;
+  @apply text-xl font-semibold text-skin-primary;
 }
 
 .close-btn {
-  @apply p-1 rounded-lg text-gray-400 hover:text-white hover:bg-dark-3 transition-colors;
+  @apply p-1 rounded-lg text-skin-secondary hover:text-skin-primary hover:bg-surface-3 transition-colors;
 }
 
 .close-btn svg {
@@ -306,12 +306,12 @@ defineExpose({ showToken });
 }
 
 .form-group label {
-  @apply block text-sm font-medium text-gray-300;
+  @apply block text-sm font-medium text-skin-secondary;
 }
 
 .form-group input,
 .form-group select {
-  @apply w-full px-3 py-2 bg-dark-3 border border-dark-4 rounded-lg text-white;
+  @apply w-full px-3 py-2 bg-surface-3 border border-skin rounded-lg text-skin-primary;
   @apply focus:outline-none focus:border-brand-purple focus:ring-1 focus:ring-brand-purple;
   @apply transition-colors;
 }
@@ -326,7 +326,7 @@ defineExpose({ showToken });
 }
 
 .help-text {
-  @apply text-xs text-gray-500;
+  @apply text-xs text-skin-muted;
 }
 
 .capabilities-grid {
@@ -342,7 +342,7 @@ defineExpose({ showToken });
 }
 
 .checkmark {
-  @apply w-5 h-5 rounded border border-dark-4 bg-dark-3 flex items-center justify-center;
+  @apply w-5 h-5 rounded border border-skin bg-surface-3 flex items-center justify-center;
   @apply transition-colors;
 }
 
@@ -356,7 +356,7 @@ defineExpose({ showToken });
 }
 
 .capability-label {
-  @apply text-sm text-gray-300;
+  @apply text-sm text-skin-secondary;
 }
 
 .form-error {
@@ -364,7 +364,7 @@ defineExpose({ showToken });
 }
 
 .modal-footer {
-  @apply flex items-center justify-end gap-3 pt-4 border-t border-dark-4;
+  @apply flex items-center justify-end gap-3 pt-4 border-t border-skin;
 }
 
 .btn {
@@ -372,7 +372,7 @@ defineExpose({ showToken });
 }
 
 .btn-secondary {
-  @apply text-gray-300 hover:text-white hover:bg-dark-3;
+  @apply text-skin-secondary hover:text-skin-primary hover:bg-surface-3;
 }
 
 .btn-primary {
@@ -395,7 +395,7 @@ defineExpose({ showToken });
 
 /* Token Section */
 .token-section {
-  @apply p-6 border-t border-dark-4 bg-green-500/5;
+  @apply p-6 border-t border-skin bg-green-500/5;
 }
 
 .token-header {
@@ -411,7 +411,7 @@ defineExpose({ showToken });
 }
 
 .token-instructions {
-  @apply text-sm text-gray-400 mb-4;
+  @apply text-sm text-skin-secondary mb-4;
 }
 
 .token-display {
@@ -419,11 +419,11 @@ defineExpose({ showToken });
 }
 
 .token-display code {
-  @apply flex-1 px-3 py-2 bg-dark-3 rounded-lg text-sm font-mono text-brand-cyan break-all;
+  @apply flex-1 px-3 py-2 bg-surface-3 rounded-lg text-sm font-mono text-brand-cyan break-all;
 }
 
 .copy-btn {
-  @apply p-2 rounded-lg bg-dark-3 text-gray-400 hover:text-white hover:bg-dark-4 transition-colors;
+  @apply p-2 rounded-lg bg-surface-3 text-skin-secondary hover:text-skin-primary hover:bg-surface-4 transition-colors;
 }
 
 .copy-btn svg {

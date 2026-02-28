@@ -173,12 +173,12 @@ function onDrop(columnId: TaskStatus, event: DragEvent) {
 }
 
 .kanban-column {
-  @apply bg-dark-2/50 rounded-xl border border-dark-4 flex flex-col min-h-[500px];
+  @apply bg-surface-2/50 rounded-xl border border-skin flex flex-col min-h-[500px];
   @apply transition-colors duration-200;
 }
 
 .column-header {
-  @apply flex items-center justify-between p-4 border-b border-dark-4;
+  @apply flex items-center justify-between p-4 border-b border-skin;
 }
 
 .column-title {
@@ -206,15 +206,15 @@ function onDrop(columnId: TaskStatus, event: DragEvent) {
 }
 
 .column-name {
-  @apply font-semibold text-white;
+  @apply font-semibold text-skin-primary;
 }
 
 .column-count {
-  @apply text-sm text-gray-400 bg-dark-3 px-2 py-0.5 rounded-full;
+  @apply text-sm text-skin-secondary bg-surface-3 px-2 py-0.5 rounded-full;
 }
 
 .column-add-btn {
-  @apply p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-dark-3 transition-colors;
+  @apply p-1.5 rounded-lg text-skin-secondary hover:text-skin-primary hover:bg-surface-3 transition-colors;
 }
 
 .column-add-btn svg {
@@ -231,7 +231,7 @@ function onDrop(columnId: TaskStatus, event: DragEvent) {
 }
 
 .column-empty {
-  @apply flex items-center justify-center h-32 text-gray-500 text-sm;
+  @apply flex items-center justify-center h-32 text-skin-muted text-sm;
 }
 
 :global(.task-card.is-dragging) {
@@ -248,10 +248,10 @@ function onDrop(columnId: TaskStatus, event: DragEvent) {
 }
 
 .column-tasks::-webkit-scrollbar-thumb {
-  @apply bg-dark-4 rounded-full;
+  @apply bg-surface-4 rounded-full;
 }
 
 .column-tasks::-webkit-scrollbar-thumb:hover {
-  @apply bg-dark-3;
+  @apply bg-surface-3;
 }
 </style>

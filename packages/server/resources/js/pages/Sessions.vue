@@ -3,8 +3,8 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-bold text-white">Sessions</h1>
-        <p class="text-dark-4 mt-1">Manage your active and past Claude Code sessions</p>
+        <h1 class="text-2xl font-bold text-skin-primary">Sessions</h1>
+        <p class="text-skin-secondary mt-1">Manage your active and past Claude Code sessions</p>
       </div>
       <Button @click="showNewSessionModal = true">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -39,10 +39,10 @@
             </svg>
           </div>
           <div class="flex-1 min-w-0">
-            <h3 class="text-lg font-semibold text-white truncate">Session #{{ session.id }}</h3>
-            <p class="text-sm text-dark-4 mt-0.5">{{ getMachineName(session.machine_id ?? '') }}</p>
-            
-            <div class="flex items-center gap-4 mt-3 text-xs text-dark-4">
+            <h3 class="text-lg font-semibold text-skin-primary truncate">Session #{{ session.id }}</h3>
+            <p class="text-sm text-skin-secondary mt-0.5">{{ getMachineName(session.machine_id ?? '') }}</p>
+
+            <div class="flex items-center gap-4 mt-3 text-xs text-skin-secondary">
               <span class="flex items-center gap-1">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -59,7 +59,7 @@
           </div>
         </div>
 
-        <div class="flex items-center gap-2 mt-4 pt-4 border-t border-dark-4">
+        <div class="flex items-center gap-2 mt-4 pt-4 border-t border-skin">
           <Button
             v-if="session.status === 'running'"
             variant="primary"
@@ -91,11 +91,11 @@
 
     <!-- Empty State -->
     <Card v-if="sessions.length === 0" class="text-center py-12">
-      <svg class="w-16 h-16 mx-auto text-dark-4 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <svg class="w-16 h-16 mx-auto text-skin-secondary mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
       </svg>
-      <h3 class="text-lg font-medium text-white mb-1">No Active Sessions</h3>
-      <p class="text-dark-4 mb-4">Start a new session to begin using Claude Code remotely</p>
+      <h3 class="text-lg font-medium text-skin-primary mb-1">No Active Sessions</h3>
+      <p class="text-skin-secondary mb-4">Start a new session to begin using Claude Code remotely</p>
       <Button @click="showNewSessionModal = true">
         Start New Session
       </Button>
@@ -113,8 +113,8 @@
           :options="machineOptions"
           placeholder="Choose a machine..."
         />
-        <div class="p-4 bg-dark-3 rounded-lg">
-          <p class="text-sm text-dark-4">
+        <div class="p-4 bg-surface-3 rounded-lg">
+          <p class="text-sm text-skin-secondary">
             This will start a new Claude Code session on the selected machine.
             Make sure the machine is online and has the ClaudeNest agent running.
           </p>

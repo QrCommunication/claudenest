@@ -28,12 +28,12 @@
       </div>
     </template>
 
-    <div 
+    <div
       ref="logContainerRef"
-      class="flex-1 bg-dark-1 rounded-lg p-4 font-mono text-xs overflow-auto max-h-[500px]"
+      class="flex-1 bg-surface-1 rounded-lg p-4 font-mono text-xs overflow-auto max-h-[500px]"
       @scroll="handleScroll"
     >
-      <div v-if="logs.length === 0" class="text-dark-4 text-center py-8">
+      <div v-if="logs.length === 0" class="text-skin-secondary text-center py-8">
         <TerminalIcon class="w-8 h-8 mx-auto mb-2 opacity-50" />
         <p>No logs available</p>
       </div>
@@ -42,9 +42,9 @@
         <div 
           v-for="(log, index) in logs" 
           :key="index"
-          class="flex gap-3 hover:bg-dark-2/50 px-1 -mx-1 rounded"
+          class="flex gap-3 hover:bg-surface-2/50 px-1 -mx-1 rounded"
         >
-          <span class="text-dark-4 flex-shrink-0 w-16 text-right select-none">
+          <span class="text-skin-secondary flex-shrink-0 w-16 text-right select-none">
             {{ formatTime(log.timestamp) }}
           </span>
           <span 
@@ -65,7 +65,7 @@
       </div>
     </div>
 
-    <div class="flex items-center justify-between mt-3 text-xs text-dark-4">
+    <div class="flex items-center justify-between mt-3 text-xs text-skin-secondary">
       <span>{{ logs.length }} entries</span>
       <span v-if="lastUpdated">Last updated: {{ lastUpdated }}</span>
     </div>
@@ -123,26 +123,26 @@ function formatTime(date: Date): string {
 
 function levelColorClass(level: LogEntry['level']): string {
   const colors: Record<LogEntry['level'], string> = {
-    DEBUG: 'text-gray-500',
+    DEBUG: 'text-skin-muted',
     INFO: 'text-blue-400',
     WARN: 'text-yellow-400',
     ERROR: 'text-red-400',
     STDOUT: 'text-green-400',
     STDERR: 'text-red-400',
   };
-  return colors[level] || 'text-gray-400';
+  return colors[level] || 'text-skin-muted';
 }
 
 function logColorClass(level: LogEntry['level']): string {
   const colors: Record<LogEntry['level'], string> = {
-    DEBUG: 'text-gray-400',
-    INFO: 'text-white',
-    WARN: 'text-yellow-200',
-    ERROR: 'text-red-200',
-    STDOUT: 'text-green-200',
-    STDERR: 'text-red-200',
+    DEBUG: 'text-skin-secondary',
+    INFO: 'text-skin-primary',
+    WARN: 'text-yellow-600 dark:text-yellow-200',
+    ERROR: 'text-red-600 dark:text-red-200',
+    STDOUT: 'text-green-600 dark:text-green-200',
+    STDERR: 'text-red-600 dark:text-red-200',
   };
-  return colors[level] || 'text-white';
+  return colors[level] || 'text-skin-primary';
 }
 
 function scrollToBottom(): void {

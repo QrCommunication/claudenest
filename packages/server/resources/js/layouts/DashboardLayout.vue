@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-dark-1">
+  <div class="min-h-screen bg-surface-1">
     <!-- Sidebar -->
     <Sidebar
       :collapsed="sidebarCollapsed"
@@ -66,7 +66,7 @@
     >
       <div
         v-if="mobileSidebarOpen"
-        class="fixed left-0 top-0 h-full w-60 bg-dark-2 border-r border-dark-4 z-50 lg:hidden"
+        class="fixed left-0 top-0 h-full w-60 bg-surface-2 border-r border-skin z-50 lg:hidden"
       >
         <Sidebar @toggle="mobileSidebarOpen = false" />
       </div>
@@ -91,7 +91,7 @@
           </template>
         </Input>
         
-        <div class="text-sm text-dark-4 text-center py-4">
+        <div class="text-sm text-skin-secondary text-center py-4">
           Start typing to search across your dashboard
         </div>
       </div>
@@ -104,7 +104,7 @@
       size="md"
     >
       <div class="space-y-4">
-        <div class="text-center py-8 text-dark-4">
+        <div class="text-center py-8 text-skin-secondary">
           <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
           </svg>

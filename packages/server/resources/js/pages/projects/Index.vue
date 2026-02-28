@@ -403,11 +403,11 @@ async function deleteProject() {
 }
 
 .page-header h1 {
-  @apply text-3xl font-bold text-white;
+  @apply text-3xl font-bold text-skin-primary;
 }
 
 .subtitle {
-  @apply text-gray-400 mt-1;
+  @apply text-skin-secondary mt-1;
 }
 
 .header-actions {
@@ -415,7 +415,7 @@ async function deleteProject() {
 }
 
 .machine-select {
-  @apply px-4 py-2 bg-dark-2 border border-dark-4 rounded-lg text-white;
+  @apply px-4 py-2 bg-surface-2 border border-skin rounded-lg text-skin-primary;
   @apply focus:outline-none focus:border-brand-purple;
 }
 
@@ -436,7 +436,7 @@ async function deleteProject() {
 }
 
 .loading-state p {
-  @apply mt-4 text-gray-400;
+  @apply mt-4 text-skin-secondary;
 }
 
 .empty-state {
@@ -444,15 +444,15 @@ async function deleteProject() {
 }
 
 .empty-state svg {
-  @apply w-16 h-16 text-gray-600 mb-4;
+  @apply w-16 h-16 text-skin-secondary mb-4;
 }
 
 .empty-state h3 {
-  @apply text-xl font-semibold text-white mb-2;
+  @apply text-xl font-semibold text-skin-primary mb-2;
 }
 
 .empty-state p {
-  @apply text-gray-400 mb-6;
+  @apply text-skin-secondary mb-6;
 }
 
 .projects-grid {
@@ -476,11 +476,11 @@ async function deleteProject() {
 }
 
 .project-title h3 {
-  @apply text-lg font-semibold text-white mb-1;
+  @apply text-lg font-semibold text-skin-primary mb-1;
 }
 
 .project-path {
-  @apply text-sm text-gray-400 truncate max-w-[200px];
+  @apply text-sm text-skin-secondary truncate max-w-[200px];
 }
 
 .project-stats {
@@ -492,11 +492,11 @@ async function deleteProject() {
 }
 
 .stat-value {
-  @apply block text-2xl font-bold text-white;
+  @apply block text-2xl font-bold text-skin-primary;
 }
 
 .stat-label {
-  @apply text-xs text-gray-400;
+  @apply text-xs text-skin-secondary;
 }
 
 .project-footer {
@@ -504,7 +504,7 @@ async function deleteProject() {
 }
 
 .token-bar {
-  @apply h-2 bg-dark-3 rounded-full overflow-hidden;
+  @apply h-2 bg-surface-3 rounded-full overflow-hidden;
 }
 
 .token-progress {
@@ -516,7 +516,7 @@ async function deleteProject() {
 }
 
 .machine-badge {
-  @apply inline-flex items-center px-2 py-1 bg-dark-3 rounded text-xs text-gray-400;
+  @apply inline-flex items-center px-2 py-1 bg-surface-3 rounded text-xs text-skin-secondary;
 }
 
 .project-actions {
@@ -528,7 +528,7 @@ async function deleteProject() {
 }
 
 .action-btn {
-  @apply p-2 rounded-lg bg-dark-3 text-gray-400 hover:text-white hover:bg-dark-4 transition-colors;
+  @apply p-2 rounded-lg bg-surface-3 text-skin-secondary hover:text-skin-primary hover:bg-surface-4 transition-colors;
 }
 
 .action-btn svg {
@@ -548,7 +548,7 @@ async function deleteProject() {
 }
 
 .form-group label {
-  @apply block text-sm font-medium text-gray-300;
+  @apply block text-sm font-medium text-skin-primary;
 }
 
 .path-header {
@@ -561,7 +561,7 @@ async function deleteProject() {
 
 .form-group input,
 .form-group textarea {
-  @apply w-full px-4 py-2 bg-dark-2 border border-dark-4 rounded-lg text-white;
+  @apply w-full px-4 py-2 bg-surface-2 border border-skin rounded-lg text-skin-primary;
   @apply focus:outline-none focus:border-brand-purple;
 }
 
@@ -574,7 +574,7 @@ async function deleteProject() {
 }
 
 .form-actions {
-  @apply flex items-center justify-end gap-3 pt-4 border-t border-dark-4;
+  @apply flex items-center justify-end gap-3 pt-4 border-t border-skin;
 }
 
 .delete-confirm {
@@ -582,7 +582,7 @@ async function deleteProject() {
 }
 
 .delete-confirm p {
-  @apply text-gray-300;
+  @apply text-skin-primary;
 }
 
 .delete-confirm .warning {

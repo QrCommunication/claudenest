@@ -245,11 +245,11 @@ onUnmounted(() => {
 }
 
 .page-title {
-  @apply text-2xl font-bold text-white;
+  @apply text-2xl font-bold text-skin-primary;
 }
 
 .page-subtitle {
-  @apply text-sm text-gray-400;
+  @apply text-sm text-skin-secondary;
 }
 
 .header-actions {
@@ -269,7 +269,7 @@ onUnmounted(() => {
 }
 
 .btn-secondary {
-  @apply bg-dark-3 text-gray-300 hover:bg-dark-4 hover:text-white;
+  @apply bg-surface-3 text-skin-secondary hover:bg-surface-4 hover:text-skin-primary;
 }
 
 .btn-secondary:disabled {
@@ -294,7 +294,7 @@ onUnmounted(() => {
 }
 
 .stat-card {
-  @apply flex items-start gap-4 bg-dark-2 rounded-xl border border-dark-4 p-5;
+  @apply flex items-start gap-4 bg-surface-2 rounded-xl border border-skin p-5;
 }
 
 .stat-icon {
@@ -326,11 +326,11 @@ onUnmounted(() => {
 }
 
 .stat-value {
-  @apply text-2xl font-bold text-white;
+  @apply text-2xl font-bold text-skin-primary;
 }
 
 .stat-label {
-  @apply text-sm text-gray-400 block;
+  @apply text-sm text-skin-secondary block;
 }
 
 .stat-breakdown {
@@ -375,7 +375,7 @@ onUnmounted(() => {
 }
 
 .dispatch-item {
-  @apply text-sm text-gray-400 font-mono pl-7;
+  @apply text-sm text-skin-secondary font-mono pl-7;
 }
 
 /* Sections */
@@ -388,11 +388,11 @@ onUnmounted(() => {
 }
 
 .section-title {
-  @apply text-lg font-semibold text-white;
+  @apply text-lg font-semibold text-skin-primary;
 }
 
 .section-count {
-  @apply text-sm text-gray-400 bg-dark-3 px-2 py-0.5 rounded-full;
+  @apply text-sm text-skin-secondary bg-surface-3 px-2 py-0.5 rounded-full;
 }
 
 /* Instances Grid */
@@ -402,7 +402,7 @@ onUnmounted(() => {
 
 /* Empty State */
 .empty-state {
-  @apply flex flex-col items-center justify-center py-12 text-gray-500;
+  @apply flex flex-col items-center justify-center py-12 text-skin-secondary;
 }
 
 .empty-icon {
@@ -414,6 +414,6 @@ onUnmounted(() => {
 }
 
 .empty-hint {
-  @apply text-sm text-gray-600 mt-1;
+  @apply text-sm text-skin-secondary mt-1;
 }
 </style>

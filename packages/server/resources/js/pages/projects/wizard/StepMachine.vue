@@ -71,11 +71,11 @@ onMounted(async () => {
 }
 
 .step-title {
-  @apply text-lg font-semibold text-white;
+  @apply text-lg font-semibold text-skin-primary;
 }
 
 .step-desc {
-  @apply text-sm text-gray-400;
+  @apply text-sm text-skin-secondary;
 }
 
 .machines-grid {
@@ -83,7 +83,7 @@ onMounted(async () => {
 }
 
 .machine-card {
-  @apply p-4 rounded-xl border border-dark-4 bg-dark-2 cursor-pointer transition-all duration-200 space-y-2;
+  @apply p-4 rounded-xl border border-skin bg-surface-2 cursor-pointer transition-all duration-200 space-y-2;
 }
 
 .machine-card:hover {
@@ -111,23 +111,23 @@ onMounted(async () => {
 }
 
 .machine-name {
-  @apply text-sm font-medium text-white;
+  @apply text-sm font-medium text-skin-primary;
 }
 
 .machine-meta {
-  @apply flex items-center gap-2 text-xs text-gray-500;
+  @apply flex items-center gap-2 text-xs text-skin-secondary;
 }
 
 .meta-item {
-  @apply bg-dark-3 px-2 py-0.5 rounded;
+  @apply bg-surface-3 px-2 py-0.5 rounded;
 }
 
 .machine-sessions {
-  @apply text-xs text-gray-400;
+  @apply text-xs text-skin-secondary;
 }
 
 .empty-state {
-  @apply text-center py-8 text-gray-500 space-y-2;
+  @apply text-center py-8 text-skin-secondary space-y-2;
 }
 
 .link {
@@ -135,7 +135,7 @@ onMounted(async () => {
 }
 
 .loading-state {
-  @apply flex items-center justify-center gap-2 py-8 text-gray-400;
+  @apply flex items-center justify-center gap-2 py-8 text-skin-secondary;
 }
 
 .spinner {

@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
     <!-- Background Gradient -->
-    <div class="absolute inset-0 bg-gradient-to-br from-dark-1 via-dark-2 to-dark-1">
+    <div class="absolute inset-0 bg-gradient-to-br from-surface-1 via-surface-2 to-surface-1">
       <div class="absolute inset-0 dark:bg-grid-pattern bg-dot-pattern opacity-[0.03]"></div>
       <div class="auth-orb auth-orb--purple"></div>
       <div class="auth-orb auth-orb--indigo"></div>
@@ -14,7 +14,7 @@
           <Logo variant="icon" size="xl" />
         </router-link>
         <h1 class="text-3xl font-bold gradient-text mb-2">Create Account</h1>
-        <p class="text-dark-4">Start orchestrating Claude Code remotely</p>
+        <p class="text-skin-secondary">Start orchestrating Claude Code remotely</p>
       </div>
 
       <!-- Card -->
@@ -52,10 +52,10 @@
         <!-- Divider -->
         <div class="relative mb-6">
           <div class="absolute inset-0 flex items-center">
-            <div class="w-full border-t border-dark-4"></div>
+            <div class="w-full border-t border-skin"></div>
           </div>
           <div class="relative flex justify-center text-sm">
-            <span class="px-3 bg-dark-2 text-dark-4">or continue with email</span>
+            <span class="px-3 bg-surface-2 text-skin-secondary">or continue with email</span>
           </div>
         </div>
 
@@ -120,7 +120,7 @@
                 v-for="i in 4"
                 :key="i"
                 class="h-1 flex-1 rounded-full transition-colors"
-                :class="i <= passwordStrength ? strengthColors[passwordStrength] : 'bg-dark-4'"
+                :class="i <= passwordStrength ? strengthColors[passwordStrength] : 'bg-surface-3'"
               ></div>
             </div>
             <p class="text-xs" :class="strengthTextColors[passwordStrength]">
@@ -149,9 +149,9 @@
               v-model="form.agreeTerms"
               type="checkbox"
               required
-              class="mt-1 w-4 h-4 rounded border-dark-4 bg-dark-3 text-brand-purple focus:ring-brand-purple focus:ring-offset-dark-2"
+              class="mt-1 w-4 h-4 rounded border-skin bg-surface-3 text-brand-purple focus:ring-brand-purple focus:ring-offset-2"
             />
-            <span class="text-sm text-dark-4 group-hover:text-white transition-colors">
+            <span class="text-sm text-skin-secondary group-hover:text-skin-primary transition-colors">
               I agree to the
               <router-link to="/docs/terms" class="text-brand-purple hover:text-brand-cyan transition-colors">
                 Terms of Service
@@ -176,7 +176,7 @@
       </Card>
 
       <!-- Login Link -->
-      <p class="text-center mt-6 text-sm text-dark-4">
+      <p class="text-center mt-6 text-sm text-skin-secondary">
         Already have an account?
         <router-link to="/login" class="text-brand-purple hover:text-brand-cyan transition-colors font-medium ml-1">
           Sign in
@@ -185,7 +185,7 @@
 
       <!-- Back to Home -->
       <div class="text-center mt-4">
-        <router-link to="/" class="text-sm text-dark-4 hover:text-white transition-colors inline-flex items-center gap-1">
+        <router-link to="/" class="text-sm text-skin-secondary hover:text-skin-primary transition-colors inline-flex items-center gap-1">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
@@ -237,8 +237,8 @@ const passwordStrength = computed(() => {
   return strength;
 });
 
-const strengthColors = ['bg-dark-4', 'bg-red-500', 'bg-yellow-500', 'bg-green-500', 'bg-green-400'];
-const strengthTextColors = ['text-dark-4', 'text-red-400', 'text-yellow-400', 'text-green-400', 'text-green-300'];
+const strengthColors = ['bg-surface-3', 'bg-red-500', 'bg-yellow-500', 'bg-green-500', 'bg-green-400'];
+const strengthTextColors = ['text-skin-muted', 'text-red-400', 'text-yellow-400', 'text-green-400', 'text-green-300'];
 const strengthLabels = ['', 'Weak password', 'Fair password', 'Good password', 'Strong password'];
 
 function getFieldError(field: string): string | undefined {

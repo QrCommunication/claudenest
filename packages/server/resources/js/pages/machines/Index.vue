@@ -373,11 +373,11 @@ async function wakeMachine(id: string) {
 }
 
 .header-content h1 {
-  @apply text-3xl font-bold text-white;
+  @apply text-3xl font-bold text-skin-primary;
 }
 
 .subtitle {
-  @apply text-gray-400 mt-1;
+  @apply text-skin-secondary mt-1;
 }
 
 .btn-add {
@@ -395,7 +395,7 @@ async function wakeMachine(id: string) {
 }
 
 .stat-card {
-  @apply flex items-center gap-3 p-4 bg-dark-2 rounded-xl border border-dark-4;
+  @apply flex items-center gap-3 p-4 bg-surface-2 rounded-xl border border-skin;
 }
 
 .stat-icon {
@@ -427,29 +427,29 @@ async function wakeMachine(id: string) {
 }
 
 .stat-value {
-  @apply text-2xl font-bold text-white;
+  @apply text-2xl font-bold text-skin-primary;
 }
 
 .stat-label {
-  @apply text-sm text-gray-400;
+  @apply text-sm text-skin-secondary;
 }
 
 /* Filters */
 .filters-bar {
-  @apply flex flex-wrap items-center gap-4 p-4 bg-dark-2 rounded-xl border border-dark-4;
+  @apply flex flex-wrap items-center gap-4 p-4 bg-surface-2 rounded-xl border border-skin;
 }
 
 .search-box {
   @apply flex items-center gap-2 flex-1 min-w-[200px];
-  @apply px-3 py-2 bg-dark-3 rounded-lg border border-dark-4;
+  @apply px-3 py-2 bg-surface-3 rounded-lg border border-skin;
 }
 
 .search-box svg {
-  @apply w-5 h-5 text-gray-500;
+  @apply w-5 h-5 text-skin-secondary;
 }
 
 .search-box input {
-  @apply flex-1 bg-transparent text-white placeholder-gray-500 outline-none;
+  @apply flex-1 bg-transparent text-skin-primary placeholder-skin-secondary outline-none;
 }
 
 .filter-tabs {
@@ -457,11 +457,11 @@ async function wakeMachine(id: string) {
 }
 
 .tab {
-  @apply flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-gray-400 transition-colors;
+  @apply flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-skin-secondary transition-colors;
 }
 
 .tab:hover {
-  @apply text-white bg-dark-3;
+  @apply text-skin-primary bg-surface-3;
 }
 
 .tab.active {
@@ -469,7 +469,7 @@ async function wakeMachine(id: string) {
 }
 
 .tab-count {
-  @apply px-1.5 py-0.5 text-xs rounded-full bg-dark-4;
+  @apply px-1.5 py-0.5 text-xs rounded-full bg-surface-4;
 }
 
 .view-toggle {
@@ -477,11 +477,11 @@ async function wakeMachine(id: string) {
 }
 
 .toggle-btn {
-  @apply p-2 rounded-lg text-gray-400 transition-colors;
+  @apply p-2 rounded-lg text-skin-secondary transition-colors;
 }
 
 .toggle-btn:hover {
-  @apply text-white bg-dark-3;
+  @apply text-skin-primary bg-surface-3;
 }
 
 .toggle-btn.active {
@@ -509,19 +509,19 @@ async function wakeMachine(id: string) {
 }
 
 .empty-icon {
-  @apply w-20 h-20 rounded-full bg-dark-3 flex items-center justify-center mb-4;
+  @apply w-20 h-20 rounded-full bg-surface-3 flex items-center justify-center mb-4;
 }
 
 .empty-icon svg {
-  @apply w-10 h-10 text-gray-500;
+  @apply w-10 h-10 text-skin-secondary;
 }
 
 .empty-state h3 {
-  @apply text-xl font-semibold text-white mb-2;
+  @apply text-xl font-semibold text-skin-primary mb-2;
 }
 
 .empty-state p {
-  @apply text-gray-400 max-w-md mb-6;
+  @apply text-skin-secondary max-w-md mb-6;
 }
 
 .btn-primary {
@@ -534,7 +534,7 @@ async function wakeMachine(id: string) {
 }
 
 .btn-secondary {
-  @apply px-4 py-2 text-gray-300 hover:text-white transition-colors;
+  @apply px-4 py-2 text-skin-primary hover:text-skin-primary transition-colors;
 }
 
 /* Machines Container */
@@ -556,7 +556,7 @@ async function wakeMachine(id: string) {
 }
 
 .page-btn {
-  @apply p-2 rounded-lg text-gray-400 hover:text-white hover:bg-dark-2 transition-colors;
+  @apply p-2 rounded-lg text-skin-secondary hover:text-skin-primary hover:bg-surface-2 transition-colors;
 }
 
 .page-btn:disabled {
@@ -568,7 +568,7 @@ async function wakeMachine(id: string) {
 }
 
 .page-info {
-  @apply text-sm text-gray-400;
+  @apply text-sm text-skin-secondary;
 }
 
 /* Modal Overlay */
@@ -580,7 +580,7 @@ async function wakeMachine(id: string) {
 
 /* Confirm Dialog */
 .confirm-dialog {
-  @apply w-full max-w-md bg-dark-2 rounded-2xl border border-dark-4 p-6;
+  @apply w-full max-w-md bg-surface-2 rounded-2xl border border-skin p-6;
   animation: modalIn 0.2s ease-out;
 }
 
@@ -597,11 +597,11 @@ async function wakeMachine(id: string) {
 }
 
 .confirm-header h3 {
-  @apply text-xl font-semibold text-white;
+  @apply text-xl font-semibold text-skin-primary;
 }
 
 .confirm-text {
-  @apply text-gray-400 mb-6;
+  @apply text-skin-secondary mb-6;
 }
 
 .confirm-actions {

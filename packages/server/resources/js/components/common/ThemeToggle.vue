@@ -6,8 +6,8 @@
       :class="[
         'flex items-center justify-center p-2 rounded-lg transition-colors',
         variant === 'ghost'
-          ? 'hover:bg-dark-3 text-dark-4 hover:text-white'
-          : 'bg-dark-3 border border-dark-4 text-white hover:border-brand-purple/50'
+          ? 'hover:bg-surface-3 text-skin-secondary hover:text-skin-primary'
+          : 'bg-surface-3 border border-skin text-skin-primary hover:border-brand-purple/50'
       ]"
       :title="isDark ? $t('settings.preferences.theme_light') : $t('settings.preferences.theme_dark')"
     >
@@ -27,8 +27,8 @@
       :class="[
         'flex items-center gap-2 px-3 py-2 rounded-lg transition-colors',
         variant === 'ghost'
-          ? 'hover:bg-dark-3 text-dark-4 hover:text-white'
-          : 'bg-dark-3 border border-dark-4 text-white hover:border-brand-purple/50'
+          ? 'hover:bg-surface-3 text-skin-secondary hover:text-skin-primary'
+          : 'bg-surface-3 border border-skin text-skin-primary hover:border-brand-purple/50'
       ]"
     >
       <component :is="currentThemeIcon" class="w-5 h-5" />
@@ -53,7 +53,7 @@
     >
       <div
         v-if="isOpen && mode === 'dropdown'"
-        class="absolute right-0 mt-2 w-40 bg-dark-2 border border-dark-4 rounded-lg shadow-xl z-50 overflow-hidden"
+        class="absolute right-0 mt-2 w-40 bg-surface-2 border border-skin rounded-lg shadow-xl z-50 overflow-hidden"
       >
         <button
           v-for="option in themeOptions"
@@ -63,7 +63,7 @@
             'flex items-center gap-3 w-full px-4 py-2.5 text-left transition-colors',
             theme === option.value
               ? 'bg-brand-purple/10 text-brand-purple'
-              : 'text-dark-4 hover:bg-dark-3 hover:text-white'
+              : 'text-skin-secondary hover:bg-surface-3 hover:text-skin-primary'
           ]"
         >
           <component :is="option.icon" class="w-5 h-5" />

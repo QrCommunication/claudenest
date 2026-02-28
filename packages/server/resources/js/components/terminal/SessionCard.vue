@@ -214,7 +214,7 @@ function handleViewLogs(): void {
 .session-card {
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, rgba(26, 27, 38, 0.8), rgba(36, 40, 59, 0.6));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--surface-2) 80%, transparent), color-mix(in srgb, var(--surface-3) 60%, transparent));
   border: 1px solid rgba(168, 85, 247, 0.15);
   border-radius: 12px;
   overflow: hidden;
@@ -345,7 +345,7 @@ function handleViewLogs(): void {
 .info-icon {
   width: 16px;
   height: 16px;
-  color: #565f89;
+  color: var(--text-secondary);
   flex-shrink: 0;
 }
 

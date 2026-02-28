@@ -101,11 +101,11 @@ function truncate(text: string, length: number): string {
 
 <style scoped>
 .instance-card {
-  @apply bg-dark-2 rounded-xl border border-dark-4 p-4 transition-all duration-200;
+  @apply bg-surface-2 rounded-xl border border-skin p-4 transition-all duration-200;
 }
 
 .instance-card:hover {
-  @apply border-dark-3;
+  @apply border-surface-3;
 }
 
 .instance-card.active {
@@ -154,15 +154,15 @@ function truncate(text: string, length: number): string {
 }
 
 .instance-id {
-  @apply text-sm font-medium text-white font-mono;
+  @apply text-sm font-medium text-skin-primary font-mono;
 }
 
 .instance-status {
-  @apply text-xs text-gray-400 capitalize;
+  @apply text-xs text-skin-secondary capitalize;
 }
 
 .instance-uptime {
-  @apply flex items-center gap-1 text-xs text-gray-400;
+  @apply flex items-center gap-1 text-xs text-skin-secondary;
 }
 
 .instance-uptime svg {
@@ -182,11 +182,11 @@ function truncate(text: string, length: number): string {
 }
 
 .metric-label {
-  @apply text-xs text-gray-400;
+  @apply text-xs text-skin-secondary;
 }
 
 .metric-value {
-  @apply text-sm font-medium text-white;
+  @apply text-sm font-medium text-skin-primary;
 }
 
 .metric-value.is-high {
@@ -194,7 +194,7 @@ function truncate(text: string, length: number): string {
 }
 
 .metric-bar {
-  @apply h-1.5 bg-dark-3 rounded-full overflow-hidden;
+  @apply h-1.5 bg-surface-3 rounded-full overflow-hidden;
 }
 
 .metric-progress {
@@ -214,11 +214,11 @@ function truncate(text: string, length: number): string {
 }
 
 .stat-label {
-  @apply text-xs text-gray-400;
+  @apply text-xs text-skin-secondary;
 }
 
 .stat-value {
-  @apply text-sm font-medium text-white;
+  @apply text-sm font-medium text-skin-primary;
 }
 
 .stat-link {
@@ -226,11 +226,11 @@ function truncate(text: string, length: number): string {
 }
 
 .card-footer {
-  @apply flex items-center justify-between pt-3 border-t border-dark-4;
+  @apply flex items-center justify-between pt-3 border-t border-skin;
 }
 
 .connection-status {
-  @apply flex items-center gap-1.5 text-xs text-gray-400;
+  @apply flex items-center gap-1.5 text-xs text-skin-secondary;
 }
 
 .connection-status.is-connected {
@@ -238,7 +238,7 @@ function truncate(text: string, length: number): string {
 }
 
 .status-dot {
-  @apply w-2 h-2 rounded-full bg-gray-500;
+  @apply w-2 h-2 rounded-full bg-skin-muted;
 }
 
 .connection-status.is-connected .status-dot {
@@ -247,10 +247,11 @@ function truncate(text: string, length: number): string {
 }
 
 .availability-badge {
-  @apply px-2 py-0.5 rounded text-xs font-medium bg-gray-500/10 text-gray-400;
+  @apply px-2 py-0.5 rounded text-xs font-medium;
+  @apply bg-gray-100 text-gray-600 dark:bg-gray-500/10 dark:text-gray-400;
 }
 
 .availability-badge.is-available {
-  @apply bg-green-500/10 text-green-400;
+  @apply bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400;
 }
 </style>

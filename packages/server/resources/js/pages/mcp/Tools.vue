@@ -3,8 +3,8 @@
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-white">MCP Tools</h1>
-        <p class="text-dark-4 mt-1">Browse and test tools from all MCP servers</p>
+        <h1 class="text-2xl font-bold text-skin-primary">MCP Tools</h1>
+        <p class="text-skin-secondary mt-1">Browse and test tools from all MCP servers</p>
       </div>
       <div class="flex items-center gap-3">
         <Badge variant="info" size="md">
@@ -30,7 +30,7 @@
         class="w-full max-w-md"
       >
         <template #left-icon>
-          <SearchIcon class="w-4 h-4 text-dark-4" />
+          <SearchIcon class="w-4 h-4 text-skin-secondary" />
         </template>
       </Input>
     </div>
@@ -42,7 +42,7 @@
           'px-3 py-1.5 rounded-lg text-sm transition-colors',
           selectedServer === null
             ? 'bg-brand-purple text-white'
-            : 'bg-dark-2 text-dark-4 hover:bg-dark-3'
+            : 'bg-surface-2 text-skin-secondary hover:bg-surface-3'
         ]"
         @click="selectedServer = null"
       >
@@ -55,7 +55,7 @@
           'px-3 py-1.5 rounded-lg text-sm transition-colors',
           selectedServer === server.id
             ? 'bg-brand-purple text-white'
-            : 'bg-dark-2 text-dark-4 hover:bg-dark-3'
+            : 'bg-surface-2 text-skin-secondary hover:bg-surface-3'
         ]"
         @click="selectedServer = selectedServer === server.id ? null : server.id"
       >
@@ -70,9 +70,9 @@
 
     <!-- Empty State -->
     <div v-else-if="filteredTools.length === 0" class="text-center py-12">
-      <WrenchIcon class="w-12 h-12 text-dark-4 mx-auto mb-4" />
-      <h3 class="text-lg font-medium text-white mb-2">No tools found</h3>
-      <p class="text-dark-4">
+      <WrenchIcon class="w-12 h-12 text-skin-secondary mx-auto mb-4" />
+      <h3 class="text-lg font-medium text-skin-primary mb-2">No tools found</h3>
+      <p class="text-skin-secondary">
         {{ searchQuery ? 'Try adjusting your search' : 'Start an MCP server to see available tools' }}
       </p>
     </div>

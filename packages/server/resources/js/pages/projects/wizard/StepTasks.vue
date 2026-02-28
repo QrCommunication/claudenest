@@ -101,11 +101,11 @@ const emit = defineEmits<{
 }
 
 .step-title {
-  @apply text-lg font-semibold text-white;
+  @apply text-lg font-semibold text-skin-primary;
 }
 
 .step-desc {
-  @apply text-sm text-gray-400 mt-0.5;
+  @apply text-sm text-skin-secondary mt-0.5;
 }
 
 .btn-add {
@@ -121,7 +121,7 @@ const emit = defineEmits<{
 }
 
 .task-card {
-  @apply p-4 bg-dark-2 border border-dark-4 rounded-xl space-y-2;
+  @apply p-4 bg-surface-2 border border-skin rounded-xl space-y-2;
 }
 
 .task-header {
@@ -133,7 +133,7 @@ const emit = defineEmits<{
 }
 
 .order-btn {
-  @apply p-0.5 text-gray-600 hover:text-white transition-colors;
+  @apply p-0.5 text-skin-secondary hover:text-skin-primary transition-colors;
 }
 
 .order-btn:disabled {
@@ -145,7 +145,7 @@ const emit = defineEmits<{
 }
 
 .order-num {
-  @apply text-xs text-gray-500 font-mono;
+  @apply text-xs text-skin-secondary font-mono;
 }
 
 .task-fields {
@@ -153,15 +153,15 @@ const emit = defineEmits<{
 }
 
 .task-title-input {
-  @apply flex-1 px-3 py-1.5 bg-dark-3 border border-dark-4 rounded-lg text-white text-sm focus:outline-none focus:border-brand-purple;
+  @apply flex-1 px-3 py-1.5 bg-surface-3 border border-skin rounded-lg text-skin-primary text-sm focus:outline-none focus:border-brand-purple;
 }
 
 .priority-select {
-  @apply px-2 py-1.5 bg-dark-3 border border-dark-4 rounded-lg text-sm text-gray-300 focus:outline-none focus:border-brand-purple appearance-none cursor-pointer;
+  @apply px-2 py-1.5 bg-surface-3 border border-skin rounded-lg text-sm text-skin-primary focus:outline-none focus:border-brand-purple appearance-none cursor-pointer;
 }
 
 .remove-btn {
-  @apply p-1.5 text-gray-600 hover:text-red-400 transition-colors flex-shrink-0;
+  @apply p-1.5 text-skin-secondary hover:text-red-400 transition-colors flex-shrink-0;
 }
 
 .remove-icon {
@@ -169,10 +169,10 @@ const emit = defineEmits<{
 }
 
 .task-desc-input {
-  @apply w-full px-3 py-2 bg-dark-3 border border-dark-4 rounded-lg text-gray-300 text-sm placeholder-gray-600 focus:outline-none focus:border-brand-purple resize-y ml-8;
+  @apply w-full px-3 py-2 bg-surface-3 border border-skin rounded-lg text-skin-primary text-sm placeholder-skin-secondary focus:outline-none focus:border-brand-purple resize-y ml-8;
 }
 
 .empty-tasks {
-  @apply text-center py-8 text-gray-500 text-sm;
+  @apply text-center py-8 text-skin-secondary text-sm;
 }
 </style>

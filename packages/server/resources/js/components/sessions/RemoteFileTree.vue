@@ -209,27 +209,27 @@ watch(
 
 <style scoped>
 .remote-file-tree {
-  @apply rounded-lg border border-dark-4 bg-dark-3 overflow-hidden;
+  @apply rounded-lg border border-skin bg-surface-3 overflow-hidden;
 }
 
 .breadcrumb {
-  @apply flex items-center gap-0 px-3 py-2 border-b border-dark-4 bg-dark-2 text-xs overflow-x-auto;
+  @apply flex items-center gap-0 px-3 py-2 border-b border-skin bg-surface-2 text-xs overflow-x-auto;
 }
 
 .breadcrumb-segment {
-  @apply text-gray-400 hover:text-white transition-colors whitespace-nowrap;
+  @apply text-skin-secondary hover:text-skin-primary transition-colors whitespace-nowrap;
 }
 
 .breadcrumb-sep {
-  @apply text-gray-600 mx-1;
+  @apply text-skin-muted mx-1;
 }
 
 .breadcrumb-current {
-  @apply text-white font-medium;
+  @apply text-skin-primary font-medium;
 }
 
 .tree-status {
-  @apply flex items-center gap-2 p-4 text-sm text-gray-400;
+  @apply flex items-center gap-2 p-4 text-sm text-skin-secondary;
 }
 
 .tree-error {
@@ -237,7 +237,7 @@ watch(
 }
 
 .tree-empty {
-  @apply p-4 text-sm text-gray-500 text-center;
+  @apply p-4 text-sm text-skin-muted text-center;
 }
 
 .retry-btn {
@@ -249,8 +249,8 @@ watch(
 }
 
 .tree-entry {
-  @apply flex items-center gap-2 w-full px-3 py-1.5 text-sm text-gray-300;
-  @apply hover:bg-dark-4 transition-colors cursor-pointer text-left;
+  @apply flex items-center gap-2 w-full px-3 py-1.5 text-sm text-skin-secondary;
+  @apply hover:bg-surface-4 transition-colors cursor-pointer text-left;
 }
 
 .tree-entry.entry-selected {
@@ -262,7 +262,7 @@ watch(
 }
 
 .icon-file {
-  @apply w-4 h-4 text-gray-500 flex-shrink-0;
+  @apply w-4 h-4 text-skin-muted flex-shrink-0;
 }
 
 .icon-sm {
@@ -274,11 +274,11 @@ watch(
 }
 
 .selected-display {
-  @apply flex items-center gap-2 px-3 py-2 border-t border-dark-4 text-xs;
+  @apply flex items-center gap-2 px-3 py-2 border-t border-skin text-xs;
 }
 
 .selected-label {
-  @apply text-gray-500 whitespace-nowrap;
+  @apply text-skin-muted whitespace-nowrap;
 }
 
 .selected-path {
@@ -286,12 +286,12 @@ watch(
 }
 
 .spinner-sm {
-  @apply w-4 h-4 border-2 border-gray-600 border-t-brand-purple rounded-full flex-shrink-0;
+  @apply w-4 h-4 border-2 border-skin border-t-brand-purple rounded-full flex-shrink-0;
   animation: spin 1s linear infinite;
 }
 
 .spinner-xs {
-  @apply w-3 h-3 border border-gray-600 border-t-brand-purple rounded-full flex-shrink-0 ml-auto;
+  @apply w-3 h-3 border border-skin border-t-brand-purple rounded-full flex-shrink-0 ml-auto;
   animation: spin 1s linear infinite;
 }
 

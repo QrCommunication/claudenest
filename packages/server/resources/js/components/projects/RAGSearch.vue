@@ -113,16 +113,16 @@ function truncate(text: string, length: number): string {
 }
 
 .search-icon {
-  @apply absolute left-3 w-5 h-5 text-gray-400 pointer-events-none;
+  @apply absolute left-3 w-5 h-5 text-skin-secondary pointer-events-none;
 }
 
 .search-input-wrapper input {
-  @apply flex-1 pl-10 pr-10 py-2 bg-dark-2 border border-dark-4 rounded-lg text-white;
+  @apply flex-1 pl-10 pr-10 py-2 bg-surface-2 border border-skin rounded-lg text-skin-primary;
   @apply focus:outline-none focus:border-brand-purple;
 }
 
 .clear-btn {
-  @apply absolute right-20 p-1 text-gray-400 hover:text-white transition-colors;
+  @apply absolute right-20 p-1 text-skin-secondary hover:text-skin-primary transition-colors;
 }
 
 .clear-btn svg {
@@ -130,16 +130,16 @@ function truncate(text: string, length: number): string {
 }
 
 .search-results-dropdown {
-  @apply absolute top-full left-0 right-0 mt-2 bg-dark-2 rounded-xl border border-dark-4 shadow-xl z-50;
+  @apply absolute top-full left-0 right-0 mt-2 bg-surface-2 rounded-xl border border-skin shadow-xl z-50;
   @apply max-h-96 overflow-y-auto;
 }
 
 .results-header {
-  @apply flex items-center justify-between px-4 py-2 border-b border-dark-4 text-sm;
+  @apply flex items-center justify-between px-4 py-2 border-b border-skin text-sm;
 }
 
 .results-header span {
-  @apply text-gray-400;
+  @apply text-skin-secondary;
 }
 
 .results-header button {
@@ -151,7 +151,7 @@ function truncate(text: string, length: number): string {
 }
 
 .result-item {
-  @apply p-3 rounded-lg hover:bg-dark-3 cursor-pointer transition-colors;
+  @apply p-3 rounded-lg hover:bg-surface-3 cursor-pointer transition-colors;
 }
 
 .result-meta {
@@ -187,10 +187,10 @@ function truncate(text: string, length: number): string {
 }
 
 .result-score {
-  @apply text-xs text-gray-400;
+  @apply text-xs text-skin-secondary;
 }
 
 .result-text {
-  @apply text-sm text-gray-300 line-clamp-2;
+  @apply text-sm text-skin-primary line-clamp-2;
 }
 </style>

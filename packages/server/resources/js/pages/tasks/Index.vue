@@ -512,11 +512,11 @@ async function deleteTask(taskId: string) {
 }
 
 .page-header h1 {
-  @apply text-3xl font-bold text-white;
+  @apply text-3xl font-bold text-skin-primary;
 }
 
 .subtitle {
-  @apply text-gray-400 mt-1;
+  @apply text-skin-secondary mt-1;
 }
 
 .header-actions {
@@ -524,7 +524,7 @@ async function deleteTask(taskId: string) {
 }
 
 .project-select {
-  @apply px-4 py-2 bg-dark-2 border border-dark-4 rounded-lg text-white;
+  @apply px-4 py-2 bg-surface-2 border border-skin rounded-lg text-skin-primary;
   @apply focus:outline-none focus:border-brand-purple;
 }
 
@@ -533,12 +533,12 @@ async function deleteTask(taskId: string) {
 }
 
 .search-input {
-  @apply px-4 py-2 bg-dark-2 border border-dark-4 rounded-lg text-white w-64;
+  @apply px-4 py-2 bg-surface-2 border border-skin rounded-lg text-skin-primary w-64;
   @apply focus:outline-none focus:border-brand-purple;
 }
 
 .filter-select {
-  @apply px-4 py-2 bg-dark-2 border border-dark-4 rounded-lg text-white;
+  @apply px-4 py-2 bg-surface-2 border border-skin rounded-lg text-skin-primary;
   @apply focus:outline-none focus:border-brand-purple;
 }
 
@@ -551,7 +551,7 @@ async function deleteTask(taskId: string) {
 }
 
 .stat-value {
-  @apply text-3xl font-bold text-white;
+  @apply text-3xl font-bold text-skin-primary;
 }
 
 .stat-value.pending {
@@ -579,15 +579,15 @@ async function deleteTask(taskId: string) {
 }
 
 .empty-state svg {
-  @apply w-16 h-16 text-gray-600 mb-4;
+  @apply w-16 h-16 text-skin-secondary mb-4;
 }
 
 .empty-state h3 {
-  @apply text-xl font-semibold text-white mb-2;
+  @apply text-xl font-semibold text-skin-primary mb-2;
 }
 
 .empty-state p {
-  @apply text-gray-400 mb-6;
+  @apply text-skin-secondary mb-6;
 }
 
 .tasks-content {
@@ -599,15 +599,15 @@ async function deleteTask(taskId: string) {
 }
 
 .toggle-btn {
-  @apply flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-400 bg-dark-2 rounded-lg transition-colors;
+  @apply flex items-center gap-2 px-4 py-2 text-sm font-medium text-skin-secondary bg-surface-2 rounded-lg transition-colors;
 }
 
 .toggle-btn:hover {
-  @apply text-white bg-dark-3;
+  @apply text-skin-primary bg-surface-3;
 }
 
 .toggle-btn.active {
-  @apply text-white bg-brand-purple/20 text-brand-purple;
+  @apply text-skin-primary bg-brand-purple/20 text-brand-purple;
 }
 
 .toggle-btn svg {
@@ -631,11 +631,11 @@ async function deleteTask(taskId: string) {
 }
 
 .meta-label {
-  @apply text-xs text-gray-400 uppercase tracking-wide;
+  @apply text-xs text-skin-secondary uppercase tracking-wide;
 }
 
 .meta-value {
-  @apply text-sm font-medium text-white;
+  @apply text-sm font-medium text-skin-primary;
 }
 
 .meta-value.status {
@@ -653,11 +653,11 @@ async function deleteTask(taskId: string) {
 
 .task-description-section h4,
 .task-files-section h4 {
-  @apply text-sm font-semibold text-white;
+  @apply text-sm font-semibold text-skin-primary;
 }
 
 .task-description-section p {
-  @apply text-sm text-gray-300 whitespace-pre-wrap;
+  @apply text-sm text-skin-primary whitespace-pre-wrap;
 }
 
 .files-list {
@@ -665,7 +665,7 @@ async function deleteTask(taskId: string) {
 }
 
 .task-actions-footer {
-  @apply flex items-center gap-3 pt-4 border-t border-dark-4;
+  @apply flex items-center gap-3 pt-4 border-t border-skin;
 }
 
 .claim-form,
@@ -678,7 +678,7 @@ async function deleteTask(taskId: string) {
 }
 
 .instance-option {
-  @apply w-full flex items-center justify-between p-3 bg-dark-3 rounded-lg border border-transparent;
+  @apply w-full flex items-center justify-between p-3 bg-surface-3 rounded-lg border border-transparent;
   @apply hover:border-brand-purple/50 transition-colors;
 }
 
@@ -691,11 +691,11 @@ async function deleteTask(taskId: string) {
 }
 
 .form-group label {
-  @apply block text-sm font-medium text-gray-300;
+  @apply block text-sm font-medium text-skin-primary;
 }
 
 .form-group textarea {
-  @apply w-full px-4 py-2 bg-dark-2 border border-dark-4 rounded-lg text-white;
+  @apply w-full px-4 py-2 bg-surface-2 border border-skin rounded-lg text-skin-primary;
   @apply focus:outline-none focus:border-brand-purple resize-none;
 }
 

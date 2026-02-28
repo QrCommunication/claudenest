@@ -368,7 +368,7 @@ function handleSubmit() {
 }
 
 .section-title {
-  @apply text-sm font-semibold text-white uppercase tracking-wide pb-2 border-b border-dark-4;
+  @apply text-sm font-semibold text-skin-primary uppercase tracking-wide pb-2 border-b border-skin;
 }
 
 .form-group {
@@ -376,7 +376,7 @@ function handleSubmit() {
 }
 
 .form-group label {
-  @apply block text-sm font-medium text-gray-300;
+  @apply block text-sm font-medium text-skin-primary;
 }
 
 .form-group label .required {
@@ -386,7 +386,7 @@ function handleSubmit() {
 .form-group input,
 .form-group textarea,
 .form-group select {
-  @apply w-full px-4 py-2 bg-dark-2 border border-dark-4 rounded-lg text-white;
+  @apply w-full px-4 py-2 bg-surface-2 border border-skin rounded-lg text-skin-primary;
   @apply focus:outline-none focus:border-brand-purple transition-colors;
 }
 
@@ -401,7 +401,7 @@ function handleSubmit() {
 }
 
 .form-hint {
-  @apply text-xs text-gray-500;
+  @apply text-xs text-skin-secondary;
 }
 
 .form-row {
@@ -417,7 +417,7 @@ function handleSubmit() {
 }
 
 .form-actions {
-  @apply flex items-center justify-end gap-3 pt-4 border-t border-dark-4 sticky bottom-0 bg-dark-1 pb-2;
+  @apply flex items-center justify-end gap-3 pt-4 border-t border-skin sticky bottom-0 bg-surface-1 pb-2;
 }
 
 .path-header {
@@ -425,7 +425,7 @@ function handleSubmit() {
 }
 
 .path-header label {
-  @apply text-sm font-medium text-gray-300;
+  @apply text-sm font-medium text-skin-primary;
 }
 
 .path-header label .required {
@@ -446,10 +446,10 @@ function handleSubmit() {
 }
 
 .project-form::-webkit-scrollbar-thumb {
-  @apply bg-dark-4 rounded-full;
+  @apply bg-surface-4 rounded-full;
 }
 
 .project-form::-webkit-scrollbar-thumb:hover {
-  @apply bg-dark-3;
+  @apply bg-surface-3;
 }
 </style>

@@ -2,52 +2,52 @@
   <Card hoverable class-name="h-full flex flex-col">
     <div class="flex items-start justify-between">
       <div class="flex items-center gap-3">
-        <div 
+        <div
           :class="[
             'w-10 h-10 rounded-lg flex items-center justify-center',
-            isRunning ? 'bg-green-500/10' : hasErrors ? 'bg-red-500/10' : 'bg-dark-3'
+            isRunning ? 'bg-green-500/10' : hasErrors ? 'bg-red-500/10' : 'bg-surface-3'
           ]"
         >
-          <ServerIcon 
+          <ServerIcon
             :class="[
               'w-5 h-5',
-              isRunning ? 'text-green-400' : hasErrors ? 'text-red-400' : 'text-dark-4'
-            ]" 
+              isRunning ? 'text-green-400' : hasErrors ? 'text-red-400' : 'text-skin-secondary'
+            ]"
           />
         </div>
         <div>
-          <h3 class="font-semibold text-white">{{ server.display_name }}</h3>
-          <p class="text-xs text-dark-4">{{ server.transport }} transport</p>
+          <h3 class="font-semibold text-skin-primary">{{ server.display_name }}</h3>
+          <p class="text-xs text-skin-secondary">{{ server.transport }} transport</p>
         </div>
       </div>
       <MCPStatusBadge :status="server.status" />
     </div>
 
-    <p class="mt-3 text-sm text-dark-4 line-clamp-2">
+    <p class="mt-3 text-sm text-skin-secondary line-clamp-2">
       {{ server.description || 'No description available' }}
     </p>
 
     <div class="mt-4 space-y-2">
       <div v-if="server.command" class="flex items-center gap-2 text-xs">
-        <TerminalIcon class="w-3.5 h-3.5 text-dark-4" />
-        <code class="text-dark-4 bg-dark-3 px-2 py-0.5 rounded truncate flex-1">
+        <TerminalIcon class="w-3.5 h-3.5 text-skin-secondary" />
+        <code class="text-skin-secondary bg-surface-3 px-2 py-0.5 rounded truncate flex-1">
           {{ server.command }}
         </code>
       </div>
       <div v-if="server.url" class="flex items-center gap-2 text-xs">
-        <LinkIcon class="w-3.5 h-3.5 text-dark-4" />
-        <span class="text-dark-4 truncate">{{ server.url }}</span>
+        <LinkIcon class="w-3.5 h-3.5 text-skin-secondary" />
+        <span class="text-skin-secondary truncate">{{ server.url }}</span>
       </div>
     </div>
 
     <div class="mt-4 flex items-center gap-4 text-sm">
       <div class="flex items-center gap-1.5">
-        <WrenchIcon class="w-4 h-4 text-dark-4" />
-        <span class="text-dark-4">{{ server.tools_count }} tools</span>
+        <WrenchIcon class="w-4 h-4 text-skin-secondary" />
+        <span class="text-skin-secondary">{{ server.tools_count }} tools</span>
       </div>
       <div v-if="server.uptime" class="flex items-center gap-1.5">
-        <ClockIcon class="w-4 h-4 text-dark-4" />
-        <span class="text-dark-4">{{ server.uptime }}</span>
+        <ClockIcon class="w-4 h-4 text-skin-secondary" />
+        <span class="text-skin-secondary">{{ server.uptime }}</span>
       </div>
     </div>
 

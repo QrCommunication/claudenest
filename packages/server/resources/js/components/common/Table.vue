@@ -1,16 +1,16 @@
 <template>
   <div class="w-full">
-    <div class="overflow-x-auto rounded-card border border-dark-4">
-      <table class="min-w-full divide-y divide-dark-4">
+    <div class="overflow-x-auto rounded-card border border-skin">
+      <table class="min-w-full divide-y divide-skin">
         <!-- Header -->
-        <thead class="bg-dark-3">
+        <thead class="bg-surface-3">
           <tr>
             <th
               v-for="column in columns"
               :key="column.key"
               :class="[
-                'px-6 py-3 text-left text-xs font-medium text-dark-4 uppercase tracking-wider',
-                column.sortable ? 'cursor-pointer select-none hover:text-white' : '',
+                'px-6 py-3 text-left text-xs font-medium text-skin-secondary uppercase tracking-wider',
+                column.sortable ? 'cursor-pointer select-none hover:text-skin-primary' : '',
               ]"
               :style="column.width ? { width: column.width } : {}"
               @click="column.sortable && handleSort(column.key)"
@@ -38,7 +38,7 @@
                   </svg>
                   <svg
                     v-else
-                    class="w-4 h-4 text-dark-4"
+                    class="w-4 h-4 text-skin-muted"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -52,13 +52,13 @@
         </thead>
 
         <!-- Body -->
-        <tbody class="bg-dark-2 divide-y divide-dark-4">
+        <tbody class="bg-surface-2 divide-y divide-skin">
           <template v-if="!isLoading">
             <tr
               v-for="(row, index) in sortedData"
               :key="getRowKey(row, index)"
               :class="[
-                'hover:bg-dark-3/50 transition-colors',
+                'hover:bg-surface-3/50 transition-colors',
                 $slots.row ? '' : '',
               ]"
             >
@@ -66,7 +66,7 @@
                 <td
                   v-for="column in columns"
                   :key="column.key"
-                  class="px-6 py-4 whitespace-nowrap text-sm text-white"
+                  class="px-6 py-4 whitespace-nowrap text-sm text-skin-primary"
                 >
                   {{ formatCell(row, column) }}
                 </td>
@@ -94,7 +94,7 @@
               class="px-6 py-12 text-center"
             >
               <slot name="empty">
-                <div class="flex flex-col items-center justify-center text-dark-4">
+                <div class="flex flex-col items-center justify-center text-skin-muted">
                   <svg
                     class="w-12 h-12 mb-3 opacity-50"
                     fill="none"
@@ -117,7 +117,7 @@
       v-if="pagination && totalPages > 1"
       class="flex items-center justify-between mt-4 px-2"
     >
-      <div class="text-sm text-dark-4">
+      <div class="text-sm text-skin-secondary">
         Showing {{ startIndex + 1 }} to {{ Math.min(endIndex, totalItems) }} of {{ totalItems }} results
       </div>
       

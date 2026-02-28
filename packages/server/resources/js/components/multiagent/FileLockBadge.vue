@@ -115,7 +115,7 @@ function handleClick() {
 <style scoped>
 .file-lock-badge {
   @apply flex items-center gap-3 p-3 rounded-lg border transition-all duration-200 cursor-pointer;
-  @apply bg-dark-3 border-dark-4 hover:border-dark-3;
+  @apply bg-surface-3 border-skin hover:border-surface-3;
 }
 
 .file-lock-badge.locked {
@@ -148,11 +148,11 @@ function handleClick() {
 }
 
 .lock-filename {
-  @apply block text-sm font-medium text-white truncate;
+  @apply block text-sm font-medium text-skin-primary truncate;
 }
 
 .lock-meta {
-  @apply block text-xs text-gray-400;
+  @apply block text-xs text-skin-secondary;
 }
 
 .lock-meta.unlocked {
@@ -168,7 +168,7 @@ function handleClick() {
 }
 
 .lock-expiry {
-  @apply text-gray-500;
+  @apply text-skin-muted;
 }
 
 .lock-actions {

@@ -341,7 +341,7 @@ watch(terminalContainer, (container) => {
 }
 
 .search-input::placeholder {
-  color: #565f89;
+  color: var(--text-muted);
 }
 
 .search-btn,

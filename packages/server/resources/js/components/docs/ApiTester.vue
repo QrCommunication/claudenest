@@ -336,7 +336,7 @@ const sendRequest = async () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background: color-mix(in srgb, var(--surface-1) 85%, transparent);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -581,7 +581,7 @@ const sendRequest = async () => {
 
 .add-btn {
   padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.05);
+  background: color-mix(in srgb, var(--text-primary) 4%, transparent);
   border: 1px dashed color-mix(in srgb, var(--text-primary) 20%, transparent);
   border-radius: 6px;
   color: var(--text-muted);
@@ -697,7 +697,7 @@ const sendRequest = async () => {
 }
 
 .header-value {
-  color: #86efac;
+  color: var(--syntax-string, #86efac);
   word-break: break-all;
 }
 
