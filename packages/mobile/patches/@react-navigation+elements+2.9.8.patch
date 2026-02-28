@@ -1,22 +1,77 @@
 diff --git a/node_modules/@react-navigation/elements/lib/module/PlatformPressable.js b/node_modules/@react-navigation/elements/lib/module/PlatformPressable.js
-index 6d0c9e6..8b6da51 100644
+index 6d0c9e6..c8d6871 100644
 --- a/node_modules/@react-navigation/elements/lib/module/PlatformPressable.js
 +++ b/node_modules/@react-navigation/elements/lib/module/PlatformPressable.js
-@@ -4,7 +4,13 @@ import { useTheme } from '@react-navigation/native';
+@@ -4,7 +4,9 @@ import { useTheme } from '@react-navigation/native';
  import * as React from 'react';
  import { Animated, Easing, Platform, Pressable } from 'react-native';
  import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 -const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-+// RN 0.76 New Architecture fix: createAnimatedComponent requires an explicit
-+// forwardRef wrapper with a displayName — Pressable's internal wrapper is anonymous.
-+const PressableWithRef = React.forwardRef(function PressableWrapper(props, ref) {
-+  return _jsx(Pressable, { ...props, ref });
-+});
-+PressableWithRef.displayName = 'Pressable';
-+const AnimatedPressable = Animated.createAnimatedComponent(PressableWithRef);
++// RN 0.76 New Architecture fix: Animated.createAnimatedComponent(Pressable) crashes
++// in bridgeless mode because Pressable is a pure-JS forwardRef component not
++// recognized as a class component. Use Animated.View as the opacity wrapper instead.
  const ANDROID_VERSION_LOLLIPOP = 21;
  const ANDROID_SUPPORTS_RIPPLE = Platform.OS === 'android' && Platform.Version >= ANDROID_VERSION_LOLLIPOP;
  const useNativeDriver = Platform.OS !== 'web';
+@@ -42,18 +44,11 @@ function PlatformPressableInternal({
+   };
+   const handlePress = e => {
+     if (Platform.OS === 'web' && rest.href !== null) {
+-      // ignore clicks with modifier keys
+       const hasModifierKey = 'metaKey' in e && e.metaKey || 'altKey' in e && e.altKey || 'ctrlKey' in e && e.ctrlKey || 'shiftKey' in e && e.shiftKey;
+-
+-      // only handle left clicks
+       const isLeftClick = 'button' in e ? e.button == null || e.button === 0 : true;
+-
+-      // let browser handle "target=_blank" etc.
+       const isSelfTarget = e.currentTarget && 'target' in e.currentTarget ? [undefined, null, '', 'self'].includes(e.currentTarget.target) : true;
+       if (!hasModifierKey && isLeftClick && isSelfTarget) {
+         e.preventDefault();
+-        // call `onPress` only when browser default is prevented
+-        // this prevents app from handling the click when a link is being opened
+         onPress?.(e);
+       }
+     } else {
+@@ -68,7 +63,8 @@ function PlatformPressableInternal({
+     animateTo(1, 200);
+     onPressOut?.(e);
+   };
+-  return /*#__PURE__*/_jsxs(AnimatedPressable, {
++
++  const pressable = /*#__PURE__*/_jsxs(Pressable, {
+     ref: ref,
+     accessible: true,
+     role: Platform.OS === 'web' && rest.href != null ? 'link' : 'button',
+@@ -80,17 +76,24 @@ function PlatformPressableInternal({
+       ...android_ripple
+     } : undefined,
+     style: [{
+-      cursor: (Platform.OS === 'web' || Platform.OS === 'ios') && !disabled ?
+-      // Pointer cursor on web
+-      // Hover effect on iPad and visionOS
+-      'pointer' : 'auto',
+-      opacity: !ANDROID_SUPPORTS_RIPPLE && !disabled ? opacity : 1
++      cursor: (Platform.OS === 'web' || Platform.OS === 'ios') && !disabled ? 'pointer' : 'auto'
+     }, style],
+     ...rest,
+     children: [!disabled ? /*#__PURE__*/_jsx(HoverEffect, {
+       ...hoverEffect
+     }) : null, children]
+   });
++
++  // Wrap with Animated.View only when opacity animation is needed (non-Android ripple)
++  if (!ANDROID_SUPPORTS_RIPPLE && !disabled) {
++    return /*#__PURE__*/_jsx(Animated.View, {
++      style: {
++        opacity
++      },
++      children: pressable
++    });
++  }
++  return pressable;
+ }
+ export const PlatformPressable = /*#__PURE__*/React.forwardRef(PlatformPressableInternal);
+ PlatformPressable.displayName = 'PlatformPressable';
 diff --git a/node_modules/@react-navigation/elements/lib/module/SafeAreaProviderCompat.js b/node_modules/@react-navigation/elements/lib/module/SafeAreaProviderCompat.js
 index 9d08b91..f33e8f9 100644
 --- a/node_modules/@react-navigation/elements/lib/module/SafeAreaProviderCompat.js
