@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { RootStackParamList } from './types';
 import { colors } from '@/theme';
@@ -19,8 +19,10 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 // Navigation theme
 const navigationTheme = {
+  ...DefaultTheme,
   dark: true,
   colors: {
+    ...DefaultTheme.colors,
     primary: colors.primary.purple,
     background: colors.background.dark2,
     card: colors.background.dark2,

@@ -15,7 +15,7 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { SettingsStackParamList } from '@/navigation/types';
 import { useCredentialsStore, type Credential } from '@/stores/credentialsStore';

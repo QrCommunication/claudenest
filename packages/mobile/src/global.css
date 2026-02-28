@@ -1,0 +1,24 @@
+@import 'tailwindcss';
+@import 'uniwind';
+
+@theme {
+  /* Brand backgrounds */
+  --color-bg1: #0f0f1a;
+  --color-bg2: #1a1b26;
+  --color-bg3: #24283b;
+  --color-bg4: #3b4261;
+
+  /* Brand accent colors */
+  --color-primary: #a855f7;
+  --color-indigo: #6366f1;
+  --color-cyan: #22d3ee;
+
+  /* Text colors */
+  --color-text-secondary: #a9b1d6;
+  --color-muted: #64748b;
+
+  /* Semantic */
+  --color-success: #22c55e;
+  --color-danger: #ef4444;
+  --color-warning: #fbbf24;
+}

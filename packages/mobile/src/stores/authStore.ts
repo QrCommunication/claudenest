@@ -25,6 +25,7 @@ interface AuthState {
   // Actions
   setTokens: (tokens: { accessToken: string; refreshToken?: string }) => void;
   setUser: (user: User | null) => void;
+  loginWithPassword: (email: string, password: string) => Promise<void>;
   login: (email: string) => Promise<void>;
   verifyMagicLink: (token: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -50,6 +51,37 @@ export const useAuthStore = create<AuthState>()(
       isLoggedIn: () => !!get().accessToken && !!get().user,
 
       // Actions
+      loginWithPassword: async (email: string, password: string) => {
+        set({ isLoading: true, error: null });
+        try {
+          const response = await authApi.loginWithPassword(email, password);
+          const { user, token } = response.data!;
+          set({
+            user,
+            accessToken: token,
+            refreshToken: null,
+            isAuthenticated: true,
+            isLoading: false,
+            hasSeenOnboarding: true,
+          });
+        } catch (err: unknown) {
+          const apiErr = err as { status?: number; message?: string; code?: string };
+          let errorMsg: string;
+          if (!apiErr.status) {
+            // Pas de réponse HTTP = erreur réseau (serveur injoignable)
+            errorMsg = 'Impossible de contacter le serveur. Vérifiez votre connexion.';
+          } else if (apiErr.status === 401 || apiErr.code === 'AUTH_002') {
+            errorMsg = 'Email ou mot de passe incorrect.';
+          } else if (apiErr.status === 422) {
+            errorMsg = 'Vérifiez le format de votre email.';
+          } else {
+            errorMsg = apiErr.message || 'Une erreur est survenue. Réessayez.';
+          }
+          set({ isLoading: false, error: errorMsg });
+          throw new Error(errorMsg);
+        }
+      },
+
       setTokens: ({ accessToken, refreshToken }) => {
         set({
           accessToken,

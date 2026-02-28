@@ -13,7 +13,7 @@ import {
   ScrollView,
   SafeAreaView,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { colors, spacing, typography } from '@/theme';
 import { Button, Input, ErrorMessage } from '@/components/common';
 import { useAuthStore } from '@/stores/authStore';
