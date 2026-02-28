@@ -135,7 +135,7 @@
                     'p-4 rounded-lg border-2 transition-colors text-center',
                     theme === 'dark'
                       ? 'border-brand-purple bg-brand-purple/10'
-                      : 'border-skin hover:border-skin/80',
+                      : 'border-skin hover:border-skin',
                   ]"
                   @click="setTheme('dark')"
                 >
@@ -149,7 +149,7 @@
                     'p-4 rounded-lg border-2 transition-colors text-center',
                     theme === 'light'
                       ? 'border-brand-purple bg-brand-purple/10'
-                      : 'border-skin hover:border-skin/80',
+                      : 'border-skin hover:border-skin',
                   ]"
                   @click="setTheme('light')"
                 >
@@ -163,7 +163,7 @@
                     'p-4 rounded-lg border-2 transition-colors text-center',
                     theme === 'system'
                       ? 'border-brand-purple bg-brand-purple/10'
-                      : 'border-skin hover:border-skin/80',
+                      : 'border-skin hover:border-skin',
                   ]"
                   @click="setTheme('system')"
                 >

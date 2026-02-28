@@ -238,7 +238,7 @@ function truncate(text: string, length: number): string {
 }
 
 .status-dot {
-  @apply w-2 h-2 rounded-full bg-skin-muted;
+  @apply w-2 h-2 rounded-full bg-surface-4;
 }
 
 .connection-status.is-connected .status-dot {

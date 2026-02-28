@@ -21,10 +21,10 @@ export default {
           4: '#3b4261',
         },
         surface: {
-          1: 'var(--surface-1)',
-          2: 'var(--surface-2)',
-          3: 'var(--surface-3)',
-          4: 'var(--surface-4)',
+          1: 'rgb(var(--surface-1-rgb) / <alpha-value>)',
+          2: 'rgb(var(--surface-2-rgb) / <alpha-value>)',
+          3: 'rgb(var(--surface-3-rgb) / <alpha-value>)',
+          4: 'rgb(var(--surface-4-rgb) / <alpha-value>)',
         },
       },
       textColor: {

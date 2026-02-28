@@ -53,7 +53,7 @@ const variantClasses: Record<BadgeVariant, string> = {
 };
 
 const dotClasses: Record<BadgeVariant, string> = {
-  default: 'bg-skin-secondary',
+  default: 'bg-surface-4',
   success: 'bg-green-500 dark:bg-green-400',
   warning: 'bg-yellow-500 dark:bg-yellow-400',
   error: 'bg-red-500 dark:bg-red-400',

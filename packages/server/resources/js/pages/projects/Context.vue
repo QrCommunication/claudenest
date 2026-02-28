@@ -483,7 +483,8 @@ function formatRelativeTime(date: string): string {
 }
 
 .token-bg {
-  @apply fill-none stroke-skin;
+  fill: none;
+  stroke: var(--border);
   stroke-width: 3;
 }
 

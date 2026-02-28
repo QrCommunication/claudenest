@@ -12,6 +12,11 @@
     --surface-2: #f1f5f9;
     --surface-3: #e2e8f0;
     --surface-4: #cbd5e1;
+    /* RGB channels for Tailwind opacity modifiers (bg-surface-X/50 etc.) */
+    --surface-1-rgb: 248 250 252;
+    --surface-2-rgb: 241 245 249;
+    --surface-3-rgb: 226 232 240;
+    --surface-4-rgb: 203 213 225;
     --text-primary: #0f172a;
     --text-secondary: #475569;
     --text-muted: #64748b;
@@ -31,6 +36,11 @@
     --surface-2: #1a1b26;
     --surface-3: #24283b;
     --surface-4: #2a2e42;
+    /* RGB channels for Tailwind opacity modifiers */
+    --surface-1-rgb: 15 15 26;
+    --surface-2-rgb: 26 27 38;
+    --surface-3-rgb: 36 40 59;
+    --surface-4-rgb: 42 46 66;
     --text-primary: #f1f5f9;
     --text-secondary: #94a3b8;
     --text-muted: #64748b;

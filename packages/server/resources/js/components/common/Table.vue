@@ -1,7 +1,7 @@
 <template>
   <div class="w-full">
     <div class="overflow-x-auto rounded-card border border-skin">
-      <table class="min-w-full divide-y divide-skin">
+      <table class="min-w-full divide-y divide-[var(--border)]">
         <!-- Header -->
         <thead class="bg-surface-3">
           <tr>
@@ -52,7 +52,7 @@
         </thead>
 
         <!-- Body -->
-        <tbody class="bg-surface-2 divide-y divide-skin">
+        <tbody class="bg-surface-2 divide-y divide-[var(--border)]">
           <template v-if="!isLoading">
             <tr
               v-for="(row, index) in sortedData"
