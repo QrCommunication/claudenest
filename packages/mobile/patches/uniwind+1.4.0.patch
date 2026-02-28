@@ -1,0 +1,79 @@
+diff --git a/node_modules/uniwind/dist/module/components/web/Animated.js b/node_modules/uniwind/dist/module/components/web/Animated.js
+index 3b408a0..c75fee7 100644
+--- a/node_modules/uniwind/dist/module/components/web/Animated.js
++++ b/node_modules/uniwind/dist/module/components/web/Animated.js
+@@ -1,4 +1,4 @@
+-import { jsx } from "react/jsx-runtime";
++import * as React from "react";
+ import { Animated as RNAnimated } from "react-native";
+ import { FlatList } from "./FlatList.js";
+ import { Image } from "./Image.js";
+@@ -6,12 +6,40 @@ import { ScrollView } from "./ScrollView.js";
+ import { SectionList } from "./SectionList.js";
+ import { Text } from "./Text.js";
+ import { View } from "./View.js";
++
++// RN 0.76 fix: Reanimated's Babel plugin replaces RN's Animated.createAnimatedComponent
++// with its own version, which rejects function components (requires class or forwardRef).
++// React.forwardRef() returns an OBJECT (not function) — passes the typeof check.
+ export const Animated = {
+   ...RNAnimated,
+-  FlatList: RNAnimated.createAnimatedComponent((props) => /* @__PURE__ */ jsx(FlatList, { scrollEventThrottle: 1e-4, ...props })),
+-  ScrollView: RNAnimated.createAnimatedComponent((props) => /* @__PURE__ */ jsx(ScrollView, { scrollEventThrottle: 1e-4, ...props })),
+-  SectionList: RNAnimated.createAnimatedComponent((props) => /* @__PURE__ */ jsx(SectionList, { scrollEventThrottle: 1e-4, ...props })),
+-  Image: RNAnimated.createAnimatedComponent(Image),
+-  Text: RNAnimated.createAnimatedComponent(Text),
+-  View: RNAnimated.createAnimatedComponent(View)
++  FlatList: RNAnimated.createAnimatedComponent(
++    React.forwardRef(function UniwindFlatList(props, ref) {
++      return React.createElement(FlatList, { scrollEventThrottle: 1e-4, ...props, ref });
++    })
++  ),
++  ScrollView: RNAnimated.createAnimatedComponent(
++    React.forwardRef(function UniwindScrollView(props, ref) {
++      return React.createElement(ScrollView, { scrollEventThrottle: 1e-4, ...props, ref });
++    })
++  ),
++  SectionList: RNAnimated.createAnimatedComponent(
++    React.forwardRef(function UniwindSectionList(props, ref) {
++      return React.createElement(SectionList, { scrollEventThrottle: 1e-4, ...props, ref });
++    })
++  ),
++  Image: RNAnimated.createAnimatedComponent(
++    React.forwardRef(function UniwindImage(props, ref) {
++      return React.createElement(Image, { ...props, ref });
++    })
++  ),
++  Text: RNAnimated.createAnimatedComponent(
++    React.forwardRef(function UniwindText(props, ref) {
++      return React.createElement(Text, { ...props, ref });
++    })
++  ),
++  View: RNAnimated.createAnimatedComponent(
++    React.forwardRef(function UniwindView(props, ref) {
++      return React.createElement(View, { ...props, ref });
++    })
++  ),
+ };
+diff --git a/node_modules/uniwind/uniwind.css b/node_modules/uniwind/uniwind.css
+index 2833fc4..54f14eb 100644
+--- a/node_modules/uniwind/uniwind.css
++++ b/node_modules/uniwind/uniwind.css
+@@ -396,7 +396,7 @@
+    }
+ 
+    @media (prefers-color-scheme: light) {
+-       &:not(:where(.light, .light *, .dark, .dark *, .premium, .premium *)) {
++       &:not(:where(.light, .light *, .dark, .dark *)) {
+            @slot;
+        }
+    }
+@@ -408,7 +408,7 @@
+    }
+ 
+    @media (prefers-color-scheme: dark) {
+-       &:not(:where(.light, .light *, .dark, .dark *, .premium, .premium *)) {
++       &:not(:where(.light, .light *, .dark, .dark *)) {
+            @slot;
+        }
+    }
