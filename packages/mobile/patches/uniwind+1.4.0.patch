@@ -1,3 +1,72 @@
+diff --git a/node_modules/uniwind/dist/common/components/web/Animated.js b/node_modules/uniwind/dist/common/components/web/Animated.js
+index 38cfced..d7a367f 100644
+--- a/node_modules/uniwind/dist/common/components/web/Animated.js
++++ b/node_modules/uniwind/dist/common/components/web/Animated.js
+@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", {
+   value: true
+ });
+ exports.Animated = void 0;
+-var _jsxRuntime = require("react/jsx-runtime");
++var React = require("react");
+ var _reactNative = require("react-native");
+ var _FlatList = require("./FlatList");
+ var _Image = require("./Image");
+@@ -12,21 +12,40 @@ var _ScrollView = require("./ScrollView");
+ var _SectionList = require("./SectionList");
+ var _Text = require("./Text");
+ var _View = require("./View");
++
++// RN 0.76 fix: Reanimated's Babel plugin replaces Animated.createAnimatedComponent
++// with its own version which rejects function components (typeof check).
++// React.forwardRef() returns an object (not function) — passes the check.
+ const Animated = exports.Animated = {
+   ..._reactNative.Animated,
+-  FlatList: _reactNative.Animated.createAnimatedComponent(props => /* @__PURE__ */(0, _jsxRuntime.jsx)(_FlatList.FlatList, {
+-    scrollEventThrottle: 1e-4,
+-    ...props
+-  })),
+-  ScrollView: _reactNative.Animated.createAnimatedComponent(props => /* @__PURE__ */(0, _jsxRuntime.jsx)(_ScrollView.ScrollView, {
+-    scrollEventThrottle: 1e-4,
+-    ...props
+-  })),
+-  SectionList: _reactNative.Animated.createAnimatedComponent(props => /* @__PURE__ */(0, _jsxRuntime.jsx)(_SectionList.SectionList, {
+-    scrollEventThrottle: 1e-4,
+-    ...props
+-  })),
+-  Image: _reactNative.Animated.createAnimatedComponent(_Image.Image),
+-  Text: _reactNative.Animated.createAnimatedComponent(_Text.Text),
+-  View: _reactNative.Animated.createAnimatedComponent(_View.View)
++  FlatList: _reactNative.Animated.createAnimatedComponent(
++    React.forwardRef(function UniwindFlatList(props, ref) {
++      return React.createElement(_FlatList.FlatList, { scrollEventThrottle: 1e-4, ...props, ref });
++    })
++  ),
++  ScrollView: _reactNative.Animated.createAnimatedComponent(
++    React.forwardRef(function UniwindScrollView(props, ref) {
++      return React.createElement(_ScrollView.ScrollView, { scrollEventThrottle: 1e-4, ...props, ref });
++    })
++  ),
++  SectionList: _reactNative.Animated.createAnimatedComponent(
++    React.forwardRef(function UniwindSectionList(props, ref) {
++      return React.createElement(_SectionList.SectionList, { scrollEventThrottle: 1e-4, ...props, ref });
++    })
++  ),
++  Image: _reactNative.Animated.createAnimatedComponent(
++    React.forwardRef(function UniwindImage(props, ref) {
++      return React.createElement(_Image.Image, { ...props, ref });
++    })
++  ),
++  Text: _reactNative.Animated.createAnimatedComponent(
++    React.forwardRef(function UniwindText(props, ref) {
++      return React.createElement(_Text.Text, { ...props, ref });
++    })
++  ),
++  View: _reactNative.Animated.createAnimatedComponent(
++    React.forwardRef(function UniwindView(props, ref) {
++      return React.createElement(_View.View, { ...props, ref });
++    })
++  ),
+ };
 diff --git a/node_modules/uniwind/dist/module/components/web/Animated.js b/node_modules/uniwind/dist/module/components/web/Animated.js
 index 3b408a0..c75fee7 100644
 --- a/node_modules/uniwind/dist/module/components/web/Animated.js
