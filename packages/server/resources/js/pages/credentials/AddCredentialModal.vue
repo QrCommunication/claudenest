@@ -1,9 +1,9 @@
 <template>
   <div class="modal-overlay" @click.self="$emit('close')">
-    <div class="modal-card">
+    <div :class="['modal-card', { 'modal-card-wide': step === 'terminal' }]">
       <div class="modal-header">
-        <h2>Add Credential</h2>
-        <button class="close-btn" @click="$emit('close')">
+        <h2>{{ step === 'terminal' ? 'Login via Terminal' : 'Add Credential' }}</h2>
+        <button class="close-btn" @click="handleClose">
           <svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
             <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
           </svg>
@@ -11,7 +11,8 @@
       </div>
 
       <div class="modal-body">
-        <form @submit.prevent="handleSubmit">
+        <!-- ==================== STEP 1: Form ==================== -->
+        <form v-if="step === 'form'" @submit.prevent="handleSubmit">
           <!-- Name Input -->
           <div class="form-group">
             <label for="name" class="form-label">
@@ -85,7 +86,7 @@
                   {{ m.display_name || m.name }} ({{ m.platform }})
                 </option>
               </select>
-              <p class="form-hint">The OAuth flow runs through the agent on this machine</p>
+              <p class="form-hint">A bash terminal will open on this machine</p>
             </div>
             <div v-else class="oauth-no-machine">
               <svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
@@ -94,30 +95,28 @@
               <p>No machines online. Start the ClaudeNest agent on your machine first.</p>
             </div>
 
-            <!-- Primary: Connect button -->
+            <!-- Connect button -->
             <button
               type="button"
               class="btn-connect-claude"
-              :disabled="!form.name || isConnecting || !selectedMachineId"
+              :disabled="!form.name || !selectedMachineId"
               @click="handleConnectClaude"
-              title="Connect directly with your Claude account"
             >
-              <svg v-if="isConnecting" class="spinner-sm" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" stroke-dasharray="32" stroke-dashoffset="10"/>
+              <svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8h16v12zM6 10h2v2H6zm0 4h8v2H6zm10 0h2v2h-2zm-6-4h8v2h-8z"/>
               </svg>
-              <svg v-else viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-              </svg>
-              {{ connectButtonLabel }}
+              Open Terminal &amp; Login
             </button>
-            <p v-if="!form.name" class="form-hint text-center">Enter a name above to enable connection</p>
+            <p class="form-hint text-center">
+              Opens a bash session — run <code>claude login</code> then capture credentials
+            </p>
 
             <!-- Divider -->
             <div class="oauth-divider">
               <span>or enter tokens manually</span>
             </div>
 
-            <!-- Manual token inputs (collapsed by default) -->
+            <!-- Manual token inputs -->
             <div class="form-group">
               <label for="access_token" class="form-label">Access Token</label>
               <input
@@ -151,9 +150,6 @@
                 :class="['toggle-btn', { 'toggle-btn-active': form.claude_dir_mode === 'shared' }]"
                 @click="form.claude_dir_mode = 'shared'"
               >
-                <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
-                  <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
-                </svg>
                 Shared
               </button>
               <button
@@ -161,42 +157,62 @@
                 :class="['toggle-btn', { 'toggle-btn-active': form.claude_dir_mode === 'isolated' }]"
                 @click="form.claude_dir_mode = 'isolated'"
               >
-                <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
-                  <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
-                </svg>
                 Isolated
               </button>
             </div>
             <p class="form-hint">
-              <span v-if="form.claude_dir_mode === 'shared'">
-                Share credentials across machines (stored in ~/.claude/)
-              </span>
-              <span v-else>
-                Keep credentials isolated per machine (stored in ~/.config/claudenest/)
-              </span>
+              {{ form.claude_dir_mode === 'shared' ? 'Share credentials across machines (~/.claude/)' : 'Isolated per machine (~/.config/claudenest/)' }}
             </p>
           </div>
 
           <!-- Submit Buttons -->
           <div class="modal-footer">
-            <button
-              type="button"
-              class="btn-secondary"
-              @click="$emit('close')"
-              :disabled="isSubmitting"
-            >
+            <button type="button" class="btn-secondary" @click="$emit('close')" :disabled="isSubmitting">
               Cancel
             </button>
-            <button
-              type="submit"
-              class="btn-primary"
-              :disabled="isSubmitting"
-            >
+            <button type="submit" class="btn-primary" :disabled="isSubmitting">
               <div v-if="isSubmitting" class="spinner"></div>
               <span v-else>Create Credential</span>
             </button>
           </div>
         </form>
+
+        <!-- ==================== STEP 2: Terminal ==================== -->
+        <div v-if="step === 'terminal'" class="terminal-step">
+          <div class="terminal-hint">
+            Run <code>claude login</code> in this terminal, complete the login, then click <strong>Capture Credentials</strong>.
+          </div>
+
+          <!-- Embedded terminal -->
+          <div class="terminal-embed">
+            <XtermTerminal
+              v-if="bashSessionId"
+              :session-id="bashSessionId"
+              :auto-connect="true"
+            />
+          </div>
+
+          <!-- Action bar -->
+          <div class="terminal-actions">
+            <button type="button" class="btn-secondary" @click="handleClose">
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn-capture"
+              :disabled="isCapturing"
+              @click="handleCapture"
+            >
+              <div v-if="isCapturing" class="spinner"></div>
+              <template v-else>
+                <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
+                  <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                </svg>
+                Capture Credentials
+              </template>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -205,9 +221,11 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
 import { useCredentialsStore } from '@/stores/credentials';
+import { useSessionsStore } from '@/stores/sessions';
 import { useMachinesStore } from '@/stores/machines';
 import { useToast } from '@/composables/useToast';
 import { getErrorMessage } from '@/utils/api';
+import XtermTerminal from '@/components/terminal/XtermTerminal.vue';
 import type { CreateCredentialForm } from '@/types';
 
 interface CredentialForm {
@@ -225,36 +243,18 @@ const emit = defineEmits<{
 }>();
 
 const store = useCredentialsStore();
+const sessionsStore = useSessionsStore();
 const machinesStore = useMachinesStore();
 const toast = useToast();
 
+const step = ref<'form' | 'terminal'>('form');
 const isSubmitting = ref(false);
-const isConnecting = ref(false);
-const connectStatus = ref<string>('idle');
+const isCapturing = ref(false);
 const selectedMachineId = ref<string>('');
-let oauthPopup: Window | null = null;
-let oauthPollTimer: ReturnType<typeof setInterval> | null = null;
-let oauthTimeoutTimer: ReturnType<typeof setTimeout> | null = null;
-let currentCredentialId: string | null = null;
+const bashSessionId = ref<string | null>(null);
+const currentCredentialId = ref<string | null>(null);
 
 const onlineMachines = computed(() => machinesStore.onlineMachines);
-
-const connectButtonLabel = computed(() => {
-  if (connectStatus.value === 'waiting_agent') return 'Waiting for agent…';
-  if (connectStatus.value === 'waiting_auth') return 'Waiting for authorization…';
-  if (connectStatus.value === 'exchanging') return 'Exchanging tokens…';
-  return 'Connect with Claude';
-});
-
-// Auto-select first online machine
-onMounted(async () => {
-  if (machinesStore.machines.length === 0) {
-    await machinesStore.fetchMachines().catch(() => {});
-  }
-  if (onlineMachines.value.length > 0 && !selectedMachineId.value) {
-    selectedMachineId.value = onlineMachines.value[0].id;
-  }
-});
 
 const form = reactive<CredentialForm>({
   name: '',
@@ -263,6 +263,15 @@ const form = reactive<CredentialForm>({
   access_token: '',
   refresh_token: '',
   claude_dir_mode: 'shared',
+});
+
+onMounted(async () => {
+  if (machinesStore.machines.length === 0) {
+    await machinesStore.fetchMachines().catch(() => {});
+  }
+  if (onlineMachines.value.length > 0 && !selectedMachineId.value) {
+    selectedMachineId.value = onlineMachines.value[0].id;
+  }
 });
 
 async function handleSubmit(): Promise<void> {
@@ -308,108 +317,65 @@ async function handleConnectClaude(): Promise<void> {
   }
 
   if (!selectedMachineId.value) {
-    toast.error('No machine selected', 'Select an online machine to run the OAuth flow');
+    toast.error('No machine selected');
     return;
   }
 
-  isConnecting.value = true;
-  connectStatus.value = 'waiting_agent';
-
   try {
-    // 1. Create the credential (empty OAuth shell)
+    // 1. Create the credential shell
     const payload: CreateCredentialForm = {
       name: form.name,
       auth_type: 'oauth',
       claude_dir_mode: form.claude_dir_mode,
     };
     const created = await store.createCredential(payload);
-    currentCredentialId = created.id;
+    currentCredentialId.value = created.id;
 
-    // 2. Initiate OAuth relay via the agent
-    await store.initiateOAuthRelay(created.id, selectedMachineId.value);
+    // 2. Create a bash session on the machine
+    const session = await sessionsStore.createSession(selectedMachineId.value, {
+      mode: 'bash',
+    });
+    bashSessionId.value = session.id;
 
-    // 3. Start polling for agent response
-    startRelayPolling(created.id);
+    // 3. Switch to terminal view
+    step.value = 'terminal';
   } catch (error: unknown) {
-    toast.error('Connection failed', getErrorMessage(error));
-    resetConnectState();
+    toast.error('Failed to start terminal', getErrorMessage(error));
   }
 }
 
-function startRelayPolling(credentialId: string): void {
-  stopPolling();
+async function handleCapture(): Promise<void> {
+  if (!currentCredentialId.value || !selectedMachineId.value) return;
 
-  oauthPollTimer = setInterval(async () => {
-    try {
-      const data = await store.pollOAuth(credentialId);
+  isCapturing.value = true;
 
-      if (data.status === 'auth_url_ready' && data.auth_url) {
-        connectStatus.value = 'waiting_auth';
+  try {
+    await store.captureFromMachine(currentCredentialId.value, selectedMachineId.value);
+    toast.success('Credentials captured!', 'OAuth tokens stored from ~/.claude/.credentials.json');
 
-        // Open popup only once
-        if (!oauthPopup || oauthPopup.closed) {
-          oauthPopup = window.open(
-            data.auth_url,
-            'claude_oauth',
-            'width=620,height=720,scrollbars=yes,resizable=yes',
-          );
-
-          if (!oauthPopup) {
-            toast.error('Popup blocked', 'Please allow popups for this site and try again.');
-            resetConnectState();
-            return;
-          }
-        }
-      } else if (data.status === 'complete') {
-        toast.success('Claude connected!');
-        oauthPopup?.close();
-        stopPolling();
-        isConnecting.value = false;
-        connectStatus.value = 'idle';
-        emit('created');
-      } else if (data.status === 'error') {
-        toast.error('OAuth failed', data.error || 'Unknown error');
-        oauthPopup?.close();
-        resetConnectState();
-      }
-      // status === 'waiting' → keep polling
-    } catch {
-      // Network error — keep polling
+    // Clean up the bash session
+    if (bashSessionId.value) {
+      await sessionsStore.terminateSession(bashSessionId.value).catch(() => {});
     }
-  }, 800);
 
-  // Timeout after 5 minutes
-  oauthTimeoutTimer = setTimeout(() => {
-    if (isConnecting.value) {
-      toast.error('Connection timeout', 'The authorization took too long. Please try again.');
-      oauthPopup?.close();
-      resetConnectState();
-    }
-  }, 5 * 60 * 1000);
-}
-
-function stopPolling(): void {
-  if (oauthPollTimer) {
-    clearInterval(oauthPollTimer);
-    oauthPollTimer = null;
-  }
-  if (oauthTimeoutTimer) {
-    clearTimeout(oauthTimeoutTimer);
-    oauthTimeoutTimer = null;
+    emit('created');
+  } catch (error: unknown) {
+    toast.error('Capture failed', getErrorMessage(error));
+  } finally {
+    isCapturing.value = false;
   }
 }
 
-function resetConnectState(): void {
-  stopPolling();
-  isConnecting.value = false;
-  connectStatus.value = 'idle';
-  oauthPopup = null;
-  currentCredentialId = null;
+function handleClose(): void {
+  // Terminate bash session if active
+  if (bashSessionId.value) {
+    sessionsStore.terminateSession(bashSessionId.value).catch(() => {});
+  }
+  emit('close');
 }
 
 onUnmounted(() => {
-  stopPolling();
-  // Do NOT close popup on unmount — let the OAuth flow complete
+  // Don't terminate on unmount — user might close modal but session continues
 });
 </script>
 
@@ -426,6 +392,12 @@ onUnmounted(() => {
   border: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
   max-height: 90vh;
   overflow-y: auto;
+  transition: max-width 0.3s ease;
+}
+
+.modal-card-wide {
+  @apply max-w-3xl;
+  max-height: 95vh;
 }
 
 .modal-header {
@@ -479,6 +451,12 @@ onUnmounted(() => {
   color: var(--text-muted, #6b7280);
 }
 
+.form-hint code {
+  @apply px-1.5 py-0.5 rounded font-mono text-xs;
+  background: var(--bg-secondary, var(--surface-1, #1a1b26));
+  color: var(--accent-cyan, #22d3ee);
+}
+
 .tabs {
   @apply flex gap-2 p-1 rounded-lg;
   background: var(--bg-secondary, var(--surface-1, #1a1b26));
@@ -521,11 +499,6 @@ onUnmounted(() => {
   content: '';
   @apply flex-1 h-px;
   background: var(--border-primary, #374151);
-}
-
-.spinner-sm {
-  @apply w-4 h-4;
-  animation: spin 0.8s linear infinite;
 }
 
 .oauth-no-machine {
@@ -586,6 +559,57 @@ onUnmounted(() => {
 .spinner {
   @apply w-5 h-5 border-2 border-white/30 border-t-white rounded-full;
   animation: spin 0.8s linear infinite;
+}
+
+/* ==================== Terminal Step ==================== */
+
+.terminal-step {
+  @apply flex flex-col gap-4;
+}
+
+.terminal-hint {
+  @apply p-3 rounded-lg text-sm;
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
+  color: var(--text-secondary, #9ca3af);
+  border: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
+}
+
+.terminal-hint code {
+  @apply px-1.5 py-0.5 rounded font-mono text-xs;
+  background: var(--bg-secondary, var(--surface-1, #1a1b26));
+  color: var(--accent-cyan, #22d3ee);
+}
+
+.terminal-embed {
+  @apply rounded-lg overflow-hidden;
+  height: 400px;
+  border: 1px solid var(--border-primary, #2d3154);
+}
+
+.terminal-embed :deep(.terminal-wrapper) {
+  height: 100%;
+}
+
+.terminal-embed :deep(.terminal-container) {
+  height: 100%;
+}
+
+.terminal-actions {
+  @apply flex items-center justify-between gap-3;
+}
+
+.btn-capture {
+  @apply flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium text-white;
+  @apply disabled:opacity-50 disabled:cursor-not-allowed;
+  @apply transition-all;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  min-width: 200px;
+  justify-content: center;
+}
+
+.btn-capture:not(:disabled):hover {
+  box-shadow: 0 0 20px color-mix(in srgb, #22c55e 30%, transparent);
+  transform: translateY(-1px);
 }
 
 @keyframes spin {

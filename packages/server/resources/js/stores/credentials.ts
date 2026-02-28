@@ -104,6 +104,14 @@ export const useCredentialsStore = defineStore('credentials', () => {
     return response.data.data;
   }
 
+  async function captureFromMachine(id: string, machineId: string): Promise<Record<string, unknown>> {
+    const response = await api.post<ApiResponse<Record<string, unknown>>>(`/credentials/${id}/capture-from-machine`, {
+      machine_id: machineId,
+    });
+    await fetchCredentials();
+    return response.data.data;
+  }
+
   function clearError(): void {
     error.value = null;
   }
@@ -113,6 +121,6 @@ export const useCredentialsStore = defineStore('credentials', () => {
     defaultCredential, apiKeyCredentials, oauthCredentials, expiredCredentials,
     fetchCredentials, createCredential, updateCredential, deleteCredential,
     testCredential, refreshCredential, captureOAuth, setDefault,
-    initiateOAuth, initiateOAuthRelay, pollOAuth, clearError,
+    initiateOAuth, initiateOAuthRelay, pollOAuth, captureFromMachine, clearError,
   };
 });

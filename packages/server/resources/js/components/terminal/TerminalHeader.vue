@@ -156,6 +156,7 @@ const modeLabel = computed(() => {
     interactive: 'Interactive',
     headless: 'Headless',
     oneshot: 'One-shot',
+    bash: 'Bash',
   };
   return labels[props.mode] || props.mode;
 });

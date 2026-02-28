@@ -314,6 +314,12 @@ export class TmuxSession extends EventEmitter {
   }
 
   private buildShellCommand(): string {
+    // Bash mode: launch a plain shell instead of Claude
+    if (this.options.mode === 'bash') {
+      const shell = process.env.SHELL || '/bin/bash';
+      return `exec ${shellQuote(shell)} --login`;
+    }
+
     const args = this.buildArgs();
     const parts = [this.options.claudePath, ...args];
     const escaped = parts.map(p => shellQuote(p)).join(' ');

@@ -679,6 +679,71 @@ class CredentialController extends Controller
         }
     }
 
+    /**
+     * Capture credentials from a machine's ~/.claude/.credentials.json.
+     *
+     * Sends a file:read_credentials request to the agent and waits for
+     * the response. The agent reads the file and returns its content.
+     */
+    public function captureFromMachine(Request $request, string $id): JsonResponse
+    {
+        $credential = $request->user()->credentials()->findOrFail($id);
+
+        $request->validate([
+            'machine_id' => 'required|uuid',
+        ]);
+
+        $machineId = $request->input('machine_id');
+
+        $machine = Machine::where('id', $machineId)
+            ->where('user_id', $request->user()->id)
+            ->first();
+
+        if (!$machine) {
+            return $this->errorResponse('MACHINE_NOT_FOUND', 'Machine not found', 404);
+        }
+
+        if ($machine->status !== 'online') {
+            return $this->errorResponse('MACHINE_OFFLINE', 'Machine is not connected', 422);
+        }
+
+        // Send request to agent and wait for response (up to 10s)
+        $response = AgentGateway::sendAndWait(
+            $machineId,
+            'file:read_credentials',
+            [],
+            10
+        );
+
+        if (!$response) {
+            return $this->errorResponse('TIMEOUT', 'Agent did not respond in time', 504);
+        }
+
+        if (empty($response['success'])) {
+            $error = $response['error'] ?? 'Failed to read credentials file';
+            return $this->errorResponse('READ_FAILED', $error, 400);
+        }
+
+        $credentialsJson = $response['credentialsJson'] ?? null;
+        if (!$credentialsJson) {
+            return $this->errorResponse('EMPTY_RESPONSE', 'No credentials data received', 400);
+        }
+
+        try {
+            $result = $this->credentialService->captureOAuthTokens($credential, [
+                'credentials_json' => $credentialsJson,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'data' => $result,
+                'meta' => ['timestamp' => now()->toIso8601String()],
+            ]);
+        } catch (\Exception $e) {
+            return $this->errorResponse('CAPTURE_FAILED', $e->getMessage(), 400);
+        }
+    }
+
     private function errorResponse(string $code, string $message, int $status): JsonResponse
     {
         return response()->json([

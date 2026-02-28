@@ -345,6 +345,7 @@ class AgentServe extends Command
                 'session:status' => $this->onSessionStatus($machineId, $data),
                 'session:exited' => $this->onSessionExited($machineId, $data),
                 'file:browse_result' => $this->onFileBrowseResult($data),
+                'file:read_credentials_result' => $this->onRequestResponse($data),
                 'project:scan_result' => $this->onRequestResponse($data),
                 'orchestrator:state' => $this->onRequestResponse($data),
                 'orchestrator:error' => $this->onRequestResponse($data),

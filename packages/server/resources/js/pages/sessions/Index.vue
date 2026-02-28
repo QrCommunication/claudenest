@@ -409,6 +409,7 @@ function modeBadgeVariant(mode: SessionMode): 'info' | 'purple' | 'warning' {
     interactive: 'info',
     headless: 'purple',
     oneshot: 'warning',
+    bash: 'info',
   };
   return map[mode] ?? 'info';
 }

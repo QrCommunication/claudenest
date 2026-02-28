@@ -113,7 +113,7 @@ export type SessionStatus =
   | 'error' 
   | 'terminated';
 
-export type SessionMode = 'interactive' | 'headless' | 'oneshot';
+export type SessionMode = 'interactive' | 'headless' | 'oneshot' | 'bash';
 
 export interface PTYSize {
   cols: number;

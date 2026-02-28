@@ -2,9 +2,9 @@
  * File browser message handler
  */
 
-import { readdir, stat } from 'fs/promises';
+import { readdir, readFile, stat } from 'fs/promises';
 import { homedir } from 'os';
-import { resolve, normalize, relative } from 'path';
+import { join, resolve, normalize, relative } from 'path';
 import type { WebSocketClient } from '../websocket/client.js';
 import type { Logger } from '../utils/logger.js';
 import type { FileBrowseRequest, FileBrowseEntry } from '../types/index.js';
@@ -97,7 +97,41 @@ export function createFileHandlers(context: HandlerContext) {
     }
   }
 
+  async function handleReadCredentials(payload: { requestId: string }): Promise<void> {
+    const { requestId } = payload;
+    if (!requestId) {
+      logger.warn('file:read_credentials missing requestId');
+      return;
+    }
+
+    const credPath = join(homedir(), '.claude', '.credentials.json');
+
+    try {
+      const content = await readFile(credPath, 'utf-8');
+      // Validate it's valid JSON before sending
+      JSON.parse(content);
+
+      wsClient.send('file:read_credentials_result', {
+        requestId,
+        success: true,
+        credentialsJson: content,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      logger.error({ err: error, path: credPath }, 'file:read_credentials failed');
+
+      wsClient.send('file:read_credentials_result', {
+        requestId,
+        success: false,
+        error: message.includes('ENOENT')
+          ? 'Credentials file not found. Run "claude login" first.'
+          : message,
+      });
+    }
+  }
+
   return {
     'file:browse': handleFileBrowse,
+    'file:read_credentials': handleReadCredentials,
   };
 }

@@ -14,7 +14,7 @@ export interface BreadcrumbItem {
 export type MachineStatus = 'online' | 'offline' | 'connecting';
 export type MachinePlatform = 'darwin' | 'win32' | 'linux';
 export type SessionStatus = 'created' | 'starting' | 'running' | 'waiting_input' | 'completed' | 'error' | 'terminated';
-export type SessionMode = 'interactive' | 'headless' | 'oneshot';
+export type SessionMode = 'interactive' | 'headless' | 'oneshot' | 'bash';
 export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error' | 'reconnecting';
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
 
