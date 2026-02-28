@@ -13,7 +13,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { MaterialIcons as Icon } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from 'react-native-linear-gradient';
 import { colors, spacing, borderRadius, typography } from '@/theme';
 import { Card } from '@/components/common';
 
