@@ -7,6 +7,8 @@ use App\Http\Requests\StoreCredentialRequest;
 use App\Http\Requests\UpdateCredentialRequest;
 use App\Http\Resources\CredentialResource;
 use App\Models\ClaudeCredential;
+use App\Models\Machine;
+use App\Services\AgentGateway;
 use App\Services\CredentialService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -527,7 +529,12 @@ class CredentialController extends Controller
     }
 
     /**
-     * Initiate OAuth flow — generate PKCE + auth URL for popup.
+     * Initiate OAuth flow via Agent Relay.
+     *
+     * Instead of generating the auth URL server-side (which fails because the
+     * CLI client_id only accepts localhost redirects), we delegate to the agent
+     * running on the user's machine. The agent starts a temporary HTTP server,
+     * generates PKCE, and sends the auth URL back via WebSocket.
      */
     public function initiateOAuth(Request $request, string $id): JsonResponse
     {
@@ -537,39 +544,74 @@ class CredentialController extends Controller
             return $this->errorResponse('NOT_OAUTH', 'This credential does not use OAuth', 422);
         }
 
-        // Generate PKCE code_verifier (RFC 7636)
-        $codeVerifier = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
-        $codeChallenge = rtrim(strtr(base64_encode(hash('sha256', $codeVerifier, true)), '+/', '-_'), '=');
+        $request->validate([
+            'machine_id' => 'required|uuid',
+        ]);
 
-        $state = Str::random(40);
+        $machineId = $request->input('machine_id');
 
-        Cache::put("oauth_pkce_{$state}", [
-            'code_verifier' => $codeVerifier,
-            'credential_id' => $id,
-            'user_id' => $request->user()->id,
-        ], now()->addMinutes(10));
+        // Verify machine belongs to user and is online
+        $machine = Machine::where('id', $machineId)
+            ->where('user_id', $request->user()->id)
+            ->first();
 
-        $redirectUri = config('app.url') . '/api/oauth/callback';
+        if (!$machine) {
+            return $this->errorResponse('MACHINE_NOT_FOUND', 'Machine not found', 404);
+        }
 
-        $authUrl = 'https://claude.ai/oauth/authorize?' . http_build_query([
-            'response_type' => 'code',
-            'client_id' => '9d1c250a-e61b-44d9-88ed-5944d1962f5e',
-            'redirect_uri' => $redirectUri,
-            'scope' => 'user:inference',
-            'state' => $state,
-            'code_challenge' => $codeChallenge,
-            'code_challenge_method' => 'S256',
+        if ($machine->status !== 'online') {
+            return $this->errorResponse('MACHINE_OFFLINE', 'The selected machine is not connected. Start the ClaudeNest agent first.', 422);
+        }
+
+        // Clear any stale relay state
+        Cache::forget("oauth_relay_{$id}");
+
+        // Send oauth:start to the agent via Redis queue
+        AgentGateway::send($machineId, 'oauth:start', [
+            'credentialId' => $id,
+            'clientId' => '9d1c250a-e61b-44d9-88ed-5944d1962f5e',
         ]);
 
         return response()->json([
             'success' => true,
-            'data' => ['auth_url' => $authUrl],
+            'data' => ['request_id' => $id],
+            'meta' => ['timestamp' => now()->toIso8601String()],
+        ], 202);
+    }
+
+    /**
+     * Poll OAuth relay status.
+     *
+     * The frontend calls this repeatedly to check:
+     * 1. 'waiting' — agent hasn't responded yet
+     * 2. 'auth_url_ready' — agent sent the auth URL, open the popup
+     * 3. 'complete' — tokens captured, flow done
+     * 4. 'error' — something went wrong
+     */
+    public function oauthPoll(Request $request, string $id): JsonResponse
+    {
+        $request->user()->credentials()->findOrFail($id);
+
+        $data = Cache::get("oauth_relay_{$id}");
+
+        if (!$data) {
+            return response()->json([
+                'success' => true,
+                'data' => ['status' => 'waiting'],
+                'meta' => ['timestamp' => now()->toIso8601String()],
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
             'meta' => ['timestamp' => now()->toIso8601String()],
         ]);
     }
 
     /**
-     * Public OAuth callback — exchange code for tokens, update credential, redirect popup.
+     * Legacy OAuth callback — kept for backward compatibility but no longer
+     * the primary flow. The Agent-Relay pattern handles OAuth directly.
      */
     public function oauthCallback(Request $request): RedirectResponse
     {

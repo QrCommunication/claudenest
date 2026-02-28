@@ -85,9 +85,23 @@ export const useCredentialsStore = defineStore('credentials', () => {
     await fetchCredentials();
   }
 
-  async function initiateOAuth(id: string): Promise<string> {
-    const response = await api.post<ApiResponse<{ auth_url: string }>>(`/credentials/${id}/oauth/initiate`);
+  async function initiateOAuth(id: string, machineId?: string): Promise<string> {
+    const response = await api.post<ApiResponse<{ auth_url: string }>>(`/credentials/${id}/oauth/initiate`, {
+      machine_id: machineId,
+    });
     return response.data.data.auth_url;
+  }
+
+  async function initiateOAuthRelay(id: string, machineId: string): Promise<string> {
+    const response = await api.post<ApiResponse<{ request_id: string }>>(`/credentials/${id}/oauth/initiate`, {
+      machine_id: machineId,
+    });
+    return response.data.data.request_id;
+  }
+
+  async function pollOAuth(id: string): Promise<{ status: string; auth_url?: string; error?: string }> {
+    const response = await api.get<ApiResponse<{ status: string; auth_url?: string; error?: string }>>(`/credentials/${id}/oauth/poll`);
+    return response.data.data;
   }
 
   function clearError(): void {
@@ -98,6 +112,7 @@ export const useCredentialsStore = defineStore('credentials', () => {
     credentials, selectedCredential, isLoading, error,
     defaultCredential, apiKeyCredentials, oauthCredentials, expiredCredentials,
     fetchCredentials, createCredential, updateCredential, deleteCredential,
-    testCredential, refreshCredential, captureOAuth, setDefault, initiateOAuth, clearError,
+    testCredential, refreshCredential, captureOAuth, setDefault,
+    initiateOAuth, initiateOAuthRelay, pollOAuth, clearError,
   };
 });

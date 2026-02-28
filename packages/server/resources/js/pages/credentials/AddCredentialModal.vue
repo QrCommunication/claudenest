@@ -77,11 +77,28 @@
 
           <!-- OAuth Section -->
           <div v-if="form.auth_type === 'oauth'" class="oauth-section">
+            <!-- Machine selector -->
+            <div v-if="onlineMachines.length > 0" class="form-group">
+              <label class="form-label">Machine</label>
+              <select v-model="selectedMachineId" class="form-input">
+                <option v-for="m in onlineMachines" :key="m.id" :value="m.id">
+                  {{ m.display_name || m.name }} ({{ m.platform }})
+                </option>
+              </select>
+              <p class="form-hint">The OAuth flow runs through the agent on this machine</p>
+            </div>
+            <div v-else class="oauth-no-machine">
+              <svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+              </svg>
+              <p>No machines online. Start the ClaudeNest agent on your machine first.</p>
+            </div>
+
             <!-- Primary: Connect button -->
             <button
               type="button"
               class="btn-connect-claude"
-              :disabled="!form.name || isConnecting"
+              :disabled="!form.name || isConnecting || !selectedMachineId"
               @click="handleConnectClaude"
               title="Connect directly with your Claude account"
             >
@@ -91,7 +108,7 @@
               <svg v-else viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
               </svg>
-              {{ isConnecting ? 'Waiting for connection…' : 'Connect with Claude' }}
+              {{ connectButtonLabel }}
             </button>
             <p v-if="!form.name" class="form-hint text-center">Enter a name above to enable connection</p>
 
@@ -186,8 +203,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted } from 'vue';
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
 import { useCredentialsStore } from '@/stores/credentials';
+import { useMachinesStore } from '@/stores/machines';
 import { useToast } from '@/composables/useToast';
 import { getErrorMessage } from '@/utils/api';
 import type { CreateCredentialForm } from '@/types';
@@ -207,12 +225,36 @@ const emit = defineEmits<{
 }>();
 
 const store = useCredentialsStore();
+const machinesStore = useMachinesStore();
 const toast = useToast();
 
 const isSubmitting = ref(false);
 const isConnecting = ref(false);
+const connectStatus = ref<string>('idle');
+const selectedMachineId = ref<string>('');
 let oauthPopup: Window | null = null;
-let oauthPollInterval: ReturnType<typeof setInterval> | null = null;
+let oauthPollTimer: ReturnType<typeof setInterval> | null = null;
+let oauthTimeoutTimer: ReturnType<typeof setTimeout> | null = null;
+let currentCredentialId: string | null = null;
+
+const onlineMachines = computed(() => machinesStore.onlineMachines);
+
+const connectButtonLabel = computed(() => {
+  if (connectStatus.value === 'waiting_agent') return 'Waiting for agent…';
+  if (connectStatus.value === 'waiting_auth') return 'Waiting for authorization…';
+  if (connectStatus.value === 'exchanging') return 'Exchanging tokens…';
+  return 'Connect with Claude';
+});
+
+// Auto-select first online machine
+onMounted(async () => {
+  if (machinesStore.machines.length === 0) {
+    await machinesStore.fetchMachines().catch(() => {});
+  }
+  if (onlineMachines.value.length > 0 && !selectedMachineId.value) {
+    selectedMachineId.value = onlineMachines.value[0].id;
+  }
+});
 
 const form = reactive<CredentialForm>({
   name: '',
@@ -265,7 +307,13 @@ async function handleConnectClaude(): Promise<void> {
     return;
   }
 
+  if (!selectedMachineId.value) {
+    toast.error('No machine selected', 'Select an online machine to run the OAuth flow');
+    return;
+  }
+
   isConnecting.value = true;
+  connectStatus.value = 'waiting_agent';
 
   try {
     // 1. Create the credential (empty OAuth shell)
@@ -275,114 +323,92 @@ async function handleConnectClaude(): Promise<void> {
       claude_dir_mode: form.claude_dir_mode,
     };
     const created = await store.createCredential(payload);
+    currentCredentialId = created.id;
 
-    // 2. Initiate OAuth and open popup
-    const authUrl = await store.initiateOAuth(created.id);
-    const popup = window.open(authUrl, 'claude_oauth', 'width=620,height=720,scrollbars=yes,resizable=yes');
-    oauthPopup = popup;
+    // 2. Initiate OAuth relay via the agent
+    await store.initiateOAuthRelay(created.id, selectedMachineId.value);
 
-    if (!popup) {
-      toast.error('Popup blocked', 'Please allow popups for this site and try again.');
-      isConnecting.value = false;
-      return;
-    }
-
-    // 3. Clear any stale localStorage result
-    localStorage.removeItem('claudenest_oauth_result');
-
-    // 4. Poll for popup close as fallback (handles window.opener=null case)
-    startOAuthPolling();
+    // 3. Start polling for agent response
+    startRelayPolling(created.id);
   } catch (error: unknown) {
     toast.error('Connection failed', getErrorMessage(error));
-    isConnecting.value = false;
+    resetConnectState();
   }
 }
 
-function startOAuthPolling(): void {
-  if (oauthPollInterval) clearInterval(oauthPollInterval);
+function startRelayPolling(credentialId: string): void {
+  stopPolling();
 
-  oauthPollInterval = setInterval(() => {
-    if (!oauthPopup || oauthPopup.closed) {
-      stopOAuthPolling();
+  oauthPollTimer = setInterval(async () => {
+    try {
+      const data = await store.pollOAuth(credentialId);
 
-      // Check localStorage for result (fallback when postMessage fails)
-      const raw = localStorage.getItem('claudenest_oauth_result');
-      if (raw) {
-        localStorage.removeItem('claudenest_oauth_result');
-        try {
-          const data = JSON.parse(raw);
-          handleOAuthResult(data.success, data.error);
-        } catch {
-          handleOAuthResult(null, 'Failed to parse OAuth result');
+      if (data.status === 'auth_url_ready' && data.auth_url) {
+        connectStatus.value = 'waiting_auth';
+
+        // Open popup only once
+        if (!oauthPopup || oauthPopup.closed) {
+          oauthPopup = window.open(
+            data.auth_url,
+            'claude_oauth',
+            'width=620,height=720,scrollbars=yes,resizable=yes',
+          );
+
+          if (!oauthPopup) {
+            toast.error('Popup blocked', 'Please allow popups for this site and try again.');
+            resetConnectState();
+            return;
+          }
         }
-      } else if (isConnecting.value) {
-        // Popup closed without result — reload credentials (may have succeeded server-side)
+      } else if (data.status === 'complete') {
+        toast.success('Claude connected!');
+        oauthPopup?.close();
+        stopPolling();
         isConnecting.value = false;
+        connectStatus.value = 'idle';
         emit('created');
+      } else if (data.status === 'error') {
+        toast.error('OAuth failed', data.error || 'Unknown error');
+        oauthPopup?.close();
+        resetConnectState();
       }
+      // status === 'waiting' → keep polling
+    } catch {
+      // Network error — keep polling
     }
-  }, 500);
+  }, 800);
 
   // Timeout after 5 minutes
-  setTimeout(() => {
-    if (oauthPollInterval) {
-      stopOAuthPolling();
-      if (isConnecting.value) {
-        isConnecting.value = false;
-        toast.error('Connection timeout', 'The authorization window was open too long. Please try again.');
-      }
+  oauthTimeoutTimer = setTimeout(() => {
+    if (isConnecting.value) {
+      toast.error('Connection timeout', 'The authorization took too long. Please try again.');
+      oauthPopup?.close();
+      resetConnectState();
     }
   }, 5 * 60 * 1000);
 }
 
-function stopOAuthPolling(): void {
-  if (oauthPollInterval) {
-    clearInterval(oauthPollInterval);
-    oauthPollInterval = null;
+function stopPolling(): void {
+  if (oauthPollTimer) {
+    clearInterval(oauthPollTimer);
+    oauthPollTimer = null;
   }
-  oauthPopup = null;
+  if (oauthTimeoutTimer) {
+    clearTimeout(oauthTimeoutTimer);
+    oauthTimeoutTimer = null;
+  }
 }
 
-function handleOAuthResult(success: string | null, error: string | null): void {
+function resetConnectState(): void {
+  stopPolling();
   isConnecting.value = false;
-  stopOAuthPolling();
-
-  if (success) {
-    toast.success('Claude connected!');
-    emit('created');
-  } else if (error) {
-    toast.error('OAuth failed', error);
-  }
+  connectStatus.value = 'idle';
+  oauthPopup = null;
+  currentCredentialId = null;
 }
 
-function handleOAuthMessage(event: MessageEvent): void {
-  if (event.origin !== window.location.origin) return;
-  if (event.data?.type !== 'oauth_complete') return;
-
-  oauthPopup?.close();
-  handleOAuthResult(event.data.success, event.data.error);
-}
-
-function handleStorageEvent(event: StorageEvent): void {
-  if (event.key !== 'claudenest_oauth_result' || !event.newValue) return;
-  localStorage.removeItem('claudenest_oauth_result');
-  try {
-    const data = JSON.parse(event.newValue);
-    oauthPopup?.close();
-    handleOAuthResult(data.success, data.error);
-  } catch {
-    // Ignore parse errors
-  }
-}
-
-onMounted(() => {
-  window.addEventListener('message', handleOAuthMessage);
-  window.addEventListener('storage', handleStorageEvent);
-});
 onUnmounted(() => {
-  window.removeEventListener('message', handleOAuthMessage);
-  window.removeEventListener('storage', handleStorageEvent);
-  stopOAuthPolling();
+  stopPolling();
   // Do NOT close popup on unmount — let the OAuth flow complete
 });
 </script>
@@ -500,6 +526,17 @@ onUnmounted(() => {
 .spinner-sm {
   @apply w-4 h-4;
   animation: spin 0.8s linear infinite;
+}
+
+.oauth-no-machine {
+  @apply flex items-center gap-3 p-4 rounded-lg text-sm;
+  background: color-mix(in srgb, #fbbf24 10%, transparent);
+  color: #fbbf24;
+  border: 1px solid color-mix(in srgb, #fbbf24 20%, transparent);
+}
+
+.oauth-no-machine p {
+  @apply m-0;
 }
 
 .toggle-group {

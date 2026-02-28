@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\ClaudeCredential;
 use App\Models\Machine;
 use App\Models\PersonalAccessToken;
 use App\Models\Session;
@@ -9,6 +10,8 @@ use App\Models\SharedProject;
 use App\Services\AgentGateway;
 use App\Services\DecompositionService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Str;
@@ -347,6 +350,9 @@ class AgentServe extends Command
                 'orchestrator:error' => $this->onRequestResponse($data),
                 'decompose:progress' => $this->onDecomposeProgress($data),
                 'decompose:result' => $this->onDecomposeResult($data),
+                'oauth:auth-url' => $this->onOAuthAuthUrl($data),
+                'oauth:tokens' => $this->onOAuthTokens($data),
+                'oauth:error' => $this->onOAuthError($data),
                 'ping' => $this->sendToAgent($machineId, 'pong', ['timestamp' => now()->getTimestampMs()]),
                 'error' => $this->onAgentError($machineId, $data),
                 default => $this->warn("[" . date('H:i:s') . "] Unknown agent message type: {$type}"),
@@ -573,6 +579,72 @@ class AgentServe extends Command
                 ],
             ));
         }
+    }
+
+    // ==================== OAuth Relay ====================
+
+    private function onOAuthAuthUrl(array $data): void
+    {
+        $credentialId = $data['credentialId'] ?? null;
+        $authUrl = $data['authUrl'] ?? null;
+        if (!$credentialId || !$authUrl) return;
+
+        Cache::put("oauth_relay_{$credentialId}", [
+            'status' => 'auth_url_ready',
+            'auth_url' => $authUrl,
+        ], 600);
+
+        $this->info("[" . date('H:i:s') . "] OAuth auth URL received for credential {$credentialId}");
+    }
+
+    private function onOAuthTokens(array $data): void
+    {
+        $credentialId = $data['credentialId'] ?? null;
+        if (!$credentialId) return;
+
+        $credential = ClaudeCredential::find($credentialId);
+        if (!$credential) {
+            $this->warn("[" . date('H:i:s') . "] OAuth tokens received for unknown credential {$credentialId}");
+            return;
+        }
+
+        $accessToken = $data['accessToken'] ?? null;
+        if ($accessToken) {
+            $credential->access_token_enc = Crypt::encryptString($accessToken);
+            $credential->key_hint = 'oat01-...' . substr($accessToken, -6);
+        }
+
+        $refreshToken = $data['refreshToken'] ?? null;
+        if ($refreshToken) {
+            $credential->refresh_token_enc = Crypt::encryptString($refreshToken);
+        }
+
+        $expiresIn = $data['expiresIn'] ?? null;
+        if ($expiresIn) {
+            $credential->expires_at = now()->addSeconds((int) $expiresIn);
+        }
+
+        $credential->save();
+
+        Cache::put("oauth_relay_{$credentialId}", [
+            'status' => 'complete',
+        ], 600);
+
+        $this->info("[" . date('H:i:s') . "] OAuth tokens saved for credential {$credentialId}");
+    }
+
+    private function onOAuthError(array $data): void
+    {
+        $credentialId = $data['credentialId'] ?? null;
+        $error = $data['error'] ?? 'Unknown error';
+        if (!$credentialId) return;
+
+        Cache::put("oauth_relay_{$credentialId}", [
+            'status' => 'error',
+            'error' => $error,
+        ], 600);
+
+        $this->warn("[" . date('H:i:s') . "] OAuth error for credential {$credentialId}: {$error}");
     }
 
     // ==================== Server → Agent ====================

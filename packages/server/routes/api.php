@@ -70,6 +70,7 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
         Route::post('/{id}/capture', [Api\CredentialController::class, 'capture']);
         Route::patch('/{id}/default', [Api\CredentialController::class, 'setDefault']);
         Route::post('/{id}/oauth/initiate', [Api\CredentialController::class, 'initiateOAuth']);
+        Route::get('/{id}/oauth/poll', [Api\CredentialController::class, 'oauthPoll']);
     });
 
     // ==================== MACHINES ====================
