@@ -1,0 +1,45 @@
+diff --git a/node_modules/@react-navigation/elements/lib/module/PlatformPressable.js b/node_modules/@react-navigation/elements/lib/module/PlatformPressable.js
+index 6d0c9e6..8b6da51 100644
+--- a/node_modules/@react-navigation/elements/lib/module/PlatformPressable.js
++++ b/node_modules/@react-navigation/elements/lib/module/PlatformPressable.js
+@@ -4,7 +4,13 @@ import { useTheme } from '@react-navigation/native';
+ import * as React from 'react';
+ import { Animated, Easing, Platform, Pressable } from 'react-native';
+ import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
+-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
++// RN 0.76 New Architecture fix: createAnimatedComponent requires an explicit
++// forwardRef wrapper with a displayName — Pressable's internal wrapper is anonymous.
++const PressableWithRef = React.forwardRef(function PressableWrapper(props, ref) {
++  return _jsx(Pressable, { ...props, ref });
++});
++PressableWithRef.displayName = 'Pressable';
++const AnimatedPressable = Animated.createAnimatedComponent(PressableWithRef);
+ const ANDROID_VERSION_LOLLIPOP = 21;
+ const ANDROID_SUPPORTS_RIPPLE = Platform.OS === 'android' && Platform.Version >= ANDROID_VERSION_LOLLIPOP;
+ const useNativeDriver = Platform.OS !== 'web';
+diff --git a/node_modules/@react-navigation/elements/lib/module/SafeAreaProviderCompat.js b/node_modules/@react-navigation/elements/lib/module/SafeAreaProviderCompat.js
+index 9d08b91..f33e8f9 100644
+--- a/node_modules/@react-navigation/elements/lib/module/SafeAreaProviderCompat.js
++++ b/node_modules/@react-navigation/elements/lib/module/SafeAreaProviderCompat.js
+@@ -51,12 +51,15 @@ export function SafeAreaProviderCompat({
+       }
+ 
+       // SafeAreaProvider doesn't forward ref
+-      // So we only pass onLayout to it
+-      return /*#__PURE__*/_jsx(SafeAreaProvider, {
+-        initialMetrics: initialMetrics,
+-        style: style,
+-        onLayout: onLayout,
+-        children: children
++      // Wrap in a View to absorb the ref and avoid the forwardRef warning
++      return /*#__PURE__*/_jsx(View, {
++        ref: ref,
++        style: [styles.container, style],
++        children: /*#__PURE__*/_jsx(SafeAreaProvider, {
++          initialMetrics: initialMetrics,
++          onLayout: onLayout,
++          children: children
++        })
+       });
+     }
+   });
