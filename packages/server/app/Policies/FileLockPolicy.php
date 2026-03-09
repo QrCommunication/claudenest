@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Models\FileLock;
+use App\Models\SharedProject;
 use App\Models\User;
 
 class FileLockPolicy
@@ -45,5 +46,14 @@ class FileLockPolicy
     public function delete(User $user, FileLock $fileLock): bool
     {
         return $fileLock->project->user_id === $user->id;
+    }
+
+    /**
+     * Determine whether the user can force-release any lock on the project.
+     * Only the project owner may force-release stale locks held by other instances.
+     */
+    public function forceRelease(User $user, SharedProject $project): bool
+    {
+        return $project->user_id === $user->id;
     }
 }
