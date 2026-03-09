@@ -46,4 +46,12 @@ class CommandPolicy
     {
         return $command->machine->user_id === $user->id;
     }
+
+    /**
+     * Determine whether the user can execute the command.
+     */
+    public function execute(User $user, DiscoveredCommand $command): bool
+    {
+        return $command->machine->user_id === $user->id;
+    }
 }
