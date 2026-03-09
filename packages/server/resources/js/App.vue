@@ -28,8 +28,8 @@ body {
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background: #0f0f1a;
-    color: #ffffff;
+    background: var(--bg-primary, var(--surface-1));
+    color: var(--text-primary);
 }
 
 /* Scrollbar styling */
@@ -39,21 +39,21 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
+    background: color-mix(in srgb, var(--text-primary) 5%, transparent);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--border-color, var(--border));
     border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: var(--border-color, var(--border));
 }
 
 /* Selection styling */
 ::selection {
-    background: rgba(168, 85, 247, 0.3);
-    color: #ffffff;
+    background: color-mix(in srgb, var(--accent-purple, #a855f7) 30%, transparent);
+    color: var(--text-primary);
 }
 </style>

@@ -12,7 +12,7 @@
         </div>
         <div>
           <h3 class="font-semibold text-white">{{ skill.display_name }}</h3>
-          <p class="text-xs text-dark-4">{{ skill.path }}</p>
+          <p class="text-xs text-skin-secondary">{{ skill.path }}</p>
         </div>
       </div>
       <SkillToggle 
@@ -22,7 +22,7 @@
       />
     </div>
 
-    <p class="mt-3 text-sm text-dark-4 line-clamp-2">
+    <p class="mt-3 text-sm text-skin-secondary line-clamp-2">
       {{ skill.description || 'No description available' }}
     </p>
 
@@ -43,11 +43,11 @@
         <span 
           v-for="tag in displayedTags" 
           :key="tag"
-          class="text-xs text-dark-4 bg-dark-3 px-2 py-0.5 rounded"
+          class="text-xs text-skin-secondary bg-surface-3 px-2 py-0.5 rounded"
         >
           {{ tag }}
         </span>
-        <span v-if="remainingTags > 0" class="text-xs text-dark-4">
+        <span v-if="remainingTags > 0" class="text-xs text-skin-secondary">
           +{{ remainingTags }}
         </span>
       </div>

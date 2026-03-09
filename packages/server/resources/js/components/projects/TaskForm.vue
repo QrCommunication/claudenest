@@ -177,13 +177,13 @@ function resetForm() {
 }
 
 .form-group label {
-  @apply block text-sm font-medium text-gray-300;
+  @apply block text-sm font-medium text-skin-primary;
 }
 
 .form-group input,
 .form-group textarea,
 .form-group select {
-  @apply w-full px-4 py-2 bg-dark-2 border border-dark-4 rounded-lg text-white;
+  @apply w-full px-4 py-2 bg-surface-2 border border-skin rounded-lg text-skin-primary;
   @apply focus:outline-none focus:border-brand-purple;
 }
 
@@ -196,11 +196,11 @@ function resetForm() {
 }
 
 .form-actions {
-  @apply flex items-center justify-end gap-3 pt-4 border-t border-dark-4;
+  @apply flex items-center justify-end gap-3 pt-4 border-t border-skin;
 }
 
 .empty-tasks {
-  @apply text-sm text-gray-500 py-2;
+  @apply text-sm text-skin-secondary py-2;
 }
 
 .dependencies-list {
@@ -208,7 +208,7 @@ function resetForm() {
 }
 
 .dependency-item {
-  @apply flex items-center gap-3 p-2 bg-dark-3 rounded-lg cursor-pointer hover:bg-dark-4;
+  @apply flex items-center gap-3 p-2 bg-surface-3 rounded-lg cursor-pointer hover:bg-surface-4;
 }
 
 .dependency-item input {
@@ -216,7 +216,7 @@ function resetForm() {
 }
 
 .task-title {
-  @apply flex-1 text-sm text-white truncate;
+  @apply flex-1 text-sm text-skin-primary truncate;
 }
 
 .task-status {

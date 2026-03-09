@@ -3,4 +3,5 @@
  */
 
 export { SessionManager } from './manager.js';
-export { ClaudeProcess } from './claude-process.js';
+export { TmuxSession } from './tmux-session.js';
+export { TmuxOutputParser } from './tmux-parser.js';

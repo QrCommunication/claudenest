@@ -8,18 +8,25 @@ import { SessionManager } from './sessions/manager.js';
 import { SkillsDiscovery } from './discovery/skills.js';
 import { MCPManager } from './discovery/mcp.js';
 import { ContextClient } from './context/client.js';
+import { RestApiClient } from './api/client.js';
+import { SyncService } from './sync/service.js';
+import { Orchestrator } from './orchestrator/orchestrator.js';
 import { createLogger } from './utils/logger.js';
 import {
   createSessionHandlers,
   createConfigHandlers,
   createContextHandlers,
+  createFileHandlers,
+  createOrchestratorHandlers,
+  createScanHandlers,
+  createDecomposeHandlers,
+  createOAuthHandlers,
 } from './handlers/index.js';
-import type { 
-  AgentConfig, 
-  AgentEvents, 
-  Logger, 
+import type {
+  AgentConfig,
+  Logger,
   MachineInfo,
-  SessionOutput 
+  SessionOutput
 } from './types/index.js';
 import { 
   generateId, 
@@ -45,6 +52,9 @@ export class ClaudeNestAgent extends EventEmitter {
   private skillsDiscovery!: SkillsDiscovery;
   private mcpManager!: MCPManager;
   private contextClient!: ContextClient;
+  private apiClient!: RestApiClient;
+  private syncService!: SyncService;
+  private orchestrator!: Orchestrator;
   
   private isRunning = false;
   private handlers = new Map<string, (payload: unknown) => Promise<void> | void>();
@@ -91,6 +101,23 @@ export class ClaudeNestAgent extends EventEmitter {
       logger: this.logger,
     });
 
+    // Initialize REST API client
+    this.apiClient = new RestApiClient({
+      baseUrl: this.config.serverUrl,
+      machineToken: this.config.machineToken,
+      machineId: this.machineId,
+      logger: this.logger,
+    });
+
+    // Initialize sync service
+    this.syncService = new SyncService({
+      apiClient: this.apiClient,
+      machineId: this.machineId,
+      skillsDiscovery: this.skillsDiscovery,
+      mcpManager: this.mcpManager,
+      logger: this.logger,
+    });
+
     // Initialize context client
     const cachePath = this.config.cachePath || path.join(getCacheDir(), 'context-cache.json');
     await ensureDir(path.dirname(cachePath));
@@ -100,6 +127,14 @@ export class ClaudeNestAgent extends EventEmitter {
       token: this.config.machineToken,
       machineId: this.machineId,
       cachePath,
+      logger: this.logger,
+    });
+
+    // Initialize orchestrator
+    this.orchestrator = new Orchestrator({
+      sessionManager: this.sessionManager,
+      contextClient: this.contextClient,
+      wsClient: this.wsClient,
       logger: this.logger,
     });
 
@@ -129,15 +164,25 @@ export class ClaudeNestAgent extends EventEmitter {
       // Connect to WebSocket
       await this.wsClient.connect();
 
+      // Recover orphaned tmux sessions from previous agent runs
+      const recovered = await this.sessionManager.recoverSessions();
+      if (recovered.length > 0) {
+        this.logger.info({ count: recovered.length, ids: recovered }, 'Recovered tmux sessions');
+      }
+
       // Send initial machine info
       await this.sendMachineInfo();
+
+      // Sync skills/MCP to server (bulk upsert)
+      await this.syncService.fullSync();
+      this.syncService.startPeriodicSync();
 
       this.isRunning = true;
       this.emit('started');
 
       this.logger.info('Agent started successfully');
     } catch (error) {
-      this.logger.error('Failed to start agent', { error });
+      this.logger.error({ err: error }, 'Failed to start agent');
       throw error;
     }
   }
@@ -153,8 +198,16 @@ export class ClaudeNestAgent extends EventEmitter {
     this.logger.info('Stopping agent...');
 
     try {
-      // Terminate all sessions
+      // Stop orchestrator first (terminates worker sessions)
+      if (this.orchestrator.isRunning()) {
+        await this.orchestrator.stop();
+      }
+
+      // Terminate remaining sessions
       await this.sessionManager.terminateAll();
+
+      // Stop sync service
+      await this.syncService.stop();
 
       // Stop MCP servers
       await this.mcpManager.stopAll();
@@ -170,7 +223,7 @@ export class ClaudeNestAgent extends EventEmitter {
 
       this.logger.info('Agent stopped');
     } catch (error) {
-      this.logger.error('Error during agent shutdown', { error });
+      this.logger.error({ err: error }, 'Error during agent shutdown');
       throw error;
     }
   }
@@ -222,6 +275,7 @@ export class ClaudeNestAgent extends EventEmitter {
       claudePath: this.config.claudePath,
       capabilities: {
         supportsPTY: true,
+        supportsTmux: true,
         supportsMCP: mcps.length > 0,
         supportsSkills: skills.length > 0,
         availableSkills: skills.map(s => s.name),
@@ -243,12 +297,12 @@ export class ClaudeNestAgent extends EventEmitter {
       this.emit('disconnected');
     });
 
-    this.wsClient.on('message', (type: string, payload: unknown) => {
+    this.wsClient.on('message', ({ type, payload }: { type: string; payload: unknown }) => {
       this.handleMessage(type, payload);
     });
 
     this.wsClient.on('error', (error: Error) => {
-      this.logger.error('WebSocket error', { error });
+      this.logger.error({ err: error }, 'WebSocket error');
       this.emit('error', error);
     });
 
@@ -269,9 +323,13 @@ export class ClaudeNestAgent extends EventEmitter {
       this.emit('sessionCreated', session);
     });
 
+    this.sessionManager.on('sessionRecovered', (data: { sessionId: string }) => {
+      this.wsClient.send('session:recovered', data);
+    });
+
     // Context client events
-    this.contextClient.on('synced', (count: number) => {
-      this.logger.debug(`Context synced: ${count} updates`);
+    this.contextClient.on('synced', () => {
+      this.logger.debug('Context synced');
     });
 
     this.contextClient.on('taskClaimed', (task) => {
@@ -286,11 +344,11 @@ export class ClaudeNestAgent extends EventEmitter {
     process.on('SIGINT', () => this.handleShutdown());
     process.on('SIGTERM', () => this.handleShutdown());
     process.on('uncaughtException', (error) => {
-      this.logger.fatal('Uncaught exception', { error });
+      this.logger.fatal({ err: error }, 'Uncaught exception');
       this.handleShutdown();
     });
     process.on('unhandledRejection', (reason) => {
-      this.logger.error('Unhandled rejection', { reason });
+      this.logger.error({ reason }, 'Unhandled rejection');
     });
   }
 
@@ -320,25 +378,75 @@ export class ClaudeNestAgent extends EventEmitter {
       instanceId: this.machineId,
     });
 
+    // File handlers
+    const fileHandlers = createFileHandlers({
+      wsClient: this.wsClient,
+      logger: this.logger,
+    });
+
+    // Orchestrator handlers
+    const orchestratorHandlers = createOrchestratorHandlers({
+      orchestrator: this.orchestrator,
+      wsClient: this.wsClient,
+      logger: this.logger,
+    });
+
+    // Scan handlers
+    const scanHandlers = createScanHandlers({
+      wsClient: this.wsClient,
+      logger: this.logger,
+    });
+
+    // Decompose handlers
+    const decomposeHandlers = createDecomposeHandlers({
+      sessionManager: this.sessionManager,
+      wsClient: this.wsClient,
+      logger: this.logger,
+    });
+
+    // OAuth handlers
+    const oauthHandlers = createOAuthHandlers({
+      wsClient: this.wsClient,
+      logger: this.logger,
+    });
+
     // Register all handlers
     for (const [type, handler] of Object.entries(sessionHandlers)) {
-      this.handlers.set(type, handler);
+      this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
     }
     for (const [type, handler] of Object.entries(configHandlers)) {
-      this.handlers.set(type, handler);
+      this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
     }
     for (const [type, handler] of Object.entries(contextHandlers)) {
-      this.handlers.set(type, handler);
+      this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
+    }
+    for (const [type, handler] of Object.entries(fileHandlers)) {
+      this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
+    }
+    for (const [type, handler] of Object.entries(orchestratorHandlers)) {
+      this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
+    }
+    for (const [type, handler] of Object.entries(scanHandlers)) {
+      this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
+    }
+    for (const [type, handler] of Object.entries(decomposeHandlers)) {
+      this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
+    }
+    for (const [type, handler] of Object.entries(oauthHandlers)) {
+      this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
     }
 
-    // Add ping handler
+    // Add ping/pong handlers
     this.handlers.set('ping', () => {
       this.wsClient.send('pong', { timestamp: Date.now() });
+    });
+    this.handlers.set('pong', () => {
+      // Expected response to heartbeat, no action needed
     });
   }
 
   private async handleMessage(type: string, payload: unknown): Promise<void> {
-    this.logger.debug('Received message', { type });
+    this.logger.debug({ type }, 'Received message');
 
     const handler = this.handlers.get(type);
     if (!handler) {
@@ -349,7 +457,7 @@ export class ClaudeNestAgent extends EventEmitter {
     try {
       await handler(payload);
     } catch (error) {
-      this.logger.error(`Handler error for ${type}`, { error });
+      this.logger.error({ err: error }, `Handler error for ${type}`);
       this.wsClient.send('error', {
         originalType: type,
         message: error instanceof Error ? error.message : 'Unknown error',
@@ -377,12 +485,12 @@ export class ClaudeNestAgent extends EventEmitter {
 
   private async handleShutdown(): Promise<void> {
     this.logger.info('Shutdown signal received');
-    
+
     try {
       await this.stop();
       process.exit(0);
     } catch (error) {
-      this.logger.error('Error during shutdown', { error });
+      this.logger.error({ err: error }, 'Error during shutdown');
       process.exit(1);
     }
   }
@@ -423,13 +531,12 @@ export class ClaudeNestAgent extends EventEmitter {
   getWebSocketClient(): WebSocketClient {
     return this.wsClient;
   }
-}
 
-// Type augmentation for EventEmitter
-declare module 'events' {
-  interface EventEmitter {
-    on<T extends keyof AgentEvents>(event: T, listener: AgentEvents[T]): this;
-    emit<T extends keyof AgentEvents>(event: T, ...args: Parameters<AgentEvents[T]>): boolean;
+  /**
+   * Get orchestrator
+   */
+  getOrchestrator(): Orchestrator {
+    return this.orchestrator;
   }
 }
 

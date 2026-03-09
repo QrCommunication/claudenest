@@ -7,7 +7,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Machine, MachineStatus } from '@/types';
-import { machinesApi } from '@/services/api';
+import { machinesApi, pairingApi } from '@/services/api';
 import { websocket } from '@/services/websocket';
 
 interface MachinesState {
@@ -28,6 +28,7 @@ interface MachinesState {
   fetchMachines: () => Promise<void>;
   refreshMachines: () => Promise<void>;
   createMachine: (data: { name: string; token: string }) => Promise<Machine>;
+  completePairing: (code: string, name?: string) => Promise<Machine>;
   updateMachine: (id: string, data: Partial<Machine>) => Promise<void>;
   deleteMachine: (id: string) => Promise<void>;
   wakeMachine: (id: string) => Promise<void>;
@@ -95,6 +96,24 @@ export const useMachinesStore = create<MachinesState>()(
         } catch (err) {
           const message =
             err instanceof Error ? err.message : 'Failed to create machine';
+          set({ isLoading: false, error: message });
+          throw err;
+        }
+      },
+
+      completePairing: async (code: string, name?: string) => {
+        set({ isLoading: true, error: null });
+        try {
+          const response = await pairingApi.complete(code, name);
+          const newMachine = response.data!.machine;
+          set((state) => ({
+            machines: [...state.machines, newMachine],
+            isLoading: false,
+          }));
+          return newMachine;
+        } catch (err) {
+          const message =
+            err instanceof Error ? err.message : 'Failed to complete pairing';
           set({ isLoading: false, error: message });
           throw err;
         }

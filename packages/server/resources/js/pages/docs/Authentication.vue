@@ -253,14 +253,14 @@ const regenerateTokenCode = `curl -X POST https://claudenest.yourdomain.com/api/
 .doc-header {
   margin-bottom: 3rem;
   padding-bottom: 2rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-color, var(--border));
 }
 
 .doc-header h1 {
   font-size: 2.5rem;
   font-weight: 800;
   margin: 0 0 1rem;
-  background: linear-gradient(135deg, #a855f7, #22d3ee);
+  background: linear-gradient(135deg, var(--accent-purple, #a855f7), var(--accent-cyan, #22d3ee));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -268,7 +268,7 @@ const regenerateTokenCode = `curl -X POST https://claudenest.yourdomain.com/api/
 
 .lead {
   font-size: 1.25rem;
-  color: #a9b1d6;
+  color: var(--text-secondary);
   line-height: 1.6;
   margin: 0;
 }
@@ -281,31 +281,31 @@ h2 {
   font-size: 1.75rem;
   font-weight: 700;
   margin: 0 0 1rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 h3 {
   font-size: 1.25rem;
   font-weight: 600;
   margin: 1.5rem 0 0.75rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 h4 {
   font-size: 1.1rem;
   font-weight: 600;
   margin: 1.25rem 0 0.5rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 p {
-  color: #a9b1d6;
+  color: var(--text-secondary);
   line-height: 1.7;
   margin: 0 0 1rem;
 }
 
 ul, ol {
-  color: #a9b1d6;
+  color: var(--text-secondary);
   margin: 0 0 1rem;
   padding-left: 1.5rem;
 }
@@ -316,7 +316,7 @@ li {
 }
 
 a {
-  color: #a855f7;
+  color: var(--accent-purple, #a855f7);
   text-decoration: none;
 }
 
@@ -345,14 +345,14 @@ a:hover {
   top: 0;
   width: 28px;
   height: 28px;
-  background: linear-gradient(135deg, #a855f7, #6366f1);
+  background: linear-gradient(135deg, var(--accent-purple, #a855f7), var(--accent-indigo, #6366f1));
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.8rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 /* Flow Diagram */
@@ -362,8 +362,8 @@ a:hover {
   justify-content: center;
   gap: 0.5rem;
   padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 12px;
   margin: 1.5rem 0;
   flex-wrap: wrap;
@@ -377,24 +377,24 @@ a:hover {
 .flow-step .step-num {
   width: 32px;
   height: 32px;
-  background: rgba(168, 85, 247, 0.2);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  color: #a855f7;
+  color: var(--accent-purple, #a855f7);
   margin: 0 auto 0.5rem;
 }
 
 .flow-step p {
   font-size: 0.85rem;
   margin: 0;
-  color: #a9b1d6;
+  color: var(--text-secondary);
 }
 
 .flow-arrow {
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 1.5rem;
 }
 
@@ -410,8 +410,8 @@ a:hover {
   align-items: flex-start;
   gap: 1rem;
   padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 12px;
 }
 
@@ -433,10 +433,10 @@ a:hover {
 code {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.9em;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--border-color, var(--border));
   padding: 0.2rem 0.4rem;
   border-radius: 4px;
-  color: #22d3ee;
+  color: var(--accent-cyan, #22d3ee);
 }
 
 @media (max-width: 768px) {

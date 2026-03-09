@@ -7,11 +7,22 @@ use App\Models\FileLock;
 use App\Models\SharedProject;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class FileLockController extends Controller
 {
     /**
      * List file locks for a project.
+     *
+     * @OA\Get(
+     *     path="/api/projects/{projectId}/locks",
+     *     tags={"File Locks"},
+     *     summary="List active file locks",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(name="projectId", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\Response(response=200, description="List of active locks", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
+     *     @OA\Response(response=404, description="Project not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
+     * )
      */
     public function index(Request $request, string $projectId): JsonResponse
     {
@@ -33,6 +44,18 @@ class FileLockController extends Controller
 
     /**
      * Acquire a file lock.
+     *
+     * @OA\Post(
+     *     path="/api/projects/{projectId}/locks",
+     *     tags={"File Locks"},
+     *     summary="Acquire a file lock",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(name="projectId", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\RequestBody(required=true, @OA\JsonContent(ref="#/components/schemas/CreateFileLockRequest")),
+     *     @OA\Response(response=201, description="Lock acquired", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
+     *     @OA\Response(response=404, description="Project not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
+     *     @OA\Response(response=409, description="File already locked", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
+     * )
      */
     public function store(Request $request, string $projectId): JsonResponse
     {
@@ -46,10 +69,8 @@ class FileLockController extends Controller
             'duration_minutes' => 'integer|min:1|max:1440',
         ]);
 
-        // Clean up expired locks first
         FileLock::cleanupExpired();
 
-        // Check if already locked by another instance
         $existingOwner = FileLock::getOwner($projectId, $validated['path']);
 
         if ($existingOwner && $existingOwner !== $validated['instance_id']) {
@@ -60,7 +81,6 @@ class FileLockController extends Controller
             );
         }
 
-        // Acquire or extend lock
         $lock = FileLock::acquire(
             $projectId,
             $validated['path'],
@@ -73,7 +93,6 @@ class FileLockController extends Controller
             return $this->errorResponse('LCK_001', 'Failed to acquire lock', 500);
         }
 
-        // Broadcast lock acquisition
         broadcast(new \App\Events\FileLocked($lock))->toOthers();
 
         return response()->json([
@@ -96,6 +115,21 @@ class FileLockController extends Controller
 
     /**
      * Release a file lock.
+     *
+     * @OA\Post(
+     *     path="/api/projects/{projectId}/locks/release",
+     *     tags={"File Locks"},
+     *     summary="Release a file lock",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(name="projectId", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\RequestBody(required=true, @OA\JsonContent(
+     *         required={"path", "instance_id"},
+     *         @OA\Property(property="path", type="string"),
+     *         @OA\Property(property="instance_id", type="string")
+     *     )),
+     *     @OA\Response(response=200, description="Lock released", @OA\JsonContent(ref="#/components/schemas/DeletedResponse")),
+     *     @OA\Response(response=404, description="Lock not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
+     * )
      */
     public function destroy(Request $request, string $projectId): JsonResponse
     {
@@ -117,7 +151,6 @@ class FileLockController extends Controller
             return $this->errorResponse('LCK_002', 'Lock not found or already expired', 404);
         }
 
-        // Broadcast lock release
         broadcast(new \App\Events\FileUnlocked($projectId, $validated['path']))->toOthers();
 
         return response()->json([
@@ -132,6 +165,20 @@ class FileLockController extends Controller
 
     /**
      * Force release a file lock (admin only).
+     *
+     * @OA\Post(
+     *     path="/api/projects/{projectId}/locks/force-release",
+     *     tags={"File Locks"},
+     *     summary="Force release a file lock",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(name="projectId", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\RequestBody(required=true, @OA\JsonContent(
+     *         required={"path"},
+     *         @OA\Property(property="path", type="string")
+     *     )),
+     *     @OA\Response(response=200, description="Lock force released", @OA\JsonContent(ref="#/components/schemas/DeletedResponse")),
+     *     @OA\Response(response=404, description="Lock not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
+     * )
      */
     public function forceDestroy(Request $request, string $projectId): JsonResponse
     {
@@ -148,7 +195,6 @@ class FileLockController extends Controller
             return $this->errorResponse('LCK_002', 'Lock not found', 404);
         }
 
-        // Broadcast lock release
         broadcast(new \App\Events\FileUnlocked($projectId, $validated['path'], true))->toOthers();
 
         return response()->json([
@@ -163,6 +209,25 @@ class FileLockController extends Controller
 
     /**
      * Check if a file is locked.
+     *
+     * @OA\Post(
+     *     path="/api/projects/{projectId}/locks/check",
+     *     tags={"File Locks"},
+     *     summary="Check file lock status",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(name="projectId", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\RequestBody(required=true, @OA\JsonContent(
+     *         required={"path"},
+     *         @OA\Property(property="path", type="string")
+     *     )),
+     *     @OA\Response(response=200, description="Lock status", @OA\JsonContent(
+     *         @OA\Property(property="success", type="boolean"),
+     *         @OA\Property(property="data", type="object",
+     *             @OA\Property(property="is_locked", type="boolean"),
+     *             @OA\Property(property="locked_by", type="string", nullable=true)
+     *         )
+     *     ))
+     * )
      */
     public function check(Request $request, string $projectId): JsonResponse
     {
@@ -191,6 +256,22 @@ class FileLockController extends Controller
 
     /**
      * Extend a file lock.
+     *
+     * @OA\Post(
+     *     path="/api/projects/{projectId}/locks/extend",
+     *     tags={"File Locks"},
+     *     summary="Extend a file lock duration",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(name="projectId", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\RequestBody(required=true, @OA\JsonContent(
+     *         required={"path", "instance_id"},
+     *         @OA\Property(property="path", type="string"),
+     *         @OA\Property(property="instance_id", type="string"),
+     *         @OA\Property(property="minutes", type="integer", default=30)
+     *     )),
+     *     @OA\Response(response=200, description="Lock extended", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
+     *     @OA\Response(response=404, description="Lock not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
+     * )
      */
     public function extend(Request $request, string $projectId): JsonResponse
     {
@@ -232,6 +313,24 @@ class FileLockController extends Controller
 
     /**
      * Release all locks by an instance.
+     *
+     * @OA\Post(
+     *     path="/api/projects/{projectId}/locks/release-by-instance",
+     *     tags={"File Locks"},
+     *     summary="Release all locks held by an instance",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(name="projectId", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\RequestBody(required=true, @OA\JsonContent(
+     *         required={"instance_id"},
+     *         @OA\Property(property="instance_id", type="string")
+     *     )),
+     *     @OA\Response(response=200, description="Locks released", @OA\JsonContent(
+     *         @OA\Property(property="success", type="boolean"),
+     *         @OA\Property(property="data", type="object",
+     *             @OA\Property(property="released_count", type="integer")
+     *         )
+     *     ))
+     * )
      */
     public function releaseByInstance(Request $request, string $projectId): JsonResponse
     {
@@ -258,6 +357,22 @@ class FileLockController extends Controller
 
     /**
      * Bulk lock multiple files.
+     *
+     * @OA\Post(
+     *     path="/api/projects/{projectId}/locks/bulk",
+     *     tags={"File Locks"},
+     *     summary="Lock multiple files at once",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(name="projectId", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\RequestBody(required=true, @OA\JsonContent(ref="#/components/schemas/BulkFileLockRequest")),
+     *     @OA\Response(response=200, description="Bulk lock results", @OA\JsonContent(
+     *         @OA\Property(property="success", type="boolean"),
+     *         @OA\Property(property="data", type="object",
+     *             @OA\Property(property="locked", type="array", @OA\Items(type="object")),
+     *             @OA\Property(property="failed", type="array", @OA\Items(type="object"))
+     *         )
+     *     ))
+     * )
      */
     public function bulkLock(Request $request, string $projectId): JsonResponse
     {
@@ -273,52 +388,62 @@ class FileLockController extends Controller
 
         FileLock::cleanupExpired();
 
-        $results = [];
-        $failed = [];
+        try {
+            $result = DB::transaction(function () use ($projectId, $validated) {
+                $results = [];
 
-        foreach ($validated['paths'] as $path) {
-            $existingOwner = FileLock::getOwner($projectId, $path);
+                foreach ($validated['paths'] as $path) {
+                    $existingOwner = FileLock::getOwner($projectId, $path);
 
-            if ($existingOwner && $existingOwner !== $validated['instance_id']) {
-                $failed[] = [
-                    'path' => $path,
-                    'error' => 'Already locked by ' . $existingOwner,
-                ];
-                continue;
-            }
+                    if ($existingOwner && $existingOwner !== $validated['instance_id']) {
+                        throw new \RuntimeException("Path '{$path}' already locked by {$existingOwner}");
+                    }
 
-            $lock = FileLock::acquire(
-                $projectId,
-                $path,
-                $validated['instance_id'],
-                $validated['reason'] ?? 'bulk lock'
-            );
+                    $lock = FileLock::acquire(
+                        $projectId,
+                        $path,
+                        $validated['instance_id'],
+                        $validated['reason'] ?? 'bulk lock'
+                    );
 
-            if ($lock) {
-                $results[] = [
-                    'path' => $lock->path,
-                    'id' => $lock->id,
-                    'expires_at' => $lock->expires_at,
-                ];
-            } else {
-                $failed[] = [
-                    'path' => $path,
-                    'error' => 'Failed to acquire lock',
-                ];
-            }
+                    if (!$lock) {
+                        throw new \RuntimeException("Failed to acquire lock on '{$path}'");
+                    }
+
+                    $results[] = [
+                        'path' => $lock->path,
+                        'id' => $lock->id,
+                        'expires_at' => $lock->expires_at,
+                    ];
+                }
+
+                return $results;
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'locked' => $result,
+                    'failed' => [],
+                ],
+                'meta' => [
+                    'timestamp' => now()->toIso8601String(),
+                    'request_id' => $request->header('X-Request-ID', uniqid()),
+                ],
+            ]);
+        } catch (\RuntimeException $e) {
+            return response()->json([
+                'success' => false,
+                'data' => [
+                    'locked' => [],
+                    'failed' => [['error' => $e->getMessage()]],
+                ],
+                'meta' => [
+                    'timestamp' => now()->toIso8601String(),
+                    'request_id' => $request->header('X-Request-ID', uniqid()),
+                ],
+            ], 409);
         }
-
-        return response()->json([
-            'success' => empty($failed),
-            'data' => [
-                'locked' => $results,
-                'failed' => $failed,
-            ],
-            'meta' => [
-                'timestamp' => now()->toIso8601String(),
-                'request_id' => $request->header('X-Request-ID', uniqid()),
-            ],
-        ]);
     }
 
     /**

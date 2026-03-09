@@ -9,21 +9,22 @@
 import { Command } from 'commander';
 import { ClaudeNestAgent, generateMachineId } from './agent.js';
 import { createLogger, getLogLevelFromEnv } from './utils/logger.js';
-import { 
-  getConfigDir, 
-  getCacheDir, 
+import {
+  getConfigDir,
+  getCacheDir,
   ensureDir,
   safeJsonParse,
   findExecutable,
 } from './utils/index.js';
+import { checkForUpdate, promptAutoUpdate } from './utils/update-checker.js';
 import type { AgentConfig } from './types/index.js';
 import fs from 'fs/promises';
 import path from 'path';
-import os from 'os';
 import keytar from 'keytar';
+import os from 'os';
 
 const SERVICE_NAME = 'ClaudeNestAgent';
-const DEFAULT_SERVER_URL = 'https://api.claudenest.dev';
+const DEFAULT_SERVER_URL = 'https://api.claudenest.io';
 
 interface CLIOptions {
   server?: string;
@@ -92,7 +93,48 @@ async function main(): Promise<void> {
 }
 
 async function handleStart(options: CLIOptions): Promise<void> {
-  logger.info('Starting ClaudeNest Agent...');
+  // Daemon mode: fork a detached child and exit the parent
+  if (options.daemon && !process.env.__CLAUDENEST_DAEMONIZED) {
+    const { spawn } = await import('child_process');
+    const logDir = getCacheDir();
+    await ensureDir(logDir);
+
+    const outFile = path.join(logDir, 'agent.out.log');
+    const errFile = path.join(logDir, 'agent.err.log');
+    const { openSync } = await import('fs');
+    const out = openSync(outFile, 'a');
+    const err = openSync(errFile, 'a');
+
+    // Re-launch the same command without --daemon, as a detached process
+    const args = process.argv.slice(1).filter(a => a !== '--daemon' && a !== '-d');
+    const child = spawn(process.argv[0], args, {
+      detached: true,
+      stdio: ['ignore', out, err],
+      env: { ...process.env, __CLAUDENEST_DAEMONIZED: '1' },
+    });
+
+    child.unref();
+    console.log(`Agent started in background (PID: ${child.pid})`);
+    console.log(`Logs: ${outFile}`);
+    process.exit(0);
+  }
+
+  logger.info({}, 'Starting ClaudeNest Agent...');
+
+  // Check for updates (non-blocking, 5s timeout, 24h cache)
+  try {
+    const pkgVer = await getPackageVersion();
+    const updateInfo = await checkForUpdate(pkgVer);
+    const updated = await promptAutoUpdate(updateInfo);
+    if (updated) {
+      // Re-exec after update using execFileSync (safe, no shell injection)
+      const { execFileSync } = await import('child_process');
+      execFileSync(process.argv[0], process.argv.slice(1), { stdio: 'inherit' });
+      process.exit(0);
+    }
+  } catch {
+    // Update check is non-critical, continue startup
+  }
 
   try {
     // Load configuration
@@ -100,7 +142,7 @@ async function handleStart(options: CLIOptions): Promise<void> {
     
     // Validate configuration
     if (!config.machineToken) {
-      logger.error('No machine token provided. Run "claudenest-agent pair" first.');
+      logger.error({}, 'No machine token provided. Run "claudenest-agent pair" first.');
       process.exit(1);
     }
 
@@ -109,9 +151,9 @@ async function handleStart(options: CLIOptions): Promise<void> {
       const foundPath = await findExecutable('claude');
       if (foundPath) {
         config.claudePath = foundPath;
-        logger.info(`Found Claude Code at: ${foundPath}`);
+        logger.info({ path: foundPath }, `Found Claude Code at: ${foundPath}`);
       } else {
-        logger.error('Claude Code executable not found. Please specify with --claude-path');
+        logger.error({}, 'Claude Code executable not found. Please specify with --claude-path');
         process.exit(1);
       }
     }
@@ -132,79 +174,212 @@ async function handleStart(options: CLIOptions): Promise<void> {
     await agent.initialize();
     await agent.start();
 
-    logger.info('Agent started successfully');
-    logger.info(`Server: ${config.serverUrl}`);
-    logger.info(`Machine ID: ${machineId}`);
+    // Write PID file
+    await writePidFile();
 
-    // Keep process alive
-    if (options.daemon) {
-      // TODO: Implement proper daemonization
-      logger.info('Running in daemon mode');
-    }
+    logger.info({}, 'Agent started successfully');
+    logger.info({ server: config.serverUrl }, `Server: ${config.serverUrl}`);
+    logger.info({ machineId }, `Machine ID: ${machineId}`);
 
     // Handle graceful shutdown
     process.on('SIGINT', async () => {
-      logger.info('Received SIGINT, shutting down...');
+      logger.info({}, 'Received SIGINT, shutting down...');
       await agent.stop();
+      await removePidFile();
       process.exit(0);
     });
 
     process.on('SIGTERM', async () => {
-      logger.info('Received SIGTERM, shutting down...');
+      logger.info({}, 'Received SIGTERM, shutting down...');
       await agent.stop();
+      await removePidFile();
       process.exit(0);
     });
 
   } catch (error) {
-    logger.error('Failed to start agent', { error });
+    logger.error({ err: error }, 'Failed to start agent');
+    await removePidFile();
     process.exit(1);
   }
 }
 
 async function handleStop(): Promise<void> {
-  logger.info('Stopping agent...');
-  
-  // TODO: Implement proper daemon management with PID file
-  // For now, just log that the user should use Ctrl+C
-  logger.info('If running in foreground, press Ctrl+C to stop');
-  logger.info('Daemon mode stop not yet implemented');
+  const pid = await readPidFile();
+
+  if (!pid) {
+    logger.info({}, 'No running agent found');
+    return;
+  }
+
+  logger.info({ pid }, `Stopping agent (PID: ${pid})...`);
+
+  try {
+    process.kill(pid, 'SIGTERM');
+
+    // Wait for process to exit (max 10 seconds)
+    const maxWait = 10000;
+    const interval = 500;
+    let waited = 0;
+
+    while (waited < maxWait) {
+      await new Promise(resolve => setTimeout(resolve, interval));
+      waited += interval;
+
+      try {
+        process.kill(pid, 0);
+        // Still running
+      } catch {
+        // Process exited
+        logger.info({}, 'Agent stopped successfully');
+        await removePidFile();
+        return;
+      }
+    }
+
+    // Force kill if still running
+    logger.warn({ pid }, 'Agent did not stop gracefully, force killing...');
+    process.kill(pid, 'SIGKILL');
+    await removePidFile();
+    logger.info({}, 'Agent force stopped');
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ESRCH') {
+      logger.info({}, 'Agent was not running (stale PID file)');
+      await removePidFile();
+    } else {
+      logger.error({ err: error }, 'Failed to stop agent');
+    }
+  }
 }
 
 async function handleStatus(): Promise<void> {
-  // TODO: Implement status check via IPC or API
-  logger.info('Agent status check not yet implemented');
+  const pid = await readPidFile();
+
+  if (!pid) {
+    console.log('Agent status: stopped');
+    console.log('No running agent instance found.');
+    return;
+  }
+
+  console.log(`Agent status: running`);
+  console.log(`PID: ${pid}`);
+
+  // Show machine ID if available
+  const machineId = await getMachineId();
+  if (machineId) {
+    console.log(`Machine ID: ${machineId}`);
+  }
+
+  // Show config
+  const configDir = getConfigDir();
+  const configPath = path.join(configDir, 'config.json');
+  try {
+    const content = await fs.readFile(configPath, 'utf-8');
+    const config = JSON.parse(content);
+    if (config.serverUrl) {
+      console.log(`Server: ${config.serverUrl}`);
+    }
+  } catch {
+    // No config file
+  }
+
+  // Show uptime from PID file modification time
+  try {
+    const stat = await fs.stat(getPidFilePath());
+    const uptime = Date.now() - stat.mtimeMs;
+    const hours = Math.floor(uptime / 3600000);
+    const minutes = Math.floor((uptime % 3600000) / 60000);
+    console.log(`Uptime: ${hours}h ${minutes}m`);
+  } catch {
+    // Can't read stat
+  }
 }
 
 async function handlePair(options: { server: string }): Promise<void> {
-  logger.info('Pairing with ClaudeNest server...');
-  logger.info(`Server: ${options.server}`);
+  logger.info({}, 'Pairing with ClaudeNest server...');
+  logger.info({ server: options.server }, `Server: ${options.server}`);
 
-  // Generate a pairing code
-  const pairingCode = generatePairingCode();
-  
+  // Get agent version
+  const agentVersion = await getPackageVersion();
+
+  // Try to register pairing code with server (max 3 attempts for 409 conflicts)
+  let pairingCode: string | null = null;
+  const maxRetries = 3;
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    // Generate a pairing code
+    pairingCode = generatePairingCode();
+
+    try {
+      const initiateResponse = await fetch(`${options.server}/api/pairing/initiate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          code: pairingCode,
+          agent_info: {
+            platform: os.platform(),
+            hostname: os.hostname(),
+            arch: os.arch(),
+            node_version: process.version,
+            agent_version: agentVersion,
+          },
+        }),
+      });
+
+      if (initiateResponse.status === 409) {
+        // Code already exists, retry with new code
+        logger.warn({}, `Pairing code conflict (attempt ${attempt + 1}/${maxRetries}), generating new code...`);
+        continue;
+      }
+
+      if (!initiateResponse.ok) {
+        throw new Error(`Failed to initiate pairing: ${initiateResponse.status} ${initiateResponse.statusText}`);
+      }
+
+      // Successfully registered the code
+      break;
+    } catch (error) {
+      if (attempt === maxRetries - 1) {
+        logger.error({ err: error }, 'Failed to register pairing code after max retries');
+        process.exit(1);
+      }
+    }
+  }
+
+  if (!pairingCode) {
+    logger.error({}, 'Failed to generate valid pairing code');
+    process.exit(1);
+  }
+
   console.log('\n========================================');
   console.log('PAIRING CODE:');
   console.log(pairingCode);
   console.log('========================================\n');
-  
+
   console.log('Enter this code in your ClaudeNest dashboard to complete pairing.\n');
-  
+
   // Poll for pairing completion
-  logger.info('Waiting for pairing completion...');
-  
+  logger.info({}, 'Waiting for pairing completion...');
+
   try {
-    const token = await pollForPairing(options.server, pairingCode);
-    
+    const { token, machineId } = await pollForPairing(options.server, pairingCode);
+
     // Store the token securely
     await keytar.setPassword(SERVICE_NAME, 'machine-token', token);
-    
-    logger.info('Pairing successful! Token stored securely.');
-    
+
+    // Save machine ID
+    if (machineId) {
+      await saveMachineId(machineId);
+    }
+
+    logger.info({}, 'Pairing successful! Token stored securely.');
+
     // Save server URL to config
     await saveConfigValue('serverUrl', options.server);
-    
+
   } catch (error) {
-    logger.error('Pairing failed', { error });
+    logger.error({ err: error }, 'Pairing failed');
     process.exit(1);
   }
 }
@@ -266,27 +441,55 @@ async function handleConfig(options: {
 
     await ensureDir(path.dirname(configPath));
     await fs.writeFile(configPath, JSON.stringify(config, null, 2));
-    logger.info('Configuration updated');
+    logger.info({}, 'Configuration updated');
   }
 }
 
 async function handleLogs(options: { follow: boolean; lines: string }): Promise<void> {
   const logPath = path.join(getCacheDir(), 'agent.log');
-  
+
   try {
     const content = await fs.readFile(logPath, 'utf-8');
     const lines = content.split('\n');
     const numLines = parseInt(options.lines, 10);
-    
     console.log(lines.slice(-numLines).join('\n'));
-    
+
     if (options.follow) {
-      // TODO: Implement log following with fs.watch
-      logger.info('Log following not yet implemented');
+      const { watch } = await import('fs');
+      let lastSize = (await fs.stat(logPath)).size;
+
+      console.log('\n--- Following log output (Ctrl+C to stop) ---\n');
+
+      const watcher = watch(logPath, async () => {
+        try {
+          const newStat = await fs.stat(logPath);
+          if (newStat.size > lastSize) {
+            const fd = await fs.open(logPath, 'r');
+            const buffer = Buffer.alloc(newStat.size - lastSize);
+            await fd.read(buffer, 0, buffer.length, lastSize);
+            await fd.close();
+            process.stdout.write(buffer.toString());
+            lastSize = newStat.size;
+          } else if (newStat.size < lastSize) {
+            // Log rotated
+            lastSize = 0;
+          }
+        } catch {
+          // File may have been rotated
+        }
+      });
+
+      process.on('SIGINT', () => {
+        watcher.close();
+        process.exit(0);
+      });
+
+      // Keep process alive
+      await new Promise(() => {});
     }
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-      logger.info('No log file found');
+      logger.info({}, 'No log file found');
     } else {
       throw error;
     }
@@ -375,6 +578,43 @@ async function saveMachineId(id: string): Promise<void> {
   await fs.writeFile(machineIdPath, id);
 }
 
+function getPidFilePath(): string {
+  return path.join(getCacheDir(), 'agent.pid');
+}
+
+async function writePidFile(): Promise<void> {
+  const pidPath = getPidFilePath();
+  await ensureDir(path.dirname(pidPath));
+  await fs.writeFile(pidPath, String(process.pid));
+}
+
+async function readPidFile(): Promise<number | null> {
+  try {
+    const content = await fs.readFile(getPidFilePath(), 'utf-8');
+    const pid = parseInt(content.trim(), 10);
+    if (isNaN(pid)) return null;
+    // Check if process is actually running
+    try {
+      process.kill(pid, 0);
+      return pid;
+    } catch {
+      // Process not running, clean up stale PID file
+      await removePidFile();
+      return null;
+    }
+  } catch {
+    return null;
+  }
+}
+
+async function removePidFile(): Promise<void> {
+  try {
+    await fs.unlink(getPidFilePath());
+  } catch {
+    // Ignore if file doesn't exist
+  }
+}
+
 function generatePairingCode(): string {
   // Generate a 6-character alphanumeric code
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -385,7 +625,7 @@ function generatePairingCode(): string {
   return code.match(/.{1,3}/g)!.join('-');
 }
 
-async function pollForPairing(serverUrl: string, pairingCode: string): Promise<string> {
+async function pollForPairing(serverUrl: string, pairingCode: string): Promise<{ token: string; machineId: string }> {
   // Poll the server for pairing completion
   const maxAttempts = 60; // 5 minutes
   const interval = 5000; // 5 seconds
@@ -393,19 +633,43 @@ async function pollForPairing(serverUrl: string, pairingCode: string): Promise<s
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
       const response = await fetch(`${serverUrl}/api/pairing/${pairingCode}`);
-      
-      if (response.ok) {
-        const data = await response.json() as { token: string };
-        return data.token;
+
+      if (response.status === 200) {
+        const data = await response.json() as {
+          success: boolean;
+          data: {
+            status: string;
+            token: string;
+            machine_id: string;
+          };
+        };
+        return {
+          token: data.data.token,
+          machineId: data.data.machine_id,
+        };
       }
-      
-      if (response.status === 404) {
-        // Still waiting
+
+      if (response.status === 202) {
+        // Still pending, extract seconds_remaining
+        const data = await response.json() as {
+          success: boolean;
+          data: {
+            status: string;
+            seconds_remaining: number;
+          };
+        };
+        const remaining = data.data.seconds_remaining;
+        console.log(`Waiting for pairing... (${remaining}s remaining)`);
         await new Promise(resolve => setTimeout(resolve, interval));
         continue;
       }
-      
-      throw new Error(`Pairing failed: ${response.statusText}`);
+
+      if (response.status === 410) {
+        // Code expired
+        throw new Error('Pairing code has expired. Please run the pairing command again.');
+      }
+
+      throw new Error(`Pairing failed: ${response.status} ${response.statusText}`);
     } catch (error) {
       if (attempt === maxAttempts - 1) {
         throw error;
@@ -432,7 +696,7 @@ async function getPackageVersion(): Promise<string> {
 
 // Run main
 main().catch(error => {
-  logger.fatal('Unhandled error', { error });
+  logger.fatal({ err: error }, 'Unhandled error');
   process.exit(1);
 });
 

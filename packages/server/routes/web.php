@@ -10,9 +10,9 @@ use Illuminate\Support\Facades\Route;
 | These routes serve the Vue.js SPA for all non-API routes.
 */
 
-// Landing page (public)
+// Landing page (public) - serves Vue SPA
 Route::get('/', function () {
-    return view('welcome');
+    return view('app');
 });
 
 // API info endpoint (for health checks)
@@ -49,6 +49,32 @@ Route::prefix('docs')->group(function () {
     Route::get('/changelog', [DocumentationController::class, 'changelog']);
     Route::get('/terms', [DocumentationController::class, 'index']);
     Route::get('/privacy', [DocumentationController::class, 'index']);
+});
+
+// Serve agent installer scripts (must be before SPA catch-all)
+Route::get('/install-agent.sh', function () {
+    $path = base_path('../../scripts/install-agent.sh');
+    if (!file_exists($path)) {
+        abort(404);
+    }
+    return response()->file($path, [
+        'Content-Type' => 'text/plain; charset=utf-8',
+    ]);
+});
+
+Route::get('/install-agent.ps1', function () {
+    $path = base_path('../../scripts/install-agent.ps1');
+    if (!file_exists($path)) {
+        abort(404);
+    }
+    return response()->file($path, [
+        'Content-Type' => 'text/plain; charset=utf-8',
+    ]);
+});
+
+// OAuth popup completion page (before SPA catch-all)
+Route::get('/oauth-complete', function () {
+    return view('oauth-complete');
 });
 
 // Serve Vue SPA for all other routes (dashboard, login, etc.)

@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Route;
 
 // Landing page
 Route::get('/', function () {
-    return view('welcome');
+    return view('app');
 });
 
 // API info endpoint (for health checks)

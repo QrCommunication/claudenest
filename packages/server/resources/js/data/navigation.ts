@@ -173,6 +173,159 @@ export const docsNavigation: NavSection[] = [
     ]
   },
   {
+    id: 'guides',
+    title: 'Guides',
+    icon: 'map',
+    items: [
+      {
+        id: 'guide-getting-started',
+        title: 'Getting Started',
+        path: '/docs/guides/getting-started',
+        description: 'Set up ClaudeNest from scratch'
+      },
+      {
+        id: 'guide-first-machine',
+        title: 'First Machine',
+        path: '/docs/guides/first-machine',
+        description: 'Register and connect your first machine'
+      },
+      {
+        id: 'guide-remote-sessions',
+        title: 'Remote Sessions',
+        path: '/docs/guides/remote-sessions',
+        description: 'Run Claude Code sessions remotely'
+      },
+      {
+        id: 'guide-multi-agent',
+        title: 'Multi-Agent',
+        path: '/docs/guides/multi-agent',
+        description: 'Coordinate multiple Claude instances'
+      },
+      {
+        id: 'guide-rag-pipeline',
+        title: 'RAG Pipeline',
+        path: '/docs/guides/rag-pipeline',
+        description: 'Set up context retrieval with pgvector'
+      },
+      {
+        id: 'guide-file-locking',
+        title: 'File Locking',
+        path: '/docs/guides/file-locking',
+        description: 'Prevent conflicts between agents'
+      },
+      {
+        id: 'guide-task-coordination',
+        title: 'Task Coordination',
+        path: '/docs/guides/task-coordination',
+        description: 'Manage and assign tasks to agents'
+      },
+      {
+        id: 'guide-agent-setup',
+        title: 'Agent Setup',
+        path: '/docs/guides/agent-setup',
+        description: 'Install and configure the local agent'
+      },
+      {
+        id: 'guide-credentials',
+        title: 'Credentials',
+        path: '/docs/guides/credentials',
+        description: 'Manage Claude API keys and OAuth tokens'
+      }
+    ]
+  },
+  {
+    id: 'cookbook',
+    title: 'Cookbook',
+    icon: 'chef',
+    items: [
+      {
+        id: 'cookbook-docker',
+        title: 'Docker Setup',
+        path: '/docs/cookbook/docker',
+        description: 'Deploy with Docker Compose'
+      },
+      {
+        id: 'cookbook-bare-metal',
+        title: 'Bare Metal',
+        path: '/docs/cookbook/bare-metal',
+        description: 'Production deployment on bare metal'
+      },
+      {
+        id: 'cookbook-mcp-setup',
+        title: 'MCP Setup',
+        path: '/docs/cookbook/mcp-setup',
+        description: 'Configure Model Context Protocol servers'
+      },
+      {
+        id: 'cookbook-skills-discovery',
+        title: 'Skills Discovery',
+        path: '/docs/cookbook/skills-discovery',
+        description: 'Auto-discover and manage skills'
+      },
+      {
+        id: 'cookbook-websocket',
+        title: 'WebSocket Integration',
+        path: '/docs/cookbook/websocket',
+        description: 'Real-time communication patterns'
+      },
+      {
+        id: 'cookbook-oauth',
+        title: 'OAuth Setup',
+        path: '/docs/cookbook/oauth',
+        description: 'Configure Google and GitHub OAuth'
+      },
+      {
+        id: 'cookbook-mobile',
+        title: 'Mobile App',
+        path: '/docs/cookbook/mobile',
+        description: 'Set up the React Native mobile app'
+      },
+      {
+        id: 'cookbook-monitoring',
+        title: 'Monitoring',
+        path: '/docs/cookbook/monitoring',
+        description: 'Monitor agents, sessions, and performance'
+      }
+    ]
+  },
+  {
+    id: 'concepts',
+    title: 'Concepts',
+    icon: 'brain',
+    items: [
+      {
+        id: 'concept-architecture',
+        title: 'Architecture',
+        path: '/docs/concepts/architecture',
+        description: 'System architecture and data flow'
+      },
+      {
+        id: 'concept-security',
+        title: 'Security',
+        path: '/docs/concepts/security',
+        description: 'Security model and encryption'
+      },
+      {
+        id: 'concept-websocket-protocol',
+        title: 'WebSocket Protocol',
+        path: '/docs/concepts/websocket-protocol',
+        description: 'Real-time communication protocol'
+      },
+      {
+        id: 'concept-rag-embeddings',
+        title: 'RAG & Embeddings',
+        path: '/docs/concepts/rag-embeddings',
+        description: 'How context retrieval works'
+      },
+      {
+        id: 'concept-multi-agent',
+        title: 'Multi-Agent Coordination',
+        path: '/docs/concepts/multi-agent-coordination',
+        description: 'How multiple agents collaborate'
+      }
+    ]
+  },
+  {
     id: 'resources',
     title: 'Resources',
     icon: 'book',

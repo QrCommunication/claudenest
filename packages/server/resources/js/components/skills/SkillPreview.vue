@@ -1,7 +1,7 @@
 <template>
   <div class="skill-preview">
     <!-- Header -->
-    <div class="flex items-start gap-4 mb-6 pb-4 border-b border-dark-4">
+    <div class="flex items-start gap-4 mb-6 pb-4 border-b border-skin">
       <div 
         :class="[
           'w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0',
@@ -15,14 +15,14 @@
         <div class="flex items-center gap-2 mt-1 flex-wrap">
           <Badge variant="default" size="sm">v{{ version }}</Badge>
           <Badge :variant="categoryVariant" size="sm">{{ category }}</Badge>
-          <span v-if="author" class="text-sm text-dark-4">by {{ author }}</span>
+          <span v-if="author" class="text-sm text-skin-secondary">by {{ author }}</span>
         </div>
       </div>
     </div>
 
     <!-- Description -->
     <div v-if="description" class="mb-6">
-      <p class="text-dark-4">{{ description }}</p>
+      <p class="text-skin-secondary">{{ description }}</p>
     </div>
 
     <!-- Tags -->
@@ -45,9 +45,9 @@
       v-html="renderedContent"
     />
     
-    <div v-else class="text-center py-12 bg-dark-1 rounded-lg">
-      <FileTextIcon class="w-8 h-8 text-dark-4 mx-auto mb-2" />
-      <p class="text-sm text-dark-4">No content yet</p>
+    <div v-else class="text-center py-12 bg-surface-1 rounded-lg">
+      <FileTextIcon class="w-8 h-8 text-skin-secondary mx-auto mb-2" />
+      <p class="text-sm text-skin-secondary">No content yet</p>
     </div>
   </div>
 </template>
@@ -159,14 +159,14 @@ const renderedContent = computed(() => {
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
     .replace(/_(.*?)_/g, '<em>$1</em>')
     // Code blocks
-    .replace(/```([\s\S]*?)```/g, '<pre class="bg-dark-1 p-4 rounded-lg overflow-x-auto my-4"><code class="text-sm text-brand-purple font-mono">$1</code></pre>')
+    .replace(/```([\s\S]*?)```/g, '<pre class="bg-surface-1 p-4 rounded-lg overflow-x-auto my-4"><code class="text-sm text-brand-purple font-mono">$1</code></pre>')
     // Inline code
-    .replace(/`([^`]+)`/g, '<code class="bg-dark-1 px-1.5 py-0.5 rounded text-brand-purple font-mono text-sm">$1</code>')
+    .replace(/`([^`]+)`/g, '<code class="bg-surface-1 px-1.5 py-0.5 rounded text-brand-purple font-mono text-sm">$1</code>')
     // Blockquotes
-    .replace(/^&gt; (.*$)/gim, '<blockquote class="border-l-4 border-brand-purple pl-4 italic text-dark-4 my-4">$1</blockquote>')
+    .replace(/^&gt; (.*$)/gim, '<blockquote class="border-l-4 border-brand-purple pl-4 italic text-skin-secondary my-4">$1</blockquote>')
     // Lists
-    .replace(/^- (.*$)/gim, '<li class="ml-4 text-dark-4">$1</li>')
-    .replace(/^\d+\. (.*$)/gim, '<li class="ml-4 text-dark-4">$1</li>')
+    .replace(/^- (.*$)/gim, '<li class="ml-4 text-skin-secondary">$1</li>')
+    .replace(/^\d+\. (.*$)/gim, '<li class="ml-4 text-skin-secondary">$1</li>')
     // Links
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-brand-purple hover:underline" target="_blank" rel="noopener">$1</a>')
     // Line breaks

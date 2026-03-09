@@ -3,7 +3,7 @@
     <label
       v-if="label"
       :for="selectId"
-      class="block text-sm font-medium text-dark-4 mb-1.5"
+      class="block text-sm font-medium text-skin-secondary mb-1.5"
     >
       {{ label }}
       <span v-if="required" class="text-red-400">*</span>
@@ -16,11 +16,11 @@
         :disabled="disabled"
         :required="required"
         :class="[
-          'block w-full rounded-button bg-dark-3 border text-white appearance-none',
+          'block w-full rounded-button bg-surface-3 border text-skin-primary appearance-none',
           'focus:outline-none focus:ring-2 focus:ring-brand-purple/50 focus:border-brand-purple',
           'transition-colors duration-200',
           'disabled:opacity-50 disabled:cursor-not-allowed',
-          error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/50' : 'border-dark-4',
+          error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/50' : 'border-skin',
           sizeClasses[size],
         ]"
         @change="handleChange"
@@ -32,7 +32,7 @@
           value=""
           disabled
           selected
-          class="text-dark-4"
+          class="text-skin-secondary"
         >
           {{ placeholder }}
         </option>
@@ -47,7 +47,7 @@
       </select>
 
       <!-- Dropdown Arrow -->
-      <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-dark-4">
+      <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-skin-muted">
         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
         </svg>
@@ -60,7 +60,7 @@
     </p>
 
     <!-- Helper Text -->
-    <p v-else-if="helperText" class="mt-1.5 text-sm text-dark-4">
+    <p v-else-if="helperText" class="mt-1.5 text-sm text-skin-secondary">
       {{ helperText }}
     </p>
   </div>

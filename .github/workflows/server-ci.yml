@@ -1,13 +1,13 @@
-name: 🖥️ Server CI/CD
+name: Server CI/CD
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
     paths:
       - 'packages/server/**'
       - '.github/workflows/server-ci.yml'
   pull_request:
-    branches: [main, develop]
+    branches: [main]
     paths:
       - 'packages/server/**'
 
@@ -17,135 +17,11 @@ env:
 
 jobs:
   # ============================================
-  # PHP Lint & Analysis
-  # ============================================
-  lint:
-    name: 🔍 PHP Lint & Analysis
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ env.PACKAGE_PATH }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ env.PHP_VERSION }}
-          extensions: pdo, pdo_pgsql, redis, mbstring, xml, ctype, fileinfo, json, openssl
-          coverage: xdebug
-          tools: composer, phpstan, phpcs
-
-      - name: Validate composer.json
-        run: composer validate --strict
-
-      - name: Install dependencies
-        run: composer install --prefer-dist --no-progress
-
-      - name: Run PHP_CodeSniffer
-        run: phpcs --standard=PSR12 app/
-        continue-on-error: true
-
-      - name: Run PHPStan
-        run: phpstan analyse app --level=5
-        continue-on-error: true
-
-  # ============================================
-  # Unit Tests
-  # ============================================
-  test:
-    name: 🧪 PHPUnit Tests
-    runs-on: ubuntu-latest
-    needs: lint
-    defaults:
-      run:
-        working-directory: ${{ env.PACKAGE_PATH }}
-
-    services:
-      postgres:
-        image: ankane/pgvector:latest
-        env:
-          POSTGRES_USER: claudenest
-          POSTGRES_PASSWORD: secret
-          POSTGRES_DB: claudenest_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ env.PHP_VERSION }}
-          extensions: pdo, pdo_pgsql, redis, mbstring, xml
-          coverage: xdebug
-
-      - name: Install dependencies
-        run: composer install --prefer-dist --no-progress
-
-      - name: Copy environment file
-        run: cp .env.example .env
-
-      - name: Generate app key
-        run: php artisan key:generate
-
-      - name: Setup database
-        env:
-          DB_HOST: localhost
-          DB_PORT: 5432
-          DB_DATABASE: claudenest_test
-          DB_USERNAME: claudenest
-          DB_PASSWORD: secret
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
-        run: |
-          php artisan migrate --force
-          php artisan db:seed --force
-
-      - name: Run tests
-        env:
-          DB_HOST: localhost
-          DB_PORT: 5432
-          DB_DATABASE: claudenest_test
-          DB_USERNAME: claudenest
-          DB_PASSWORD: secret
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
-        run: php artisan test --coverage --coverage-clover=coverage.xml
-
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
-        with:
-          files: ${{ env.PACKAGE_PATH }}/coverage.xml
-          flags: server
-          name: server-coverage
-
-  # ============================================
-  # Build Assets
+  # Build Frontend Assets
   # ============================================
   build:
-    name: 📦 Build Assets
+    name: Build Assets
     runs-on: ubuntu-latest
-    needs: lint
     defaults:
       run:
         working-directory: ${{ env.PACKAGE_PATH }}
@@ -158,63 +34,28 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: ${{ env.PACKAGE_PATH }}/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Build assets
         run: npm run build
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: server-assets
-          path: |
-            ${{ env.PACKAGE_PATH }}/public/build
-            ${{ env.PACKAGE_PATH }}/public/hot
-          retention-days: 7
-
   # ============================================
-  # Docker Build & Push
+  # Deploy to Production (main branch only)
   # ============================================
-  docker:
-    name: 🐳 Docker Build
+  deploy:
+    name: Deploy Server
     runs-on: ubuntu-latest
-    needs: [test, build]
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment: production
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.0
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: claudenest/server
-          tags: |
-            type=ref,event=branch
-            type=semver,pattern={{version}}
-            type=sha
-
-      - name: Build and push
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./docker/Dockerfile.server
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: bash /var/www/claudenest/deploy.sh

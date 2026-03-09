@@ -69,6 +69,7 @@ export interface MachineInfo {
 
 export interface MachineCapabilities {
   supportsPTY: boolean;
+  supportsTmux: boolean;
   supportsMCP: boolean;
   supportsSkills: boolean;
   availableSkills: string[];
@@ -100,6 +101,7 @@ export interface SessionConfig {
   mode?: SessionMode;
   ptySize?: PTYSize;
   env?: Record<string, string>;
+  credentialEnv?: Record<string, string>;
 }
 
 export type SessionStatus = 
@@ -111,7 +113,7 @@ export type SessionStatus =
   | 'error' 
   | 'terminated';
 
-export type SessionMode = 'interactive' | 'headless' | 'oneshot';
+export type SessionMode = 'interactive' | 'headless' | 'oneshot' | 'bash';
 
 export interface PTYSize {
   cols: number;
@@ -163,6 +165,10 @@ export type IncomingMessageType =
   | 'task:complete'
   | 'file:lock'
   | 'file:unlock'
+  | 'file:browse'
+  | 'project:scan'
+  | 'decompose:start'
+  | OrchestratorIncomingMessage
   | 'ping';
 
 // Messages sortants (agent → serveur)
@@ -177,8 +183,39 @@ export type OutgoingMessageType =
   | 'context:sync'
   | 'task:update'
   | 'file:lock_update'
+  | 'file:browse_result'
+  | 'project:scan_result'
+  | 'decompose:progress'
+  | 'decompose:result'
+  | OrchestratorOutgoingMessage
   | 'pong'
   | 'error';
+
+// ============================================
+// File Browser
+// ============================================
+
+export interface FileBrowseRequest {
+  requestId: string;
+  path?: string;
+  dirsOnly?: boolean;
+  showHidden?: boolean;
+}
+
+export interface FileBrowseEntry {
+  name: string;
+  type: 'directory' | 'file';
+  size?: number;
+  modifiedAt?: string;
+}
+
+export interface FileBrowseResult {
+  requestId: string;
+  path: string;
+  homePath: string;
+  entries: FileBrowseEntry[];
+  error?: string;
+}
 
 // ============================================
 // Skills & MCP
@@ -344,9 +381,165 @@ export interface AgentEvents {
   stopped: () => void;
   error: (error: Error) => void;
   sessionCreated: (session: Session) => void;
+  sessionRecovered: (data: { sessionId: string }) => void;
   sessionEnded: (data: { sessionId: string; exitCode: number }) => void;
   output: (data: SessionOutput) => void;
   status: (data: { sessionId: string; status: SessionStatus }) => void;
+  message: (msg: { type: string; payload: unknown }) => void;
+  synced: () => void;
+  taskClaimed: (task: unknown) => void;
+  taskCompleted: (task: unknown) => void;
+  exit: (data: { sessionId: string; exitCode: number }) => void;
+  maxReconnectReached: () => void;
+  projectUpdated: (data: { projectId: string }) => void;
+  fileLocked: (data: { projectId: string; path: string }) => void;
+  fileUnlocked: (data: { projectId: string; path: string }) => void;
+  fullSync: () => void;
+}
+
+// ============================================
+// Orchestrator
+// ============================================
+
+export interface OrchestratorConfig {
+  /** Project ID to orchestrate */
+  projectId: string;
+  /** Project path on disk */
+  projectPath: string;
+  /** Min workers (always running) */
+  minWorkers: number;
+  /** Max workers (hard cap) */
+  maxWorkers: number;
+  /** Polling interval for new tasks (ms) */
+  pollIntervalMs: number;
+  /** Worker idle timeout before termination (ms) */
+  workerIdleTimeoutMs: number;
+  /** Whether to auto-scale based on pending tasks */
+  autoScale: boolean;
+}
+
+export type OrchestratorStatus = 'idle' | 'running' | 'stopping' | 'stopped';
+
+export interface OrchestratorState {
+  status: OrchestratorStatus;
+  projectId: string;
+  workers: WorkerInfo[];
+  pendingTasks: number;
+  completedTasks: number;
+  startedAt?: Date;
+}
+
+export interface WorkerInfo {
+  id: string;
+  sessionId: string;
+  status: WorkerStatus;
+  currentTaskId?: string;
+  currentTaskTitle?: string;
+  tasksCompleted: number;
+  startedAt: Date;
+  lastActivityAt: Date;
+}
+
+export type WorkerStatus =
+  | 'starting'
+  | 'idle'
+  | 'claiming'
+  | 'executing'
+  | 'completing'
+  | 'stopping'
+  | 'exited';
+
+export interface WorkerResult {
+  workerId: string;
+  taskId: string;
+  success: boolean;
+  summary?: string;
+  filesModified?: string[];
+  exitCode?: number;
+  error?: string;
+}
+
+// ============================================
+// Project Scan
+// ============================================
+
+export interface ProjectScanRequest {
+  requestId: string;
+  path: string;
+}
+
+export interface ProjectScanResult {
+  requestId: string;
+  projectName: string;
+  techStack: string[];
+  hasGit: boolean;
+  readme: string | null;
+  structure: string[];
+  error?: string;
+}
+
+// Orchestrator WS message types (server → agent)
+export type OrchestratorIncomingMessage =
+  | 'orchestrator:start'
+  | 'orchestrator:stop'
+  | 'orchestrator:status'
+  | 'orchestrator:scale';
+
+// Orchestrator WS message types (agent → server)
+export type OrchestratorOutgoingMessage =
+  | 'orchestrator:started'
+  | 'orchestrator:stopped'
+  | 'orchestrator:state'
+  | 'orchestrator:worker_spawned'
+  | 'orchestrator:worker_exited'
+  | 'orchestrator:task_claimed'
+  | 'orchestrator:task_completed'
+  | 'orchestrator:error';
+
+// ============================================
+// Decomposition (PRD → Master Plan)
+// ============================================
+
+export interface DecomposeStartPayload {
+  projectId: string;
+  projectPath: string;
+  prompt: string;
+  credentialEnv?: Record<string, string>;
+}
+
+export interface DecomposeProgressPayload {
+  projectId: string;
+  output: string;
+  percent?: number;
+}
+
+export interface DecomposeResultPayload {
+  projectId: string;
+  success: boolean;
+  plan?: MasterPlan;
+  error?: string;
+}
+
+export interface MasterPlan {
+  version: 1;
+  prd_summary: string;
+  waves: MasterPlanWave[];
+}
+
+export interface MasterPlanWave {
+  id: number;
+  name: string;
+  description: string;
+  tasks: MasterPlanTask[];
+}
+
+export interface MasterPlanTask {
+  title: string;
+  description: string;
+  priority: TaskPriority;
+  files: string[];
+  estimated_tokens?: number;
+  depends_on: string[];
 }
 
 // ============================================

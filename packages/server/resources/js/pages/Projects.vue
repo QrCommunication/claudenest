@@ -27,6 +27,6 @@ onMounted(() => {
 }
 
 .projects-redirect p {
-  @apply mt-4 text-gray-400;
+  @apply mt-4 text-skin-secondary;
 }
 </style>

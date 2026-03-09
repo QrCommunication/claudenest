@@ -14,6 +14,7 @@ import { SkillsScreen } from '@/screens/config/SkillsScreen';
 import { MCPServersScreen } from '@/screens/config/MCPServersScreen';
 import { CommandsScreen } from '@/screens/config/CommandsScreen';
 import { AboutScreen } from '@/screens/settings/AboutScreen';
+import { CredentialsScreen } from '@/screens/settings/CredentialsScreen';
 
 const Stack = createNativeStackNavigator<SettingsStackParamList>();
 
@@ -52,6 +53,11 @@ export const SettingsNavigator: React.FC = () => {
         name="Commands"
         component={CommandsScreen}
         options={{ title: 'Commands' }}
+      />
+      <Stack.Screen
+        name="Credentials"
+        component={CredentialsScreen}
+        options={{ title: 'Credentials' }}
       />
       <Stack.Screen
         name="About"

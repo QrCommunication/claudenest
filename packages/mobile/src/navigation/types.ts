@@ -53,6 +53,7 @@ export type SettingsStackParamList = {
   Skills: { machineId: string };
   MCPServers: { machineId: string };
   Commands: { machineId: string };
+  Credentials: undefined;
   About: undefined;
 };
 

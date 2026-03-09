@@ -30,9 +30,9 @@
       <!-- Loading State -->
       <div v-if="isLoading" class="loading-overlay">
         <div class="loading-spinner"></div>
-        <span>Loading session...</span>
+        <span>{{ $t('sessions.terminal.loading_session') }}</span>
       </div>
-      
+
       <!-- Error State -->
       <div v-else-if="error" class="error-overlay">
         <svg class="error-icon" viewBox="0 0 20 20" fill="currentColor">
@@ -40,38 +40,38 @@
         </svg>
         <p>{{ error }}</p>
         <button class="retry-btn" @click="loadSession">
-          Retry
+          {{ $t('sessions.terminal.retry') }}
         </button>
         <button class="back-btn" @click="handleBack">
-          Back to Sessions
+          {{ $t('sessions.terminal.back_to_sessions') }}
         </button>
       </div>
-      
-      <!-- Session Not Running -->
-      <div v-else-if="session && !session.is_running && !hasConnected" class="not-running-overlay">
+
+      <!-- Session Completed/Terminated -->
+      <div v-else-if="session && session.is_completed && !hasConnected" class="not-running-overlay">
         <svg class="info-icon" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
         </svg>
-        <h3>Session {{ session.status }}</h3>
-        <p>This session is not currently running.</p>
+        <h3>{{ $t('sessions.terminal.session_status', { status: session.status }) }}</h3>
+        <p>{{ $t('sessions.terminal.not_running') }}</p>
         <div class="session-details">
           <div class="detail-item">
-            <span class="detail-label">Mode:</span>
+            <span class="detail-label">{{ $t('sessions.terminal.mode_label') }}</span>
             <span class="detail-value">{{ session.mode }}</span>
           </div>
           <div v-if="session.formatted_duration" class="detail-item">
-            <span class="detail-label">Duration:</span>
+            <span class="detail-label">{{ $t('sessions.terminal.duration_label') }}</span>
             <span class="detail-value">{{ session.formatted_duration }}</span>
           </div>
           <div v-if="session.exit_code !== null" class="detail-item">
-            <span class="detail-label">Exit Code:</span>
+            <span class="detail-label">{{ $t('sessions.terminal.exit_code_label') }}</span>
             <span class="detail-value" :class="{ 'text-error': session.exit_code !== 0 }">
               {{ session.exit_code }}
             </span>
           </div>
         </div>
         <button class="back-btn" @click="handleBack">
-          Back to Sessions
+          {{ $t('sessions.terminal.back_to_sessions') }}
         </button>
       </div>
       
@@ -91,9 +91,9 @@
     <!-- Reconnect Toast -->
     <Transition name="slide-up">
       <div v-if="showReconnectToast" class="reconnect-toast">
-        <span>Connection lost. Reconnecting...</span>
+        <span>{{ $t('sessions.terminal.connection_lost') }}</span>
         <button class="reconnect-btn" @click="handleManualReconnect">
-          Reconnect Now
+          {{ $t('sessions.terminal.reconnect_now') }}
         </button>
       </div>
     </Transition>
@@ -103,9 +103,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import XtermTerminal from '@/components/terminal/XtermTerminal.vue';
 import TerminalHeader from '@/components/terminal/TerminalHeader.vue';
 import { useSessionsStore } from '@/stores/sessions';
+import { useTabs } from '@/composables/useTabs';
 import type { Session } from '@/types';
 
 // ============================================================================
@@ -114,7 +116,9 @@ import type { Session } from '@/types';
 
 const route = useRoute();
 const router = useRouter();
+const { t } = useI18n();
 const sessionsStore = useSessionsStore();
+const { openTab } = useTabs();
 
 // ============================================================================
 // State
@@ -149,14 +153,8 @@ async function loadSession(): Promise<void> {
   
   try {
     await sessionsStore.fetchSession(sessionId.value);
-    
-    // If session has recent logs, they will be loaded
-    const currentSession = sessionsStore.currentSession;
-    if (currentSession?.recent_logs && currentSession.recent_logs.length > 0) {
-      // Logs are already in the session object
-    }
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Failed to load session';
+    error.value = err instanceof Error ? err.message : t('sessions.terminal.loading_session');
   } finally {
     isLoading.value = false;
   }
@@ -173,7 +171,7 @@ async function handleTerminate(): Promise<void> {
     await sessionsStore.terminateSession(sessionId.value);
   } catch (err) {
     console.error('Failed to terminate session:', err);
-    alert('Failed to terminate session. Please try again.');
+    alert(t('sessions.terminal.terminate_failed'));
   }
 }
 
@@ -197,6 +195,14 @@ function handleFit(): void {
 }
 
 function handleConnected(): void {
+  // Replay recent_logs into terminal on first connection
+  if (!hasConnected.value) {
+    const logs = sessionsStore.currentSession?.recent_logs;
+    if (logs && logs.length > 0) {
+      terminalRef.value?.writeInitialLogs(logs);
+    }
+  }
+
   hasConnected.value = true;
   showReconnectToast.value = false;
   reconnectAttempts.value = 0;
@@ -223,7 +229,7 @@ function handleTerminalError(err: Error): void {
     showReconnectToast.value = true;
     reconnectAttempts.value++;
   } else {
-    error.value = 'Connection failed after multiple attempts. Please try again later.';
+    error.value = t('sessions.terminal.connection_failed');
   }
 }
 
@@ -243,21 +249,43 @@ function handleStatusChange(status: string): void {
 
 onMounted(() => {
   loadSession();
-  
+
+  // Register as a terminal tab in the IDE tab bar
+  openTab({
+    type: 'terminal',
+    label: `Terminal ${sessionId.value.slice(0, 8)}`,
+    icon: 'terminal',
+    path: `/sessions/${sessionId.value}`,
+    closable: true,
+    meta: { sessionId: sessionId.value },
+  });
+
   // Poll for session status updates
-  const interval = setInterval(async () => {
-    if (session.value?.is_running) {
+  // Fast poll (2s) during startup, normal (5s) when running
+  let pollTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function schedulePoll(): void {
+    const s = session.value;
+    if (!s || s.is_completed) return;
+
+    const isStarting = ['created', 'starting'].includes(s.status);
+    const delay = isStarting ? 2000 : 5000;
+
+    pollTimer = setTimeout(async () => {
       try {
         await sessionsStore.fetchSession(sessionId.value);
       } catch (e) {
         // Ignore errors during polling
       }
-    }
-  }, 5000);
-  
+      schedulePoll();
+    }, delay);
+  }
+
+  schedulePoll();
+
   // Cleanup
   onUnmounted(() => {
-    clearInterval(interval);
+    if (pollTimer) clearTimeout(pollTimer);
     terminalRef.value?.disconnect();
     sessionsStore.clearCurrentSession();
   });
@@ -272,6 +300,13 @@ watch(() => route.params.id, (newId) => {
     loadSession();
   }
 });
+
+// When session becomes running, trigger terminal connect
+watch(() => session.value?.is_running, (isRunning, wasRunning) => {
+  if (isRunning && !wasRunning && !hasConnected.value && terminalRef.value) {
+    terminalRef.value.connect();
+  }
+});
 </script>
 
 <style scoped>
@@ -280,7 +315,7 @@ watch(() => route.params.id, (newId) => {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: #0f0f1a;
+  background: var(--bg-primary, var(--surface-1));
   overflow: hidden;
 }
 
@@ -291,14 +326,14 @@ watch(() => route.params.id, (newId) => {
   gap: 16px;
   height: 56px;
   padding: 0 16px;
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(99, 102, 241, 0.1));
-  border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent), color-mix(in srgb, var(--accent-indigo, #6366f1) 10%, transparent));
+  border-bottom: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
 }
 
 .skeleton-back {
   width: 36px;
   height: 36px;
-  background: rgba(168, 85, 247, 0.2);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
   border-radius: 8px;
   animation: pulse 2s infinite;
 }
@@ -312,7 +347,7 @@ watch(() => route.params.id, (newId) => {
 .skeleton-title {
   width: 120px;
   height: 16px;
-  background: rgba(168, 85, 247, 0.2);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
   border-radius: 4px;
   animation: pulse 2s infinite;
 }
@@ -320,7 +355,7 @@ watch(() => route.params.id, (newId) => {
 .skeleton-meta {
   width: 200px;
   height: 12px;
-  background: rgba(168, 85, 247, 0.15);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 15%, transparent);
   border-radius: 4px;
   animation: pulse 2s infinite;
 }
@@ -351,15 +386,15 @@ watch(() => route.params.id, (newId) => {
   align-items: center;
   justify-content: center;
   gap: 16px;
-  background: #0f0f1a;
-  color: #565f89;
+  background: var(--bg-primary, var(--surface-1));
+  color: var(--text-muted);
 }
 
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid rgba(168, 85, 247, 0.2);
-  border-top-color: #a855f7;
+  border: 3px solid color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
+  border-top-color: var(--accent-purple, #a855f7);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -379,7 +414,7 @@ watch(() => route.params.id, (newId) => {
   align-items: center;
   justify-content: center;
   gap: 16px;
-  background: #0f0f1a;
+  background: var(--bg-primary, var(--surface-1));
   text-align: center;
   padding: 32px;
 }
@@ -387,22 +422,22 @@ watch(() => route.params.id, (newId) => {
 .error-icon {
   width: 48px;
   height: 48px;
-  color: #ef4444;
+  color: var(--status-error, #ef4444);
 }
 
 .error-overlay p {
   margin: 0;
-  color: #ef4444;
+  color: var(--status-error, #ef4444);
   font-size: 14px;
   max-width: 400px;
 }
 
 .retry-btn {
   padding: 10px 24px;
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: color-mix(in srgb, var(--status-error, #ef4444) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--status-error, #ef4444) 30%, transparent);
   border-radius: 8px;
-  color: #ef4444;
+  color: var(--status-error, #ef4444);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -410,7 +445,7 @@ watch(() => route.params.id, (newId) => {
 }
 
 .retry-btn:hover {
-  background: rgba(239, 68, 68, 0.25);
+  background: color-mix(in srgb, var(--status-error, #ef4444) 25%, transparent);
 }
 
 /* Not Running Overlay */
@@ -422,7 +457,7 @@ watch(() => route.params.id, (newId) => {
   align-items: center;
   justify-content: center;
   gap: 16px;
-  background: #0f0f1a;
+  background: var(--bg-primary, var(--surface-1));
   text-align: center;
   padding: 32px;
 }
@@ -430,19 +465,19 @@ watch(() => route.params.id, (newId) => {
 .info-icon {
   width: 48px;
   height: 48px;
-  color: #a855f7;
+  color: var(--accent-purple, #a855f7);
 }
 
 .not-running-overlay h3 {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
-  color: #c0caf5;
+  color: var(--text-primary);
 }
 
 .not-running-overlay p {
   margin: 0;
-  color: #565f89;
+  color: var(--text-muted);
   font-size: 14px;
 }
 
@@ -452,8 +487,8 @@ watch(() => route.params.id, (newId) => {
   gap: 8px;
   margin: 16px 0;
   padding: 16px 24px;
-  background: rgba(168, 85, 247, 0.05);
-  border: 1px solid rgba(168, 85, 247, 0.15);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 15%, transparent);
   border-radius: 8px;
 }
 
@@ -464,24 +499,24 @@ watch(() => route.params.id, (newId) => {
 }
 
 .detail-label {
-  color: #565f89;
+  color: var(--text-muted);
 }
 
 .detail-value {
-  color: #c0caf5;
+  color: var(--text-primary);
   font-family: 'JetBrains Mono', monospace;
 }
 
 .text-error {
-  color: #ef4444;
+  color: var(--status-error, #ef4444);
 }
 
 .back-btn {
   padding: 10px 24px;
-  background: rgba(168, 85, 247, 0.15);
-  border: 1px solid rgba(168, 85, 247, 0.3);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 30%, transparent);
   border-radius: 8px;
-  color: #a855f7;
+  color: var(--accent-purple, #a855f7);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -489,7 +524,7 @@ watch(() => route.params.id, (newId) => {
 }
 
 .back-btn:hover {
-  background: rgba(168, 85, 247, 0.25);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 25%, transparent);
 }
 
 /* Reconnect Toast */
@@ -502,20 +537,20 @@ watch(() => route.params.id, (newId) => {
   align-items: center;
   gap: 16px;
   padding: 12px 20px;
-  background: rgba(245, 158, 11, 0.15);
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: color-mix(in srgb, var(--status-warning, #f59e0b) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--status-warning, #f59e0b) 30%, transparent);
   border-radius: 8px;
-  color: #f59e0b;
+  color: var(--status-warning, #f59e0b);
   font-size: 14px;
   z-index: 1000;
 }
 
 .reconnect-btn {
   padding: 6px 12px;
-  background: rgba(245, 158, 11, 0.2);
-  border: 1px solid rgba(245, 158, 11, 0.4);
+  background: color-mix(in srgb, var(--status-warning, #f59e0b) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--status-warning, #f59e0b) 40%, transparent);
   border-radius: 6px;
-  color: #f59e0b;
+  color: var(--status-warning, #f59e0b);
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
@@ -523,7 +558,7 @@ watch(() => route.params.id, (newId) => {
 }
 
 .reconnect-btn:hover {
-  background: rgba(245, 158, 11, 0.3);
+  background: color-mix(in srgb, var(--status-warning, #f59e0b) 30%, transparent);
 }
 
 /* Transitions */

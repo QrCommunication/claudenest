@@ -20,12 +20,12 @@ export function createContextHandlers(context: HandlerContext) {
   /**
    * Handle context:get
    */
-  async function handleContextGet(payload: { 
+  async function handleContextGet(payload: {
     projectId: string;
     query: string;
     limit?: number;
   }): Promise<void> {
-    logger.debug('Handling context:get', { projectId: payload.projectId });
+    logger.debug({ projectId: payload.projectId }, 'Handling context:get');
 
     try {
       const query: ContextQuery = {
@@ -51,7 +51,7 @@ export function createContextHandlers(context: HandlerContext) {
         })),
       });
     } catch (error) {
-      logger.error('Failed to get context', { error });
+      logger.error({ err: error }, 'Failed to get context');
       wsClient.send('error', {
         originalType: 'context:get',
         projectId: payload.projectId,
@@ -70,7 +70,7 @@ export function createContextHandlers(context: HandlerContext) {
     files?: string[];
     importanceScore?: number;
   }): Promise<void> {
-    logger.debug('Handling context:update', { projectId: payload.projectId });
+    logger.debug({ projectId: payload.projectId }, 'Handling context:update');
 
     try {
       const update: ContextUpdate = {
@@ -90,7 +90,7 @@ export function createContextHandlers(context: HandlerContext) {
         status: 'pending',
       });
     } catch (error) {
-      logger.error('Failed to update context', { error });
+      logger.error({ err: error }, 'Failed to update context');
       wsClient.send('error', {
         originalType: 'context:update',
         projectId: payload.projectId,
@@ -105,7 +105,7 @@ export function createContextHandlers(context: HandlerContext) {
   async function handleGetProjectContext(payload: {
     projectId: string;
   }): Promise<void> {
-    logger.debug('Handling context:get_project', { projectId: payload.projectId });
+    logger.debug({ projectId: payload.projectId }, 'Handling context:get_project');
 
     try {
       const projectContext = await contextClient.getProjectContext(payload.projectId);
@@ -125,7 +125,7 @@ export function createContextHandlers(context: HandlerContext) {
         context: projectContext,
       });
     } catch (error) {
-      logger.error('Failed to get project context', { error });
+      logger.error({ err: error }, 'Failed to get project context');
       wsClient.send('error', {
         originalType: 'context:get_project',
         projectId: payload.projectId,
@@ -147,7 +147,7 @@ export function createContextHandlers(context: HandlerContext) {
       recentChanges?: string;
     };
   }): Promise<void> {
-    logger.debug('Handling context:update_project', { projectId: payload.projectId });
+    logger.debug({ projectId: payload.projectId }, 'Handling context:update_project');
 
     try {
       const updated = await contextClient.updateProjectContext(
@@ -160,7 +160,7 @@ export function createContextHandlers(context: HandlerContext) {
         context: updated,
       });
     } catch (error) {
-      logger.error('Failed to update project context', { error });
+      logger.error({ err: error }, 'Failed to update project context');
       wsClient.send('error', {
         originalType: 'context:update_project',
         projectId: payload.projectId,
@@ -175,7 +175,7 @@ export function createContextHandlers(context: HandlerContext) {
   async function handleListTasks(payload: {
     projectId: string;
   }): Promise<void> {
-    logger.debug('Handling tasks:list', { projectId: payload.projectId });
+    logger.debug({ projectId: payload.projectId }, 'Handling tasks:list');
 
     try {
       const tasks = await contextClient.getTasks(payload.projectId);
@@ -194,7 +194,7 @@ export function createContextHandlers(context: HandlerContext) {
         })),
       });
     } catch (error) {
-      logger.error('Failed to list tasks', { error });
+      logger.error({ err: error }, 'Failed to list tasks');
       wsClient.send('error', {
         originalType: 'tasks:list',
         projectId: payload.projectId,
@@ -209,7 +209,7 @@ export function createContextHandlers(context: HandlerContext) {
   async function handleTaskClaim(payload: {
     taskId: string;
   }): Promise<void> {
-    logger.debug('Handling task:claim', { taskId: payload.taskId });
+    logger.debug({ taskId: payload.taskId }, 'Handling task:claim');
 
     try {
       const task = await contextClient.claimTask(payload.taskId, instanceId);
@@ -221,7 +221,7 @@ export function createContextHandlers(context: HandlerContext) {
         claimedAt: task.claimedAt,
       });
     } catch (error) {
-      logger.error('Failed to claim task', { error });
+      logger.error({ err: error }, 'Failed to claim task');
       wsClient.send('error', {
         originalType: 'task:claim',
         taskId: payload.taskId,
@@ -238,7 +238,7 @@ export function createContextHandlers(context: HandlerContext) {
     summary: string;
     filesModified: string[];
   }): Promise<void> {
-    logger.debug('Handling task:complete', { taskId: payload.taskId });
+    logger.debug({ taskId: payload.taskId }, 'Handling task:complete');
 
     try {
       const task = await contextClient.completeTask(
@@ -255,7 +255,7 @@ export function createContextHandlers(context: HandlerContext) {
         filesModified: task.filesModified,
       });
     } catch (error) {
-      logger.error('Failed to complete task', { error });
+      logger.error({ err: error }, 'Failed to complete task');
       wsClient.send('error', {
         originalType: 'task:complete',
         taskId: payload.taskId,
@@ -273,10 +273,10 @@ export function createContextHandlers(context: HandlerContext) {
     reason?: string;
     durationMinutes?: number;
   }): Promise<void> {
-    logger.debug('Handling file:lock', { 
-      projectId: payload.projectId, 
-      path: payload.path 
-    });
+    logger.debug({
+      projectId: payload.projectId,
+      path: payload.path
+    }, 'Handling file:lock');
 
     try {
       const lock = await contextClient.lockFile(
@@ -296,7 +296,7 @@ export function createContextHandlers(context: HandlerContext) {
         expiresAt: lock.expiresAt,
       });
     } catch (error) {
-      logger.error('Failed to lock file', { error });
+      logger.error({ err: error }, 'Failed to lock file');
       wsClient.send('error', {
         originalType: 'file:lock',
         projectId: payload.projectId,
@@ -313,10 +313,10 @@ export function createContextHandlers(context: HandlerContext) {
     projectId: string;
     path: string;
   }): Promise<void> {
-    logger.debug('Handling file:unlock', { 
-      projectId: payload.projectId, 
-      path: payload.path 
-    });
+    logger.debug({
+      projectId: payload.projectId,
+      path: payload.path
+    }, 'Handling file:unlock');
 
     try {
       await contextClient.unlockFile(payload.projectId, payload.path);
@@ -327,7 +327,7 @@ export function createContextHandlers(context: HandlerContext) {
         locked: false,
       });
     } catch (error) {
-      logger.error('Failed to unlock file', { error });
+      logger.error({ err: error }, 'Failed to unlock file');
       wsClient.send('error', {
         originalType: 'file:unlock',
         projectId: payload.projectId,
@@ -344,10 +344,10 @@ export function createContextHandlers(context: HandlerContext) {
     projectId: string;
     path: string;
   }): Promise<void> {
-    logger.debug('Handling file:check_lock', { 
-      projectId: payload.projectId, 
-      path: payload.path 
-    });
+    logger.debug({
+      projectId: payload.projectId,
+      path: payload.path
+    }, 'Handling file:check_lock');
 
     try {
       const lock = contextClient.isFileLocked(payload.projectId, payload.path);
@@ -364,7 +364,7 @@ export function createContextHandlers(context: HandlerContext) {
         } : null,
       });
     } catch (error) {
-      logger.error('Failed to check file lock', { error });
+      logger.error({ err: error }, 'Failed to check file lock');
       wsClient.send('error', {
         originalType: 'file:check_lock',
         projectId: payload.projectId,
@@ -381,7 +381,7 @@ export function createContextHandlers(context: HandlerContext) {
     projectId: string;
     message: string;
   }): Promise<void> {
-    logger.debug('Handling broadcast', { projectId: payload.projectId });
+    logger.debug({ projectId: payload.projectId }, 'Handling broadcast');
 
     try {
       await contextClient.broadcast(payload.projectId, payload.message, instanceId);
@@ -391,7 +391,7 @@ export function createContextHandlers(context: HandlerContext) {
         message: payload.message,
       });
     } catch (error) {
-      logger.error('Failed to broadcast', { error });
+      logger.error({ err: error }, 'Failed to broadcast');
       wsClient.send('error', {
         originalType: 'broadcast',
         projectId: payload.projectId,

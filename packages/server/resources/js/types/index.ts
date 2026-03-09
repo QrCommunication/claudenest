@@ -1,12 +1,20 @@
 // ==================== IMPORTS ====================
 import type { TaskStatus, TaskPriority } from './multiagent';
 
+// ==================== UI TYPES ====================
+
+export interface BreadcrumbItem {
+  label: string;
+  to?: string;
+  icon?: string;
+}
+
 // ==================== ENUMS & CONSTANTS ====================
 
 export type MachineStatus = 'online' | 'offline' | 'connecting';
 export type MachinePlatform = 'darwin' | 'win32' | 'linux';
 export type SessionStatus = 'created' | 'starting' | 'running' | 'waiting_input' | 'completed' | 'error' | 'terminated';
-export type SessionMode = 'interactive' | 'headless' | 'oneshot';
+export type SessionMode = 'interactive' | 'headless' | 'oneshot' | 'bash';
 export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error' | 'reconnecting';
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
 
@@ -35,6 +43,7 @@ export interface Machine {
   updated_at: string;
   last_seen_human: string | null;
   created_at_human: string;
+  connected_at_human?: string | null;
 }
 
 export interface MachineEnvironment {
@@ -74,6 +83,8 @@ export interface Session {
   is_completed: boolean;
   command_count?: number;
   ended_at?: string;
+  machine?: Machine;
+  recent_logs?: SessionLog[];
 }
 
 export interface SessionLog {
@@ -89,6 +100,7 @@ export interface CreateSessionPayload {
   mode?: SessionMode;
   project_path?: string;
   initial_prompt?: string;
+  credential_id?: string;
   pty_size?: { cols: number; rows: number };
 }
 
@@ -254,6 +266,50 @@ export interface ResetPasswordData {
   password_confirmation: string;
 }
 
+// ==================== CREDENTIALS ====================
+
+export type AuthType = 'api_key' | 'oauth';
+export type ClaudeDirMode = 'shared' | 'isolated';
+export type TokenStatus = 'ok' | 'missing' | 'needs_login' | 'expired';
+
+export interface Credential {
+  id: string;
+  name: string;
+  auth_type: AuthType;
+  claude_dir_mode: ClaudeDirMode;
+  is_default: boolean;
+  masked_key: string | null;
+  token_status: TokenStatus;
+  is_expired: boolean;
+  has_refresh_token: boolean;
+  expires_at: string | null;
+  last_used_at: string | null;
+  created_at: string;
+  updated_at: string;
+  sessions_count?: number;
+  api_key?: string;
+}
+
+export interface CreateCredentialForm {
+  name: string;
+  auth_type: AuthType;
+  api_key?: string;
+  access_token?: string;
+  refresh_token?: string;
+  expires_at?: number;
+  claude_dir_mode?: ClaudeDirMode;
+}
+
+export interface UpdateCredentialForm {
+  name?: string;
+  auth_type?: AuthType;
+  api_key?: string;
+  access_token?: string;
+  refresh_token?: string;
+  expires_at?: number;
+  claude_dir_mode?: ClaudeDirMode;
+}
+
 // ==================== FORM TYPES ====================
 
 export interface CreateMachineForm {
@@ -336,12 +392,11 @@ export interface SelectOption {
 }
 
 // ==================== ACTIVITY TYPES ====================
-
-export type ActivityType = 'session_start' | 'session_end' | 'task_complete' | 'machine_connect' | 'machine_disconnect' | 'skill_run';
+// ActivityType and ActivityLog are defined in multiagent.ts and re-exported below
 
 export interface Activity {
   id: string;
-  type: ActivityType;
+  type: string;
   description: string;
   timestamp: string;
   metadata?: Record<string, unknown>;

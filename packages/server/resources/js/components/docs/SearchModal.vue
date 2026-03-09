@@ -188,8 +188,8 @@ const selectResult = (result: { type: 'nav' | 'endpoint'; data: any }) => {
 .search-container {
   width: 100%;
   max-width: 640px;
-  background: #1a1b26;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-secondary, var(--surface-2));
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 16px;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   overflow: hidden;
@@ -200,13 +200,13 @@ const selectResult = (result: { type: 'nav' | 'endpoint'; data: any }) => {
   align-items: center;
   gap: 0.75rem;
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-color, var(--border));
 }
 
 .search-icon {
   width: 20px;
   height: 20px;
-  color: #64748b;
+  color: var(--text-muted);
   flex-shrink: 0;
 }
 
@@ -214,22 +214,22 @@ const selectResult = (result: { type: 'nav' | 'endpoint'; data: any }) => {
   flex: 1;
   background: transparent;
   border: none;
-  color: #ffffff;
+  color: var(--text-primary);
   font-size: 1rem;
   outline: none;
 }
 
 .search-input::placeholder {
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .shortcut-hint {
   font-family: inherit;
   font-size: 0.7rem;
   padding: 0.25rem 0.5rem;
-  background: rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--text-primary) 10%, transparent);
   border-radius: 4px;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 /* Results */
@@ -255,7 +255,7 @@ const selectResult = (result: { type: 'nav' | 'endpoint'; data: any }) => {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #64748b;
+  color: var(--text-muted);
   margin: 0 0 0.75rem;
 }
 
@@ -267,7 +267,7 @@ const selectResult = (result: { type: 'nav' | 'endpoint'; data: any }) => {
 
 .quick-links a {
   padding: 0.5rem 0.75rem;
-  color: #a9b1d6;
+  color: var(--text-secondary);
   text-decoration: none;
   border-radius: 8px;
   font-size: 0.9rem;
@@ -275,8 +275,8 @@ const selectResult = (result: { type: 'nav' | 'endpoint'; data: any }) => {
 }
 
 .quick-links a:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: #ffffff;
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
+  color: var(--text-primary);
 }
 
 /* Results List */
@@ -296,7 +296,7 @@ const selectResult = (result: { type: 'nav' | 'endpoint'; data: any }) => {
 
 .result-item:hover,
 .result-item.is-active {
-  background: rgba(168, 85, 247, 0.1);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
 }
 
 .result-icon {
@@ -305,7 +305,7 @@ const selectResult = (result: { type: 'nav' | 'endpoint'; data: any }) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.05);
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
   border-radius: 8px;
   flex-shrink: 0;
 }
@@ -313,7 +313,7 @@ const selectResult = (result: { type: 'nav' | 'endpoint'; data: any }) => {
 .result-icon.nav svg {
   width: 18px;
   height: 18px;
-  color: #a855f7;
+  color: var(--accent-purple, #a855f7);
 }
 
 .result-icon.endpoint span {
@@ -329,7 +329,7 @@ const selectResult = (result: { type: 'nav' | 'endpoint'; data: any }) => {
 
 .result-title {
   font-weight: 500;
-  color: #ffffff;
+  color: var(--text-primary);
   font-size: 0.9rem;
   white-space: nowrap;
   overflow: hidden;
@@ -338,7 +338,7 @@ const selectResult = (result: { type: 'nav' | 'endpoint'; data: any }) => {
 
 .result-subtitle {
   font-size: 0.8rem;
-  color: #64748b;
+  color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -350,15 +350,15 @@ const selectResult = (result: { type: 'nav' | 'endpoint'; data: any }) => {
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--border-color, var(--border));
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .nav-hint kbd {
   font-family: inherit;
   padding: 0.1rem 0.3rem;
-  background: rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--text-primary) 10%, transparent);
   border-radius: 4px;
   margin: 0 0.125rem;
 }
@@ -376,17 +376,17 @@ const selectResult = (result: { type: 'nav' | 'endpoint'; data: any }) => {
 .no-results svg {
   width: 48px;
   height: 48px;
-  color: #3b4261;
+  color: var(--text-muted);
   margin-bottom: 1rem;
 }
 
 .no-results p {
-  color: #a9b1d6;
+  color: var(--text-secondary);
   margin: 0 0 0.5rem;
 }
 
 .no-results span {
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.85rem;
 }
 

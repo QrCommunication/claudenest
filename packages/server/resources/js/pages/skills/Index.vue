@@ -3,26 +3,27 @@
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-white">Skills</h1>
-        <p class="text-dark-4 mt-1">Manage discovered skills and their configurations</p>
+        <h1 class="text-2xl font-bold text-skin-primary">Skills</h1>
+        <p class="text-skin-secondary mt-1">Manage discovered skills and their configurations</p>
       </div>
       <div class="flex items-center gap-3">
+        <MachineSelector />
         <Badge variant="info" size="md">
           {{ skillsStore.pagination.total }} total
         </Badge>
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           @click="refreshSkills"
           :loading="skillsStore.isLoading"
         >
-          <RefreshCwIcon class="w-4 h-4 mr-2" />
+          <RefreshCwIcon class="w-4 h-4" />
           Refresh
         </Button>
-        <Button 
-          variant="primary" 
+        <Button
+          variant="primary"
           @click="createSkill"
         >
-          <PlusIcon class="w-4 h-4 mr-2" />
+          <PlusIcon class="w-4 h-4" />
           New Skill
         </Button>
       </div>
@@ -38,7 +39,7 @@
           class="w-full"
         >
           <template #left-icon>
-            <SearchIcon class="w-4 h-4 text-dark-4" />
+            <SearchIcon class="w-4 h-4 text-skin-secondary" />
           </template>
         </Input>
       </div>
@@ -65,7 +66,7 @@
           'px-3 py-1.5 rounded-lg text-sm transition-colors',
           selectedCategory === stat.category
             ? 'bg-brand-purple text-white'
-            : 'bg-dark-2 text-dark-4 hover:bg-dark-3'
+            : 'bg-surface-2 text-skin-secondary hover:bg-surface-3'
         ]"
         @click="selectedCategory = selectedCategory === stat.category ? '' : stat.category"
       >
@@ -80,13 +81,13 @@
     </div>
 
     <div v-else-if="filteredSkills.length === 0" class="text-center py-12">
-      <ZapIcon class="w-12 h-12 text-dark-4 mx-auto mb-4" />
-      <h3 class="text-lg font-medium text-white mb-2">No skills found</h3>
-      <p class="text-dark-4 mb-4">
+      <ZapIcon class="w-12 h-12 text-skin-secondary mx-auto mb-4" />
+      <h3 class="text-lg font-medium text-skin-primary mb-2">No skills found</h3>
+      <p class="text-skin-secondary mb-4">
         {{ searchQuery ? 'Try adjusting your search filters' : 'Create your first skill to get started' }}
       </p>
       <Button variant="primary" @click="createSkill">
-        <PlusIcon class="w-4 h-4 mr-2" />
+        <PlusIcon class="w-4 h-4" />
         Create Skill
       </Button>
     </div>
@@ -115,7 +116,7 @@
         >
           <ChevronLeftIcon class="w-4 h-4" />
         </Button>
-        <span class="text-sm text-dark-4">
+        <span class="text-sm text-skin-secondary">
           Page {{ skillsStore.pagination.currentPage }} of {{ skillsStore.pagination.lastPage }}
         </span>
         <Button
@@ -142,11 +143,11 @@
         <SkillPreview
           :name="previewingSkill.name"
           :display-name="previewingSkill.display_name"
-          :description="previewingSkill.description"
+          :description="previewingSkill.description ?? undefined"
           :version="previewingSkill.version"
           :category="previewingSkill.category"
           :tags="previewingSkill.tags"
-          :content="previewingSkill.config?.content || ''"
+          :content="(previewingSkill.config?.content as string) || ''"
         />
       </div>
       
@@ -159,7 +160,7 @@
             variant="primary" 
             @click="editSkill(previewingSkill!)"
           >
-            <EditIcon class="w-4 h-4 mr-2" />
+            <EditIcon class="w-4 h-4" />
             Edit
           </Button>
         </div>
@@ -175,8 +176,8 @@
         </div>
       </template>
       
-      <p class="text-dark-4">
-        Are you sure you want to delete <strong class="text-white">{{ skillToDelete?.display_name }}</strong>? 
+      <p class="text-skin-secondary">
+        Are you sure you want to delete <strong class="text-skin-primary">{{ skillToDelete?.display_name }}</strong>? 
         This action cannot be undone.
       </p>
       
@@ -206,6 +207,7 @@ import { useMachinesStore } from '@/stores/machines';
 import { useToast } from '@/composables/useToast';
 import SkillCard from './SkillCard.vue';
 import SkillPreview from '@/components/skills/SkillPreview.vue';
+import MachineSelector from '@/components/common/MachineSelector.vue';
 import Input from '@/components/common/Input.vue';
 import Button from '@/components/common/Button.vue';
 import Badge from '@/components/common/Badge.vue';
@@ -228,7 +230,7 @@ import type { Skill } from '@/types';
 const router = useRouter();
 const skillsStore = useSkillsStore();
 const machinesStore = useMachinesStore();
-const { showToast } = useToast();
+const toast = useToast();
 
 const searchQuery = ref('');
 const selectedCategory = ref('');
@@ -300,13 +302,13 @@ async function loadSkills(): Promise<void> {
   try {
     await skillsStore.fetchSkills(currentMachineId.value);
   } catch {
-    showToast('Failed to load skills', 'error');
+    toast.error('Failed to load skills');
   }
 }
 
 async function refreshSkills(): Promise<void> {
   await loadSkills();
-  showToast('Skills refreshed', 'success');
+  toast.success('Skills refreshed');
 }
 
 function createSkill(): void {
@@ -327,9 +329,9 @@ async function toggleSkill(skill: Skill): Promise<void> {
   
   try {
     await skillsStore.toggleSkill(currentMachineId.value, skill.path);
-    showToast(`Skill ${skill.enabled ? 'disabled' : 'enabled'}`, 'success');
+    toast.success(`Skill ${skill.enabled ? 'disabled' : 'enabled'}`);
   } catch {
-    showToast('Failed to toggle skill', 'error');
+    toast.error('Failed to toggle skill');
   }
 }
 
@@ -345,10 +347,10 @@ async function deleteSkill(): Promise<void> {
   
   try {
     await skillsStore.deleteSkill(currentMachineId.value, skillToDelete.value.path);
-    showToast('Skill deleted successfully', 'success');
+    toast.success('Skill deleted successfully');
     showDeleteModal.value = false;
   } catch {
-    showToast('Failed to delete skill', 'error');
+    toast.error('Failed to delete skill');
   } finally {
     isDeleting.value = null;
     skillToDelete.value = null;

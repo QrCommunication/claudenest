@@ -13,7 +13,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius } from '@/theme';
 import { Button } from '@/components/common';
 import { useAuthStore } from '@/stores/authStore';

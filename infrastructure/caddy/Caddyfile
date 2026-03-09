@@ -1,28 +1,91 @@
-# ClaudeNest API and WebSocket
+# ClaudeNest API - serves both REST API and WebSocket
 api.claudenest.io {
-    reverse_proxy localhost:8000
-
-    @websocket {
-        header Connection *Upgrade*
-        header Upgrade websocket
+    # Match non-WebSocket routes for CORS and compression
+    @not_ws {
+        not path /ws/agent /ws/terminal /app/* /apps/*
     }
-    reverse_proxy @websocket localhost:8000
+
+    # CORS headers only for non-WebSocket routes
+    header @not_ws {
+        Access-Control-Allow-Origin "https://claudenest.io"
+        Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+        Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, X-Request-ID, X-Machine-Token, X-Machine-ID"
+        Access-Control-Allow-Credentials "true"
+        Access-Control-Max-Age "86400"
+    }
+
+    # Handle CORS preflight
+    @options method OPTIONS
+    respond @options 204
+
+    # WebSocket: Reverb handles /app/* and /apps/* paths
+    @reverb path /app/* /apps/*
+    handle @reverb {
+        reverse_proxy localhost:8080 {
+            flush_interval -1
+        }
+    }
+
+    # WebSocket: AgentServe endpoints → dedicated server on port 6001
+    # /ws/agent  = agent daemon connections (machine token auth)
+    # /ws/terminal = browser terminal input (Sanctum token auth)
+    @agentserve_ws path /ws/agent /ws/terminal
+    handle @agentserve_ws {
+        reverse_proxy localhost:6001 {
+            flush_interval -1
+        }
+    }
+
+    # Broadcasting auth (needed for private channels)
+    @broadcasting path /broadcasting/auth
+    handle @broadcasting {
+        reverse_proxy unix//run/php/php8.3-fpm.sock {
+            transport fastcgi {
+                root /var/www/claudenest/packages/server/public
+                split .php
+            }
+        }
+    }
+
+    # All other requests -> PHP-FPM
+    handle {
+        root * /var/www/claudenest/packages/server/public
+        try_files {path} {path}/ /index.php
+        file_server
+        php_fastcgi unix//run/php/php8.3-fpm.sock
+    }
+
+    # Compression only for non-WebSocket routes
+    encode @not_ws gzip zstd
 }
 
-# Main application
+# Main application (web dashboard + landing)
 claudenest.io {
-    root * /var/www/claudenest/packages/server/public
+    # WebSocket: Reverb proxy for real-time broadcast (must be in handle block)
+    @reverb path /app/* /apps/*
+    handle @reverb {
+        reverse_proxy localhost:8080 {
+            flush_interval -1
+        }
+    }
 
-    # Try files - SPA fallback via PHP
-    try_files {path} {path}/ /index.php
+    # WebSocket: Browser terminal input → AgentServe on port 6001
+    @terminal_ws path /ws/terminal
+    handle @terminal_ws {
+        reverse_proxy localhost:6001 {
+            flush_interval -1
+        }
+    }
 
-    # File server for static assets
-    file_server
+    # All other requests → PHP (SPA)
+    handle {
+        root * /var/www/claudenest/packages/server/public
+        try_files {path} {path}/ /index.php
+        file_server
+        php_fastcgi unix//run/php/php8.3-fpm.sock
+    }
 
-    # PHP for all routes
-    php_fastcgi unix//run/php/php8.3-fpm.sock
-
-    # Enable compression
+    # Compression (outside handles = applies to all)
     encode gzip zstd
 
     # Security headers
@@ -34,7 +97,7 @@ claudenest.io {
     }
 }
 
-# App subdomain
+# App subdomain (alias for main app)
 app.claudenest.io {
     root * /var/www/claudenest/packages/server/public
     try_files {path} {path}/ /index.php

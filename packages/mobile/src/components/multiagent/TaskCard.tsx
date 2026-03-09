@@ -6,7 +6,7 @@
 import React, { memo, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { colors, spacing, borderRadius, typography } from '@/theme';
 import type { SharedTask, TaskPriority, TaskStatus } from '@/types';
 import { Badge } from '@/components/common';

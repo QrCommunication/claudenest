@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Models\PersonalAccessToken;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Sanctum\Sanctum;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -21,6 +23,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Use custom PersonalAccessToken model for Sanctum
+        Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
+
         // Prevent lazy loading in production
         Model::preventLazyLoading(! $this->app->isProduction());
 

@@ -25,7 +25,7 @@
 }
 
 .back-btn {
-  @apply p-2 rounded-lg text-gray-400 hover:text-white hover:bg-dark-2 transition-colors;
+  @apply p-2 rounded-lg text-skin-secondary hover:text-skin-primary hover:bg-surface-2 transition-colors;
 }
 
 .back-btn svg {
@@ -33,7 +33,7 @@
 }
 
 .page-header h1 {
-  @apply text-2xl font-bold text-white;
+  @apply text-2xl font-bold text-skin-primary;
 }
 
 .placeholder {
@@ -41,10 +41,10 @@
 }
 
 .placeholder p {
-  @apply text-gray-400;
+  @apply text-skin-secondary;
 }
 
 .session-id {
-  @apply text-sm text-gray-500 mt-2;
+  @apply text-sm text-skin-secondary mt-2;
 }
 </style>

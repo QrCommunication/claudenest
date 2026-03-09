@@ -242,24 +242,27 @@ $init = Http::withToken($token)
         'clientInfo' => ['name' => 'claude-desktop', 'version' => '1.0.0'],
     ])['data'];`;
 
-const initResponses = {
-  '200': {
-    success: true,
-    data: {
-      protocolVersion: '2024-11-05',
-      capabilities: {
-        tools: { listChanged: true },
-        resources: { subscribe: true, listChanged: true },
-        prompts: { listChanged: true },
+const initResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: {
+        protocolVersion: '2024-11-05',
+        capabilities: {
+          tools: { listChanged: true },
+          resources: { subscribe: true, listChanged: true },
+          prompts: { listChanged: true },
+        },
+        serverInfo: {
+          name: 'claudenest-mcp',
+          version: '1.0.0',
+        },
       },
-      serverInfo: {
-        name: 'claudenest-mcp',
-        version: '1.0.0',
-      },
-    },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_init' },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_init' },
+    }, null, 2),
   },
-};
+];
 
 // List Tools
 const listToolsCurl = `curl https://api.claudenest.io/api/mcp/tools/list \\
@@ -275,36 +278,39 @@ const listToolsPhp = `<?php
 $tools = Http::withToken($token)
     ->get('https://api.claudenest.io/api/mcp/tools/list')['data']['tools'];`;
 
-const listToolsResponses = {
-  '200': {
-    success: true,
-    data: {
-      tools: [
-        {
-          name: 'create_session',
-          description: 'Create a new Claude Code session',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              machine_id: { type: 'string', description: 'Machine ID' },
-              mode: { type: 'string', enum: ['interactive', 'headless'] },
+const listToolsResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: {
+        tools: [
+          {
+            name: 'create_session',
+            description: 'Create a new Claude Code session',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                machine_id: { type: 'string', description: 'Machine ID' },
+                mode: { type: 'string', enum: ['interactive', 'headless'] },
+              },
+              required: ['machine_id'],
             },
-            required: ['machine_id'],
           },
-        },
-        {
-          name: 'list_machines',
-          description: 'List available machines',
-          inputSchema: {
-            type: 'object',
-            properties: {},
+          {
+            name: 'list_machines',
+            description: 'List available machines',
+            inputSchema: {
+              type: 'object',
+              properties: {},
+            },
           },
-        },
-      ],
-    },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_tools' },
+        ],
+      },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_tools' },
+    }, null, 2),
   },
-};
+];
 
 // Call Tool
 const callToolParams = [
@@ -349,21 +355,24 @@ $result = Http::withToken($token)
         ],
     ])['data'];`;
 
-const callToolResponses = {
-  '200': {
-    success: true,
-    data: {
-      content: [
-        {
-          type: 'text',
-          text: '{"id": "550e8400-e29b-41d4-a716-446655440001", "status": "created"}',
-        },
-      ],
-      isError: false,
-    },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_call' },
+const callToolResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: {
+        content: [
+          {
+            type: 'text',
+            text: '{"id": "550e8400-e29b-41d4-a716-446655440001", "status": "created"}',
+          },
+        ],
+        isError: false,
+      },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_call' },
+    }, null, 2),
   },
-};
+];
 
 // List Resources
 const listResourcesCurl = `curl https://api.claudenest.io/api/mcp/resources/list \\
@@ -379,26 +388,29 @@ const listResourcesPhp = `<?php
 $resources = Http::withToken($token)
     ->get('https://api.claudenest.io/api/mcp/resources/list')['data']['resources'];`;
 
-const listResourcesResponses = {
-  '200': {
-    success: true,
-    data: {
-      resources: [
-        {
-          uri: 'context://550e8400-e29b-41d4-a716-446655440002/summary',
-          name: 'Project Summary',
-          mimeType: 'text/plain',
-        },
-        {
-          uri: 'task://550e8400-e29b-41d4-a716-446655440002/pending',
-          name: 'Pending Tasks',
-          mimeType: 'application/json',
-        },
-      ],
-    },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_res' },
+const listResourcesResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: {
+        resources: [
+          {
+            uri: 'context://550e8400-e29b-41d4-a716-446655440002/summary',
+            name: 'Project Summary',
+            mimeType: 'text/plain',
+          },
+          {
+            uri: 'task://550e8400-e29b-41d4-a716-446655440002/pending',
+            name: 'Pending Tasks',
+            mimeType: 'application/json',
+          },
+        ],
+      },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_res' },
+    }, null, 2),
   },
-};
+];
 
 // Read Resource
 const readResourceParams = [
@@ -428,21 +440,24 @@ $resource = Http::withToken($token)
         'uri' => 'context://550e8400-e29b-41d4-a716-446655440002/summary',
     ])['data'];`;
 
-const readResourceResponses = {
-  '200': {
-    success: true,
-    data: {
-      contents: [
-        {
-          uri: 'context://550e8400-e29b-41d4-a716-446655440002/summary',
-          mimeType: 'text/plain',
-          text: 'E-commerce platform with React frontend and Node.js backend',
-        },
-      ],
-    },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_read' },
+const readResourceResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: {
+        contents: [
+          {
+            uri: 'context://550e8400-e29b-41d4-a716-446655440002/summary',
+            mimeType: 'text/plain',
+            text: 'E-commerce platform with React frontend and Node.js backend',
+          },
+        ],
+      },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_read' },
+    }, null, 2),
   },
-};
+];
 
 const claudeDesktopConfig = ref(`{
   "mcpServers": {
@@ -472,7 +487,7 @@ h1 {
   font-size: 2.5rem;
   font-weight: 700;
   margin-bottom: 1rem;
-  background: linear-gradient(135deg, #a855f7, #22d3ee);
+  background: linear-gradient(135deg, var(--accent-purple, #a855f7), var(--accent-cyan, #22d3ee));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -480,7 +495,7 @@ h1 {
 
 .lead {
   font-size: 1.1rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
   line-height: 1.6;
   margin-bottom: 2rem;
 }
@@ -492,26 +507,26 @@ h1 {
 h2 {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #e2e8f0;
+  color: var(--text-primary);
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-color, var(--border));
 }
 
 h4 {
   font-size: 1rem;
-  color: #cbd5e1;
+  color: var(--text-secondary);
   margin: 0 0 0.25rem 0;
 }
 
 p {
-  color: #94a3b8;
+  color: var(--text-secondary);
   line-height: 1.7;
   margin-bottom: 1rem;
 }
 
 ul {
-  color: #94a3b8;
+  color: var(--text-secondary);
   line-height: 1.8;
   padding-left: 1.5rem;
   margin-bottom: 1rem;
@@ -524,8 +539,8 @@ li {
 :deep(code) {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.9em;
-  color: #c084fc;
-  background: rgba(168, 85, 247, 0.1);
+  color: var(--accent-purple-light, #c084fc);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
   padding: 0.15rem 0.4rem;
   border-radius: 4px;
 }
@@ -539,22 +554,22 @@ li {
 .endpoints-table th {
   text-align: left;
   padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.03);
-  color: #94a3b8;
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  color: var(--text-secondary);
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-color, var(--border));
 }
 
 .endpoints-table td {
   padding: 0.75rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  color: #cbd5e1;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color, var(--border)) 50%, transparent);
+  color: var(--text-secondary);
 }
 
 .endpoints-table tr:hover td {
-  background: rgba(255, 255, 255, 0.02);
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
 }
 
 .tools-list {
@@ -566,8 +581,8 @@ li {
 
 .tool-item {
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 8px;
 }
 

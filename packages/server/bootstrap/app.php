@@ -9,11 +9,11 @@ return Application::configure(basePath: dirname(__DIR__))
         web: __DIR__.'/../routes/web.php',
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
-        channels: __DIR__.'/../routes/channels.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->api(prepend: [
+            \App\Http\Middleware\AuthenticateAgentToken::class,
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         ]);
 
@@ -25,7 +25,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
             'machine.owner' => \App\Http\Middleware\EnsureMachineOwner::class,
             'rate.limit' => \App\Http\Middleware\RateLimitApi::class,
+            'auth.agent' => \App\Http\Middleware\AuthenticateAgentToken::class,
         ]);
+
+        $middleware->redirectGuestsTo(fn ($request) => $request->is('api/*', 'broadcasting/*') ? null : '/login');
 
         $middleware->validateCsrfTokens(except: [
             'webhook/*',
@@ -53,7 +56,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Authentication errors
         $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, $request) {
-            if ($request->is('api/*')) {
+            if ($request->is('api/*', 'broadcasting/*')) {
                 return response()->json([
                     'success' => false,
                     'error' => [

@@ -33,12 +33,12 @@
           </button>
         </div>
         <div class="search-actions">
-          <button class="action-btn" @click="findPrevious" title="Previous">
+          <button class="action-btn" @click="() => findPrevious(searchQuery)" title="Previous">
             <svg class="icon" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
             </svg>
           </button>
-          <button class="action-btn" @click="findNext" title="Next">
+          <button class="action-btn" @click="() => findNext(searchQuery)" title="Next">
             <svg class="icon" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
             </svg>
@@ -100,6 +100,7 @@ const {
   connect,
   disconnect,
   fit,
+  writeInitialLogs,
   search,
   findNext,
   findPrevious,
@@ -173,6 +174,7 @@ defineExpose({
   fit,
   connect,
   disconnect,
+  writeInitialLogs,
   openSearch,
   closeSearch,
 });
@@ -208,7 +210,7 @@ watch(terminalContainer, (container) => {
   position: relative;
   width: 100%;
   height: 100%;
-  background: #1a1b26;
+  background: var(--bg-secondary, var(--surface-2));
   border-radius: 8px;
   overflow: hidden;
 }
@@ -232,8 +234,8 @@ watch(terminalContainer, (container) => {
   align-items: center;
   gap: 12px;
   padding: 8px 16px;
-  background: rgba(15, 15, 26, 0.9);
-  border: 1px solid rgba(168, 85, 247, 0.3);
+  background: color-mix(in srgb, var(--bg-primary, var(--surface-1)) 90%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 30%, transparent);
   border-radius: 8px;
   backdrop-filter: blur(8px);
 }
@@ -280,12 +282,12 @@ watch(terminalContainer, (container) => {
 .status-text {
   font-size: 13px;
   font-weight: 500;
-  color: #c0caf5;
+  color: var(--text-primary);
 }
 
 .reconnect-btn {
   padding: 6px 12px;
-  background: linear-gradient(135deg, #a855f7, #6366f1);
+  background: linear-gradient(135deg, var(--accent-purple, #a855f7), var(--accent-indigo, #6366f1));
   border: none;
   border-radius: 6px;
   color: white;
@@ -309,8 +311,8 @@ watch(terminalContainer, (container) => {
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background: rgba(15, 15, 26, 0.95);
-  border: 1px solid rgba(168, 85, 247, 0.3);
+  background: color-mix(in srgb, var(--bg-primary, var(--surface-1)) 95%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 30%, transparent);
   border-radius: 8px;
   backdrop-filter: blur(8px);
 }
@@ -324,10 +326,10 @@ watch(terminalContainer, (container) => {
 .search-input {
   width: 200px;
   padding: 6px 12px;
-  background: rgba(26, 27, 38, 0.8);
-  border: 1px solid rgba(168, 85, 247, 0.2);
+  background: color-mix(in srgb, var(--bg-secondary, var(--surface-2)) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
   border-radius: 6px;
-  color: #c0caf5;
+  color: var(--text-primary);
   font-size: 13px;
   font-family: 'JetBrains Mono', monospace;
   outline: none;
@@ -335,11 +337,11 @@ watch(terminalContainer, (container) => {
 }
 
 .search-input:focus {
-  border-color: #a855f7;
+  border-color: var(--accent-purple, #a855f7);
 }
 
 .search-input::placeholder {
-  color: #565f89;
+  color: var(--text-muted);
 }
 
 .search-btn,
@@ -353,15 +355,15 @@ watch(terminalContainer, (container) => {
   background: transparent;
   border: none;
   border-radius: 6px;
-  color: #a9b1d6;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .search-btn:hover,
 .action-btn:hover {
-  background: rgba(168, 85, 247, 0.1);
-  color: #c0caf5;
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
+  color: var(--text-primary);
 }
 
 .action-btn.close:hover {
@@ -373,7 +375,7 @@ watch(terminalContainer, (container) => {
   display: flex;
   gap: 4px;
   padding-left: 8px;
-  border-left: 1px solid rgba(168, 85, 247, 0.2);
+  border-left: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
 }
 
 .icon {

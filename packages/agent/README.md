@@ -15,7 +15,7 @@ Agent Node.js pour ClaudeNest - Daemon local permettant l'orchestration à dista
 
 ```bash
 # Via npm
-npm install -g @claude-remote/agent
+npm install -g @claudenest/agent
 
 # Via le repo
 cd packages/agent
@@ -37,7 +37,7 @@ claudenest-agent start
 
 # Ou avec options
 claudenest-agent start \
-  --server https://api.claudenest.dev \
+  --server https://api.claudenest.io \
   --claude-path /usr/local/bin/claude \
   --log-level debug \
   --project-path ~/projects
@@ -71,7 +71,7 @@ claudenest-agent logs --follow --lines 100
 
 | Option | Description | Défaut |
 |--------|-------------|--------|
-| `-s, --server <url>` | URL du serveur ClaudeNest | https://api.claudenest.dev |
+| `-s, --server <url>` | URL du serveur ClaudeNest | https://api.claudenest.io |
 | `-t, --token <token>` | Token d'authentification | (depuis keychain) |
 | `-c, --claude-path <path>` | Chemin vers Claude Code | (auto-détecté) |
 | `-l, --log-level <level>` | Niveau de log | info |
@@ -85,7 +85,7 @@ claudenest-agent logs --follow --lines 100
 ```json
 // ~/.config/claudenest/config.json
 {
-  "serverUrl": "https://api.claudenest.dev",
+  "serverUrl": "https://api.claudenest.io",
   "claudePath": "/usr/local/bin/claude",
   "projectPaths": ["~/projects", "~/work"],
   "logLevel": "info",
@@ -103,7 +103,7 @@ claudenest-agent logs --follow --lines 100
 ### Variables d'environnement
 
 ```bash
-CLAUDENEST_SERVER_URL=https://api.claudenest.dev
+CLAUDENEST_SERVER_URL=https://api.claudenest.io
 CLAUDENEST_TOKEN=your-machine-token
 CLAUDENEST_LOG_LEVEL=debug
 CLAUDENEST_CLAUDE_PATH=/usr/local/bin/claude
@@ -152,7 +152,7 @@ import { ClaudeNestAgent, generateMachineId } from '@claude-remote/agent';
 
 const agent = new ClaudeNestAgent({
   config: {
-    serverUrl: 'https://api.claudenest.dev',
+    serverUrl: 'https://api.claudenest.io',
     machineToken: 'your-token',
     claudePath: '/usr/local/bin/claude',
     projectPaths: ['~/projects'],

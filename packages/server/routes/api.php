@@ -16,6 +16,8 @@ Route::prefix('auth')->group(function () {
     Route::post('/register', [Api\AuthController::class, 'register']);
     Route::post('/forgot-password', [Api\AuthController::class, 'forgotPassword']);
     Route::post('/reset-password', [Api\AuthController::class, 'resetPassword']);
+    Route::post('/magic-link', [Api\AuthController::class, 'magicLink']);
+    Route::post('/magic-link/verify', [Api\AuthController::class, 'magicLinkVerify']);
 });
 
 // Public OAuth routes
@@ -24,16 +26,52 @@ Route::get('/auth/{provider}/redirect', [Api\AuthController::class, 'redirect'])
 Route::get('/auth/{provider}/callback', [Api\AuthController::class, 'callback'])
     ->where('provider', 'google|github');
 
+// Claude OAuth callback (public — no auth required, state validated server-side)
+Route::get('/oauth/callback', [Api\CredentialController::class, 'oauthCallback'])
+    ->middleware('throttle:20,1');
+
+// ==================== PAIRING (PUBLIC) ====================
+// Agent initiates pairing by registering its code, then polls for completion.
+// Rate-limited to prevent abuse on unauthenticated endpoints.
+Route::middleware('throttle:10,1')->group(function () {
+    Route::post('/pairing/initiate', [Api\PairingController::class, 'initiate']);
+    Route::get('/pairing/{code}', [Api\PairingController::class, 'poll']);
+});
+
 Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
+
+    // ==================== DASHBOARD ====================
+    Route::get('dashboard/stats', [Api\DashboardController::class, 'stats']);
 
     // ==================== AUTH ====================
     Route::prefix('auth')->group(function () {
         Route::post('/logout', [Api\AuthController::class, 'logout']);
         Route::get('/me', [Api\AuthController::class, 'me']);
         Route::post('/refresh', [Api\AuthController::class, 'refresh']);
+        Route::patch('/profile', [Api\AuthController::class, 'updateProfile']);
+        Route::post('/avatar', [Api\AuthController::class, 'updateAvatar']);
         Route::get('/tokens', [Api\AuthController::class, 'listTokens']);
         Route::post('/tokens', [Api\AuthController::class, 'createToken']);
         Route::delete('/tokens/{id}', [Api\AuthController::class, 'revokeToken']);
+    });
+
+    // ==================== PAIRING (AUTHENTICATED) ====================
+    Route::post('/pairing/{code}/complete', [Api\PairingController::class, 'complete']);
+
+    // ==================== CREDENTIALS ====================
+    Route::prefix('credentials')->group(function () {
+        Route::get('/', [Api\CredentialController::class, 'index']);
+        Route::post('/', [Api\CredentialController::class, 'store']);
+        Route::get('/{id}', [Api\CredentialController::class, 'show']);
+        Route::patch('/{id}', [Api\CredentialController::class, 'update']);
+        Route::delete('/{id}', [Api\CredentialController::class, 'destroy']);
+        Route::post('/{id}/test', [Api\CredentialController::class, 'test']);
+        Route::post('/{id}/refresh', [Api\CredentialController::class, 'refresh']);
+        Route::post('/{id}/capture', [Api\CredentialController::class, 'capture']);
+        Route::patch('/{id}/default', [Api\CredentialController::class, 'setDefault']);
+        Route::post('/{id}/oauth/initiate', [Api\CredentialController::class, 'initiateOAuth']);
+        Route::get('/{id}/oauth/poll', [Api\CredentialController::class, 'oauthPoll']);
+        Route::post('/{id}/capture-from-machine', [Api\CredentialController::class, 'captureFromMachine']);
     });
 
     // ==================== MACHINES ====================
@@ -41,6 +79,10 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::post('machines/{machine}/regenerate-token', [Api\MachineController::class, 'regenerateToken']);
     Route::get('machines/{machine}/environment', [Api\MachineController::class, 'environment']);
     Route::post('machines/{machine}/wake', [Api\MachineController::class, 'wake']);
+
+    // ==================== FILE BROWSER ====================
+    Route::get('machines/{machine}/browse', [Api\FileBrowserController::class, 'browse'])
+        ->middleware('throttle:30,1');
 
     // ==================== SESSIONS ====================
     Route::get('machines/{machine}/sessions', [Api\SessionController::class, 'index']);
@@ -55,10 +97,24 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     // ==================== SHARED PROJECTS (MULTI-AGENT) ====================
     Route::get('machines/{machine}/projects', [Api\ProjectController::class, 'index']);
     Route::post('machines/{machine}/projects', [Api\ProjectController::class, 'store']);
+    Route::post('machines/{machine}/projects/scan', [Api\ProjectScanController::class, 'scan']);
+    Route::post('machines/{machine}/projects/generate-context', [Api\ProjectContextGeneratorController::class, 'generate']);
     Route::get('projects/{project}', [Api\ProjectController::class, 'show']);
     Route::patch('projects/{project}', [Api\ProjectController::class, 'update']);
     Route::delete('projects/{project}', [Api\ProjectController::class, 'destroy']);
     Route::get('projects/{project}/stats', [Api\ProjectController::class, 'stats']);
+
+    // ==================== DECOMPOSITION (PRD → Master Plan) ====================
+    Route::post('projects/{project}/decompose', [Api\DecompositionController::class, 'decompose']);
+    Route::get('projects/{project}/master-plan', [Api\DecompositionController::class, 'getMasterPlan']);
+    Route::put('projects/{project}/master-plan', [Api\DecompositionController::class, 'updateMasterPlan']);
+    Route::post('projects/{project}/master-plan/apply', [Api\DecompositionController::class, 'applyMasterPlan']);
+    Route::post('projects/{project}/master-plan/regenerate', [Api\DecompositionController::class, 'regenerate']);
+
+    // Orchestrator controls
+    Route::post('projects/{project}/orchestrator/start', [Api\ProjectController::class, 'startOrchestrator']);
+    Route::post('projects/{project}/orchestrator/stop', [Api\ProjectController::class, 'stopOrchestrator']);
+    Route::get('projects/{project}/orchestrator/status', [Api\ProjectController::class, 'orchestratorStatus']);
 
     // ==================== CONTEXT (RAG) ====================
     Route::get('projects/{project}/context', [Api\ContextController::class, 'show']);
@@ -71,10 +127,14 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::post('projects/{project}/context/chunks', [Api\ContextController::class, 'storeChunk']);
     Route::delete('projects/{project}/context/chunks/{chunkId}', [Api\ContextController::class, 'destroyChunk']);
 
+    // Context Batch (agent sync queue — cross-project)
+    Route::post('context/batch', [Api\ContextController::class, 'batch']);
+
     // ==================== TASKS ====================
     Route::get('projects/{project}/tasks', [Api\TaskController::class, 'index']);
     Route::post('projects/{project}/tasks', [Api\TaskController::class, 'store']);
     Route::get('projects/{project}/tasks/next-available', [Api\TaskController::class, 'nextAvailable']);
+    Route::post('projects/{project}/tasks/claim-next', [Api\TaskController::class, 'claimNext']);
     Route::get('tasks/{task}', [Api\TaskController::class, 'show']);
     Route::patch('tasks/{task}', [Api\TaskController::class, 'update']);
     Route::delete('tasks/{task}', [Api\TaskController::class, 'destroy']);
@@ -97,20 +157,32 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::get('projects/{project}/activity', [Api\ProjectController::class, 'activity']);
     Route::post('projects/{project}/broadcast', [Api\ProjectController::class, 'broadcast']);
 
+    // ==================== ORCHESTRATOR ====================
+    Route::post('instances/register', [Api\InstanceController::class, 'register']);
+    Route::post('instances/{instanceId}/heartbeat', [Api\InstanceController::class, 'heartbeat']);
+    Route::post('instances/{instanceId}/disconnect', [Api\InstanceController::class, 'disconnect']);
+    Route::get('instances/{instanceId}', [Api\InstanceController::class, 'show']);
+    Route::post('projects/{project}/dispatch', [Api\InstanceController::class, 'dispatch']);
+    Route::get('projects/{project}/orchestration-stats', [Api\InstanceController::class, 'orchestrationStats']);
+
     // ==================== SKILLS ====================
+    // Literal routes BEFORE wildcard {path} routes to prevent matching conflicts
     Route::get('machines/{machine}/skills', [Api\SkillsController::class, 'index']);
-    Route::get('machines/{machine}/skills/{path}', [Api\SkillsController::class, 'show']);
     Route::post('machines/{machine}/skills', [Api\SkillsController::class, 'store']);
+    Route::post('machines/{machine}/skills/bulk', [Api\SkillsController::class, 'bulkUpdate']);
+    Route::post('machines/{machine}/skills/sync', [Api\SkillsController::class, 'sync']);
+    Route::get('machines/{machine}/skills/{path}', [Api\SkillsController::class, 'show']);
     Route::patch('machines/{machine}/skills/{path}', [Api\SkillsController::class, 'update']);
     Route::post('machines/{machine}/skills/{path}/toggle', [Api\SkillsController::class, 'toggle']);
     Route::delete('machines/{machine}/skills/{path}', [Api\SkillsController::class, 'destroy']);
-    Route::post('machines/{machine}/skills/bulk', [Api\SkillsController::class, 'bulkUpdate']);
 
     // ==================== MCP SERVERS ====================
+    // Literal routes BEFORE wildcard {name} routes
     Route::get('machines/{machine}/mcp', [Api\MCPController::class, 'index']);
     Route::get('machines/{machine}/mcp/all-tools', [Api\MCPController::class, 'allTools']);
-    Route::get('machines/{machine}/mcp/{name}', [Api\MCPController::class, 'show']);
     Route::post('machines/{machine}/mcp', [Api\MCPController::class, 'store']);
+    Route::post('machines/{machine}/mcp/sync', [Api\MCPController::class, 'sync']);
+    Route::get('machines/{machine}/mcp/{name}', [Api\MCPController::class, 'show']);
     Route::patch('machines/{machine}/mcp/{name}', [Api\MCPController::class, 'update']);
     Route::post('machines/{machine}/mcp/{name}/start', [Api\MCPController::class, 'start']);
     Route::post('machines/{machine}/mcp/{name}/stop', [Api\MCPController::class, 'stop']);

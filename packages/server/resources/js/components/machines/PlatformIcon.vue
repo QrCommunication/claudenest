@@ -53,14 +53,14 @@ const platformLabel = computed(() => {
 }
 
 .platform-darwin {
-  @apply bg-gray-700 text-gray-300;
+  @apply bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300;
 }
 
 .platform-win32 {
-  @apply bg-blue-900/50 text-blue-400;
+  @apply bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400;
 }
 
 .platform-linux {
-  @apply bg-yellow-900/30 text-yellow-500;
+  @apply bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-500;
 }
 </style>

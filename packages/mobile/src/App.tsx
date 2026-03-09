@@ -1,47 +1,44 @@
 /**
  * ClaudeNest Mobile App
- * Main entry point
+ * Entry point — Expo SDK 52 + Uniwind
  */
 
-import React, { useEffect } from 'react';
-import { StatusBar, LogBox } from 'react-native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { colors } from '@/theme';
-import { RootNavigator } from '@/navigation';
+import './global.css'; // Tailwind CSS 4 + Uniwind (must be first import)
 
-// Ignore specific warnings
+import React from 'react';
+import { LogBox } from 'react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { RootNavigator } from '@/navigation/RootNavigator';
+
 LogBox.ignoreLogs([
   'Non-serializable values were found in the navigation state',
   'VirtualizedLists should never be nested',
+  // React Navigation 7 + React 19 + RN 0.76 New Architecture compatibility
+  // FrameSizeProvider uses render props with refs — non-blocking, tracked upstream
+  // https://github.com/react-navigation/react-navigation/issues
+  'Function components cannot be given refs',
 ]);
 
-// Create React Query client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 2,
-      staleTime: 30000,
+      staleTime: 30_000,
       refetchOnWindowFocus: false,
     },
   },
 });
 
-export const App: React.FC = () => {
+export default function App() {
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView className="flex-1">
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
-          <StatusBar
-            barStyle="light-content"
-            backgroundColor={colors.background.dark2}
-          />
           <RootNavigator />
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
-};
-
-export default App;
+}

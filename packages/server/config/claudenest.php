@@ -24,6 +24,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Reverb Client Configuration (for frontend WebSocket connection)
+    |--------------------------------------------------------------------------
+    | These override the server-side REVERB_* values for the browser client.
+    | Useful when Reverb runs behind a reverse proxy (Caddy/Nginx).
+    */
+
+    'reverb_client' => [
+        'key' => env('REVERB_APP_KEY', ''),
+        'host' => env('REVERB_CLIENT_HOST', env('REVERB_HOST', 'localhost')),
+        'port' => (int) env('REVERB_CLIENT_PORT', env('REVERB_PORT', 8080)),
+        'scheme' => env('REVERB_CLIENT_SCHEME', env('REVERB_SCHEME', 'https')),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Session Configuration
     |--------------------------------------------------------------------------
     */
@@ -48,6 +63,9 @@ return [
         'max_context_tokens' => 8000,
         'summarize_threshold' => 0.8,
         'context_retention_days' => 30,
+        'embedding_model' => env('OLLAMA_EMBEDDING_MODEL', 'bge-small-en-v1.5'),
+        'summarization_model' => env('OLLAMA_SUMMARIZATION_MODEL', 'mistral:7b'),
+        'ollama_host' => env('OLLAMA_HOST', 'http://localhost:11434'),
     ],
 
     /*

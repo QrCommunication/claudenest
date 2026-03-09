@@ -92,7 +92,7 @@ const formatDefault = (value: any): string => {
   overflow-x: auto;
   margin: 1rem 0;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-color, var(--border));
 }
 
 .param-table {
@@ -104,18 +104,18 @@ const formatDefault = (value: any): string => {
 .param-table th {
   text-align: left;
   padding: 0.75rem 1rem;
-  background: rgba(255, 255, 255, 0.03);
-  color: #94a3b8;
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  color: var(--text-muted);
   font-weight: 600;
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-color, var(--border));
 }
 
 .param-table td {
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid color-mix(in srgb, var(--text-primary) 5%, transparent);
   vertical-align: top;
 }
 
@@ -124,14 +124,14 @@ const formatDefault = (value: any): string => {
 }
 
 .param-table tr:hover td {
-  background: rgba(255, 255, 255, 0.02);
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
 }
 
 .param-name code {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.85rem;
-  color: #7dd3fc;
-  background: rgba(125, 211, 252, 0.1);
+  color: var(--accent-cyan-light, #7dd3fc);
+  background: color-mix(in srgb, var(--accent-cyan, #22d3ee) 10%, transparent);
   padding: 0.2rem 0.4rem;
   border-radius: 4px;
 }
@@ -150,50 +150,50 @@ const formatDefault = (value: any): string => {
 }
 
 .type-string {
-  background: rgba(34, 197, 94, 0.15);
-  color: #4ade80;
+  background: color-mix(in srgb, var(--status-success, #22c55e) 15%, transparent);
+  color: var(--status-success-light, #4ade80);
 }
 
 .type-number {
-  background: rgba(245, 158, 11, 0.15);
-  color: #fbbf24;
+  background: color-mix(in srgb, var(--status-warning, #f59e0b) 15%, transparent);
+  color: var(--status-warning-light, #fbbf24);
 }
 
 .type-boolean {
-  background: rgba(168, 85, 247, 0.15);
-  color: #c084fc;
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 15%, transparent);
+  color: var(--accent-purple-light, #c084fc);
 }
 
 .type-array {
-  background: rgba(59, 130, 246, 0.15);
-  color: #60a5fa;
+  background: color-mix(in srgb, var(--accent-blue, #3b82f6) 15%, transparent);
+  color: var(--accent-blue-light, #60a5fa);
 }
 
 .type-object {
-  background: rgba(236, 72, 153, 0.15);
-  color: #f472b6;
+  background: color-mix(in srgb, var(--accent-pink, #ec4899) 15%, transparent);
+  color: var(--accent-pink-light, #f472b6);
 }
 
 .type-uuid {
-  background: rgba(34, 211, 238, 0.15);
-  color: #22d3ee;
+  background: color-mix(in srgb, var(--accent-cyan, #22d3ee) 15%, transparent);
+  color: var(--accent-cyan, #22d3ee);
 }
 
 .type-enum {
-  background: rgba(251, 191, 36, 0.15);
-  color: #fbbf24;
+  background: color-mix(in srgb, var(--status-warning, #f59e0b) 15%, transparent);
+  color: var(--status-warning-light, #fbbf24);
 }
 
 .type-default {
-  background: rgba(148, 163, 184, 0.15);
-  color: #94a3b8;
+  background: color-mix(in srgb, var(--text-muted) 15%, transparent);
+  color: var(--text-muted);
 }
 
 .required-badge {
   display: inline-block;
   padding: 0.2rem 0.5rem;
-  background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
+  background: color-mix(in srgb, var(--status-error, #ef4444) 15%, transparent);
+  color: var(--status-error-light, #f87171);
   border-radius: 4px;
   font-size: 0.7rem;
   font-weight: 600;
@@ -203,15 +203,15 @@ const formatDefault = (value: any): string => {
 .optional-badge {
   display: inline-block;
   padding: 0.2rem 0.5rem;
-  background: rgba(148, 163, 184, 0.15);
-  color: #94a3b8;
+  background: color-mix(in srgb, var(--text-muted) 15%, transparent);
+  color: var(--text-muted);
   border-radius: 4px;
   font-size: 0.7rem;
   font-weight: 500;
 }
 
 .param-description {
-  color: #cbd5e1;
+  color: var(--text-secondary);
   line-height: 1.5;
 }
 
@@ -219,13 +219,13 @@ const formatDefault = (value: any): string => {
   display: block;
   margin-top: 0.25rem;
   font-size: 0.8rem;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .default-value code {
   font-family: 'JetBrains Mono', monospace;
-  color: #94a3b8;
-  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
   padding: 0.1rem 0.3rem;
   border-radius: 3px;
 }
@@ -234,7 +234,7 @@ const formatDefault = (value: any): string => {
   display: block;
   margin-top: 0.25rem;
   font-size: 0.8rem;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 @media (max-width: 640px) {

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Machine;
 use App\Models\Session;
+use App\Services\AgentGateway;
+use App\Services\CredentialService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -12,6 +14,41 @@ class SessionController extends Controller
 {
     /**
      * List sessions for a machine.
+     *
+     * @OA\Get(
+     *     path="/api/machines/{machineId}/sessions",
+     *     tags={"Sessions"},
+     *     summary="List sessions for a machine",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="machineId",
+     *         in="path",
+     *         required=true,
+     *         description="Machine UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         required=false,
+     *         description="Number of results per page",
+     *         @OA\Schema(type="integer", default=20)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Paginated list of sessions",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(ref="#/components/schemas/Session")
+     *             ),
+     *             @OA\Property(property="meta", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Machine not found")
+     * )
      */
     public function index(Request $request, string $machineId): JsonResponse
     {
@@ -40,6 +77,34 @@ class SessionController extends Controller
 
     /**
      * Create a new session.
+     *
+     * @OA\Post(
+     *     path="/api/machines/{machineId}/sessions",
+     *     tags={"Sessions"},
+     *     summary="Create a new session",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="machineId",
+     *         in="path",
+     *         required=true,
+     *         description="Machine UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/CreateSessionRequest")
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Session created",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", ref="#/components/schemas/Session")
+     *         )
+     *     ),
+     *     @OA\Response(response=400, description="Machine is offline"),
+     *     @OA\Response(response=404, description="Machine not found")
+     * )
      */
     public function store(Request $request, string $machineId): JsonResponse
     {
@@ -51,9 +116,10 @@ class SessionController extends Controller
         }
 
         $validated = $request->validate([
-            'mode' => 'string|in:interactive,headless,oneshot|default:interactive',
+            'mode' => 'sometimes|string|in:interactive,headless,oneshot,bash',
             'project_path' => 'nullable|string|max:512',
             'initial_prompt' => 'nullable|string',
+            'credential_id' => 'nullable|uuid|exists:claude_credentials,id',
             'pty_size' => 'array',
             'pty_size.cols' => 'integer|min:20|max:500',
             'pty_size.rows' => 'integer|min:10|max:200',
@@ -64,11 +130,32 @@ class SessionController extends Controller
             'mode' => $validated['mode'] ?? 'interactive',
             'project_path' => $validated['project_path'] ?? null,
             'initial_prompt' => $validated['initial_prompt'] ?? null,
+            'credential_id' => $validated['credential_id'] ?? null,
             'status' => 'created',
             'pty_size' => $validated['pty_size'] ?? ['cols' => 120, 'rows' => 40],
         ]);
 
-        // Broadcast session creation to agent
+        // Resolve credential env vars if a credential is attached
+        $credentialEnv = [];
+        if ($session->credential_id) {
+            $credential = $request->user()->credentials()->find($session->credential_id);
+            if ($credential) {
+                $credentialService = app(CredentialService::class);
+                $credentialEnv = $credentialService->getSessionEnv($credential);
+            }
+        }
+
+        // Send to agent via dedicated WebSocket server
+        AgentGateway::send($machine->id, 'session:create', [
+            'sessionId' => $session->id,
+            'mode' => $session->mode,
+            'projectPath' => $session->project_path,
+            'initialPrompt' => $session->initial_prompt,
+            'ptySize' => $session->pty_size,
+            'credentialEnv' => $credentialEnv,
+        ]);
+
+        // Broadcast to dashboard via Reverb (credentials excluded — agent-only via AgentGateway)
         broadcast(new \App\Events\SessionCreated($session))->toOthers();
 
         return response()->json([
@@ -82,7 +169,30 @@ class SessionController extends Controller
     }
 
     /**
-     * Show session details.
+     * Get session details.
+     *
+     * @OA\Get(
+     *     path="/api/sessions/{id}",
+     *     tags={"Sessions"},
+     *     summary="Get session details",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Session UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Session details including recent logs",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", ref="#/components/schemas/Session")
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Session not found")
+     * )
      */
     public function show(Request $request, string $id): JsonResponse
     {
@@ -101,6 +211,27 @@ class SessionController extends Controller
 
     /**
      * Terminate a session.
+     *
+     * @OA\Delete(
+     *     path="/api/sessions/{id}",
+     *     tags={"Sessions"},
+     *     summary="Terminate a session",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Session UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Session terminated",
+     *         @OA\JsonContent(ref="#/components/schemas/DeletedResponse")
+     *     ),
+     *     @OA\Response(response=400, description="Session already terminated"),
+     *     @OA\Response(response=404, description="Session not found")
+     * )
      */
     public function destroy(Request $request, string $id): JsonResponse
     {
@@ -114,7 +245,12 @@ class SessionController extends Controller
         // Mark as terminated
         $session->markAsTerminated();
 
-        // Broadcast termination to agent
+        // Send to agent via dedicated WebSocket server
+        AgentGateway::send($session->machine_id, 'session:terminate', [
+            'sessionId' => $session->id,
+        ]);
+
+        // Broadcast to dashboard via Reverb
         broadcast(new \App\Events\SessionTerminated($session))->toOthers();
 
         return response()->json([
@@ -129,6 +265,41 @@ class SessionController extends Controller
 
     /**
      * Get session logs.
+     *
+     * @OA\Get(
+     *     path="/api/sessions/{id}/logs",
+     *     tags={"Sessions"},
+     *     summary="Get session logs",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Session UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         required=false,
+     *         description="Number of log entries per page",
+     *         @OA\Schema(type="integer", default=100)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Paginated list of session logs",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(ref="#/components/schemas/SessionLog")
+     *             ),
+     *             @OA\Property(property="meta", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Session not found")
+     * )
      */
     public function logs(Request $request, string $id): JsonResponse
     {
@@ -162,7 +333,36 @@ class SessionController extends Controller
     }
 
     /**
-     * Attach to a running session (WebSocket token).
+     * Attach to running session (get WebSocket token).
+     *
+     * @OA\Post(
+     *     path="/api/sessions/{id}/attach",
+     *     tags={"Sessions"},
+     *     summary="Attach to running session (get WebSocket token)",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Session UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="WebSocket attachment token",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="ws_token", type="string", example="a1b2c3..."),
+     *                 @OA\Property(property="session_id", type="string", format="uuid"),
+     *                 @OA\Property(property="ws_url", type="string", example="ws://localhost:8080")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Session not found or not running")
+     * )
      */
     public function attach(Request $request, string $id): JsonResponse
     {
@@ -193,7 +393,36 @@ class SessionController extends Controller
     }
 
     /**
-     * Send input to a session.
+     * Send input to session.
+     *
+     * @OA\Post(
+     *     path="/api/sessions/{id}/input",
+     *     tags={"Sessions"},
+     *     summary="Send input to session",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Session UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"data"},
+     *             @OA\Property(property="data", type="string", description="Input data to send to the session")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Input sent successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true)
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Session not found or not running")
+     * )
      */
     public function input(Request $request, string $id): JsonResponse
     {
@@ -201,15 +430,26 @@ class SessionController extends Controller
             ->findOrFail($id);
         $this->authorize('update', $session);
 
-        $validated = $request->validate([
-            'data' => 'required|string',
+        // Read raw body to bypass TrimStrings/ConvertEmptyStringsToNull middleware
+        // which corrupts terminal control characters (\r, \x03, \x1b, etc.)
+        $body = json_decode($request->getContent(), true);
+        $data = $body['data'] ?? null;
+
+        if (!is_string($data) || $data === '') {
+            return $this->errorResponse('VAL_001', 'The data field is required', 422);
+        }
+
+        // Send input to agent via dedicated WebSocket server
+        AgentGateway::send($session->machine_id, 'session:input', [
+            'sessionId' => $session->id,
+            'data' => $data,
         ]);
 
-        // Broadcast input to agent
-        broadcast(new \App\Events\SessionInput($session, $validated['data']))->toOthers();
+        // Broadcast to dashboard via Reverb
+        broadcast(new \App\Events\SessionInput($session, $data))->toOthers();
 
         // Log input
-        $session->addLog('input', $validated['data']);
+        $session->addLog('input', $data);
 
         return response()->json([
             'success' => true,
@@ -223,6 +463,46 @@ class SessionController extends Controller
 
     /**
      * Resize session PTY.
+     *
+     * @OA\Post(
+     *     path="/api/sessions/{id}/resize",
+     *     tags={"Sessions"},
+     *     summary="Resize session PTY",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Session UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"cols", "rows"},
+     *             @OA\Property(property="cols", type="integer", minimum=20, maximum=500, description="Terminal columns"),
+     *             @OA\Property(property="rows", type="integer", minimum=10, maximum=200, description="Terminal rows")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="PTY resized successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="pty_size",
+     *                     type="object",
+     *                     @OA\Property(property="cols", type="integer"),
+     *                     @OA\Property(property="rows", type="integer")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Session not found or not running")
+     * )
      */
     public function resize(Request $request, string $id): JsonResponse
     {
@@ -237,7 +517,14 @@ class SessionController extends Controller
 
         $session->resizePty($validated['cols'], $validated['rows']);
 
-        // Broadcast resize to agent
+        // Send resize to agent via dedicated WebSocket server
+        AgentGateway::send($session->machine_id, 'session:resize', [
+            'sessionId' => $session->id,
+            'cols' => $validated['cols'],
+            'rows' => $validated['rows'],
+        ]);
+
+        // Broadcast to dashboard via Reverb
         broadcast(new \App\Events\SessionResize($session, $validated['cols'], $validated['rows']))->toOthers();
 
         return response()->json([

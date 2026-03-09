@@ -197,34 +197,37 @@ $machines = Http::withToken($token)
         'status' => 'online',
     ])['data'];`;
 
-const listResponses = {
-  '200': {
-    success: true,
-    data: [
-      {
-        id: '550e8400-e29b-41d4-a716-446655440000',
-        name: 'MacBook Pro',
-        platform: 'darwin',
-        status: 'online',
-        is_online: true,
-        active_sessions_count: 2,
-        max_sessions: 5,
-        last_seen_at: '2026-02-02T14:30:00Z',
-        created_at: '2026-01-15T10:00:00Z',
+const listResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: [
+        {
+          id: '550e8400-e29b-41d4-a716-446655440000',
+          name: 'MacBook Pro',
+          platform: 'darwin',
+          status: 'online',
+          is_online: true,
+          active_sessions_count: 2,
+          max_sessions: 5,
+          last_seen_at: '2026-02-02T14:30:00Z',
+          created_at: '2026-01-15T10:00:00Z',
+        },
+      ],
+      meta: {
+        timestamp: '2026-02-02T15:30:00Z',
+        request_id: 'req_abc',
+        pagination: {
+          current_page: 1,
+          last_page: 1,
+          per_page: 20,
+          total: 1,
+        },
       },
-    ],
-    meta: {
-      timestamp: '2026-02-02T15:30:00Z',
-      request_id: 'req_abc',
-      pagination: {
-        current_page: 1,
-        last_page: 1,
-        per_page: 20,
-        total: 1,
-      },
-    },
+    }, null, 2),
   },
-};
+];
 
 // Create Machine
 const createParams = [
@@ -287,21 +290,24 @@ $result = Http::withToken($token)
 
 $machineToken = $result['token'];`;
 
-const createResponses = {
-  '201': {
-    success: true,
-    data: {
-      machine: {
-        id: '550e8400-e29b-41d4-a716-446655440000',
-        name: 'MacBook Pro',
-        platform: 'darwin',
-        status: 'online',
+const createResponses = [
+  {
+    status: 201,
+    body: JSON.stringify({
+      success: true,
+      data: {
+        machine: {
+          id: '550e8400-e29b-41d4-a716-446655440000',
+          name: 'MacBook Pro',
+          platform: 'darwin',
+          status: 'online',
+        },
+        token: 'cn_mach_token_abc123...',
       },
-      token: 'cn_mach_token_abc123...',
-    },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_xyz' },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_xyz' },
+    }, null, 2),
   },
-};
+];
 
 // Get Machine
 const getParams = [
@@ -321,28 +327,35 @@ const getPhp = `<?php
 $machine = Http::withToken($token)
     ->get('https://api.claudenest.io/api/machines/550e8400-e29b-41d4-a716-446655440000')['data'];`;
 
-const getResponses = {
-  '200': {
-    success: true,
-    data: {
-      id: '550e8400-e29b-41d4-a716-446655440000',
-      name: 'MacBook Pro',
-      platform: 'darwin',
-      hostname: 'macbook-pro.local',
-      arch: 'arm64',
-      status: 'online',
-      capabilities: ['wake_on_lan', 'gpu_acceleration', 'docker'],
-      max_sessions: 5,
-      active_sessions_count: 2,
-    },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_123' },
+const getResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: {
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        name: 'MacBook Pro',
+        platform: 'darwin',
+        hostname: 'macbook-pro.local',
+        arch: 'arm64',
+        status: 'online',
+        capabilities: ['wake_on_lan', 'gpu_acceleration', 'docker'],
+        max_sessions: 5,
+        active_sessions_count: 2,
+      },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_123' },
+    }, null, 2),
   },
-  '404': {
-    success: false,
-    error: { code: 'MCH_001', message: 'Machine not found' },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_456' },
+  {
+    status: 404,
+    description: 'Machine not found',
+    body: JSON.stringify({
+      success: false,
+      error: { code: 'MCH_001', message: 'Machine not found' },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_456' },
+    }, null, 2),
   },
-};
+];
 
 // Update Machine
 const updateParams = [
@@ -372,13 +385,16 @@ Http::withToken($token)
         'max_sessions' => 10,
     ]);`;
 
-const updateResponses = {
-  '200': {
-    success: true,
-    data: { id: '...', name: 'MacBook Pro (Work)', max_sessions: 10 },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_789' },
+const updateResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: { id: '...', name: 'MacBook Pro (Work)', max_sessions: 10 },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_789' },
+    }, null, 2),
   },
-};
+];
 
 // Delete Machine
 const deleteParams = [
@@ -397,13 +413,16 @@ const deletePhp = `<?php
 Http::withToken($token)
     ->delete('https://api.claudenest.io/api/machines/550e8400-e29b-41d4-a716-446655440000');`;
 
-const deleteResponses = {
-  '200': {
-    success: true,
-    data: null,
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_012' },
+const deleteResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: null,
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_012' },
+    }, null, 2),
   },
-};
+];
 
 // Regenerate Token
 const regenerateParams = [
@@ -424,13 +443,16 @@ const regeneratePhp = `<?php
 $newToken = Http::withToken($token)
     ->post('https://api.claudenest.io/api/machines/550e8400-e29b-41d4-a716-446655440000/regenerate-token')['data']['token'];`;
 
-const regenerateResponses = {
-  '200': {
-    success: true,
-    data: { token: 'cn_mach_newtoken456...' },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_345' },
+const regenerateResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: { token: 'cn_mach_newtoken456...' },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_345' },
+    }, null, 2),
   },
-};
+];
 
 // Environment
 const environmentParams = [
@@ -450,28 +472,35 @@ const environmentPhp = `<?php
 $env = Http::withToken($token)
     ->get('https://api.claudenest.io/api/machines/550e8400-e29b-41d4-a716-446655440000/environment')['data'];`;
 
-const environmentResponses = {
-  '200': {
-    success: true,
-    data: {
-      platform: 'darwin',
-      hostname: 'macbook-pro.local',
-      arch: 'arm64',
-      node_version: '20.10.0',
-      agent_version: '1.2.3',
-      claude_version: '0.2.0',
-      claude_path: '/usr/local/bin/claude',
-      capabilities: ['wake_on_lan', 'gpu_acceleration', 'docker'],
-      max_sessions: 5,
-    },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_678' },
+const environmentResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: {
+        platform: 'darwin',
+        hostname: 'macbook-pro.local',
+        arch: 'arm64',
+        node_version: '20.10.0',
+        agent_version: '1.2.3',
+        claude_version: '0.2.0',
+        claude_path: '/usr/local/bin/claude',
+        capabilities: ['wake_on_lan', 'gpu_acceleration', 'docker'],
+        max_sessions: 5,
+      },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_678' },
+    }, null, 2),
   },
-  '400': {
-    success: false,
-    error: { code: 'MCH_002', message: 'Machine is offline' },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_901' },
+  {
+    status: 400,
+    description: 'Machine is offline',
+    body: JSON.stringify({
+      success: false,
+      error: { code: 'MCH_002', message: 'Machine is offline' },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_901' },
+    }, null, 2),
   },
-};
+];
 
 // Wake
 const wakeParams = [
@@ -492,21 +521,28 @@ const wakePhp = `<?php
 $result = Http::withToken($token)
     ->post('https://api.claudenest.io/api/machines/550e8400-e29b-41d4-a716-446655440000/wake')['data'];`;
 
-const wakeResponses = {
-  '200': {
-    success: true,
-    data: {
-      message: 'Wake-on-LAN signal sent',
-      machine: { id: '...', name: 'MacBook Pro', status: 'connecting' },
-    },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_234' },
+const wakeResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: {
+        message: 'Wake-on-LAN signal sent',
+        machine: { id: '...', name: 'MacBook Pro', status: 'connecting' },
+      },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_234' },
+    }, null, 2),
   },
-  '400': {
-    success: false,
-    error: { code: 'MCH_003', message: 'Machine does not support Wake-on-LAN' },
-    meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_567' },
+  {
+    status: 400,
+    description: 'Wake-on-LAN not supported',
+    body: JSON.stringify({
+      success: false,
+      error: { code: 'MCH_003', message: 'Machine does not support Wake-on-LAN' },
+      meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_567' },
+    }, null, 2),
   },
-};
+];
 
 // Capabilities table
 const capabilitiesTable = [
@@ -533,7 +569,7 @@ h1 {
   font-size: 2.5rem;
   font-weight: 700;
   margin-bottom: 1rem;
-  background: linear-gradient(135deg, #a855f7, #22d3ee);
+  background: linear-gradient(135deg, var(--accent-purple, #a855f7), var(--accent-cyan, #22d3ee));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -541,7 +577,7 @@ h1 {
 
 .lead {
   font-size: 1.1rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
   line-height: 1.6;
   margin-bottom: 2rem;
 }
@@ -553,20 +589,20 @@ h1 {
 h2 {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #e2e8f0;
+  color: var(--text-primary);
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-color, var(--border));
 }
 
 p {
-  color: #94a3b8;
+  color: var(--text-secondary);
   line-height: 1.7;
   margin-bottom: 1rem;
 }
 
 ul {
-  color: #94a3b8;
+  color: var(--text-secondary);
   line-height: 1.8;
   padding-left: 1.5rem;
   margin-bottom: 1rem;
@@ -579,8 +615,8 @@ li {
 :deep(code) {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.9em;
-  color: #c084fc;
-  background: rgba(168, 85, 247, 0.1);
+  color: var(--accent-purple-light, #c084fc);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
   padding: 0.15rem 0.4rem;
   border-radius: 4px;
 }

@@ -146,6 +146,7 @@ export interface ProjectContext {
   total_tokens: number;
   max_tokens: number;
   token_usage_percent: number;
+  is_token_limit_reached?: boolean;
 }
 
 export interface UpdateContextForm {
@@ -211,7 +212,7 @@ export interface ClaudeInstance {
 
 // ==================== ACTIVITY TYPES ====================
 
-export type ActivityType = 
+export type ActivityType =
   | 'task_claimed'
   | 'task_released'
   | 'task_completed'

@@ -21,10 +21,9 @@
               {{ machine.name }}
             </option>
           </select>
-          <Button 
-            variant="primary" 
-            @click="showCreateModal = true"
-            :disabled="!selectedMachineId"
+          <Button
+            variant="primary"
+            @click="$router.push({ name: 'projects.new' })"
           >
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
@@ -53,10 +52,9 @@
       <p v-else>
         Select a machine to view or create projects.
       </p>
-      <Button 
-        v-if="selectedMachineId"
-        variant="primary" 
-        @click="showCreateModal = true"
+      <Button
+        variant="primary"
+        @click="$router.push({ name: 'projects.new' })"
       >
         Create Project
       </Button>
@@ -156,13 +154,41 @@
           />
         </div>
         <div class="form-group">
-          <label>Project Path</label>
-          <input 
-            v-model="createForm.project_path" 
-            type="text" 
-            placeholder="/path/to/project"
-            required
-          />
+          <div class="path-header">
+            <label>Project Path</label>
+            <button
+              v-if="isSelectedMachineOnline"
+              type="button"
+              class="toggle-input-btn"
+              @click="useManualInput = !useManualInput"
+            >
+              {{ useManualInput ? 'Browse files' : 'Manual input' }}
+            </button>
+          </div>
+
+          <div v-if="useManualInput || !isSelectedMachineOnline">
+            <input
+              v-model="createForm.project_path"
+              type="text"
+              placeholder="/path/to/project"
+              required
+            />
+          </div>
+
+          <template v-else>
+            <RemoteFileTree
+              :machine-id="selectedMachineId"
+              @select="onPathSelected"
+            />
+            <input
+              v-model="createForm.project_path"
+              type="text"
+              required
+              class="!hidden"
+              aria-hidden="true"
+              tabindex="-1"
+            />
+          </template>
         </div>
         <div class="form-group">
           <label>Summary</label>
@@ -237,6 +263,7 @@ import { useToast } from '@/composables/useToast';
 import Card from '@/components/common/Card.vue';
 import Button from '@/components/common/Button.vue';
 import Modal from '@/components/common/Modal.vue';
+import RemoteFileTree from '@/components/sessions/RemoteFileTree.vue';
 import type { SharedProject } from '@/types';
 
 const router = useRouter();
@@ -248,6 +275,13 @@ const selectedMachineId = ref('');
 const showCreateModal = ref(false);
 const showDeleteModal = ref(false);
 const projectToDelete = ref<SharedProject | null>(null);
+const useManualInput = ref(false);
+
+const isSelectedMachineOnline = computed(() => {
+  if (!selectedMachineId.value) return false;
+  const machine = machinesStore.machines.find(m => m.id === selectedMachineId.value);
+  return machine?.status === 'online';
+});
 
 const createForm = ref({
   name: '',
@@ -321,6 +355,10 @@ async function createProject() {
   }
 }
 
+function onPathSelected(path: string): void {
+  createForm.value.project_path = path;
+}
+
 function resetCreateForm() {
   createForm.value = {
     name: '',
@@ -329,6 +367,7 @@ function resetCreateForm() {
     architecture: '',
     conventions: '',
   };
+  useManualInput.value = false;
 }
 
 function confirmDelete(project: SharedProject) {
@@ -364,11 +403,11 @@ async function deleteProject() {
 }
 
 .page-header h1 {
-  @apply text-3xl font-bold text-white;
+  @apply text-3xl font-bold text-skin-primary;
 }
 
 .subtitle {
-  @apply text-gray-400 mt-1;
+  @apply text-skin-secondary mt-1;
 }
 
 .header-actions {
@@ -376,7 +415,7 @@ async function deleteProject() {
 }
 
 .machine-select {
-  @apply px-4 py-2 bg-dark-2 border border-dark-4 rounded-lg text-white;
+  @apply px-4 py-2 bg-surface-2 border border-skin rounded-lg text-skin-primary;
   @apply focus:outline-none focus:border-brand-purple;
 }
 
@@ -397,7 +436,7 @@ async function deleteProject() {
 }
 
 .loading-state p {
-  @apply mt-4 text-gray-400;
+  @apply mt-4 text-skin-secondary;
 }
 
 .empty-state {
@@ -405,15 +444,15 @@ async function deleteProject() {
 }
 
 .empty-state svg {
-  @apply w-16 h-16 text-gray-600 mb-4;
+  @apply w-16 h-16 text-skin-secondary mb-4;
 }
 
 .empty-state h3 {
-  @apply text-xl font-semibold text-white mb-2;
+  @apply text-xl font-semibold text-skin-primary mb-2;
 }
 
 .empty-state p {
-  @apply text-gray-400 mb-6;
+  @apply text-skin-secondary mb-6;
 }
 
 .projects-grid {
@@ -437,11 +476,11 @@ async function deleteProject() {
 }
 
 .project-title h3 {
-  @apply text-lg font-semibold text-white mb-1;
+  @apply text-lg font-semibold text-skin-primary mb-1;
 }
 
 .project-path {
-  @apply text-sm text-gray-400 truncate max-w-[200px];
+  @apply text-sm text-skin-secondary truncate max-w-[200px];
 }
 
 .project-stats {
@@ -453,11 +492,11 @@ async function deleteProject() {
 }
 
 .stat-value {
-  @apply block text-2xl font-bold text-white;
+  @apply block text-2xl font-bold text-skin-primary;
 }
 
 .stat-label {
-  @apply text-xs text-gray-400;
+  @apply text-xs text-skin-secondary;
 }
 
 .project-footer {
@@ -465,7 +504,7 @@ async function deleteProject() {
 }
 
 .token-bar {
-  @apply h-2 bg-dark-3 rounded-full overflow-hidden;
+  @apply h-2 bg-surface-3 rounded-full overflow-hidden;
 }
 
 .token-progress {
@@ -477,7 +516,7 @@ async function deleteProject() {
 }
 
 .machine-badge {
-  @apply inline-flex items-center px-2 py-1 bg-dark-3 rounded text-xs text-gray-400;
+  @apply inline-flex items-center px-2 py-1 bg-surface-3 rounded text-xs text-skin-secondary;
 }
 
 .project-actions {
@@ -489,7 +528,7 @@ async function deleteProject() {
 }
 
 .action-btn {
-  @apply p-2 rounded-lg bg-dark-3 text-gray-400 hover:text-white hover:bg-dark-4 transition-colors;
+  @apply p-2 rounded-lg bg-surface-3 text-skin-secondary hover:text-skin-primary hover:bg-surface-4 transition-colors;
 }
 
 .action-btn svg {
@@ -509,12 +548,20 @@ async function deleteProject() {
 }
 
 .form-group label {
-  @apply block text-sm font-medium text-gray-300;
+  @apply block text-sm font-medium text-skin-primary;
+}
+
+.path-header {
+  @apply flex items-center justify-between;
+}
+
+.toggle-input-btn {
+  @apply text-xs text-brand-purple hover:underline transition-colors cursor-pointer;
 }
 
 .form-group input,
 .form-group textarea {
-  @apply w-full px-4 py-2 bg-dark-2 border border-dark-4 rounded-lg text-white;
+  @apply w-full px-4 py-2 bg-surface-2 border border-skin rounded-lg text-skin-primary;
   @apply focus:outline-none focus:border-brand-purple;
 }
 
@@ -527,7 +574,7 @@ async function deleteProject() {
 }
 
 .form-actions {
-  @apply flex items-center justify-end gap-3 pt-4 border-t border-dark-4;
+  @apply flex items-center justify-end gap-3 pt-4 border-t border-skin;
 }
 
 .delete-confirm {
@@ -535,7 +582,7 @@ async function deleteProject() {
 }
 
 .delete-confirm p {
-  @apply text-gray-300;
+  @apply text-skin-primary;
 }
 
 .delete-confirm .warning {

@@ -170,6 +170,11 @@
           <ContextViewer :project-id="projectId" />
         </div>
 
+        <!-- Orchestration Tab -->
+        <div v-else-if="activeTab === 'orchestration'" class="tab-panel">
+          <OrchestrationPanel />
+        </div>
+
         <!-- Instances Tab -->
         <div v-else-if="activeTab === 'instances'" class="tab-panel">
           <div class="instances-grid">
@@ -273,6 +278,7 @@ import Card from '@/components/common/Card.vue';
 import InstanceBadge from '@/components/projects/InstanceBadge.vue';
 import TasksBoard from './Tasks.vue';
 import ContextViewer from './Context.vue';
+import OrchestrationPanel from './Orchestration.vue';
 
 const route = useRoute();
 const projectsStore = useProjectsStore();
@@ -291,6 +297,7 @@ const tabs = [
   { id: 'overview', label: 'Overview', icon: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z' },
   { id: 'tasks', label: 'Tasks', icon: 'M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z' },
   { id: 'context', label: 'Context', icon: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z' },
+  { id: 'orchestration', label: 'Orchestration', icon: 'M22 11V3h-7v3H9V3H2v8h7V8h2v10h4v3h7v-8h-7v3h-2V8h2v3h7zM7 9H4V5h3v4zm10 6h3v4h-3v-4zm0-10h3v4h-3V5z' },
   { id: 'instances', label: 'Instances', icon: 'M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z' },
   { id: 'activity', label: 'Activity', icon: 'M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z' },
 ];
@@ -370,7 +377,7 @@ function formatDuration(seconds: number): string {
 }
 
 .loading-state p {
-  @apply mt-4 text-gray-400;
+  @apply mt-4 text-skin-secondary;
 }
 
 .project-header {
@@ -382,7 +389,7 @@ function formatDuration(seconds: number): string {
 }
 
 .back-link {
-  @apply flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm mb-2;
+  @apply flex items-center gap-2 text-skin-secondary hover:text-skin-primary transition-colors text-sm mb-2;
 }
 
 .back-link svg {
@@ -390,11 +397,11 @@ function formatDuration(seconds: number): string {
 }
 
 .header-title h1 {
-  @apply text-2xl font-bold text-white;
+  @apply text-2xl font-bold text-skin-primary;
 }
 
 .project-path {
-  @apply text-sm text-gray-400 mt-1;
+  @apply text-sm text-skin-secondary mt-1;
 }
 
 .token-usage {
@@ -402,11 +409,11 @@ function formatDuration(seconds: number): string {
 }
 
 .token-label {
-  @apply text-sm text-gray-400;
+  @apply text-sm text-skin-secondary;
 }
 
 .token-bar {
-  @apply w-32 h-2 bg-dark-3 rounded-full overflow-hidden;
+  @apply w-32 h-2 bg-surface-3 rounded-full overflow-hidden;
 }
 
 .token-progress {
@@ -418,19 +425,19 @@ function formatDuration(seconds: number): string {
 }
 
 .token-value {
-  @apply text-sm font-medium text-white;
+  @apply text-sm font-medium text-skin-primary;
 }
 
 .tabs {
-  @apply flex items-center gap-1 border-b border-dark-4;
+  @apply flex items-center gap-1 border-b border-skin;
 }
 
 .tab {
-  @apply flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-400 transition-colors relative;
+  @apply flex items-center gap-2 px-4 py-3 text-sm font-medium text-skin-secondary transition-colors relative;
 }
 
 .tab:hover {
-  @apply text-white;
+  @apply text-skin-primary;
 }
 
 .tab.active {
@@ -463,11 +470,11 @@ function formatDuration(seconds: number): string {
 }
 
 .info-label {
-  @apply text-sm text-gray-400;
+  @apply text-sm text-skin-secondary;
 }
 
 .info-value {
-  @apply text-sm text-white font-medium;
+  @apply text-sm text-skin-primary font-medium;
 }
 
 .stats-grid {
@@ -479,16 +486,16 @@ function formatDuration(seconds: number): string {
 }
 
 .stat-number {
-  @apply block text-2xl font-bold text-white;
+  @apply block text-2xl font-bold text-skin-primary;
 }
 
 .stat-label {
-  @apply text-xs text-gray-400 mt-1;
+  @apply text-xs text-skin-secondary mt-1;
 }
 
 .empty-instances,
 .empty-activity {
-  @apply text-center text-gray-400 py-8;
+  @apply text-center text-skin-secondary py-8;
 }
 
 .instances-list {
@@ -496,7 +503,7 @@ function formatDuration(seconds: number): string {
 }
 
 .instance-item {
-  @apply flex items-center justify-between p-3 bg-dark-3 rounded-lg;
+  @apply flex items-center justify-between p-3 bg-surface-3 rounded-lg;
 }
 
 .instance-details {
@@ -524,7 +531,7 @@ function formatDuration(seconds: number): string {
 }
 
 .instance-tokens {
-  @apply text-gray-400;
+  @apply text-skin-secondary;
 }
 
 .activity-list {
@@ -540,11 +547,11 @@ function formatDuration(seconds: number): string {
 }
 
 .activity-message {
-  @apply text-white flex-1 truncate;
+  @apply text-skin-primary flex-1 truncate;
 }
 
 .activity-time {
-  @apply text-gray-400 text-xs;
+  @apply text-skin-secondary text-xs;
 }
 
 .focus-card {
@@ -552,11 +559,11 @@ function formatDuration(seconds: number): string {
 }
 
 .context-preview {
-  @apply text-gray-300 whitespace-pre-wrap;
+  @apply text-skin-primary whitespace-pre-wrap;
 }
 
 .empty-context {
-  @apply text-gray-400 text-center py-4;
+  @apply text-skin-secondary text-center py-4;
 }
 
 .empty-context button {
@@ -576,7 +583,7 @@ function formatDuration(seconds: number): string {
 }
 
 .instance-uptime {
-  @apply text-sm text-gray-400;
+  @apply text-sm text-skin-secondary;
 }
 
 .instance-metrics {
@@ -588,11 +595,11 @@ function formatDuration(seconds: number): string {
 }
 
 .metric-label {
-  @apply text-sm text-gray-400 w-28;
+  @apply text-sm text-skin-secondary w-28;
 }
 
 .metric-bar {
-  @apply flex-1 h-2 bg-dark-3 rounded-full overflow-hidden;
+  @apply flex-1 h-2 bg-surface-3 rounded-full overflow-hidden;
 }
 
 .metric-progress {
@@ -600,7 +607,7 @@ function formatDuration(seconds: number): string {
 }
 
 .metric-value {
-  @apply text-sm text-white w-12 text-right;
+  @apply text-sm text-skin-primary w-12 text-right;
 }
 
 .metric-value.active {
@@ -640,15 +647,15 @@ function formatDuration(seconds: number): string {
 }
 
 .activity-title {
-  @apply block text-white text-sm;
+  @apply block text-skin-primary text-sm;
 }
 
 .activity-meta {
-  @apply block text-xs text-gray-400 mt-0.5;
+  @apply block text-xs text-skin-secondary mt-0.5;
 }
 
 .activity-instance {
-  @apply text-xs text-gray-500 font-mono;
+  @apply text-xs text-skin-secondary font-mono;
 }
 
 .not-found {
@@ -656,7 +663,7 @@ function formatDuration(seconds: number): string {
 }
 
 .not-found h2 {
-  @apply text-xl font-semibold text-white mb-4;
+  @apply text-xl font-semibold text-skin-primary mb-4;
 }
 
 .btn-primary {

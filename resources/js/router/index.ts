@@ -11,6 +11,12 @@ const Dashboard = () => import('@/pages/Dashboard.vue');
 const routes: RouteRecordRaw[] = [
     // Public routes
     {
+        path: '/',
+        name: 'landing',
+        component: () => import('@/pages/Landing.vue'),
+        meta: { public: true },
+    },
+    {
         path: '/login',
         name: 'login',
         component: Login,
@@ -37,7 +43,7 @@ const routes: RouteRecordRaw[] = [
 
     // Protected routes
     {
-        path: '/',
+        path: '/dashboard',
         name: 'dashboard',
         component: Dashboard,
         meta: { requiresAuth: true },

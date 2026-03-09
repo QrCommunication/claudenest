@@ -47,9 +47,9 @@ export const useMachinesStore = defineStore('machines', () => {
     perPage: 15,
     total: 0,
   });
-  const filters = ref({
+  const filters = ref<{ search: string; status: MachineStatus | 'all' }>({
     search: '',
-    status: 'all' as const,
+    status: 'all',
   });
 
   // ==================== GETTERS ====================

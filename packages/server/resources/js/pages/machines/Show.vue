@@ -515,7 +515,7 @@ function formatCapability(cap: string): string {
 }
 
 .error-state p {
-  @apply text-gray-400 mb-4;
+  @apply text-skin-secondary mb-4;
 }
 
 /* Header */
@@ -528,7 +528,7 @@ function formatCapability(cap: string): string {
 }
 
 .back-btn {
-  @apply p-2 rounded-lg text-gray-400 hover:text-white hover:bg-dark-2 transition-colors;
+  @apply p-2 rounded-lg text-skin-secondary hover:text-skin-primary hover:bg-surface-2 transition-colors;
 }
 
 .back-btn svg {
@@ -536,7 +536,7 @@ function formatCapability(cap: string): string {
 }
 
 .machine-title h1 {
-  @apply text-2xl font-bold text-white;
+  @apply text-2xl font-bold text-skin-primary;
 }
 
 .title-row {
@@ -544,7 +544,7 @@ function formatCapability(cap: string): string {
 }
 
 .subtitle {
-  @apply text-gray-400 text-sm;
+  @apply text-skin-secondary text-sm;
 }
 
 .header-actions {
@@ -573,7 +573,7 @@ function formatCapability(cap: string): string {
 }
 
 .btn-action.edit {
-  @apply text-gray-300 bg-dark-2 hover:text-white hover:bg-dark-3;
+  @apply text-skin-primary bg-surface-2 hover:text-skin-primary hover:bg-surface-3;
 }
 
 /* Content Grid */
@@ -591,11 +591,11 @@ function formatCapability(cap: string): string {
 
 /* Cards */
 .card {
-  @apply bg-dark-2 rounded-xl border border-dark-4 p-6;
+  @apply bg-surface-2 rounded-xl border border-skin p-6;
 }
 
 .card-title {
-  @apply text-lg font-semibold text-white mb-4 flex items-center gap-2;
+  @apply text-lg font-semibold text-skin-primary mb-4 flex items-center gap-2;
 }
 
 .card-header {
@@ -603,7 +603,7 @@ function formatCapability(cap: string): string {
 }
 
 .card-desc {
-  @apply text-sm text-gray-400 mb-4;
+  @apply text-sm text-skin-secondary mb-4;
 }
 
 .card.danger {
@@ -624,11 +624,11 @@ function formatCapability(cap: string): string {
 }
 
 .info-label {
-  @apply text-xs text-gray-500 uppercase tracking-wide;
+  @apply text-xs text-skin-secondary uppercase tracking-wide;
 }
 
 .info-value {
-  @apply text-sm text-white font-medium;
+  @apply text-sm text-skin-primary font-medium;
 }
 
 .info-value.platform {
@@ -649,12 +649,12 @@ function formatCapability(cap: string): string {
 }
 
 .empty-text {
-  @apply text-gray-500 italic;
+  @apply text-skin-secondary italic;
 }
 
 /* Sessions */
 .session-count {
-  @apply px-2 py-0.5 text-sm rounded-full bg-dark-3 text-gray-400;
+  @apply px-2 py-0.5 text-sm rounded-full bg-surface-3 text-skin-secondary;
 }
 
 .section-loading {
@@ -671,11 +671,11 @@ function formatCapability(cap: string): string {
 }
 
 .empty-sessions svg {
-  @apply w-12 h-12 text-gray-600 mb-3;
+  @apply w-12 h-12 text-skin-secondary mb-3;
 }
 
 .empty-sessions p {
-  @apply text-gray-500 mb-4;
+  @apply text-skin-secondary mb-4;
 }
 
 .sessions-list {
@@ -683,8 +683,8 @@ function formatCapability(cap: string): string {
 }
 
 .session-item {
-  @apply flex items-center justify-between p-3 rounded-lg bg-dark-3 border border-transparent;
-  @apply hover:border-dark-4 transition-colors;
+  @apply flex items-center justify-between p-3 rounded-lg bg-surface-3 border border-transparent;
+  @apply hover:border-skin transition-colors;
 }
 
 .session-item.running {
@@ -723,11 +723,11 @@ function formatCapability(cap: string): string {
 }
 
 .session-mode {
-  @apply text-sm font-medium text-white capitalize;
+  @apply text-sm font-medium text-skin-primary capitalize;
 }
 
 .session-path {
-  @apply text-xs text-gray-500 truncate max-w-[200px];
+  @apply text-xs text-skin-secondary truncate max-w-[200px];
 }
 
 .session-meta {
@@ -735,7 +735,7 @@ function formatCapability(cap: string): string {
 }
 
 .session-time {
-  @apply text-sm text-gray-500;
+  @apply text-sm text-skin-secondary;
 }
 
 /* Activity */
@@ -772,11 +772,11 @@ function formatCapability(cap: string): string {
 }
 
 .activity-text {
-  @apply text-sm text-white;
+  @apply text-sm text-skin-primary;
 }
 
 .activity-time {
-  @apply text-xs text-gray-500;
+  @apply text-xs text-skin-secondary;
 }
 
 /* Settings */
@@ -793,15 +793,15 @@ function formatCapability(cap: string): string {
 }
 
 .setting-name {
-  @apply text-sm font-medium text-white;
+  @apply text-sm font-medium text-skin-primary;
 }
 
 .setting-desc {
-  @apply text-xs text-gray-500;
+  @apply text-xs text-skin-secondary;
 }
 
 .setting-value {
-  @apply text-sm text-white font-mono;
+  @apply text-sm text-skin-primary font-mono;
 }
 
 .setting-value.at-limit {
@@ -818,11 +818,11 @@ function formatCapability(cap: string): string {
 }
 
 .danger-name {
-  @apply text-sm font-medium text-white;
+  @apply text-sm font-medium text-skin-primary;
 }
 
 .danger-desc {
-  @apply text-xs text-gray-500;
+  @apply text-xs text-skin-secondary;
 }
 
 /* Buttons */
@@ -833,7 +833,7 @@ function formatCapability(cap: string): string {
 
 .btn-secondary {
   @apply flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium;
-  @apply text-gray-300 bg-dark-3 hover:text-white hover:bg-dark-4 transition-colors;
+  @apply text-skin-primary bg-surface-3 hover:text-skin-primary hover:bg-surface-4 transition-colors;
 }
 
 .btn-danger {
@@ -846,7 +846,7 @@ function formatCapability(cap: string): string {
 }
 
 .btn-icon {
-  @apply p-1 rounded-lg text-gray-400 hover:text-white hover:bg-dark-4 transition-colors;
+  @apply p-1 rounded-lg text-skin-secondary hover:text-skin-primary hover:bg-surface-4 transition-colors;
 }
 
 .btn-icon svg {
@@ -861,7 +861,7 @@ function formatCapability(cap: string): string {
 }
 
 .confirm-dialog {
-  @apply w-full max-w-md bg-dark-2 rounded-2xl border border-dark-4 p-6;
+  @apply w-full max-w-md bg-surface-2 rounded-2xl border border-skin p-6;
   animation: modalIn 0.2s ease-out;
 }
 
@@ -886,11 +886,11 @@ function formatCapability(cap: string): string {
 }
 
 .confirm-header h3 {
-  @apply text-xl font-semibold text-white;
+  @apply text-xl font-semibold text-skin-primary;
 }
 
 .confirm-text {
-  @apply text-gray-400 mb-6;
+  @apply text-skin-secondary mb-6;
 }
 
 .confirm-actions {
@@ -898,7 +898,7 @@ function formatCapability(cap: string): string {
 }
 
 .token-display {
-  @apply flex items-center gap-2 p-3 mb-6 bg-dark-3 rounded-lg;
+  @apply flex items-center gap-2 p-3 mb-6 bg-surface-3 rounded-lg;
 }
 
 .token-display code {

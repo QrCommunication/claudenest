@@ -5,14 +5,52 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\SharedProject;
 use App\Models\ContextChunk;
+use App\Services\EmbeddingService;
+use App\Services\ContextRAGService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 
 class ContextController extends Controller
 {
+    public function __construct(
+        private EmbeddingService $embeddingService,
+        private ContextRAGService $ragService,
+    ) {}
+
     /**
-     * Get project context.
+     * @OA\Get(
+     *     path="/api/projects/{projectId}/context",
+     *     tags={"Context"},
+     *     summary="Get project context",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="projectId",
+     *         in="path",
+     *         required=true,
+     *         description="Project UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Project context",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="summary", type="string", nullable=true),
+     *                 @OA\Property(property="architecture", type="string", nullable=true),
+     *                 @OA\Property(property="conventions", type="string", nullable=true),
+     *                 @OA\Property(property="current_focus", type="string", nullable=true),
+     *                 @OA\Property(property="recent_changes", type="string", nullable=true),
+     *                 @OA\Property(property="total_tokens", type="integer"),
+     *                 @OA\Property(property="max_tokens", type="integer"),
+     *                 @OA\Property(property="token_usage_percent", type="number", format="float")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=404, ref="#/components/responses/NotFound")
+     * )
      */
     public function show(Request $request, string $projectId): JsonResponse
     {
@@ -42,7 +80,46 @@ class ContextController extends Controller
     }
 
     /**
-     * Update project context.
+     * @OA\Patch(
+     *     path="/api/projects/{projectId}/context",
+     *     tags={"Context"},
+     *     summary="Update project context",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="projectId",
+     *         in="path",
+     *         required=true,
+     *         description="Project UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="summary", type="string", nullable=true),
+     *             @OA\Property(property="architecture", type="string", nullable=true),
+     *             @OA\Property(property="conventions", type="string", nullable=true),
+     *             @OA\Property(property="current_focus", type="string", nullable=true),
+     *             @OA\Property(property="recent_changes", type="string", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Updated context",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="summary", type="string", nullable=true),
+     *                 @OA\Property(property="architecture", type="string", nullable=true),
+     *                 @OA\Property(property="conventions", type="string", nullable=true),
+     *                 @OA\Property(property="current_focus", type="string", nullable=true),
+     *                 @OA\Property(property="recent_changes", type="string", nullable=true)
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=404, ref="#/components/responses/NotFound")
+     * )
      */
     public function update(Request $request, string $projectId): JsonResponse
     {
@@ -84,7 +161,47 @@ class ContextController extends Controller
     }
 
     /**
-     * Query context chunks (RAG search).
+     * @OA\Post(
+     *     path="/api/projects/{projectId}/context/query",
+     *     tags={"Context"},
+     *     summary="Query context chunks (RAG search)",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="projectId",
+     *         in="path",
+     *         required=true,
+     *         description="Project UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/ContextQueryRequest")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Matching context chunks with similarity scores",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     @OA\Property(property="id", type="string", format="uuid"),
+     *                     @OA\Property(property="content", type="string"),
+     *                     @OA\Property(property="type", type="string"),
+     *                     @OA\Property(property="instance_id", type="string", nullable=true),
+     *                     @OA\Property(property="task_id", type="string", format="uuid", nullable=true),
+     *                     @OA\Property(property="files", type="array", @OA\Items(type="string")),
+     *                     @OA\Property(property="importance_score", type="number", format="float"),
+     *                     @OA\Property(property="similarity", type="number", format="float", nullable=true),
+     *                     @OA\Property(property="created_at", type="string", format="date-time")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=404, ref="#/components/responses/NotFound")
+     * )
      */
     public function query(Request $request, string $projectId): JsonResponse
     {
@@ -111,7 +228,7 @@ class ContextController extends Controller
         if ($useEmbeddings) {
             try {
                 // Get embedding for query
-                $embedding = $this->getEmbedding($query);
+                $embedding = $this->embeddingService->generate($query);
 
                 if ($embedding) {
                     $chunks = ContextChunk::findSimilar(
@@ -167,7 +284,53 @@ class ContextController extends Controller
     }
 
     /**
-     * List context chunks.
+     * @OA\Get(
+     *     path="/api/projects/{projectId}/context/chunks",
+     *     tags={"Context"},
+     *     summary="List context chunks",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="projectId",
+     *         in="path",
+     *         required=true,
+     *         description="Project UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Parameter(
+     *         name="type",
+     *         in="query",
+     *         required=false,
+     *         description="Filter by chunk type",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="instance_id",
+     *         in="query",
+     *         required=false,
+     *         description="Filter by instance ID",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="limit",
+     *         in="query",
+     *         required=false,
+     *         description="Number of results per page",
+     *         @OA\Schema(type="integer", default=50)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Paginated list of context chunks",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(ref="#/components/schemas/ContextChunk")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=404, ref="#/components/responses/NotFound")
+     * )
      */
     public function chunks(Request $request, string $projectId): JsonResponse
     {
@@ -178,10 +341,12 @@ class ContextController extends Controller
         }
 
         $validated = $request->validate([
-            'type' => 'string|in:task_completion,context_update,file_change,decision,summary,broadcast',
-            'instance_id' => 'string',
-            'limit' => 'integer|min:1|max:100|default:50',
+            'type' => 'nullable|string|in:task_completion,context_update,file_change,decision,summary,broadcast',
+            'instance_id' => 'nullable|string',
+            'limit' => 'nullable|integer|min:1|max:100',
         ]);
+
+        $limit = $request->integer('limit', 50);
 
         $query = $project->contextChunks()->active();
 
@@ -195,7 +360,7 @@ class ContextController extends Controller
 
         $chunks = $query
             ->orderBy('created_at', 'desc')
-            ->paginate($validated['limit'] ?? 50);
+            ->paginate($limit);
 
         return response()->json([
             'success' => true,
@@ -224,7 +389,39 @@ class ContextController extends Controller
     }
 
     /**
-     * Create new context chunk.
+     * @OA\Post(
+     *     path="/api/projects/{projectId}/context/chunks",
+     *     tags={"Context"},
+     *     summary="Create context chunk",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="projectId",
+     *         in="path",
+     *         required=true,
+     *         description="Project UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/CreateChunkRequest")
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Context chunk created",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="id", type="string", format="uuid"),
+     *                 @OA\Property(property="type", type="string"),
+     *                 @OA\Property(property="has_embedding", type="boolean"),
+     *                 @OA\Property(property="created_at", type="string", format="date-time")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=404, ref="#/components/responses/NotFound")
+     * )
      */
     public function storeChunk(Request $request, string $projectId): JsonResponse
     {
@@ -248,7 +445,7 @@ class ContextController extends Controller
         // Get embedding if requested and service available
         $embedding = null;
         if ($validated['generate_embedding'] ?? false) {
-            $embedding = $this->getEmbedding($validated['content']);
+            $embedding = $this->embeddingService->generate($validated['content']);
         }
 
         $chunk = ContextChunk::create([
@@ -282,7 +479,47 @@ class ContextController extends Controller
     }
 
     /**
-     * Summarize context chunks.
+     * @OA\Post(
+     *     path="/api/projects/{projectId}/context/summarize",
+     *     tags={"Context"},
+     *     summary="Summarize context chunks",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="projectId",
+     *         in="path",
+     *         required=true,
+     *         description="Project UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *             @OA\Property(
+     *                 property="chunk_ids",
+     *                 type="array",
+     *                 description="UUIDs of chunks to summarize; omit to use recent high-importance chunks",
+     *                 @OA\Items(type="string", format="uuid")
+     *             ),
+     *             @OA\Property(property="max_length", type="integer", default=1000, description="Maximum summary length in characters")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Generated summary",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="summary", type="string"),
+     *                 @OA\Property(property="chunks_used", type="integer"),
+     *                 @OA\Property(property="total_chars", type="integer"),
+     *                 @OA\Property(property="ai_generated", type="boolean")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=404, ref="#/components/responses/NotFound")
+     * )
      */
     public function summarize(Request $request, string $projectId): JsonResponse
     {
@@ -364,7 +601,95 @@ class ContextController extends Controller
     }
 
     /**
-     * Delete a context chunk.
+     * Batch create context chunks from agent sync queue.
+     * Accepts updates across multiple projects in a single request.
+     */
+    public function batch(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'updates' => 'required|array|min:1|max:100',
+            'updates.*.projectId' => 'required|uuid',
+            'updates.*.content' => 'required|string|min:1',
+            'updates.*.type' => 'required|string|in:task_completion,context_update,file_change,decision,summary,broadcast',
+            'updates.*.files' => 'nullable|array',
+            'updates.*.files.*' => 'string',
+            'updates.*.importanceScore' => 'nullable|numeric|min:0|max:1',
+        ]);
+
+        $userId = $request->user()->id;
+        $created = [];
+        $errors = [];
+
+        // Group updates by project for efficient ownership check
+        $projectIds = collect($validated['updates'])->pluck('projectId')->unique();
+        $userProjects = SharedProject::forUser($userId)
+            ->whereIn('id', $projectIds)
+            ->pluck('id')
+            ->flip();
+
+        foreach ($validated['updates'] as $i => $update) {
+            if (!$userProjects->has($update['projectId'])) {
+                $errors[] = ['index' => $i, 'error' => 'Project not found or not owned'];
+                continue;
+            }
+
+            $chunk = ContextChunk::create([
+                'project_id' => $update['projectId'],
+                'content' => $update['content'],
+                'type' => $update['type'],
+                'instance_id' => $request->header('X-Instance-ID'),
+                'files' => $update['files'] ?? [],
+                'importance_score' => $update['importanceScore'] ?? 0.5,
+                'expires_at' => now()->addDays(30),
+            ]);
+
+            $created[] = $chunk->id;
+
+            // Dispatch embedding generation asynchronously if service is available
+            if ($this->embeddingService->isAvailable()) {
+                \App\Jobs\GenerateChunkEmbedding::dispatch($chunk);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'created' => $created,
+                'errors' => $errors,
+            ],
+            'meta' => [
+                'total_received' => count($validated['updates']),
+                'total_created' => count($created),
+                'total_errors' => count($errors),
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ], 201);
+    }
+
+    /**
+     * @OA\Delete(
+     *     path="/api/projects/{projectId}/context/chunks/{chunkId}",
+     *     tags={"Context"},
+     *     summary="Delete context chunk",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="projectId",
+     *         in="path",
+     *         required=true,
+     *         description="Project UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Parameter(
+     *         name="chunkId",
+     *         in="path",
+     *         required=true,
+     *         description="Context chunk UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(response=200, ref="#/components/responses/DeletedResponse"),
+     *     @OA\Response(response=404, ref="#/components/responses/NotFound")
+     * )
      */
     public function destroyChunk(Request $request, string $projectId, string $chunkId): JsonResponse
     {
@@ -390,34 +715,6 @@ class ContextController extends Controller
                 'request_id' => $request->header('X-Request-ID', uniqid()),
             ],
         ]);
-    }
-
-    /**
-     * Helper: Get embedding from Ollama.
-     */
-    private function getEmbedding(string $text): ?array
-    {
-        $ollamaUrl = config('services.ollama.url');
-        $model = config('services.ollama.embedding_model', 'nomic-embed-text');
-
-        if (empty($ollamaUrl)) {
-            return null;
-        }
-
-        try {
-            $response = Http::timeout(30)->post("{$ollamaUrl}/api/embeddings", [
-                'model' => $model,
-                'prompt' => $text,
-            ]);
-
-            if ($response->successful()) {
-                return $response->json('embedding');
-            }
-        } catch (\Exception $e) {
-            report($e);
-        }
-
-        return null;
     }
 
     /**

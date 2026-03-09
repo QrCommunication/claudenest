@@ -60,6 +60,9 @@
             <path v-else-if="section.icon === 'code'" d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/>
             <path v-else-if="section.icon === 'bell'" d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/>
             <path v-else-if="section.icon === 'package'" d="M12.89 1.45l8 4A2 2 0 0122 7.24v9.53a2 2 0 01-1.11 1.79l-8 4a2 2 0 01-1.79 0l-8-4a2 2 0 01-1.1-1.8V7.24a2 2 0 011.1-1.79l8-4a2 2 0 011.78 0zM12 3.55L5.11 7 12 10.45 18.89 7 12 3.55zM4 8.62v7.16l7 3.5V12.12L4 8.62zm9 10.76l7-3.5V8.62l-7 3.5v7.26z"/>
+            <path v-else-if="section.icon === 'map'" d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/>
+            <path v-else-if="section.icon === 'chef'" d="M8.1 13.34l2.83-2.83L3.91 3.5c-1.56 1.56-1.56 4.09 0 5.66l4.19 4.18zm6.78-1.81c1.53.71 3.68.21 5.27-1.38 1.91-1.91 2.28-4.65.81-6.12-1.46-1.46-4.2-1.1-6.12.81-1.59 1.59-2.09 3.74-1.38 5.27L3.7 19.87l1.41 1.41L12 14.41l6.88 6.88 1.41-1.41L13.41 13l1.47-1.47z"/>
+            <path v-else-if="section.icon === 'brain'" d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
             <path v-else-if="section.icon === 'book'" d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/>
           </svg>
           <span>{{ section.title }}</span>
@@ -77,9 +80,9 @@
           <router-link
             v-for="item in section.items"
             :key="item.id"
-            :to="item.path"
+            :to="item.path ?? '/docs'"
             class="nav-link"
-            :class="{ 'is-active': isActive(item.path) }"
+            :class="{ 'is-active': isActive(item.path ?? '') }"
           >
             <span class="nav-link-title">{{ item.title }}</span>
             <span v-if="item.description" class="nav-link-desc">{{ item.description }}</span>
@@ -169,12 +172,12 @@ const isActive = (path: string) => {
 .logo-title {
   font-weight: 700;
   font-size: 1.1rem;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .logo-subtitle {
   font-size: 0.8rem;
-  color: #a9b1d6;
+  color: var(--text-secondary);
 }
 
 /* Search Trigger */
@@ -183,10 +186,10 @@ const isActive = (path: string) => {
   align-items: center;
   gap: 0.75rem;
   padding: 0.625rem 0.875rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 10px;
-  color: #a9b1d6;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.2s;
@@ -195,8 +198,8 @@ const isActive = (path: string) => {
 }
 
 .search-trigger:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.15);
+  background: color-mix(in srgb, var(--text-primary) 6%, transparent);
+  border-color: color-mix(in srgb, var(--text-primary) 15%, transparent);
 }
 
 .search-trigger svg {
@@ -214,9 +217,9 @@ const isActive = (path: string) => {
   font-family: inherit;
   font-size: 0.75rem;
   padding: 0.2rem 0.4rem;
-  background: rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--text-primary) 10%, transparent);
   border-radius: 4px;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 /* Version Selector */
@@ -227,17 +230,17 @@ const isActive = (path: string) => {
 .version-selector select {
   width: 100%;
   padding: 0.5rem 0.75rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  border: 1px solid var(--border-color, var(--border));
   border-radius: 8px;
-  color: #a9b1d6;
+  color: var(--text-secondary);
   font-size: 0.85rem;
   cursor: pointer;
   outline: none;
 }
 
 .version-selector select:focus {
-  border-color: #a855f7;
+  border-color: var(--accent-purple, #a855f7);
 }
 
 /* Navigation */
@@ -258,7 +261,7 @@ const isActive = (path: string) => {
   background: transparent;
   border: none;
   border-radius: 8px;
-  color: #a9b1d6;
+  color: var(--text-secondary);
   font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
@@ -268,8 +271,8 @@ const isActive = (path: string) => {
 }
 
 .nav-section-header:hover {
-  background: rgba(255, 255, 255, 0.03);
-  color: #ffffff;
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  color: var(--text-primary);
 }
 
 .nav-icon {
@@ -305,21 +308,21 @@ const isActive = (path: string) => {
   margin: 0.125rem 0;
   border-radius: 8px;
   text-decoration: none;
-  color: #a9b1d6;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   transition: all 0.15s;
   border-left: 2px solid transparent;
 }
 
 .nav-link:hover {
-  background: rgba(255, 255, 255, 0.03);
-  color: #ffffff;
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  color: var(--text-primary);
 }
 
 .nav-link.is-active {
-  background: rgba(168, 85, 247, 0.1);
-  color: #a855f7;
-  border-left-color: #a855f7;
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
+  color: var(--accent-purple, #a855f7);
+  border-left-color: var(--accent-purple, #a855f7);
   font-weight: 500;
 }
 
@@ -329,7 +332,7 @@ const isActive = (path: string) => {
 
 .nav-link-desc {
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--text-muted);
   margin-top: 0.125rem;
   white-space: nowrap;
   overflow: hidden;
@@ -346,7 +349,7 @@ const isActive = (path: string) => {
 .sidebar-footer {
   margin-top: auto;
   padding-top: 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--border-color, var(--border));
 }
 
 .back-link {
@@ -354,7 +357,7 @@ const isActive = (path: string) => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
-  color: #a9b1d6;
+  color: var(--text-secondary);
   text-decoration: none;
   font-size: 0.85rem;
   border-radius: 8px;
@@ -362,8 +365,8 @@ const isActive = (path: string) => {
 }
 
 .back-link:hover {
-  background: rgba(255, 255, 255, 0.03);
-  color: #ffffff;
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  color: var(--text-primary);
 }
 
 .back-link svg {

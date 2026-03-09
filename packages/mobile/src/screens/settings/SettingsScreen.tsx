@@ -13,7 +13,7 @@ import {
   Alert,
   Linking,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { colors, spacing, borderRadius, typography } from '@/theme';
 import { useAuthStore } from '@/stores/authStore';
 import { useMachinesStore } from '@/stores/machinesStore';
@@ -132,6 +132,12 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>App</Text>
         <Card>
+          <SettingsItem
+            icon="key"
+            title="Credentials"
+            subtitle="Manage API keys & OAuth tokens"
+            onPress={() => navigation.navigate('Credentials')}
+          />
           <SettingsItem
             icon="help-outline"
             title="Help & Documentation"

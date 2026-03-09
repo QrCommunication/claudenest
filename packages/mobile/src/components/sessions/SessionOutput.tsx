@@ -13,7 +13,7 @@ import {
   type NativeSyntheticEvent,
   type NativeScrollEvent,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius } from '@/theme';
 import { useSessionsStore } from '@/stores/sessionsStore';
 

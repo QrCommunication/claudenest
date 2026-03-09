@@ -15,6 +15,11 @@ class Session extends Model
     use HasFactory, HasVersion4Uuids;
 
     /**
+     * The table associated with the model.
+     */
+    protected $table = 'claude_sessions';
+
+    /**
      * The primary key type.
      */
     protected $keyType = 'string';
@@ -41,6 +46,7 @@ class Session extends Model
         'total_cost',
         'started_at',
         'completed_at',
+        'credential_id',
     ];
 
     /**
@@ -75,7 +81,7 @@ class Session extends Model
 
     // ==================== CONSTANTS ====================
 
-    public const MODES = ['interactive', 'headless', 'oneshot'];
+    public const MODES = ['interactive', 'headless', 'oneshot', 'bash'];
 
     public const STATUSES = ['created', 'starting', 'running', 'waiting_input', 'completed', 'error', 'terminated'];
 
@@ -99,6 +105,11 @@ class Session extends Model
     public function claudeInstance(): HasOne
     {
         return $this->hasOne(ClaudeInstance::class);
+    }
+
+    public function credential(): BelongsTo
+    {
+        return $this->belongsTo(ClaudeCredential::class, 'credential_id');
     }
 
     // ==================== SCOPES ====================

@@ -431,12 +431,12 @@ function getTaskTitle(taskId: string): string {
 }
 
 .search-input {
-  @apply px-4 py-2 bg-dark-2 border border-dark-4 rounded-lg text-white w-64;
+  @apply px-4 py-2 bg-surface-2 border border-skin rounded-lg text-skin-primary w-64;
   @apply focus:outline-none focus:border-brand-purple;
 }
 
 .filter-select {
-  @apply px-4 py-2 bg-dark-2 border border-dark-4 rounded-lg text-white;
+  @apply px-4 py-2 bg-surface-2 border border-skin rounded-lg text-skin-primary;
   @apply focus:outline-none focus:border-brand-purple;
 }
 
@@ -454,15 +454,15 @@ function getTaskTitle(taskId: string): string {
 }
 
 .kanban-column {
-  @apply bg-dark-2/50 rounded-xl border border-dark-4 flex flex-col min-h-[400px];
+  @apply bg-surface-2/50 rounded-xl border border-skin flex flex-col min-h-[400px];
 }
 
 .column-header {
-  @apply p-4 border-b border-dark-4;
+  @apply p-4 border-b border-skin;
 }
 
 .column-title {
-  @apply flex items-center gap-2 font-semibold text-white;
+  @apply flex items-center gap-2 font-semibold text-skin-primary;
 }
 
 .column-dot {
@@ -470,7 +470,7 @@ function getTaskTitle(taskId: string): string {
 }
 
 .column-count {
-  @apply ml-auto text-sm text-gray-400 bg-dark-3 px-2 py-0.5 rounded-full;
+  @apply ml-auto text-sm text-skin-secondary bg-surface-3 px-2 py-0.5 rounded-full;
 }
 
 .column-tasks {
@@ -490,11 +490,11 @@ function getTaskTitle(taskId: string): string {
 }
 
 .meta-label {
-  @apply text-xs text-gray-400 uppercase tracking-wide;
+  @apply text-xs text-skin-secondary uppercase tracking-wide;
 }
 
 .meta-value {
-  @apply text-sm font-medium text-white;
+  @apply text-sm font-medium text-skin-primary;
 }
 
 .meta-value.status {
@@ -552,12 +552,12 @@ function getTaskTitle(taskId: string): string {
 .task-files h4,
 .task-dependencies h4,
 .task-completion h4 {
-  @apply text-sm font-semibold text-white;
+  @apply text-sm font-semibold text-skin-primary;
 }
 
 .task-description p,
 .task-completion p {
-  @apply text-sm text-gray-300 whitespace-pre-wrap;
+  @apply text-sm text-skin-primary whitespace-pre-wrap;
 }
 
 .files-list {
@@ -566,11 +566,11 @@ function getTaskTitle(taskId: string): string {
 
 .task-dependencies ul,
 .files-modified ul {
-  @apply list-disc list-inside text-sm text-gray-300;
+  @apply list-disc list-inside text-sm text-skin-primary;
 }
 
 .task-actions {
-  @apply flex items-center gap-3 pt-4 border-t border-dark-4;
+  @apply flex items-center gap-3 pt-4 border-t border-skin;
 }
 
 .claim-form,
@@ -579,7 +579,7 @@ function getTaskTitle(taskId: string): string {
 }
 
 .claim-form p {
-  @apply text-gray-300;
+  @apply text-skin-primary;
 }
 
 .instances-list {
@@ -587,7 +587,7 @@ function getTaskTitle(taskId: string): string {
 }
 
 .instance-option {
-  @apply w-full flex items-center justify-between p-3 bg-dark-3 rounded-lg border border-transparent;
+  @apply w-full flex items-center justify-between p-3 bg-surface-3 rounded-lg border border-transparent;
   @apply hover:border-brand-purple/50 transition-colors;
 }
 
@@ -612,11 +612,11 @@ function getTaskTitle(taskId: string): string {
 }
 
 .form-group label {
-  @apply block text-sm font-medium text-gray-300;
+  @apply block text-sm font-medium text-skin-primary;
 }
 
 .form-group textarea {
-  @apply w-full px-4 py-2 bg-dark-2 border border-dark-4 rounded-lg text-white;
+  @apply w-full px-4 py-2 bg-surface-2 border border-skin rounded-lg text-skin-primary;
   @apply focus:outline-none focus:border-brand-purple resize-none;
 }
 

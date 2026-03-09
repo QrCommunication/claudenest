@@ -124,7 +124,7 @@ function formatTokens(tokens: number): string {
 
 <style scoped>
 .task-card {
-  @apply p-4 bg-dark-3 rounded-lg border border-dark-4 cursor-pointer;
+  @apply p-4 bg-surface-3 rounded-lg border border-skin cursor-pointer;
   @apply hover:border-brand-purple/50 transition-all duration-200;
   @apply hover:shadow-lg hover:shadow-brand-purple/5;
 }
@@ -190,11 +190,11 @@ function formatTokens(tokens: number): string {
 }
 
 .task-title {
-  @apply text-sm font-medium text-white mb-2 line-clamp-2;
+  @apply text-sm font-medium text-skin-primary mb-2 line-clamp-2;
 }
 
 .task-description {
-  @apply text-xs text-gray-400 mb-3 line-clamp-2;
+  @apply text-xs text-skin-secondary mb-3 line-clamp-2;
 }
 
 .task-footer {
@@ -202,7 +202,7 @@ function formatTokens(tokens: number): string {
 }
 
 .task-unclaimed {
-  @apply text-xs text-gray-500 italic;
+  @apply text-xs text-skin-muted italic;
 }
 
 .task-actions {
@@ -210,7 +210,7 @@ function formatTokens(tokens: number): string {
 }
 
 .action-btn {
-  @apply p-1.5 rounded text-gray-400 hover:text-white transition-colors;
+  @apply p-1.5 rounded text-skin-secondary hover:text-skin-primary transition-colors;
 }
 
 .action-btn svg {
@@ -230,11 +230,11 @@ function formatTokens(tokens: number): string {
 }
 
 .task-tokens {
-  @apply flex items-center gap-2 mt-3 pt-3 border-t border-dark-4;
+  @apply flex items-center gap-2 mt-3 pt-3 border-t border-skin;
 }
 
 .token-bar {
-  @apply flex-1 h-1 bg-dark-4 rounded-full overflow-hidden;
+  @apply flex-1 h-1 bg-surface-4 rounded-full overflow-hidden;
 }
 
 .token-progress {
@@ -242,6 +242,6 @@ function formatTokens(tokens: number): string {
 }
 
 .token-label {
-  @apply text-xs text-gray-400;
+  @apply text-xs text-skin-secondary;
 }
 </style>

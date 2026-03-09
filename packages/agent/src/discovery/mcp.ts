@@ -6,7 +6,9 @@ import { EventEmitter } from 'events';
 import { spawn, ChildProcess } from 'child_process';
 import fs from 'fs/promises';
 import path from 'path';
+import os from 'os';
 import type { Logger } from '../utils/logger.js';
+import { getConfigDir } from '../utils/index.js';
 import type { MCPServer, MCPStatus, MCPTool } from '../types/index.js';
 
 interface MCPManagerOptions {
@@ -33,7 +35,6 @@ interface MCPProcess {
 }
 
 export class MCPManager extends EventEmitter {
-  private options: MCPManagerOptions;
   private logger: Logger;
   private servers = new Map<string, MCPServer>();
   private processes = new Map<string, MCPProcess>();
@@ -41,10 +42,8 @@ export class MCPManager extends EventEmitter {
 
   constructor(options: MCPManagerOptions) {
     super();
-    this.options = options;
     this.logger = options.logger.child({ component: 'MCPManager' });
-    
-    const { getConfigDir } = require('../utils/index.js');
+
     this.configPath = options.configPath || path.join(getConfigDir(), 'mcp.json');
   }
 
@@ -57,43 +56,116 @@ export class MCPManager extends EventEmitter {
   }
 
   /**
-   * Load MCP configuration
+   * Load MCP configuration from multiple sources:
+   * 1. ~/.claude/settings.json (Claude Code native config)
+   * 2. ~/.config/claudenest/mcp.json (legacy/custom config)
    */
   async loadConfig(): Promise<void> {
+    let totalLoaded = 0;
+
+    // Source 1: Claude Code's native settings.json
+    try {
+      const claudeSettingsPath = path.join(os.homedir(), '.claude', 'settings.json');
+      const content = await fs.readFile(claudeSettingsPath, 'utf-8');
+      const settings = JSON.parse(content);
+
+      if (settings.mcpServers && typeof settings.mcpServers === 'object') {
+        totalLoaded += this.loadServersFromConfig(settings.mcpServers);
+        this.logger.info(`Loaded ${totalLoaded} MCP servers from ${claudeSettingsPath}`);
+      }
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        this.logger.warn({ err: error }, 'Failed to read Claude settings.json');
+      }
+    }
+
+    // Source 2: Project-level .claude/settings.json files
+    try {
+      const cwd = process.cwd();
+      const projectSettingsPath = path.join(cwd, '.claude', 'settings.json');
+      const content = await fs.readFile(projectSettingsPath, 'utf-8');
+      const settings = JSON.parse(content);
+
+      if (settings.mcpServers && typeof settings.mcpServers === 'object') {
+        const count = this.loadServersFromConfig(settings.mcpServers);
+        totalLoaded += count;
+        if (count > 0) {
+          this.logger.info(`Loaded ${count} project MCP servers from ${projectSettingsPath}`);
+        }
+      }
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        this.logger.debug({ err: error }, 'No project-level MCP config');
+      }
+    }
+
+    // Source 3: Legacy ClaudeNest config
     try {
       const content = await fs.readFile(this.configPath, 'utf-8');
       const config: MCPConfig = JSON.parse(content);
-      
-      for (const [name, serverConfig] of Object.entries(config.mcpServers)) {
-        const server: MCPServer = {
-          name,
-          description: serverConfig.description || '',
-          command: serverConfig.command,
-          args: serverConfig.args || [],
-          env: serverConfig.env,
-          enabled: serverConfig.enabled ?? true,
-          autoStart: serverConfig.autoStart ?? false,
-          status: 'stopped',
-        };
-        
-        this.servers.set(name, server);
-        
-        // Auto-start if configured
-        if (server.autoStart && server.enabled) {
-          await this.startServer(name).catch(error => {
-            this.logger.error(`Failed to auto-start MCP server ${name}`, { error });
-          });
+
+      if (config.mcpServers) {
+        const count = this.loadServersFromConfig(config.mcpServers);
+        totalLoaded += count;
+        if (count > 0) {
+          this.logger.info(`Loaded ${count} MCP servers from ${this.configPath}`);
         }
       }
-      
-      this.logger.info(`Loaded ${this.servers.size} MCP servers`);
     } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-        this.logger.info('No MCP config found, starting empty');
-      } else {
-        throw error;
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        this.logger.warn({ err: error }, 'Failed to read legacy MCP config');
       }
     }
+
+    if (totalLoaded === 0) {
+      this.logger.info('No MCP servers found in any config source');
+    } else {
+      this.logger.info(`Total MCP servers loaded: ${totalLoaded}`);
+    }
+  }
+
+  /**
+   * Load servers from a mcpServers config object, returns count loaded
+   */
+  private loadServersFromConfig(
+    mcpServers: Record<string, {
+      command: string;
+      args?: string[];
+      env?: Record<string, string>;
+      description?: string;
+      autoStart?: boolean;
+      enabled?: boolean;
+    }>
+  ): number {
+    let count = 0;
+
+    for (const [name, serverConfig] of Object.entries(mcpServers)) {
+      // Skip if already loaded (first source wins)
+      if (this.servers.has(name)) continue;
+
+      const server: MCPServer = {
+        name,
+        description: serverConfig.description || '',
+        command: serverConfig.command,
+        args: serverConfig.args || [],
+        env: serverConfig.env,
+        enabled: serverConfig.enabled ?? true,
+        autoStart: serverConfig.autoStart ?? false,
+        status: 'stopped',
+      };
+
+      this.servers.set(name, server);
+      count++;
+
+      // Auto-start if configured
+      if (server.autoStart && server.enabled) {
+        this.startServer(name).catch(error => {
+          this.logger.error({ err: error }, `Failed to auto-start MCP server ${name}`);
+        });
+      }
+    }
+
+    return count;
   }
 
   /**
@@ -135,10 +207,10 @@ export class MCPManager extends EventEmitter {
 
     this.logger.info(`Starting MCP server: ${name}`);
     server.status = 'starting';
-    this.emit('statusChange', name, server.status);
+    (this as any).emit('statusChange', name, server.status);
 
     try {
-      const process = spawn(server.command, server.args, {
+      const childProcess = spawn(server.command, server.args, {
         env: {
           ...process.env,
           ...server.env,
@@ -148,34 +220,34 @@ export class MCPManager extends EventEmitter {
 
       const mcpProcess: MCPProcess = {
         server,
-        process,
+        process: childProcess,
         tools: [],
         startTime: new Date(),
       };
 
       // Handle process events
-      process.on('exit', (code) => {
+      childProcess.on('exit', (code: number) => {
         this.logger.warn(`MCP server ${name} exited with code ${code}`);
         this.processes.delete(name);
         server.status = code === 0 ? 'stopped' : 'error';
-        this.emit('statusChange', name, server.status);
-        this.emit('stopped', name, code);
+        (this as any).emit('statusChange', name, server.status);
+        (this as any).emit('stopped', name, code);
       });
 
-      process.on('error', (error) => {
-        this.logger.error(`MCP server ${name} error:`, error);
+      childProcess.on('error', (error: Error) => {
+        this.logger.error({ err: error }, `MCP server ${name} error`);
         server.status = 'error';
-        this.emit('statusChange', name, server.status);
-        this.emit('error', name, error);
+        (this as any).emit('statusChange', name, server.status);
+        (this as any).emit('error', name, error);
       });
 
       // Handle stdout for JSON-RPC communication
       let buffer = '';
-      process.stdout?.on('data', (data: Buffer) => {
+      childProcess.stdout?.on('data', (data: Buffer) => {
         buffer += data.toString();
         const lines = buffer.split('\n');
         buffer = lines.pop() || '';
-        
+
         for (const line of lines) {
           if (line.trim()) {
             this.handleServerMessage(name, line);
@@ -184,7 +256,7 @@ export class MCPManager extends EventEmitter {
       });
 
       // Handle stderr for logging
-      process.stderr?.on('data', (data: Buffer) => {
+      childProcess.stderr?.on('data', (data: Buffer) => {
         this.logger.debug(`[${name}] ${data.toString().trim()}`);
       });
 
@@ -193,9 +265,9 @@ export class MCPManager extends EventEmitter {
 
       this.processes.set(name, mcpProcess);
       server.status = 'running';
-      
-      this.emit('statusChange', name, server.status);
-      this.emit('started', name);
+
+      (this as any).emit('statusChange', name, server.status);
+      (this as any).emit('started', name);
 
       // Discover tools
       await this.discoverTools(name);
@@ -203,7 +275,7 @@ export class MCPManager extends EventEmitter {
       return server;
     } catch (error) {
       server.status = 'error';
-      this.emit('statusChange', name, server.status);
+      (this as any).emit('statusChange', name, server.status);
       throw error;
     }
   }
@@ -250,7 +322,7 @@ export class MCPManager extends EventEmitter {
     });
 
     this.processes.delete(name);
-    this.emit('stopped', name, 0);
+    (this as any).emit('stopped', name, 0);
   }
 
   /**
@@ -312,7 +384,7 @@ export class MCPManager extends EventEmitter {
     this.servers.set(name, server);
     await this.saveConfig();
 
-    this.emit('added', name, server);
+    (this as any).emit('added', name, server);
     return server;
   }
 
@@ -323,7 +395,7 @@ export class MCPManager extends EventEmitter {
     await this.stopServer(name);
     this.servers.delete(name);
     await this.saveConfig();
-    this.emit('removed', name);
+    (this as any).emit('removed', name);
   }
 
   /**
@@ -348,7 +420,7 @@ export class MCPManager extends EventEmitter {
       await this.startServer(name);
     }
 
-    this.emit('updated', name, server);
+    (this as any).emit('updated', name, server);
     return server;
   }
 
@@ -440,9 +512,9 @@ export class MCPManager extends EventEmitter {
   async stopAll(): Promise<void> {
     this.logger.info(`Stopping all ${this.processes.size} MCP servers`);
     
-    const stops = Array.from(this.processes.keys()).map(name => 
+    const stops = Array.from(this.processes.keys()).map(name =>
       this.stopServer(name).catch(error => {
-        this.logger.error(`Failed to stop MCP server ${name}:`, error);
+        this.logger.error({ err: error }, `Failed to stop MCP server ${name}`);
       })
     );
 
@@ -463,14 +535,14 @@ export class MCPManager extends EventEmitter {
         }
       };
 
-      this.on('statusChange', checkReady);
+      (this as any).on('statusChange', checkReady);
     });
   }
 
   private handleServerMessage(serverName: string, message: string): void {
     try {
       const data = JSON.parse(message);
-      this.emit('message', serverName, data);
+      (this as any).emit('message', serverName, data);
 
       // Handle initialize response
       if (data.id === 'init') {
@@ -478,12 +550,12 @@ export class MCPManager extends EventEmitter {
           const mcpProcess = this.processes.get(serverName);
           if (mcpProcess) {
             mcpProcess.tools = data.result.tools;
-            this.emit('toolsDiscovered', serverName, mcpProcess.tools);
+            (this as any).emit('toolsDiscovered', serverName, mcpProcess.tools);
           }
         }
       }
     } catch (error) {
-      this.logger.warn(`Failed to parse MCP message from ${serverName}:`, message);
+      this.logger.warn({ serverName }, `Failed to parse MCP message from ${serverName}`);
     }
   }
 

@@ -1,0 +1,19 @@
+{
+  "name": "ClaudeNest",
+  "short_name": "ClaudeNest",
+  "description": "Remote orchestration platform for Claude Code with multi-agent coordination and RAG-powered context sharing.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f0f1a",
+  "theme_color": "#a855f7",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["developer-tools", "productivity"],
+  "lang": "en",
+  "dir": "ltr"
+}

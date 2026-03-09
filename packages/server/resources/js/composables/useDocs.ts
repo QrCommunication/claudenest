@@ -106,6 +106,10 @@ export function useDocs() {
     }
   };
 
+  const getCategoryById = (id: string) => {
+    return apiCategories.find(cat => cat.id === id) ?? null;
+  };
+
   return {
     // State
     isSidebarOpen,
@@ -130,6 +134,7 @@ export function useDocs() {
     clearSearch,
     navigateToResult,
     getMethodColor,
-    copyToClipboard
+    copyToClipboard,
+    getCategoryById
   };
 }

@@ -2,8 +2,8 @@
 
 > **FOR AI AGENTS/LLMs**: This document is the single source of truth for understanding and working with the ClaudeNest codebase.
 > 
-> **Version**: 1.0.0  
-> **Last Updated**: 2026-02-02
+> **Version**: 1.1.0
+> **Last Updated**: 2026-02-16
 
 ---
 
@@ -87,6 +87,10 @@ flowchart TB
 - **WebSocket Communication**: Real-time bidirectional communication
 - **MCP Support**: Model Context Protocol integration
 - **Mobile Apps**: Native iOS and Android applications
+- **Credential Management**: Encrypted API key & OAuth token storage with AES-256-CBC
+- **Dark/Light Theme**: System-aware theming with CSS variables
+- **IDE-style Layout**: Collapsible sidebar, tab bar, status bar
+- **Internationalization**: Full FR/EN support via vue-i18n
 
 ---
 
@@ -124,14 +128,19 @@ claudenest/
 │   │   │   │   │   │   ├── MachineController.php
 │   │   │   │   │   │   ├── ProjectController.php
 │   │   │   │   │   │   ├── SessionController.php
+│   │   │   │   │   │   ├── CredentialController.php
 │   │   │   │   │   │   ├── SkillsController.php
 │   │   │   │   │   │   └── TaskController.php
 │   │   │   │   │   └── 📁 Web/             # Web controllers
 │   │   │   │   ├── 📁 Middleware/
 │   │   │   │   ├── 📁 Requests/            # Form requests
+│   │   │   │   │   ├── StoreCredentialRequest.php
+│   │   │   │   │   └── UpdateCredentialRequest.php
 │   │   │   │   └── 📁 Resources/           # API resources
+│   │   │   │       └── CredentialResource.php
 │   │   │   ├── 📁 Models/                  # Eloquent models
 │   │   │   │   ├── ActivityLog.php
+│   │   │   │   ├── ClaudeCredential.php
 │   │   │   │   ├── ClaudeInstance.php
 │   │   │   │   ├── ContextChunk.php
 │   │   │   │   ├── DiscoveredCommand.php
@@ -150,6 +159,7 @@ claudenest/
 │   │   │   ├── 📁 Providers/               # Service providers
 │   │   │   └── 📁 Services/                # Business logic
 │   │   │       ├── ContextRAGService.php
+│   │   │       ├── CredentialService.php
 │   │   │       ├── EmbeddingService.php
 │   │   │       ├── MCPManagerService.php
 │   │   │       ├── SkillDiscoveryService.php
@@ -175,10 +185,22 @@ claudenest/
 │   │   │   │   │   ├── 📁 skills/          # Skills components
 │   │   │   │   │   └── 📁 terminal/        # Terminal components
 │   │   │   │   ├── 📁 composables/         # Vue composables
+│   │   │   │   │   ├── useTabs.ts          # Multi-tab management
+│   │   │   │   │   ├── useTheme.ts         # Dark/light mode
+│   │   │   │   │   └── useToast.ts         # Toast notifications
 │   │   │   │   ├── 📁 layouts/             # Page layouts
+│   │   │   │   │   └── AppLayout.vue       # IDE-style layout
+│   │   │   │   ├── 📁 locales/             # i18n translations
+│   │   │   │   │   ├── en.json             # English
+│   │   │   │   │   └── fr.json             # French
 │   │   │   │   ├── 📁 pages/               # Page components
+│   │   │   │   │   ├── 📁 credentials/     # Credential management
+│   │   │   │   │   ├── Landing.vue         # Public landing page
+│   │   │   │   │   ├── Pricing.vue         # Pricing page
+│   │   │   │   │   └── Changelog.vue       # Changelog page
 │   │   │   │   ├── 📁 services/            # API services
 │   │   │   │   ├── 📁 stores/              # Pinia stores
+│   │   │   │   │   └── credentials.ts      # Credentials store
 │   │   │   │   ├── 📁 types/               # TypeScript types
 │   │   │   │   └── 📁 utils/               # Utilities
 │   │   │   └── 📁 views/                   # Blade templates
@@ -355,6 +377,48 @@ $task->release();
 // Complete with summary
 $task->complete($summary, $filesModified);
 ```
+
+### 3.7 Credential Management
+
+Encrypted storage for Claude API keys and OAuth tokens:
+
+- **Encryption**: AES-256-CBC via Laravel's `Crypt::encryptString()`
+- **Auth Types**: `api_key` (direct API key) and `oauth` (OAuth token + refresh)
+- **Token Status**: `active`, `expired`, `revoked`
+- **Default Credential**: One credential per user can be marked as default
+- **Session Binding**: Sessions can optionally use a specific credential
+
+```php
+// Create encrypted credential
+$credential = ClaudeCredential::create([
+    'user_id' => $user->id,
+    'name' => 'my-api-key',
+    'auth_type' => 'api_key',
+    'api_key' => Crypt::encryptString($rawKey),
+    'is_default' => true,
+]);
+
+// Decrypt for use
+$rawKey = Crypt::decryptString($credential->api_key);
+```
+
+### 3.8 Internationalization (i18n)
+
+Full FR/EN support via `vue-i18n`:
+
+- **Locale Files**: `resources/js/locales/{en,fr}.json`
+- **Usage in templates**: `{{ $t('sessions.create.title') }}`
+- **Usage in scripts**: `const { t } = useI18n(); t('key')`
+- **Parameterized**: `$t('key', { param: value })`
+
+### 3.9 Theme System
+
+Dark/light mode with system-aware detection:
+
+- **Composable**: `useTheme()` → `theme`, `resolvedTheme`, `isDark`, `toggleTheme`
+- **CSS Variables**: Defined in `resources/css/themes.css`
+- **Persistence**: `localStorage` key `claudenest-theme`
+- **Modes**: `dark` (default), `light`, `system`
 
 ---
 
@@ -917,6 +981,9 @@ erDiagram
     users ||--o{ sessions : has
     users ||--o{ shared_projects : owns
     users ||--o{ personal_access_tokens : has
+    users ||--o{ claude_credentials : has
+
+    claude_credentials ||--o{ sessions : used_by
     
     machines ||--o{ sessions : has
     machines ||--o{ shared_projects : hosts
@@ -983,6 +1050,7 @@ erDiagram
 | exit_code | INTEGER | Exit code |
 | pty_size | JSONB | {cols, rows} |
 | total_tokens | INTEGER | Token count |
+| credential_id | UUID (FK, nullable) | Linked credential |
 | total_cost | DECIMAL(10,4) | Cost estimate |
 | started_at | TIMESTAMP | Start time |
 | completed_at | TIMESTAMP | End time |
@@ -1067,6 +1135,22 @@ erDiagram
 | connected_at | TIMESTAMP | Connection time |
 | last_activity_at | TIMESTAMP | Last activity |
 | disconnected_at | TIMESTAMP | Disconnection time |
+
+#### claude_credentials
+| Column | Type | Description |
+|--------|------|-------------|
+| id | UUID (PK) | Credential ID |
+| user_id | UUID (FK) | Owner |
+| name | VARCHAR(255) | Display name |
+| auth_type | VARCHAR(50) | api_key / oauth |
+| api_key | TEXT (encrypted) | AES-256-CBC encrypted API key |
+| oauth_token | TEXT (encrypted, nullable) | OAuth access token |
+| oauth_refresh_token | TEXT (encrypted, nullable) | OAuth refresh token |
+| oauth_expires_at | TIMESTAMP (nullable) | Token expiration |
+| token_status | VARCHAR(50) | active / expired / revoked |
+| is_default | BOOLEAN | Default credential flag |
+| last_used_at | TIMESTAMP (nullable) | Last usage |
+| last_validated_at | TIMESTAMP (nullable) | Last validation check |
 
 #### activity_log
 | Column | Type | Description |
@@ -1212,6 +1296,20 @@ erDiagram
 | POST | `/api/machines/{id}/commands/{id}/execute` | Execute command |
 | DELETE | `/api/machines/{id}/commands/{id}` | Delete command |
 | DELETE | `/api/machines/{id}/commands` | Clear all |
+
+### 6.11 Credentials
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/credentials` | List user credentials |
+| POST | `/api/credentials` | Create credential |
+| GET | `/api/credentials/{id}` | Get credential details |
+| PUT | `/api/credentials/{id}` | Update credential |
+| DELETE | `/api/credentials/{id}` | Delete credential |
+| POST | `/api/credentials/{id}/set-default` | Set as default |
+| POST | `/api/credentials/{id}/validate` | Validate API key |
+| POST | `/api/credentials/{id}/refresh` | Refresh OAuth token |
+| POST | `/api/credentials/{id}/capture` | Capture OAuth flow |
 
 ---
 
@@ -1615,7 +1713,7 @@ docker-compose exec server npm install
 **Installation**:
 ```bash
 # Download installer
-curl -fsSL https://claudenest.dev/install.sh | bash
+curl -fsSL https://claudenest.io/install-server.sh | bash
 
 # Or manual installation
 sudo mkdir -p /opt/claudenest

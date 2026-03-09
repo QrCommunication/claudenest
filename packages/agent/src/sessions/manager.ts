@@ -1,16 +1,18 @@
 /**
- * Session manager - handles multiple Claude Code sessions
+ * Session manager - handles multiple Claude Code sessions via tmux.
  */
 
 import { EventEmitter } from 'events';
-import { ClaudeProcess } from './claude-process.js';
+import fs from 'fs';
+import path from 'path';
+import { TmuxSession } from './tmux-session.js';
+import { getCacheDir } from '../utils/index.js';
 import type { Logger } from '../utils/logger.js';
-import type { 
-  Session, 
-  SessionConfig, 
+import type {
+  Session,
+  SessionConfig,
   SessionStatus,
-  SessionOutput,
-  PTYSize 
+  SessionOutput
 } from '../types/index.js';
 
 interface SessionManagerOptions {
@@ -20,7 +22,7 @@ interface SessionManagerOptions {
 }
 
 export class SessionManager extends EventEmitter {
-  private sessions = new Map<string, ClaudeProcess>();
+  private sessions = new Map<string, TmuxSession>();
   private sessionConfigs = new Map<string, SessionConfig>();
   private options: Required<SessionManagerOptions>;
   private logger: Logger;
@@ -48,48 +50,29 @@ export class SessionManager extends EventEmitter {
       throw new Error(`Session ${id} already exists`);
     }
 
-    this.logger.info(`Creating session ${id}`, { 
+    this.logger.info({
       projectPath: config.projectPath,
       mode: config.mode || 'interactive'
-    });
+    }, `Creating session ${id}`);
 
-    const process = new ClaudeProcess({
+    const session = new TmuxSession({
       claudePath: this.options.claudePath,
       sessionId: id,
       logger: this.logger,
       ...config,
     });
 
-    // Setup event forwarding
-    process.on('output', (data) => {
-      this.emit('output', {
-        sessionId: id,
-        type: 'output',
-        ...data,
-      } as SessionOutput);
-    });
+    this.setupSessionEvents(id, session, config);
 
-    process.on('status', (status: SessionStatus) => {
-      this.emit('status', { sessionId: id, status });
-    });
+    await session.start();
 
-    process.on('exit', (code: number) => {
-      this.logger.info(`Session ${id} exited with code ${code}`);
-      this.sessions.delete(id);
-      this.sessionConfigs.delete(id);
-      this.emit('sessionEnded', { sessionId: id, exitCode: code });
-    });
-
-    // Start the process
-    await process.start();
-    
-    this.sessions.set(id, process);
+    this.sessions.set(id, session);
     this.sessionConfigs.set(id, config);
 
-    const session: Session = {
+    const info: Session = {
       id,
       status: 'running',
-      pid: process.pid,
+      pid: session.pid,
       projectPath: config.projectPath,
       initialPrompt: config.initialPrompt,
       mode: config.mode || 'interactive',
@@ -98,25 +81,25 @@ export class SessionManager extends EventEmitter {
       startedAt: new Date(),
     };
 
-    this.emit('sessionCreated', session);
-    
-    return session;
+    this.emit('sessionCreated', info);
+
+    return info;
   }
 
   /**
    * Terminate a session
    */
   async terminateSession(id: string, force = false): Promise<void> {
-    const process = this.sessions.get(id);
-    if (!process) {
+    const session = this.sessions.get(id);
+    if (!session) {
       throw new Error(`Session ${id} not found`);
     }
 
-    this.logger.info(`Terminating session ${id}${force ? ' (force)' : ''}`);
-    
+    this.logger.info({ sessionId: id, force }, `Terminating session ${id}${force ? ' (force)' : ''}`);
+
     const signal = force ? 'SIGKILL' : 'SIGTERM';
-    await process.terminate(signal);
-    
+    await session.terminate(signal);
+
     this.sessions.delete(id);
     this.sessionConfigs.delete(id);
   }
@@ -125,24 +108,24 @@ export class SessionManager extends EventEmitter {
    * Send input to a session
    */
   sendInput(id: string, data: string): void {
-    const process = this.sessions.get(id);
-    if (!process) {
+    const session = this.sessions.get(id);
+    if (!session) {
       throw new Error(`Session ${id} not found`);
     }
 
-    process.write(data);
+    session.write(data);
   }
 
   /**
    * Resize a session's PTY
    */
   resize(id: string, cols: number, rows: number): void {
-    const process = this.sessions.get(id);
-    if (!process) {
+    const session = this.sessions.get(id);
+    if (!session) {
       throw new Error(`Session ${id} not found`);
     }
 
-    process.resize(cols, rows);
+    session.resize(cols, rows);
     
     // Update stored config
     const config = this.sessionConfigs.get(id);
@@ -154,7 +137,7 @@ export class SessionManager extends EventEmitter {
   /**
    * Get a session
    */
-  getSession(id: string): ClaudeProcess | undefined {
+  getSession(id: string): TmuxSession | undefined {
     return this.sessions.get(id);
   }
 
@@ -162,15 +145,15 @@ export class SessionManager extends EventEmitter {
    * Get session info
    */
   getSessionInfo(id: string): Partial<Session> | undefined {
-    const process = this.sessions.get(id);
+    const session = this.sessions.get(id);
     const config = this.sessionConfigs.get(id);
-    
-    if (!process) return undefined;
+
+    if (!session) return undefined;
 
     return {
       id,
-      status: process.getStatus(),
-      pid: process.pid,
+      status: session.getStatus(),
+      pid: session.pid,
       projectPath: config?.projectPath,
       mode: config?.mode || 'interactive',
       ptySize: config?.ptySize,
@@ -209,31 +192,29 @@ export class SessionManager extends EventEmitter {
    * Get session output buffer
    */
   getSessionOutput(id: string): string[] | undefined {
-    const process = this.sessions.get(id);
-    return process?.getOutputBuffer();
+    return this.sessions.get(id)?.getOutputBuffer();
   }
 
   /**
    * Clear session output buffer
    */
   clearSessionOutput(id: string): void {
-    const process = this.sessions.get(id);
-    process?.clearBuffer();
+    this.sessions.get(id)?.clearBuffer();
   }
 
   /**
    * Terminate all sessions
    */
   async terminateAll(force = false): Promise<void> {
-    this.logger.info(`Terminating all ${this.sessions.size} sessions`);
+    this.logger.info({ count: this.sessions.size, force }, `Terminating all ${this.sessions.size} sessions`);
 
     const terminations = Array.from(this.sessions.entries()).map(
-      async ([id, process]) => {
+      async ([id, session]) => {
         try {
           const signal = force ? 'SIGKILL' : 'SIGTERM';
-          await process.terminate(signal);
+          await session.terminate(signal);
         } catch (error) {
-          this.logger.error(`Failed to terminate session ${id}:`, error);
+          this.logger.error({ err: error, sessionId: id }, `Failed to terminate session ${id}`);
         }
       }
     );
@@ -258,28 +239,88 @@ export class SessionManager extends EventEmitter {
   }
 
   /**
-   * Pause a session (SIGSTOP)
+   * Recover orphaned tmux sessions after an agent crash.
+   * Returns the list of recovered session IDs.
    */
-  async pauseSession(id: string): Promise<void> {
-    const process = this.sessions.get(id);
-    if (!process) {
-      throw new Error(`Session ${id} not found`);
+  async recoverSessions(): Promise<string[]> {
+    const orphans = TmuxSession.listOrphanSessions();
+    if (orphans.length === 0) return [];
+
+    this.logger.info({ count: orphans.length }, 'Found orphan tmux sessions');
+
+    const recovered: string[] = [];
+
+    for (const tmuxName of orphans) {
+      const id = TmuxSession.sessionIdFromTmuxName(tmuxName);
+
+      if (this.sessions.has(id)) continue;
+      if (this.sessions.size >= this.options.maxSessions) {
+        this.logger.warn({ sessionId: id }, 'Cannot recover session: at capacity');
+        break;
+      }
+
+      try {
+        const session = new TmuxSession({
+          claudePath: this.options.claudePath,
+          sessionId: id,
+          logger: this.logger,
+        });
+
+        this.setupSessionEvents(id, session);
+        await session.reattach();
+
+        this.sessions.set(id, session);
+        recovered.push(id);
+
+        this.logger.info({ sessionId: id }, 'Recovered orphan tmux session');
+        this.emit('sessionRecovered', { sessionId: id });
+      } catch (error) {
+        this.logger.error({ err: error, sessionId: id }, 'Failed to recover session');
+      }
     }
 
-    this.logger.info(`Pausing session ${id}`);
-    await process.terminate('SIGSTOP');
+    // Clean up orphaned credential isolation directories
+    this.cleanupOrphanedConfigDirs();
+
+    return recovered;
   }
 
-  /**
-   * Resume a session (SIGCONT)
-   */
-  async resumeSession(id: string): Promise<void> {
-    const process = this.sessions.get(id);
-    if (!process) {
-      throw new Error(`Session ${id} not found`);
-    }
+  // ── Private ───────────────────────────────────────
 
-    this.logger.info(`Resuming session ${id}`);
-    await process.terminate('SIGCONT');
+  /**
+   * Remove credential isolation directories for sessions that no longer exist.
+   */
+  private cleanupOrphanedConfigDirs(): void {
+    try {
+      const sessionsDir = path.join(getCacheDir(), 'sessions');
+      if (!fs.existsSync(sessionsDir)) return;
+
+      const dirs = fs.readdirSync(sessionsDir);
+      for (const dir of dirs) {
+        if (!this.sessions.has(dir)) {
+          fs.rmSync(path.join(sessionsDir, dir), { recursive: true, force: true });
+          this.logger.debug({ sessionId: dir }, 'Cleaned up orphaned credential config dir');
+        }
+      }
+    } catch {
+      // Non-critical
+    }
+  }
+
+  private setupSessionEvents(id: string, session: TmuxSession, _config?: SessionConfig): void {
+    session.on('output', (data: SessionOutput) => {
+      this.emit('output', data);
+    });
+
+    session.on('status', (data: { sessionId: string; status: SessionStatus }) => {
+      this.emit('status', { sessionId: id, status: data.status });
+    });
+
+    session.on('exit', (data: { sessionId: string; exitCode: number }) => {
+      this.logger.info({ sessionId: id, exitCode: data.exitCode }, `Session ${id} exited`);
+      this.sessions.delete(id);
+      this.sessionConfigs.delete(id);
+      this.emit('sessionEnded', { sessionId: id, exitCode: data.exitCode });
+    });
   }
 }
