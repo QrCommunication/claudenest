@@ -41,10 +41,6 @@ class CredentialService
             $env['CLAUDE_CODE_OAUTH_TOKEN'] = $token;
         }
 
-        if ($credential->claude_dir_mode === 'isolated') {
-            $env['CLAUDE_CONFIG_DIR'] = '$HOME/.claude-' . $credential->name;
-        }
-
         $credential->markUsed();
 
         return $env;

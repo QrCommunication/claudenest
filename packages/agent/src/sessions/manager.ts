@@ -3,7 +3,10 @@
  */
 
 import { EventEmitter } from 'events';
+import fs from 'fs';
+import path from 'path';
 import { TmuxSession } from './tmux-session.js';
+import { getCacheDir } from '../utils/index.js';
 import type { Logger } from '../utils/logger.js';
 import type {
   Session,
@@ -276,10 +279,33 @@ export class SessionManager extends EventEmitter {
       }
     }
 
+    // Clean up orphaned credential isolation directories
+    this.cleanupOrphanedConfigDirs();
+
     return recovered;
   }
 
   // ── Private ───────────────────────────────────────
+
+  /**
+   * Remove credential isolation directories for sessions that no longer exist.
+   */
+  private cleanupOrphanedConfigDirs(): void {
+    try {
+      const sessionsDir = path.join(getCacheDir(), 'sessions');
+      if (!fs.existsSync(sessionsDir)) return;
+
+      const dirs = fs.readdirSync(sessionsDir);
+      for (const dir of dirs) {
+        if (!this.sessions.has(dir)) {
+          fs.rmSync(path.join(sessionsDir, dir), { recursive: true, force: true });
+          this.logger.debug({ sessionId: dir }, 'Cleaned up orphaned credential config dir');
+        }
+      }
+    } catch {
+      // Non-critical
+    }
+  }
 
   private setupSessionEvents(id: string, session: TmuxSession, _config?: SessionConfig): void {
     session.on('output', (data: SessionOutput) => {

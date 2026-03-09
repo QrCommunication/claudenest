@@ -10,8 +10,11 @@
  */
 
 import { EventEmitter } from 'events';
+import fs from 'fs';
+import path from 'path';
 import { execFileSync, spawn, type ChildProcess } from 'child_process';
 import { TmuxOutputParser, type TmuxOutputEvent } from './tmux-parser.js';
+import { getCacheDir } from '../utils/index.js';
 import type { Logger } from '../utils/logger.js';
 import type { SessionConfig, SessionStatus } from '../types/index.js';
 
@@ -34,6 +37,7 @@ export class TmuxSession extends EventEmitter {
   private outputBuffer: string[] = [];
   private readonly maxBufferSize = 10000;
   private tmuxName: string;
+  private isolatedConfigDir: string | null = null;
 
   pid?: number;
 
@@ -63,6 +67,9 @@ export class TmuxSession extends EventEmitter {
 
     try {
       checkTmuxAvailable();
+
+      // 0. Prepare credential isolation (creates isolated CLAUDE_CONFIG_DIR)
+      this.prepareCredentialIsolation();
 
       // 1. Create detached tmux session
       //    If the tmux server for this socket isn't running yet,
@@ -239,6 +246,53 @@ export class TmuxSession extends EventEmitter {
 
   // ── Private ───────────────────────────────────────
 
+  /**
+   * When credentialEnv is provided, create an isolated config directory
+   * so Claude Code cannot read the machine's default ~/.claude/.credentials.json.
+   *
+   * - For API keys: the empty config dir forces Claude to fall back to ANTHROPIC_API_KEY env var.
+   * - For OAuth: writes a synthetic .credentials.json in Claude Code's expected format.
+   */
+  private prepareCredentialIsolation(): void {
+    const credEnv = this.options.credentialEnv;
+    if (!credEnv) return;
+
+    const hasApiKey = !!credEnv['ANTHROPIC_API_KEY'];
+    const hasOAuth = !!credEnv['CLAUDE_CODE_OAUTH_TOKEN'];
+
+    if (!hasApiKey && !hasOAuth) return;
+
+    // Use existing CLAUDE_CONFIG_DIR if already set, otherwise create a session-specific one
+    let configDir = credEnv['CLAUDE_CONFIG_DIR'];
+    if (!configDir) {
+      configDir = path.join(getCacheDir(), 'sessions', this.options.sessionId);
+    }
+
+    fs.mkdirSync(configDir, { recursive: true, mode: 0o700 });
+    this.isolatedConfigDir = configDir;
+
+    // For OAuth: write .credentials.json in Claude Code's native format
+    if (hasOAuth) {
+      const credsFile = path.join(configDir, '.credentials.json');
+      const credsData = JSON.stringify({
+        claudeAiOauth: {
+          accessToken: credEnv['CLAUDE_CODE_OAUTH_TOKEN'],
+        },
+      });
+      fs.writeFileSync(credsFile, credsData, { mode: 0o600 });
+      // Remove env var — Claude Code reads the file, not this env var
+      delete credEnv['CLAUDE_CODE_OAUTH_TOKEN'];
+    }
+
+    // Force Claude Code to use the isolated config directory
+    credEnv['CLAUDE_CONFIG_DIR'] = configDir;
+
+    this.logger.info(
+      { configDir, hasApiKey, hasOAuth },
+      'Credential isolation: created isolated config dir',
+    );
+  }
+
   private attachControlMode(): void {
     this.controller = spawn('tmux', [
       '-L', TMUX_SOCKET,
@@ -358,6 +412,16 @@ export class TmuxSession extends EventEmitter {
     if (this.controller) {
       this.controller.kill();
       this.controller = null;
+    }
+
+    // Remove isolated credential config directory
+    if (this.isolatedConfigDir) {
+      try {
+        fs.rmSync(this.isolatedConfigDir, { recursive: true, force: true });
+      } catch {
+        // Non-critical: temp dir cleanup failure
+      }
+      this.isolatedConfigDir = null;
     }
   }
 
