@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\DiscoveredCommand;
 use App\Models\SharedProject;
 use App\Models\SharedTask;
+use App\Policies\CommandPolicy;
 use App\Policies\ProjectPolicy;
 use App\Policies\SharedTaskPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
@@ -17,6 +19,7 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
+        DiscoveredCommand::class => CommandPolicy::class,
         SharedProject::class => ProjectPolicy::class,
         SharedTask::class => SharedTaskPolicy::class,
     ];
