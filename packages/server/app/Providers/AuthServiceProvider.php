@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use App\Models\SharedProject;
+use App\Models\SharedTask;
 use App\Policies\ProjectPolicy;
+use App\Policies\TaskPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 
@@ -16,6 +18,7 @@ class AuthServiceProvider extends ServiceProvider
      */
     protected $policies = [
         SharedProject::class => ProjectPolicy::class,
+        SharedTask::class => TaskPolicy::class,
     ];
 
     /**
