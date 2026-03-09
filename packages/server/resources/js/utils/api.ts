@@ -60,8 +60,6 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error: AxiosError<ApiResponse<unknown>>) => {
-    const config = error.config as InternalAxiosRequestConfig & { _retry?: number };
-    
     // Handle 401 Unauthorized
     if (error.response?.status === 401) {
       localStorage.removeItem('auth_token');
@@ -69,13 +67,17 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    // Guard: error.config can be undefined for some Axios errors (e.g. request
+    // cancelled before being sent). Without a config we cannot retry.
+    const config = error.config as (InternalAxiosRequestConfig & { _retry?: number }) | undefined;
+    if (!config) {
+      return Promise.reject(error);
+    }
+
     // Retry logic for network errors and specific status codes
-    const shouldRetry = 
-      config &&
-      (
-        !error.response || 
-        RETRYABLE_STATUS_CODES.includes(error.response.status)
-      );
+    const shouldRetry =
+      !error.response ||
+      RETRYABLE_STATUS_CODES.includes(error.response.status);
 
     // Initialize retry counter if not exists
     const retryCount = config._retry || 0;
