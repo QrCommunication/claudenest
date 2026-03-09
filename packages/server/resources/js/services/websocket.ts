@@ -47,6 +47,8 @@ class WebSocketManager {
   private maxReconnectDelay = 30000;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private autoReconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private terminalReconnectAttempts = 0;
+  private terminalReconnectTimer: ReturnType<typeof setTimeout> | null = null;
   
   // Auto-reconnect delays
   private readonly AUTO_RECONNECT_DELAY_DISCONNECT = 1000;
@@ -223,6 +225,20 @@ class WebSocketManager {
     if (this.autoReconnectTimer) {
       clearTimeout(this.autoReconnectTimer);
       this.autoReconnectTimer = null;
+    }
+
+    if (this.terminalReconnectTimer) {
+      clearTimeout(this.terminalReconnectTimer);
+      this.terminalReconnectTimer = null;
+    }
+
+    if (this.terminalWs) {
+      try {
+        this.terminalWs.close();
+      } catch {
+        // Ignore errors during cleanup
+      }
+      this.terminalWs = null;
     }
 
     if (this.echo) {
