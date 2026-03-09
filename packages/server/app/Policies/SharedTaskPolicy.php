@@ -2,11 +2,10 @@
 
 namespace App\Policies;
 
-/**
- * @deprecated Use SharedTaskPolicy instead.
- * @see SharedTaskPolicy
- */
-class TaskPolicy extends SharedTaskPolicy
+use App\Models\SharedTask;
+use App\Models\User;
+
+class SharedTaskPolicy
 {
     /**
      * Determine whether the user can view any models.

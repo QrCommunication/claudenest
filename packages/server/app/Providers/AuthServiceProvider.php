@@ -7,7 +7,7 @@ use App\Models\SharedProject;
 use App\Models\SharedTask;
 use App\Policies\CommandPolicy;
 use App\Policies\ProjectPolicy;
-use App\Policies\TaskPolicy;
+use App\Policies\SharedTaskPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 
@@ -21,7 +21,7 @@ class AuthServiceProvider extends ServiceProvider
     protected $policies = [
         DiscoveredCommand::class => CommandPolicy::class,
         SharedProject::class => ProjectPolicy::class,
-        SharedTask::class => TaskPolicy::class,
+        SharedTask::class => SharedTaskPolicy::class,
     ];
 
     /**
