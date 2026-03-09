@@ -1,4 +1,4 @@
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 
 export type Theme = 'dark' | 'light' | 'system';
 export type ResolvedTheme = 'dark' | 'light';
@@ -62,20 +62,39 @@ export function useTheme() {
       theme.value = stored;
     }
 
-    // Detect system theme
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    systemTheme.value = mediaQuery.matches ? 'dark' : 'light';
+    // Set up singleton media query listener (only once across all component instances)
+    if (listenerRefCount === 0) {
+      mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      systemTheme.value = mediaQuery.matches ? 'dark' : 'light';
 
-    // Listen for system theme changes
-    mediaQuery.addEventListener('change', (e) => {
-      systemTheme.value = e.matches ? 'dark' : 'light';
-      if (theme.value === 'system') {
-        applyTheme();
-      }
-    });
+      mediaQueryListener = (e: MediaQueryListEvent) => {
+        systemTheme.value = e.matches ? 'dark' : 'light';
+        if (theme.value === 'system') {
+          applyTheme();
+        }
+      };
+
+      mediaQuery.addEventListener('change', mediaQueryListener);
+    } else if (mediaQuery) {
+      // Listener already attached; just sync the current system value
+      systemTheme.value = mediaQuery.matches ? 'dark' : 'light';
+    }
+
+    listenerRefCount++;
 
     // Apply initial theme
     applyTheme();
+  };
+
+  const cleanupTheme = () => {
+    if (listenerRefCount > 0) {
+      listenerRefCount--;
+    }
+    if (listenerRefCount === 0 && mediaQuery && mediaQueryListener) {
+      mediaQuery.removeEventListener('change', mediaQueryListener);
+      mediaQuery = null;
+      mediaQueryListener = null;
+    }
   };
 
   // Watch for theme changes
@@ -83,9 +102,13 @@ export function useTheme() {
     applyTheme();
   });
 
-  // Initialize on composable creation
+  // Initialize on composable creation and clean up on unmount
   onMounted(() => {
     initTheme();
+  });
+
+  onUnmounted(() => {
+    cleanupTheme();
   });
 
   return {
