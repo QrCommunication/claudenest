@@ -20,10 +20,15 @@ class EmbeddingService
      * Generate embedding for text.
      *
      * @param string $text
+     * @param bool $normalize Whether to L2-normalize the returned vector (magnitude = 1)
      * @return array|null
      */
-    public function generate(string $text): ?array
+    public function generate(string $text, bool $normalize = false): ?array
     {
+        if ($text === '') {
+            return null;
+        }
+
         try {
             $response = Http::timeout(30)->post("{$this->baseUrl}/api/embeddings", [
                 'model' => $this->model,
@@ -31,7 +36,13 @@ class EmbeddingService
             ]);
 
             if ($response->successful()) {
-                return $response->json('embedding');
+                $embedding = $response->json('embedding');
+
+                if ($normalize && is_array($embedding)) {
+                    $embedding = $this->normalize($embedding);
+                }
+
+                return $embedding;
             }
 
             Log::warning('Embedding generation failed', [
@@ -47,17 +58,35 @@ class EmbeddingService
     }
 
     /**
+     * L2-normalize a vector so its magnitude equals 1.
+     *
+     * @param array $vector
+     * @return array
+     */
+    private function normalize(array $vector): array
+    {
+        $magnitude = sqrt(array_sum(array_map(fn($x) => $x * $x, $vector)));
+
+        if ($magnitude === 0.0) {
+            return $vector;
+        }
+
+        return array_map(fn($x) => $x / $magnitude, $vector);
+    }
+
+    /**
      * Generate embeddings for multiple texts.
      *
      * @param array $texts
+     * @param bool $normalize Whether to L2-normalize each returned vector
      * @return array
      */
-    public function generateBatch(array $texts): array
+    public function batchGenerate(array $texts, bool $normalize = false): array
     {
         $embeddings = [];
 
         foreach ($texts as $key => $text) {
-            $embedding = $this->generate($text);
+            $embedding = $this->generate($text, $normalize);
             if ($embedding) {
                 $embeddings[$key] = $embedding;
             }

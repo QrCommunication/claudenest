@@ -13,6 +13,9 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             SkillSeeder::class,
+            
+            // Uncomment to seed demo data (user, machines, projects, tasks, etc.)
+            // DemoSeeder::class,
         ]);
     }
 }

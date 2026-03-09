@@ -53,7 +53,7 @@
 </template>
 
 <script setup lang="ts">
-import { watch } from 'vue';
+import { watch, onUnmounted, ref } from 'vue';
 
 type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | 'full';
 
@@ -93,22 +93,39 @@ const sizeClasses: Record<ModalSize, string> = {
   full: 'max-w-4xl',
 };
 
+const escHandlerRef = ref<((e: KeyboardEvent) => void) | null>(null);
+
 const close = () => {
   emit('update:modelValue', false);
   emit('close');
 };
 
-// Handle escape key
+const cleanupEscHandler = () => {
+  if (escHandlerRef.value) {
+    window.removeEventListener('keydown', escHandlerRef.value);
+    escHandlerRef.value = null;
+  }
+};
+
+// Handle escape key with proper cleanup
 watch(() => props.modelValue, (isOpen) => {
+  // Remove previous handler if exists
+  cleanupEscHandler();
+
   if (isOpen && props.closeOnEsc) {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         close();
-        window.removeEventListener('keydown', handleEsc);
       }
     };
+    escHandlerRef.value = handleEsc;
     window.addEventListener('keydown', handleEsc);
   }
+});
+
+// Cleanup on unmount
+onUnmounted(() => {
+  cleanupEscHandler();
 });
 </script>
 

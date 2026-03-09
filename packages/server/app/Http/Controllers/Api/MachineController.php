@@ -34,6 +34,8 @@ class MachineController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', Machine::class);
+        
         $perPage = $request->input('per_page', 15);
         $search = $request->input('search');
         $status = $request->input('status');
@@ -187,16 +189,11 @@ class MachineController extends Controller
      */
     public function show(Request $request, string $id): JsonResponse
     {
-        $machine = $request->user()
-            ->machines()
-            ->withCount(['sessions as active_sessions_count' => function ($q) {
-                $q->whereIn('status', ['running', 'waiting_input']);
-            }])
-            ->find($id);
-
-        if (!$machine) {
-            return $this->errorResponse('MCH_001', 'Machine not found', 404);
-        }
+        $machine = Machine::withCount(['sessions as active_sessions_count' => function ($q) {
+            $q->whereIn('status', ['running', 'waiting_input']);
+        }])->findOrFail($id);
+        
+        $this->authorize('view', $machine);
 
         return response()->json([
             'success' => true,
@@ -228,11 +225,8 @@ class MachineController extends Controller
      */
     public function update(UpdateMachineRequest $request, string $id): JsonResponse
     {
-        $machine = $request->user()->machines()->find($id);
-
-        if (!$machine) {
-            return $this->errorResponse('MCH_001', 'Machine not found', 404);
-        }
+        $machine = Machine::findOrFail($id);
+        $this->authorize('update', $machine);
 
         $machine->update($request->validated());
 
@@ -270,11 +264,8 @@ class MachineController extends Controller
      */
     public function destroy(Request $request, string $id): JsonResponse
     {
-        $machine = $request->user()->machines()->find($id);
-
-        if (!$machine) {
-            return $this->errorResponse('MCH_001', 'Machine not found', 404);
-        }
+        $machine = Machine::findOrFail($id);
+        $this->authorize('delete', $machine);
 
         // Terminate active sessions
         $machine->sessions()
@@ -309,11 +300,8 @@ class MachineController extends Controller
      */
     public function wake(Request $request, string $id): JsonResponse
     {
-        $machine = $request->user()->machines()->find($id);
-
-        if (!$machine) {
-            return $this->errorResponse('MCH_001', 'Machine not found', 404);
-        }
+        $machine = Machine::findOrFail($id);
+        $this->authorize('update', $machine);
 
         // Check if machine supports WoL
         if (!$machine->hasCapability('wake_on_lan')) {
@@ -381,11 +369,8 @@ class MachineController extends Controller
      */
     public function environment(Request $request, string $id): JsonResponse
     {
-        $machine = $request->user()->machines()->find($id);
-
-        if (!$machine) {
-            return $this->errorResponse('MCH_001', 'Machine not found', 404);
-        }
+        $machine = Machine::findOrFail($id);
+        $this->authorize('view', $machine);
 
         if ($machine->status !== 'online') {
             return $this->errorResponse('MCH_002', 'Machine is offline', 400);
@@ -443,11 +428,8 @@ class MachineController extends Controller
      */
     public function regenerateToken(Request $request, string $id): JsonResponse
     {
-        $machine = $request->user()->machines()->find($id);
-
-        if (!$machine) {
-            return $this->errorResponse('MCH_001', 'Machine not found', 404);
-        }
+        $machine = Machine::findOrFail($id);
+        $this->authorize('update', $machine);
 
         $token = $machine->generateToken();
 

@@ -52,11 +52,8 @@ class SessionController extends Controller
      */
     public function index(Request $request, string $machineId): JsonResponse
     {
-        $machine = $request->user()->machines()->find($machineId);
-
-        if (!$machine) {
-            return $this->errorResponse('MCH_001', 'Machine not found', 404);
-        }
+        $machine = Machine::findOrFail($machineId);
+        $this->authorize('view', $machine);
 
         $sessions = $machine->sessions()
             ->orderBy('created_at', 'desc')
@@ -111,11 +108,8 @@ class SessionController extends Controller
      */
     public function store(Request $request, string $machineId): JsonResponse
     {
-        $machine = $request->user()->machines()->find($machineId);
-
-        if (!$machine) {
-            return $this->errorResponse('MCH_001', 'Machine not found', 404);
-        }
+        $machine = Machine::findOrFail($machineId);
+        $this->authorize('view', $machine);
 
         if ($machine->status !== 'online') {
             return $this->errorResponse('MCH_002', 'Machine is offline', 400);
@@ -202,11 +196,8 @@ class SessionController extends Controller
      */
     public function show(Request $request, string $id): JsonResponse
     {
-        $session = Session::forUser($request->user()->id)->find($id);
-
-        if (!$session) {
-            return $this->errorResponse('SES_001', 'Session not found', 404);
-        }
+        $session = Session::findOrFail($id);
+        $this->authorize('view', $session);
 
         return response()->json([
             'success' => true,
@@ -244,11 +235,8 @@ class SessionController extends Controller
      */
     public function destroy(Request $request, string $id): JsonResponse
     {
-        $session = Session::forUser($request->user()->id)->find($id);
-
-        if (!$session) {
-            return $this->errorResponse('SES_001', 'Session not found', 404);
-        }
+        $session = Session::findOrFail($id);
+        $this->authorize('delete', $session);
 
         if ($session->is_completed) {
             return $this->errorResponse('SES_003', 'Session already terminated', 400);
@@ -315,11 +303,8 @@ class SessionController extends Controller
      */
     public function logs(Request $request, string $id): JsonResponse
     {
-        $session = Session::forUser($request->user()->id)->find($id);
-
-        if (!$session) {
-            return $this->errorResponse('SES_001', 'Session not found', 404);
-        }
+        $session = Session::findOrFail($id);
+        $this->authorize('view', $session);
 
         $logs = $session->logs()
             ->orderBy('created_at', 'asc')
@@ -381,13 +366,9 @@ class SessionController extends Controller
      */
     public function attach(Request $request, string $id): JsonResponse
     {
-        $session = Session::forUser($request->user()->id)
-            ->whereIn('status', ['running', 'waiting_input'])
-            ->find($id);
-
-        if (!$session) {
-            return $this->errorResponse('SES_001', 'Session not found or not running', 404);
-        }
+        $session = Session::whereIn('status', ['running', 'waiting_input'])
+            ->findOrFail($id);
+        $this->authorize('view', $session);
 
         // Generate WebSocket attachment token
         $wsToken = bin2hex(random_bytes(32));
@@ -445,13 +426,9 @@ class SessionController extends Controller
      */
     public function input(Request $request, string $id): JsonResponse
     {
-        $session = Session::forUser($request->user()->id)
-            ->whereIn('status', ['running', 'waiting_input'])
-            ->find($id);
-
-        if (!$session) {
-            return $this->errorResponse('SES_001', 'Session not found or not running', 404);
-        }
+        $session = Session::whereIn('status', ['running', 'waiting_input'])
+            ->findOrFail($id);
+        $this->authorize('update', $session);
 
         // Read raw body to bypass TrimStrings/ConvertEmptyStringsToNull middleware
         // which corrupts terminal control characters (\r, \x03, \x1b, etc.)
@@ -529,13 +506,9 @@ class SessionController extends Controller
      */
     public function resize(Request $request, string $id): JsonResponse
     {
-        $session = Session::forUser($request->user()->id)
-            ->whereIn('status', ['running', 'waiting_input'])
-            ->find($id);
-
-        if (!$session) {
-            return $this->errorResponse('SES_001', 'Session not found or not running', 404);
-        }
+        $session = Session::whereIn('status', ['running', 'waiting_input'])
+            ->findOrFail($id);
+        $this->authorize('update', $session);
 
         $validated = $request->validate([
             'cols' => 'required|integer|min:20|max:500',

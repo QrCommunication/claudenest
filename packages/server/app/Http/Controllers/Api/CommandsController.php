@@ -115,11 +115,8 @@ class CommandsController extends Controller
      */
     public function index(Request $request, string $machine): JsonResponse
     {
-        $machineModel = $this->getMachine($request, $machine);
-
-        if (!$machineModel) {
-            return $this->errorResponse('CMD_001', 'Machine not found', 404);
-        }
+        $machineModel = Machine::findOrFail($machine);
+        $this->authorize('view', $machineModel);
 
         $perPage = $request->input('per_page', 50);
         $search = $request->input('search');
@@ -247,11 +244,8 @@ class CommandsController extends Controller
      */
     public function show(Request $request, string $machine, string $id): JsonResponse
     {
-        $machineModel = $this->getMachine($request, $machine);
-
-        if (!$machineModel) {
-            return $this->errorResponse('CMD_001', 'Machine not found', 404);
-        }
+        $machineModel = Machine::findOrFail($machine);
+        $this->authorize('view', $machineModel);
 
         $command = DiscoveredCommand::forMachine($machineModel->id)
             ->find($id);
@@ -379,11 +373,8 @@ class CommandsController extends Controller
      */
     public function store(Request $request, string $machine): JsonResponse
     {
-        $machineModel = $this->getMachine($request, $machine);
-
-        if (!$machineModel) {
-            return $this->errorResponse('CMD_001', 'Machine not found', 404);
-        }
+        $machineModel = Machine::findOrFail($machine);
+        $this->authorize('update', $machineModel);
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -535,11 +526,8 @@ class CommandsController extends Controller
      */
     public function bulkStore(Request $request, string $machine): JsonResponse
     {
-        $machineModel = $this->getMachine($request, $machine);
-
-        if (!$machineModel) {
-            return $this->errorResponse('CMD_001', 'Machine not found', 404);
-        }
+        $machineModel = Machine::findOrFail($machine);
+        $this->authorize('update', $machineModel);
 
         $validated = $request->validate([
             'commands' => 'required|array',
@@ -658,18 +646,13 @@ class CommandsController extends Controller
      */
     public function destroy(Request $request, string $machine, string $id): JsonResponse
     {
-        $machineModel = $this->getMachine($request, $machine);
-
-        if (!$machineModel) {
-            return $this->errorResponse('CMD_001', 'Machine not found', 404);
-        }
+        $machineModel = Machine::findOrFail($machine);
+        $this->authorize('update', $machineModel);
 
         $command = DiscoveredCommand::forMachine($machineModel->id)
-            ->find($id);
-
-        if (!$command) {
-            return $this->errorResponse('CMD_002', 'Command not found', 404);
-        }
+            ->findOrFail($id);
+        
+        $this->authorize('delete', $command);
 
         $command->delete();
 
@@ -737,11 +720,8 @@ class CommandsController extends Controller
      */
     public function clear(Request $request, string $machine): JsonResponse
     {
-        $machineModel = $this->getMachine($request, $machine);
-
-        if (!$machineModel) {
-            return $this->errorResponse('CMD_001', 'Machine not found', 404);
-        }
+        $machineModel = Machine::findOrFail($machine);
+        $this->authorize('update', $machineModel);
 
         $count = DiscoveredCommand::forMachine($machineModel->id)->delete();
 
@@ -840,11 +820,8 @@ class CommandsController extends Controller
      */
     public function search(Request $request, string $machine): JsonResponse
     {
-        $machineModel = $this->getMachine($request, $machine);
-
-        if (!$machineModel) {
-            return $this->errorResponse('CMD_001', 'Machine not found', 404);
-        }
+        $machineModel = Machine::findOrFail($machine);
+        $this->authorize('view', $machineModel);
 
         $validated = $request->validate([
             'q' => 'required|string|min:1',
@@ -961,18 +938,13 @@ class CommandsController extends Controller
      */
     public function execute(Request $request, string $machine, string $id): JsonResponse
     {
-        $machineModel = $this->getMachine($request, $machine);
-
-        if (!$machineModel) {
-            return $this->errorResponse('CMD_001', 'Machine not found', 404);
-        }
+        $machineModel = Machine::findOrFail($machine);
+        $this->authorize('update', $machineModel);
 
         $command = DiscoveredCommand::forMachine($machineModel->id)
-            ->find($id);
-
-        if (!$command) {
-            return $this->errorResponse('CMD_002', 'Command not found', 404);
-        }
+            ->findOrFail($id);
+        
+        $this->authorize('execute', $command);
 
         $validated = $request->validate([
             'args' => 'nullable|array',

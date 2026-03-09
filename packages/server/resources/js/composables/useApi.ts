@@ -3,6 +3,27 @@ import axios, { AxiosError, type AxiosRequestConfig } from 'axios';
 import type { ApiError } from '@/types';
 import { useToast } from './useToast';
 
+// ============================================================================
+// Types
+// ============================================================================
+
+interface ParsedError {
+  code: string;
+  message: string;
+  errors?: Record<string, string[]>;
+  status?: number;
+}
+
+interface UseQueryOptions<T> {
+  onSuccess?: (data: T) => void;
+  onError?: (error: ParsedError) => void;
+  showErrorToast?: boolean;
+}
+
+// ============================================================================
+// Axios Instance
+// ============================================================================
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
   headers: {
@@ -10,6 +31,10 @@ const api = axios.create({
     'Accept': 'application/json',
   },
 });
+
+// ============================================================================
+// Interceptors
+// ============================================================================
 
 // Add auth token to requests
 api.interceptors.request.use((config) => {
@@ -32,23 +57,13 @@ api.interceptors.response.use(
   }
 );
 
-export function useApi() {
-  return api;
-}
+// ============================================================================
+// Composables
+// ============================================================================
 
-interface ParsedError {
-  code: string;
-  message: string;
-  errors?: Record<string, string[]>;
-  status?: number;
-}
-
-interface UseQueryOptions<T> {
-  onSuccess?: (data: T) => void;
-  onError?: (error: ParsedError) => void;
-  showErrorToast?: boolean;
-}
-
+/**
+ * Composable for GET requests with loading and error state
+ */
 export function useQuery<T>(
   url: string,
   options: UseQueryOptions<T> = {}
@@ -90,6 +105,9 @@ export function useQuery<T>(
   };
 }
 
+/**
+ * Composable for POST/PUT/PATCH/DELETE requests with loading and error state
+ */
 export function useMutation<T, D = unknown>(
   url: string,
   method: 'post' | 'put' | 'patch' | 'delete' = 'post',
@@ -97,7 +115,7 @@ export function useMutation<T, D = unknown>(
 ) {
   const data = ref<T | null>(null);
   const isLoading = ref(false);
-  const error = ref<ApiError | null>(null);
+  const error = ref<ParsedError | null>(null);
   const { showErrorToast = true, onSuccess } = options;
   const toast = useToast();
 
@@ -132,13 +150,13 @@ export function useMutation<T, D = unknown>(
   };
 }
 
-interface ParsedError {
-  code: string;
-  message: string;
-  errors?: Record<string, string[]>;
-  status?: number;
-}
+// ============================================================================
+// Helper Functions
+// ============================================================================
 
+/**
+ * Parse error from various error types into consistent format
+ */
 function parseError(error: unknown): ParsedError {
   if (axios.isAxiosError(error)) {
     const axiosError = error as AxiosError<ApiError>;
@@ -157,4 +175,11 @@ function parseError(error: unknown): ParsedError {
   };
 }
 
+// ============================================================================
+// Exports
+// ============================================================================
+
 export { api };
+export function useApi() {
+  return api;
+}
