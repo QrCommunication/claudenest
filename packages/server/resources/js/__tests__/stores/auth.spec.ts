@@ -1,95 +1,35 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { setActivePinia, createPinia } from 'pinia';
-import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { useAuthStore } from '@/stores/auth';
 
-// Simple auth store for testing
-interface User {
-  id: string;
-  email: string;
-  name: string;
-}
-
-interface LoginCredentials {
-  email: string;
-  password: string;
-}
-
-const useAuthStore = defineStore('auth', () => {
-  const user = ref<User | null>(null);
-  const token = ref<string | null>(null);
-  const isLoading = ref(false);
-
-  const isAuthenticated = computed(() => !!token.value);
-
-  async function login(credentials: LoginCredentials) {
-    isLoading.value = true;
-    try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(credentials),
-      });
-
-      if (!response.ok) {
-        throw new Error('Login failed');
-      }
-
-      const data = await response.json();
-      user.value = data.data.user;
-      token.value = data.data.token;
-      localStorage.setItem('token', token.value);
-    } catch (error) {
-      user.value = null;
-      token.value = null;
-      throw error;
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
-  async function logout() {
-    try {
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token.value}`,
-        },
-      });
-    } finally {
-      user.value = null;
-      token.value = null;
-      localStorage.removeItem('token');
-    }
-  }
-
-  function setUser(newUser: User) {
-    user.value = newUser;
-  }
-
-  function setToken(newToken: string) {
-    token.value = newToken;
-    localStorage.setItem('token', newToken);
-  }
-
-  return {
-    user,
-    token,
-    isLoading,
-    isAuthenticated,
-    login,
-    logout,
-    setUser,
-    setToken,
+vi.mock('@/composables/useApi', () => {
+  const api = {
+    get: vi.fn(),
+    post: vi.fn(),
+    interceptors: {
+      request: { use: vi.fn() },
+      response: { use: vi.fn() },
+    },
   };
+  return { api, useApi: () => api };
 });
+
+vi.mock('@/composables/useToast', () => ({
+  useToast: () => ({ error: vi.fn(), success: vi.fn() }),
+}));
+
+// Get the mocked api instance for assertion / control in tests
+import { api } from '@/composables/useApi';
+
+const mockApi = api as { get: ReturnType<typeof vi.fn>; post: ReturnType<typeof vi.fn> };
 
 describe('Auth Store', () => {
   beforeEach(() => {
     setActivePinia(createPinia());
     vi.clearAllMocks();
     localStorage.clear();
-    global.fetch = vi.fn();
+    // Simulate no token stored between tests
+    (localStorage.getItem as ReturnType<typeof vi.fn>).mockReturnValue(null);
   });
 
   it('initializes with correct default state', () => {
@@ -99,143 +39,234 @@ describe('Auth Store', () => {
     expect(store.token).toBeNull();
     expect(store.isLoading).toBe(false);
     expect(store.isAuthenticated).toBe(false);
+    expect(store.authError).toBeNull();
+  });
+
+  it('initializes token from localStorage using auth_token key', () => {
+    (localStorage.getItem as ReturnType<typeof vi.fn>).mockReturnValue('stored_token');
+    const store = useAuthStore();
+    expect(store.token).toBe('stored_token');
   });
 
   it('authenticates user on successful login', async () => {
     const mockUser = { id: '1', email: 'test@example.com', name: 'Test User' };
     const mockToken = 'abc123token';
 
-    (global.fetch as any).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        success: true,
-        data: {
-          user: mockUser,
-          token: mockToken,
-        },
-      }),
+    mockApi.post.mockResolvedValueOnce({
+      data: { success: true, data: { user: mockUser, token: mockToken } },
     });
 
     const store = useAuthStore();
-    await store.login({
-      email: 'test@example.com',
-      password: 'password123',
-    });
+    await store.login('test@example.com', 'password123');
 
     expect(store.user).toEqual(mockUser);
     expect(store.token).toBe(mockToken);
     expect(store.isAuthenticated).toBe(true);
-    expect(localStorage.setItem).toHaveBeenCalledWith('token', mockToken);
+    expect(localStorage.setItem).toHaveBeenCalledWith('auth_token', mockToken);
   });
 
-  it('handles failed login correctly', async () => {
-    (global.fetch as any).mockResolvedValueOnce({
-      ok: false,
-      status: 401,
+  it('handles failed login and stores error message', async () => {
+    const axiosError = Object.assign(new Error('Request failed'), {
+      isAxiosError: true,
+      response: { status: 401, data: { error: { message: 'Invalid credentials' } } },
     });
+    mockApi.post.mockRejectedValueOnce(axiosError);
 
     const store = useAuthStore();
 
-    await expect(store.login({
-      email: 'wrong@example.com',
-      password: 'wrongpass',
-    })).rejects.toThrow('Login failed');
+    await expect(store.login('wrong@example.com', 'wrongpass')).rejects.toThrow();
 
     expect(store.user).toBeNull();
     expect(store.token).toBeNull();
     expect(store.isAuthenticated).toBe(false);
+    expect(store.authError).toBe('Invalid credentials');
   });
 
   it('sets loading state during login', async () => {
-    (global.fetch as any).mockImplementationOnce(() =>
-      new Promise(resolve => setTimeout(() => resolve({
-        ok: true,
-        json: async () => ({
-          success: true,
-          data: {
-            user: { id: '1', email: 'test@example.com', name: 'Test' },
-            token: 'token',
-          },
-        }),
-      }), 100))
+    let resolveLogin!: (value: unknown) => void;
+    mockApi.post.mockReturnValueOnce(
+      new Promise(resolve => { resolveLogin = resolve; })
     );
 
     const store = useAuthStore();
     expect(store.isLoading).toBe(false);
 
-    const loginPromise = store.login({
-      email: 'test@example.com',
-      password: 'password',
-    });
-
+    const loginPromise = store.login('test@example.com', 'password');
     expect(store.isLoading).toBe(true);
 
+    resolveLogin({
+      data: {
+        success: true,
+        data: { user: { id: '1', email: 'test@example.com', name: 'Test' }, token: 'token' },
+      },
+    });
     await loginPromise;
     expect(store.isLoading).toBe(false);
   });
 
-  it('logs out user and clears state', async () => {
+  it('logs out user and clears state using auth_token key', async () => {
     const store = useAuthStore();
-    
-    // Set initial state
-    store.setUser({ id: '1', email: 'test@example.com', name: 'Test' });
     store.setToken('token123');
+    store.user = { id: '1', email: 'test@example.com', name: 'Test' } as any;
 
-    (global.fetch as any).mockResolvedValueOnce({
-      ok: true,
-    });
+    mockApi.post.mockResolvedValueOnce({ data: { success: true } });
 
     await store.logout();
 
     expect(store.user).toBeNull();
     expect(store.token).toBeNull();
     expect(store.isAuthenticated).toBe(false);
-    expect(localStorage.removeItem).toHaveBeenCalledWith('token');
+    expect(localStorage.removeItem).toHaveBeenCalledWith('auth_token');
   });
 
   it('clears state even if logout request fails', async () => {
     const store = useAuthStore();
-    
-    store.setUser({ id: '1', email: 'test@example.com', name: 'Test' });
     store.setToken('token123');
+    store.user = { id: '1', email: 'test@example.com', name: 'Test' } as any;
 
-    (global.fetch as any).mockRejectedValueOnce(new Error('Network error'));
+    mockApi.post.mockRejectedValueOnce(new Error('Network error'));
 
-    await store.logout();
+    await store.logout().catch(() => {});
 
     expect(store.user).toBeNull();
     expect(store.token).toBeNull();
-    expect(localStorage.removeItem).toHaveBeenCalledWith('token');
+    expect(localStorage.removeItem).toHaveBeenCalledWith('auth_token');
   });
 
-  it('updates user correctly', () => {
+  it('setToken stores value under auth_token key and clears on null', () => {
     const store = useAuthStore();
-    const newUser = { id: '2', email: 'new@example.com', name: 'New User' };
 
-    store.setUser(newUser);
+    store.setToken('newtoken456');
+    expect(store.token).toBe('newtoken456');
+    expect(localStorage.setItem).toHaveBeenCalledWith('auth_token', 'newtoken456');
 
-    expect(store.user).toEqual(newUser);
+    store.setToken(null);
+    expect(store.token).toBeNull();
+    expect(localStorage.removeItem).toHaveBeenCalledWith('auth_token');
   });
 
-  it('updates token correctly', () => {
-    const store = useAuthStore();
-    const newToken = 'newtoken456';
-
-    store.setToken(newToken);
-
-    expect(store.token).toBe(newToken);
-    expect(localStorage.setItem).toHaveBeenCalledWith('token', newToken);
-  });
-
-  it('computes isAuthenticated correctly', () => {
+  it('isAuthenticated requires both token and user', () => {
     const store = useAuthStore();
 
     expect(store.isAuthenticated).toBe(false);
 
     store.setToken('token123');
+    expect(store.isAuthenticated).toBe(false); // no user yet
+
+    store.user = { id: '1', email: 'test@example.com', name: 'Test' } as any;
     expect(store.isAuthenticated).toBe(true);
 
-    store.token = null;
+    store.setToken(null);
     expect(store.isAuthenticated).toBe(false);
+  });
+
+  it('fetches current user when token is present', async () => {
+    const mockUser = { id: '1', email: 'test@example.com', name: 'Test User' };
+    mockApi.get.mockResolvedValueOnce({ data: { data: mockUser } });
+
+    const store = useAuthStore();
+    store.setToken('token123');
+    const result = await store.fetchUser();
+
+    expect(mockApi.get).toHaveBeenCalledWith('/auth/me');
+    expect(store.user).toEqual(mockUser);
+    expect(result).toEqual(mockUser);
+  });
+
+  it('returns null from fetchUser when no token is set', async () => {
+    const store = useAuthStore();
+    const result = await store.fetchUser();
+
+    expect(mockApi.get).not.toHaveBeenCalled();
+    expect(result).toBeNull();
+  });
+
+  it('clears token when fetchUser request fails', async () => {
+    mockApi.get.mockRejectedValueOnce(new Error('Unauthorized'));
+
+    const store = useAuthStore();
+    store.setToken('expired_token');
+    const result = await store.fetchUser();
+
+    expect(store.token).toBeNull();
+    expect(store.user).toBeNull();
+    expect(result).toBeNull();
+    expect(localStorage.removeItem).toHaveBeenCalledWith('auth_token');
+  });
+
+  it('registers user successfully', async () => {
+    const mockUser = { id: '2', email: 'new@example.com', name: 'New User' };
+    const mockToken = 'newtoken789';
+
+    mockApi.post.mockResolvedValueOnce({
+      data: { success: true, data: { user: mockUser, token: mockToken } },
+    });
+
+    const store = useAuthStore();
+    const success = await store.register({
+      name: 'New User',
+      email: 'new@example.com',
+      password: 'password123',
+      password_confirmation: 'password123',
+    });
+
+    expect(success).toBe(true);
+    expect(store.user).toEqual(mockUser);
+    expect(store.token).toBe(mockToken);
+    expect(localStorage.setItem).toHaveBeenCalledWith('auth_token', mockToken);
+  });
+
+  it('returns false and stores error when registration fails', async () => {
+    const axiosError = Object.assign(new Error('Request failed'), {
+      isAxiosError: true,
+      response: { status: 422, data: { error: { message: 'Email already taken' } } },
+    });
+    mockApi.post.mockRejectedValueOnce(axiosError);
+
+    const store = useAuthStore();
+    const success = await store.register({
+      name: 'Test',
+      email: 'taken@example.com',
+      password: 'password123',
+      password_confirmation: 'password123',
+    });
+
+    expect(success).toBe(false);
+    expect(store.authError).toBe('Email already taken');
+  });
+
+  it('clearErrors resets authError and fieldErrors', async () => {
+    const axiosError = Object.assign(new Error('Request failed'), {
+      isAxiosError: true,
+      response: { status: 401, data: { error: { message: 'Bad credentials' } } },
+    });
+    mockApi.post.mockRejectedValueOnce(axiosError);
+
+    const store = useAuthStore();
+    await store.login('x@x.com', 'wrong').catch(() => {});
+    expect(store.authError).toBeTruthy();
+
+    store.clearErrors();
+    expect(store.authError).toBeNull();
+    expect(store.fieldErrors).toEqual({});
+  });
+
+  it('init calls fetchUser when token exists', async () => {
+    const mockUser = { id: '1', email: 'test@example.com', name: 'Test' };
+    (localStorage.getItem as ReturnType<typeof vi.fn>).mockReturnValue('existing_token');
+    mockApi.get.mockResolvedValueOnce({ data: { data: mockUser } });
+
+    const store = useAuthStore();
+    await store.init();
+
+    expect(mockApi.get).toHaveBeenCalledWith('/auth/me');
+    expect(store.user).toEqual(mockUser);
+  });
+
+  it('init does nothing when no token exists', async () => {
+    const store = useAuthStore();
+    await store.init();
+
+    expect(mockApi.get).not.toHaveBeenCalled();
   });
 });
