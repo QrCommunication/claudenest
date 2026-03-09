@@ -46,4 +46,28 @@ class TaskPolicy
     {
         return $task->project->user_id === $user->id;
     }
+
+    /**
+     * Determine whether the user can claim the task.
+     */
+    public function claim(User $user, SharedTask $task): bool
+    {
+        return $task->project->user_id === $user->id;
+    }
+
+    /**
+     * Determine whether the user can release the task.
+     */
+    public function release(User $user, SharedTask $task): bool
+    {
+        return $task->project->user_id === $user->id;
+    }
+
+    /**
+     * Determine whether the user can complete the task.
+     */
+    public function complete(User $user, SharedTask $task): bool
+    {
+        return $task->project->user_id === $user->id;
+    }
 }
