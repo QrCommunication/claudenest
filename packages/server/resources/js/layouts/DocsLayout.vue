@@ -1,315 +1,624 @@
 <template>
-  <div class="docs-layout">
-    <!-- Mobile Header -->
-    <header class="mobile-header">
-      <button class="menu-btn" @click="toggleSidebar">
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
-        </svg>
-      </button>
-      <router-link to="/" class="logo">
-        <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color: var(--bg-secondary, var(--surface-2))"/>
-              <stop offset="100%" style="stop-color: var(--bg-card, var(--surface-3))"/>
-            </linearGradient>
-            <linearGradient id="nestGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color: var(--accent-purple, #a855f7)"/>
-              <stop offset="100%" style="stop-color: var(--accent-indigo, #6366f1)"/>
-            </linearGradient>
-          </defs>
-          <rect x="0" y="0" width="512" height="512" rx="96" fill="url(#bgGrad)"/>
-          <g transform="translate(256, 256)">
-            <path d="M-80 -40 Q-120 -40 -120 0 Q-120 40 -80 40" stroke="url(#nestGrad)" stroke-width="16" fill="none" stroke-linecap="round"/>
-            <path d="M80 -40 Q120 -40 120 0 Q120 40 80 40" stroke="url(#nestGrad)" stroke-width="16" fill="none" stroke-linecap="round"/>
-            <circle cx="-35" cy="0" r="18" :style="{ fill: 'var(--accent-cyan, #22d3ee)' }"/>
-            <circle cx="0" cy="0" r="18" fill="url(#nestGrad)"/>
-            <circle cx="35" cy="0" r="18" :style="{ fill: 'var(--accent-cyan, #22d3ee)' }"/>
-          </g>
-        </svg>
-        <span>ClaudeNest Docs</span>
-      </router-link>
-      <button class="search-btn" @click="showSearch = true">
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-        </svg>
-      </button>
+  <div class="docs-shell">
+    <GrainOverlay />
+
+    <!-- ============ TOP BAR ============ -->
+    <header class="docs-topbar" :class="{ 'is-scrolled': isScrolled }">
+      <div class="topbar-inner">
+        <div class="topbar-left">
+          <button
+            type="button"
+            class="icon-btn mobile-only"
+            :aria-expanded="isSidebarOpen"
+            :aria-label="t('common.menu', 'Menu')"
+            @click="toggleSidebar"
+          >
+            <svg v-if="!isSidebarOpen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+            <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M6 6l12 12M6 18L18 6" /></svg>
+          </button>
+
+          <Logo variant="full" size="sm" :to="'/'" />
+          <span class="docs-kicker">Docs</span>
+        </div>
+
+        <button type="button" class="search-trigger" @click="showSearch = true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+          <span class="search-text">{{ t('docs.search_placeholder', 'Search documentation...') }}</span>
+          <span class="search-kbd">
+            <kbd>{{ modKey }}</kbd>
+            <kbd>K</kbd>
+          </span>
+        </button>
+
+        <div class="topbar-right">
+          <nav class="topbar-nav">
+            <router-link to="/pricing" class="topbar-link">{{ t('landing.nav.pricing') }}</router-link>
+            <router-link to="/changelog" class="topbar-link">{{ t('landing.footer.changelog') }}</router-link>
+            <a href="https://github.com/QrCommunication/claudenest" target="_blank" rel="noreferrer" class="topbar-link topbar-ext">
+              GitHub
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M10 7h7v7" /></svg>
+            </a>
+          </nav>
+          <ThemeToggle variant="ghost" />
+          <router-link to="/register" class="topbar-cta">
+            <span>{{ t('common.register') }}</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
+          </router-link>
+        </div>
+      </div>
     </header>
 
-    <!-- Sidebar -->
-    <aside class="sidebar" :class="{ 'is-open': isSidebarOpen, 'is-closed': !isSidebarOpen }">
+    <!-- ============ SIDEBAR ============ -->
+    <aside class="docs-sidebar" :class="{ 'is-open': isSidebarOpen }">
       <DocsSidebar />
     </aside>
 
-    <!-- Overlay for mobile -->
-    <div v-if="isSidebarOpen" class="sidebar-overlay" @click="toggleSidebar"></div>
+    <div
+      v-if="isSidebarOpen"
+      class="sidebar-scrim mobile-only"
+      @click="toggleSidebar"
+      aria-hidden="true"
+    />
 
-    <!-- Main Content -->
-    <main class="main-content">
-      <div class="content-wrapper">
-        <div class="content">
+    <!-- ============ MAIN ============ -->
+    <main class="docs-main">
+      <div class="main-grid">
+        <article class="docs-content">
           <RouterView />
-          
-          <!-- Prev/Next Navigation -->
-          <nav v-if="prevNext.prev || prevNext.next" class="page-nav">
-            <router-link v-if="prevNext.prev && prevNext.prev.path" :to="prevNext.prev.path" class="page-nav-item prev">
-              <span class="label">← Previous</span>
-              <span class="title">{{ prevNext.prev.title }}</span>
-            </router-link>
-            <div v-else class="page-nav-item"></div>
 
-            <router-link v-if="prevNext.next && prevNext.next.path" :to="prevNext.next.path" class="page-nav-item next">
-              <span class="label">Next →</span>
-              <span class="title">{{ prevNext.next.title }}</span>
+          <nav v-if="prevNext.prev || prevNext.next" class="page-nav" aria-label="Page navigation">
+            <router-link
+              v-if="prevNext.prev && prevNext.prev.path"
+              :to="prevNext.prev.path"
+              class="page-nav-item is-prev"
+            >
+              <span class="nav-arrow" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+              </span>
+              <span class="nav-meta">
+                <span class="nav-label">{{ t('common.previous') }}</span>
+                <span class="nav-title">{{ prevNext.prev.title }}</span>
+              </span>
+            </router-link>
+            <span v-else />
+
+            <router-link
+              v-if="prevNext.next && prevNext.next.path"
+              :to="prevNext.next.path"
+              class="page-nav-item is-next"
+            >
+              <span class="nav-meta">
+                <span class="nav-label">{{ t('common.next') }}</span>
+                <span class="nav-title">{{ prevNext.next.title }}</span>
+              </span>
+              <span class="nav-arrow" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6" /></svg>
+              </span>
             </router-link>
           </nav>
-        </div>
+        </article>
 
-        <!-- Right Sidebar (TOC) -->
-        <aside class="toc-sidebar">
+        <aside class="docs-toc">
           <TableOfContents />
         </aside>
       </div>
     </main>
 
-    <!-- Search Modal -->
     <SearchModal v-model="showSearch" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useDocs } from '@/composables/useDocs';
+import Logo from '@/components/common/Logo.vue';
+import ThemeToggle from '@/components/common/ThemeToggle.vue';
+import GrainOverlay from '@/components/public/GrainOverlay.vue';
 import DocsSidebar from '@/components/docs/Sidebar.vue';
 import TableOfContents from '@/components/docs/Toc.vue';
 import SearchModal from '@/components/docs/SearchModal.vue';
 
+const { t } = useI18n();
 const { isSidebarOpen, toggleSidebar, prevNext } = useDocs();
 const showSearch = ref(false);
+const isScrolled = ref(false);
 
-// Keyboard shortcut for search
-window.addEventListener('keydown', (e) => {
-  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+const modKey = computed(() => {
+  if (typeof navigator === 'undefined') return 'Ctrl';
+  return /Mac|iPad|iPhone/.test(navigator.platform) ? '⌘' : 'Ctrl';
+});
+
+let rafId = 0;
+const onScroll = () => {
+  if (rafId) return;
+  rafId = requestAnimationFrame(() => {
+    isScrolled.value = window.scrollY > 12;
+    rafId = 0;
+  });
+};
+
+const onKey = (e: KeyboardEvent) => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
     e.preventDefault();
     showSearch.value = true;
   }
+};
+
+onMounted(() => {
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('keydown', onKey);
+  onScroll();
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', onScroll);
+  window.removeEventListener('keydown', onKey);
+  if (rafId) cancelAnimationFrame(rafId);
 });
 </script>
 
 <style scoped>
-.docs-layout {
-  display: flex;
-  min-height: 100vh;
-  background: var(--bg-primary, var(--surface-1));
+.docs-shell {
+  position: relative;
+  min-height: 100dvh;
+  background: var(--bg-primary);
   color: var(--text-primary);
+  overflow-x: hidden;
 }
 
-/* Mobile Header */
-.mobile-header {
-  display: none;
-  position: fixed;
+/* ============ TOPBAR ============ */
+.docs-topbar {
+  position: sticky;
   top: 0;
-  left: 0;
-  right: 0;
-  height: 60px;
-  background: color-mix(in srgb, var(--bg-primary, var(--surface-1)) 95%, transparent);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--border-color, var(--border));
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 1rem;
-  z-index: 100;
-}
-
-.menu-btn,
-.search-btn {
-  width: 40px;
-  height: 40px;
+  z-index: 50;
+  height: 64px;
+  padding: 0 clamp(1rem, 3vw, 2rem);
   display: flex;
   align-items: center;
-  justify-content: center;
   background: transparent;
-  border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  border-radius: 8px;
-  transition: all 0.2s;
+  border-bottom: 1px solid transparent;
+  transition: background 0.3s ease, border-color 0.3s ease, backdrop-filter 0.3s ease;
 }
 
-.menu-btn:hover,
-.search-btn:hover {
-  background: var(--bg-hover, var(--surface-3));
-  color: var(--text-primary);
+.docs-topbar.is-scrolled {
+  background: var(--glass-bg);
+  backdrop-filter: saturate(180%) blur(14px);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+  border-bottom-color: var(--border-color);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
-.menu-btn svg,
-.search-btn svg {
-  width: 24px;
-  height: 24px;
+.topbar-inner {
+  width: 100%;
+  max-width: 1480px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 1rem;
 }
 
-.logo {
+.topbar-left {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  text-decoration: none;
-  color: var(--text-primary);
 }
 
-.logo svg {
-  width: 32px;
-  height: 32px;
-}
-
-.logo span {
+.docs-kicker {
+  padding: 0.2rem 0.55rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
   font-weight: 600;
-  font-size: 1.1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-purple);
+  background: color-mix(in srgb, var(--accent-purple) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-purple) 26%, transparent);
+  border-radius: 0.45rem;
 }
 
-/* Sidebar */
-.sidebar {
-  position: fixed;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 260px;
-  background: var(--bg-primary, var(--surface-1));
-  border-right: 1px solid var(--border-color, var(--border));
-  overflow-y: auto;
-  z-index: 50;
-  transition: transform 0.3s ease;
-}
-
-.sidebar.is-closed {
-  transform: translateX(-100%);
-}
-
-.sidebar-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 40;
-}
-
-/* Main Content */
-.main-content {
-  flex: 1;
-  margin-left: 260px;
-  padding: 2rem;
-  min-height: 100vh;
-}
-
-.content-wrapper {
-  display: flex;
-  max-width: 1400px;
-  margin: 0 auto;
-  gap: 3rem;
-}
-
-.content {
-  flex: 1;
-  min-width: 0;
-  max-width: 768px;
-}
-
-/* TOC Sidebar */
-.toc-sidebar {
-  width: 240px;
-  position: sticky;
-  top: 2rem;
-  height: calc(100vh - 4rem);
-  overflow-y: auto;
-}
-
-/* Page Navigation */
-.page-nav {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-top: 4rem;
-  padding-top: 2rem;
-  border-top: 1px solid var(--border-color, var(--border));
-}
-
-.page-nav-item {
-  display: flex;
-  flex-direction: column;
-  padding: 1rem;
-  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
-  border: 1px solid var(--border-color, var(--border));
-  border-radius: 12px;
-  text-decoration: none;
-  color: inherit;
-  transition: all 0.2s;
-  flex: 1;
-}
-
-.page-nav-item:hover {
-  background: color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
-  border-color: color-mix(in srgb, var(--accent-purple, #a855f7) 30%, transparent);
-}
-
-.page-nav-item.next {
-  text-align: right;
-  align-items: flex-end;
-}
-
-.page-nav-item .label {
-  font-size: 0.8rem;
-  color: var(--accent-purple, #a855f7);
-  margin-bottom: 0.25rem;
-}
-
-.page-nav-item .title {
-  font-weight: 500;
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
   color: var(--text-primary);
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 0.55rem;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
 }
 
-/* Responsive */
-@media (max-width: 1024px) {
-  .toc-sidebar {
-    display: none;
-  }
-  
-  .content-wrapper {
+.icon-btn svg { width: 18px; height: 18px; }
+
+.icon-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-hover);
+}
+
+.mobile-only {
+  display: none;
+}
+
+@media (max-width: 1000px) {
+  .mobile-only { display: inline-flex; }
+  .docs-kicker { display: none; }
+}
+
+/* Search trigger */
+.search-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  max-width: 26rem;
+  margin: 0 auto;
+  padding: 0.55rem 0.9rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 0.65rem;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.search-trigger svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.search-text {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search-kbd {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.search-kbd kbd {
+  padding: 0.12rem 0.4rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-bottom-width: 2px;
+  border-radius: 0.35rem;
+}
+
+.search-trigger:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-hover);
+  color: var(--text-secondary);
+}
+
+@media (max-width: 760px) {
+  .search-text { display: none; }
+  .search-trigger { width: 40px; padding: 0.55rem; max-width: none; }
+  .search-kbd { display: none; }
+}
+
+/* Right cluster */
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  justify-content: flex-end;
+}
+
+.topbar-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+@media (max-width: 1000px) {
+  .topbar-nav { display: none; }
+}
+
+.topbar-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  border-radius: 0.55rem;
+  transition: color 0.2s, background 0.2s;
+}
+
+.topbar-link:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.topbar-ext svg {
+  width: 12px;
+  height: 12px;
+  opacity: 0.75;
+}
+
+.topbar-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.95rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, var(--accent-purple), var(--accent-indigo));
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 0.6rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 6px 16px -8px rgba(168, 85, 247, 0.5);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.topbar-cta svg {
+  width: 13px;
+  height: 13px;
+  transition: transform 0.2s;
+}
+
+.topbar-cta:hover {
+  transform: translateY(-1px);
+}
+
+.topbar-cta:hover svg {
+  transform: translateX(2px);
+}
+
+@media (max-width: 560px) {
+  .topbar-cta span { display: none; }
+  .topbar-cta {
+    padding: 0.5rem;
+    width: 36px;
+    height: 36px;
     justify-content: center;
   }
 }
 
-@media (max-width: 768px) {
-  .mobile-header {
-    display: flex;
+/* ============ SIDEBAR ============ */
+.docs-sidebar {
+  position: fixed;
+  top: 64px;
+  left: 0;
+  bottom: 0;
+  width: 272px;
+  padding: 1.5rem 0.5rem 2rem 1rem;
+  background: var(--bg-primary);
+  border-right: 1px solid var(--border-color);
+  overflow-y: auto;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 40;
+}
+
+.docs-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.docs-sidebar::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 999px;
+}
+
+.sidebar-scrim {
+  position: fixed;
+  inset: 64px 0 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(3px);
+  z-index: 35;
+}
+
+@media (max-width: 1000px) {
+  .docs-sidebar { transform: translateX(-100%); }
+  .docs-sidebar.is-open { transform: translateX(0); }
+}
+
+/* ============ MAIN ============ */
+.docs-main {
+  margin-left: 272px;
+  padding: clamp(1.5rem, 3vw, 3rem) clamp(1rem, 3vw, 2.5rem) 4rem;
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 1000px) {
+  .docs-main { margin-left: 0; }
+}
+
+.main-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 3rem;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+@media (min-width: 1200px) {
+  .main-grid {
+    grid-template-columns: minmax(0, 1fr) 240px;
   }
-  
-  .sidebar {
-    transform: translateX(-100%);
-    top: 60px;
-    height: calc(100vh - 60px);
-  }
-  
-  .sidebar.is-open {
-    transform: translateX(0);
-  }
-  
-  .sidebar.is-open ~ .sidebar-overlay {
-    display: block;
-  }
-  
-  .main-content {
-    margin-left: 0;
-    margin-top: 60px;
-    padding: 1.5rem;
-  }
-  
-  .page-nav {
-    flex-direction: column;
-  }
-  
-  .page-nav-item.next {
-    text-align: left;
-    align-items: flex-start;
-  }
+}
+
+.docs-content {
+  min-width: 0;
+  max-width: 820px;
+  width: 100%;
+}
+
+/* Apply typography improvements to descendants from pages docs */
+.docs-content :deep(h1) {
+  font-size: clamp(2rem, 3.5vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  color: var(--text-primary);
+}
+
+.docs-content :deep(h2) {
+  margin-top: 2.75rem;
+  font-size: clamp(1.35rem, 2.2vw, 1.6rem);
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  color: var(--text-primary);
+  scroll-margin-top: 5rem;
+}
+
+.docs-content :deep(h3) {
+  margin-top: 1.75rem;
+  font-size: 1.14rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  scroll-margin-top: 5rem;
+}
+
+.docs-content :deep(p) {
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+
+.docs-content :deep(code):not(:deep(pre code)) {
+  padding: 0.12rem 0.35rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.86em;
+  color: var(--accent-purple);
+  background: color-mix(in srgb, var(--accent-purple) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-purple) 20%, transparent);
+  border-radius: 0.35rem;
+}
+
+.docs-content :deep(pre) {
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.docs-content :deep(a) {
+  color: var(--accent-purple);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent-purple) 30%, transparent);
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.docs-content :deep(a:hover) {
+  color: var(--accent-indigo);
+  border-bottom-color: var(--accent-indigo);
+}
+
+/* TOC */
+.docs-toc {
+  display: none;
+  position: sticky;
+  top: 84px;
+  align-self: start;
+  height: calc(100dvh - 100px);
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.docs-toc::-webkit-scrollbar {
+  width: 4px;
+}
+
+.docs-toc::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 999px;
+}
+
+@media (min-width: 1200px) {
+  .docs-toc { display: block; }
+}
+
+/* ============ PAGE NAV ============ */
+.page-nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 4rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-color);
+}
+
+@media (max-width: 640px) {
+  .page-nav { grid-template-columns: 1fr; }
+}
+
+.page-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1.1rem 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 0.9rem;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s, background 0.22s;
+}
+
+.page-nav-item.is-next {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.page-nav-item:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--accent-purple) 36%, var(--border-color));
+  background: color-mix(in srgb, var(--accent-purple) 4%, var(--bg-card));
+}
+
+.nav-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: var(--accent-purple);
+  background: color-mix(in srgb, var(--accent-purple) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-purple) 24%, transparent);
+  border-radius: 0.55rem;
+  flex-shrink: 0;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nav-arrow svg { width: 14px; height: 14px; }
+
+.page-nav-item.is-prev:hover .nav-arrow { transform: translateX(-2px); }
+.page-nav-item.is-next:hover .nav-arrow { transform: translateX(2px); }
+
+.nav-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.nav-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.nav-title {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>

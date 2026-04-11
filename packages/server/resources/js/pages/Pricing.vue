@@ -1,478 +1,698 @@
 <template>
-  <div class="pricing-page">
-    <!-- Navigation -->
-    <nav class="pricing-nav">
-      <div class="nav-inner">
-        <Logo variant="full" size="md" to="/" />
-        <router-link to="/" class="back-link">Back to Home</router-link>
-      </div>
-    </nav>
+  <div class="page-public">
+    <GrainOverlay />
+    <PublicNav />
 
-    <main class="pricing-main">
-      <!-- Header -->
-      <header class="pricing-header">
-        <span class="pricing-badge">PRICING</span>
-        <h1 class="pricing-title">
-          Simple, <span class="gradient-text">transparent pricing</span>
-        </h1>
-        <p class="pricing-subtitle">
-          Choose the plan that fits your needs. All plans include core features with no hidden fees.
-        </p>
-      </header>
-
-      <!-- Pricing Cards -->
-      <div class="pricing-grid">
-        <div
-          v-for="plan in plans"
-          :key="plan.name"
-          :class="['plan-card', { featured: plan.featured }]"
+    <main class="page-main">
+      <section class="pricing-hero">
+        <SectionHeader
+          :badge="t('landing.pricing.badge')"
+          :subtitle="t('landing.pricing.subtitle')"
+          align="center"
         >
-          <span v-if="plan.featured" class="plan-popular">Popular</span>
+          <template #title>
+            {{ t('landing.pricing.title') }}<GradientText>{{ t('landing.pricing.title_highlight') }}</GradientText>
+          </template>
+        </SectionHeader>
 
-          <div class="plan-header">
-            <h3 class="plan-name">{{ plan.name }}</h3>
-            <div class="plan-price">
-              <span class="price-value gradient-text">{{ plan.price }}</span>
-              <span v-if="plan.period" class="price-period">{{ plan.period }}</span>
-            </div>
-            <p class="plan-desc">{{ plan.description }}</p>
+        <div class="billing-toggle" role="group" aria-label="Billing cycle">
+          <button
+            type="button"
+            class="toggle-option"
+            :class="{ 'is-active': billing === 'monthly' }"
+            @click="billing = 'monthly'"
+          >
+            {{ tr('Monthly', 'Mensuel') }}
+          </button>
+          <button
+            type="button"
+            class="toggle-option"
+            :class="{ 'is-active': billing === 'yearly' }"
+            @click="billing = 'yearly'"
+          >
+            {{ tr('Yearly', 'Annuel') }}
+            <span class="toggle-save">-20%</span>
+          </button>
+          <span class="toggle-thumb" :data-pos="billing" aria-hidden="true" />
+        </div>
+      </section>
+
+      <section class="plans">
+        <article
+          v-for="(plan, idx) in plans"
+          :key="plan.key"
+          class="plan"
+          :class="{ 'is-featured': plan.featured }"
+          v-motion
+          :initial="{ opacity: 0, y: 18 }"
+          :visible-once="{ opacity: 1, y: 0, transition: { delay: idx * 90 } }"
+        >
+          <div v-if="plan.featured" class="plan-ribbon">
+            <span>{{ t('landing.pricing.most_popular') }}</span>
           </div>
+
+          <header class="plan-head">
+            <span class="plan-name">{{ t(`landing.pricing.tiers.${plan.key}.name`) }}</span>
+            <p class="plan-target">{{ t(`landing.pricing.tiers.${plan.key}.target`) }}</p>
+          </header>
+
+          <div class="plan-price">
+            <template v-if="plan.key === 'pro' && billing === 'yearly'">
+              <span class="plan-amount">$23</span>
+              <span class="plan-unit">{{ t('landing.pricing.tiers.pro.period') }}</span>
+            </template>
+            <template v-else>
+              <span class="plan-amount">{{ t(`landing.pricing.tiers.${plan.key}.price`) }}</span>
+              <span v-if="plan.key === 'pro'" class="plan-unit">{{ t('landing.pricing.tiers.pro.period') }}</span>
+            </template>
+          </div>
+
+          <p v-if="plan.key === 'pro' && billing === 'yearly'" class="plan-savings">
+            {{ tr('Billed annually · Save $72/year', 'Facturé annuellement · 72 $ économisés') }}
+          </p>
 
           <ul class="plan-features">
             <li
-              v-for="(feat, i) in plan.features"
+              v-for="i in featuresCount(plan.key)"
               :key="i"
-              class="feature-item"
+              class="plan-feat"
             >
-              <svg class="feature-check" :class="plan.checkColor" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg>
-              <span :class="{ 'feature-bold': feat.bold }">{{ feat.text }}</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+              <span>{{ t(`landing.pricing.tiers.${plan.key}.features.${i - 1}`) }}</span>
             </li>
           </ul>
 
-          <button
-            :class="['plan-cta', plan.featured ? 'cta-primary' : 'cta-secondary']"
-            @click="plan.action()"
+          <router-link
+            :to="plan.cta"
+            class="plan-cta"
+            :class="{ 'is-primary': plan.featured }"
           >
-            {{ plan.cta }}
-          </button>
+            {{ t(`landing.pricing.tiers.${plan.key}.cta`) }}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
+          </router-link>
+        </article>
+      </section>
+
+      <p class="pricing-note">{{ t('landing.pricing.note') }}</p>
+
+      <!-- Feature comparison matrix -->
+      <section class="section section-matrix">
+        <SectionHeader
+          :title="tr('Compare every plan', 'Comparer les plans en détail')"
+          :subtitle="tr('The full capability set — so you can pick what your team actually uses.', 'Toutes les capacités en détail — pour choisir en connaissance de cause.')"
+        />
+
+        <div class="matrix">
+          <div class="matrix-head">
+            <div class="matrix-cell cell-label">{{ tr('Capabilities', 'Capacités') }}</div>
+            <div class="matrix-cell">Community</div>
+            <div class="matrix-cell is-accent">Pro</div>
+            <div class="matrix-cell">Enterprise</div>
+          </div>
+          <div v-for="row in matrix" :key="row.key" class="matrix-row">
+            <div class="matrix-cell cell-label">{{ row.label }}</div>
+            <div class="matrix-cell">
+              <MatrixValue :value="row.community" />
+            </div>
+            <div class="matrix-cell is-accent">
+              <MatrixValue :value="row.pro" />
+            </div>
+            <div class="matrix-cell">
+              <MatrixValue :value="row.enterprise" />
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <!-- FAQ Section -->
-      <section class="faq-section">
-        <h2 class="faq-title">Frequently Asked Questions</h2>
+      <!-- FAQ -->
+      <section class="section section-faq">
+        <SectionHeader align="center">
+          <template #title>
+            {{ t('landing.faq.title') }}<GradientText>{{ t('landing.faq.title_highlight') }}</GradientText>
+          </template>
+        </SectionHeader>
 
-        <div class="faq-grid">
-          <div v-for="(faq, idx) in faqs" :key="idx" class="faq-card">
-            <h3 class="faq-question">{{ faq.question }}</h3>
-            <p class="faq-answer">{{ faq.answer }}</p>
+        <div class="faq-list">
+          <details v-for="i in 4" :key="i" class="faq-row" :open="i === 1">
+            <summary class="faq-q">
+              <span>{{ t(`landing.faq.items.${i - 1}.question`) }}</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg>
+            </summary>
+            <p class="faq-a">{{ t(`landing.faq.items.${i - 1}.answer`) }}</p>
+          </details>
+        </div>
+      </section>
+
+      <section class="section section-cta">
+        <div class="cta-panel">
+          <div>
+            <h2 class="cta-title">{{ tr('Self-host today. Scale when ready.', 'Auto-hébergez aujourd\'hui. Scalez quand vous êtes prêts.') }}</h2>
+            <p class="cta-sub">{{ tr('MIT licensed. No card required. Your infrastructure, your data, your rules.', 'Licence MIT. Sans carte. Votre infrastructure, vos données, vos règles.') }}</p>
+          </div>
+          <div class="cta-actions">
+            <router-link to="/register" class="btn-primary">
+              {{ t('landing.cta.cta_primary') }}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
+            </router-link>
+            <router-link to="/docs/installation" class="btn-ghost">{{ tr('Installation guide', 'Guide d\'installation') }}</router-link>
           </div>
         </div>
       </section>
     </main>
+
+    <PublicFooter />
   </div>
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
-import Logo from '@/components/common/Logo.vue';
+import { ref, h } from 'vue';
+import { useI18n } from 'vue-i18n';
+import PublicNav from '@/components/public/PublicNav.vue';
+import PublicFooter from '@/components/public/PublicFooter.vue';
+import GrainOverlay from '@/components/public/GrainOverlay.vue';
+import SectionHeader from '@/components/public/SectionHeader.vue';
+import GradientText from '@/components/public/GradientText.vue';
 
-const router = useRouter();
+const { t, locale } = useI18n();
 
-interface PlanFeature {
-  text: string;
-  bold?: boolean;
+type Billing = 'monthly' | 'yearly';
+const billing = ref<Billing>('monthly');
+
+const plans = [
+  { key: 'community', featured: false, cta: '/register' },
+  { key: 'pro', featured: true, cta: '/register' },
+  { key: 'enterprise', featured: false, cta: '/register' },
+] as const;
+
+const featuresCount = (key: string) => {
+  const counts: Record<string, number> = { community: 5, pro: 7, enterprise: 8 };
+  return counts[key] ?? 0;
+};
+
+function tr(en: string, fr: string): string {
+  return locale.value?.toString().startsWith('fr') ? fr : en;
 }
 
-interface Plan {
-  name: string;
-  price: string;
-  period?: string;
-  description: string;
-  featured: boolean;
-  checkColor: string;
-  cta: string;
-  action: () => void;
-  features: PlanFeature[];
-}
+type MatrixCell = string | boolean;
 
-const plans: Plan[] = [
-  {
-    name: 'Community',
-    price: 'Free',
-    description: 'Perfect for individuals and open source projects',
-    featured: false,
-    checkColor: 'check-green',
-    cta: 'Get Started',
-    action: () => router.push('/register'),
-    features: [
-      { text: 'Self-hosted deployment' },
-      { text: 'Unlimited machines' },
-      { text: 'Multi-agent coordination' },
-      { text: 'Context RAG with pgvector' },
-      { text: 'MIT License' },
-      { text: 'Community support' },
-    ],
-  },
-  {
-    name: 'Pro',
-    price: '$29',
-    period: '/month',
-    description: 'Managed hosting with advanced features',
-    featured: true,
-    checkColor: 'check-purple',
-    cta: 'Start Free Trial',
-    action: () => router.push('/register'),
-    features: [
-      { text: 'Everything in Community, plus:', bold: true },
-      { text: 'Hosted infrastructure' },
-      { text: '99.9% uptime SLA' },
-      { text: 'Priority support (24h response)' },
-      { text: 'Advanced analytics' },
-      { text: 'Team collaboration' },
-      { text: 'Automatic backups' },
-    ],
-  },
-  {
-    name: 'Enterprise',
-    price: 'Custom',
-    description: 'For large teams with custom requirements',
-    featured: false,
-    checkColor: 'check-cyan',
-    cta: 'Contact Sales',
-    action: () => { window.location.href = 'mailto:sales@claudenest.io?subject=Enterprise Plan Inquiry'; },
-    features: [
-      { text: 'Everything in Pro, plus:', bold: true },
-      { text: 'Dedicated support engineer' },
-      { text: 'Custom SLA (99.99%+)' },
-      { text: 'On-premise deployment' },
-      { text: 'SSO/SAML integration' },
-      { text: 'Custom integrations' },
-      { text: 'Training & onboarding' },
-    ],
-  },
+const matrix = [
+  { key: 'agents', label: tr('Concurrent agents', 'Agents concurrents'), community: '3', pro: '20', enterprise: tr('Unlimited', 'Illimité') },
+  { key: 'projects', label: tr('Shared projects', 'Projets partagés'), community: '1', pro: tr('Unlimited', 'Illimité'), enterprise: tr('Unlimited', 'Illimité') },
+  { key: 'rag', label: 'pgvector RAG', community: true, pro: true, enterprise: true },
+  { key: 'locks', label: tr('File locking', 'Verrouillage fichiers'), community: tr('Basic', 'Basique'), pro: tr('Advanced', 'Avancé'), enterprise: tr('Advanced + audit trail', 'Avancé + piste d\'audit') },
+  { key: 'mcp', label: 'MCP Protocol', community: true, pro: true, enterprise: true },
+  { key: 'mobile', label: tr('Mobile apps', 'Apps mobiles'), community: true, pro: true, enterprise: true },
+  { key: 'hosting', label: tr('Managed hosting', 'Hébergement géré'), community: false, pro: tr('Optional', 'Option'), enterprise: tr('Included', 'Inclus') },
+  { key: 'analytics', label: tr('Usage analytics', 'Analytics d\'usage'), community: false, pro: true, enterprise: true },
+  { key: 'sso', label: 'SSO / SAML', community: false, pro: false, enterprise: true },
+  { key: 'sla', label: tr('SLA & dedicated support', 'SLA & support dédié'), community: false, pro: tr('Email priority', 'Priorité email'), enterprise: tr('24/7 dedicated', '24/7 dédié') },
 ];
 
-interface FAQ {
-  question: string;
-  answer: string;
-}
-
-const faqs: FAQ[] = [
-  {
-    question: 'Is the Community plan really free?',
-    answer: 'Yes! ClaudeNest is 100% open source under the MIT license. You can self-host it for free with no limitations on features or number of machines.',
-  },
-  {
-    question: 'What is included in the hosted Pro plan?',
-    answer: 'The Pro plan includes fully managed infrastructure, automatic updates, backups, monitoring, and priority support. We handle all the DevOps so you can focus on your work.',
-  },
-  {
-    question: 'Can I upgrade or downgrade my plan?',
-    answer: 'Yes, you can change your plan at any time. Upgrades take effect immediately, and downgrades take effect at the end of your current billing period.',
-  },
-  {
-    question: 'What payment methods do you accept?',
-    answer: 'We accept all major credit cards (Visa, Mastercard, American Express) and offer annual billing with a discount. Enterprise customers can pay via invoice.',
-  },
-  {
-    question: 'Do you offer refunds?',
-    answer: 'Yes, we offer a 14-day money-back guarantee for the Pro plan. If you are not satisfied, contact us for a full refund within the first 14 days.',
-  },
-  {
-    question: 'How does the Enterprise plan work?',
-    answer: 'Enterprise plans are custom-tailored to your needs. Contact our sales team to discuss your requirements, and we will create a proposal with pricing, SLA commitments, and deployment options.',
-  },
-];
+const MatrixValue = (props: { value: MatrixCell }) => {
+  if (typeof props.value === 'boolean') {
+    return props.value
+      ? h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', class: 'mx-ic is-ok' }, [
+          h('polyline', { points: '20 6 9 17 4 12' }),
+        ])
+      : h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', class: 'mx-ic is-off' }, [
+          h('path', { d: 'M5 12h14' }),
+        ]);
+  }
+  return h('span', { class: 'mx-txt' }, props.value);
+};
 </script>
 
 <style scoped>
-.pricing-page {
-  min-height: 100vh;
-  background-color: var(--bg-primary, var(--surface-1));
-}
-
-/* ── Navigation ────────────────────── */
-.pricing-nav {
-  position: fixed;
-  inset: 0 0 auto 0;
-  z-index: 50;
-  background-color: color-mix(in srgb, var(--bg-primary, var(--surface-1)) 80%, transparent);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--border-color, var(--border));
-}
-
-.nav-inner {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 1.5rem;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.back-link {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-.back-link:hover {
-  color: var(--text-primary);
-}
-
-/* ── Main ──────────────────────────── */
-.pricing-main {
-  padding: 8rem 1.5rem 5rem;
-  max-width: 1280px;
-  margin: 0 auto;
-}
-
-/* ── Header ────────────────────────── */
-.pricing-header {
-  text-align: center;
-  margin-bottom: 4rem;
-}
-
-.pricing-badge {
-  display: inline-block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  color: var(--accent-purple, #a855f7);
-  margin-bottom: 0.75rem;
-}
-
-.pricing-title {
-  font-size: clamp(2rem, 5vw, 3rem);
-  font-weight: 800;
-  color: var(--text-primary);
-  margin: 0 0 1rem;
-  line-height: 1.15;
-}
-
-.pricing-subtitle {
-  font-size: 1.125rem;
-  color: var(--text-secondary);
-  max-width: 40rem;
-  margin: 0 auto;
-  line-height: 1.6;
-}
-
-/* ── Pricing Grid ──────────────────── */
-.pricing-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-  margin-bottom: 5rem;
-  align-items: start;
-}
-
-/* ── Plan Card ─────────────────────── */
-.plan-card {
+.page-public {
   position: relative;
-  padding: 2rem;
-  border-radius: 16px;
-  background-color: var(--bg-card, var(--surface-2));
-  border: 1px solid var(--border-color, var(--border));
+  min-height: 100dvh;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  overflow-x: hidden;
+}
+
+.page-main { position: relative; z-index: 1; }
+
+.section {
+  position: relative;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: clamp(4rem, 6.5vw, 6.5rem) clamp(1rem, 4vw, 2.5rem);
   display: flex;
   flex-direction: column;
-  transition: transform 0.2s, border-color 0.2s;
+  gap: 2.5rem;
 }
 
-.plan-card:hover {
+.pricing-hero {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: clamp(3rem, 6vw, 5.5rem) clamp(1rem, 4vw, 2.5rem) 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.2rem;
+  text-align: center;
+}
+
+.billing-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+  padding: 4px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  isolation: isolate;
+}
+
+.toggle-option {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.25rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 0.25s ease;
+}
+
+.toggle-option.is-active { color: var(--text-primary); }
+
+.toggle-save {
+  padding: 0.12rem 0.5rem;
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--status-success);
+  background: color-mix(in srgb, var(--status-success) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--status-success) 24%, transparent);
+  border-radius: 999px;
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  width: calc(50% - 4px);
+  background: linear-gradient(135deg, var(--accent-purple), var(--accent-indigo));
+  border-radius: 999px;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 6px 16px -8px rgba(168, 85, 247, 0.5);
+}
+
+.toggle-thumb[data-pos='monthly'] { transform: translateX(0); }
+.toggle-thumb[data-pos='yearly'] { transform: translateX(100%); }
+
+/* ============ PLANS ============ */
+.plans {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 clamp(1rem, 4vw, 2.5rem);
+}
+
+@media (min-width: 900px) {
+  .plans { grid-template-columns: repeat(3, 1fr); align-items: stretch; }
+}
+
+.plan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 2rem 1.85rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 1.2rem;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s, box-shadow 0.3s;
+}
+
+.plan:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-hover);
+}
+
+.plan.is-featured {
+  border-color: color-mix(in srgb, var(--accent-purple) 44%, var(--border-color));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent-purple) 32%, transparent),
+    0 24px 60px -30px rgba(168, 85, 247, 0.5);
   transform: translateY(-4px);
 }
 
-.plan-card.featured {
-  border-color: var(--accent-purple, #a855f7);
-  border-width: 2px;
-  box-shadow: 0 0 40px color-mix(in srgb, var(--accent-purple, #a855f7) 15%, transparent);
-}
+.plan.is-featured:hover { transform: translateY(-6px); }
 
-.plan-popular {
+.plan-ribbon {
   position: absolute;
   top: -14px;
   left: 50%;
   transform: translateX(-50%);
-  padding: 0.25rem 1rem;
-  background: var(--accent-purple, #a855f7);
+  padding: 0.3rem 0.85rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: #fff;
-  font-size: 0.8rem;
-  font-weight: 600;
-  border-radius: 99px;
-  white-space: nowrap;
+  background: linear-gradient(135deg, var(--accent-purple), var(--accent-indigo));
+  border-radius: 999px;
+  box-shadow: 0 8px 20px -8px rgba(168, 85, 247, 0.6);
 }
 
-/* ── Plan Header ───────────────────── */
-.plan-header {
-  margin-bottom: 1.5rem;
+.plan-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
 .plan-name {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent-purple);
+}
+
+.plan-target {
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
 }
 
 .plan-price {
   display: flex;
   align-items: baseline;
-  gap: 0.25rem;
-  margin-bottom: 0.75rem;
+  gap: 0.35rem;
+  padding-bottom: 1.1rem;
+  border-bottom: 1px solid var(--border-color);
 }
 
-.price-value {
-  font-size: 2.5rem;
-  font-weight: 800;
+.plan-amount {
+  font-size: 2.8rem;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  color: var(--text-primary);
   line-height: 1;
 }
 
-.price-period {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
+.plan-unit {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-muted);
 }
 
-.plan-desc {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  line-height: 1.5;
-  margin: 0;
+.plan-savings {
+  margin-top: -0.3rem;
+  font-size: 0.76rem;
+  color: var(--status-success);
 }
 
-/* ── Features List ─────────────────── */
 .plan-features {
-  list-style: none;
-  margin: 0 0 2rem;
-  padding: 0;
-  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-}
-
-.feature-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  line-height: 1.4;
-}
-
-.feature-bold {
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.feature-check {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-
-.check-green { color: #22c55e; }
-.check-purple { color: var(--accent-purple, #a855f7); }
-.check-cyan { color: var(--accent-cyan, #22d3ee); }
-
-/* ── CTA Button ────────────────────── */
-.plan-cta {
-  width: 100%;
-  padding: 0.875rem 1.5rem;
-  border-radius: 10px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: none;
-}
-
-.cta-primary {
-  background: linear-gradient(135deg, var(--accent-purple, #a855f7), var(--accent-indigo, #6366f1));
-  color: #fff;
-}
-
-.cta-primary:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
-
-.cta-secondary {
-  background-color: var(--bg-hover, var(--surface-3));
-  color: var(--text-primary);
-  border: 1px solid var(--border-color, var(--border));
-}
-
-.cta-secondary:hover {
-  background-color: var(--border-color, var(--border));
-}
-
-/* ── FAQ ───────────────────────────── */
-.faq-section {
-  max-width: 56rem;
-  margin: 0 auto;
-}
-
-.faq-title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  text-align: center;
-  margin: 0 0 3rem;
-}
-
-.faq-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-}
-
-.faq-card {
-  padding: 1.5rem;
-  border-radius: 12px;
-  background-color: var(--bg-card, var(--surface-2));
-  border: 1px solid var(--border-color, var(--border));
-}
-
-.faq-question {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 0.5rem;
-}
-
-.faq-answer {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  line-height: 1.6;
+  gap: 0.6rem;
+  list-style: none;
+  padding: 0;
   margin: 0;
 }
 
-/* ── Responsive ────────────────────── */
-@media (max-width: 1024px) {
-  .pricing-grid {
-    grid-template-columns: 1fr;
-    max-width: 480px;
-    margin-left: auto;
-    margin-right: auto;
-    margin-bottom: 5rem;
-  }
+.plan-feat {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.65rem;
+  align-items: flex-start;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
 }
 
-@media (max-width: 768px) {
-  .pricing-main {
-    padding: 7rem 1rem 3rem;
-  }
+.plan-feat svg {
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  color: var(--accent-purple);
+  flex-shrink: 0;
+}
 
-  .faq-grid {
-    grid-template-columns: 1fr;
-  }
+.plan-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.2rem;
+  margin-top: auto;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.7rem;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.plan-cta svg {
+  width: 15px;
+  height: 15px;
+  transition: transform 0.25s;
+}
+
+.plan-cta:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-hover);
+}
+
+.plan-cta:hover svg { transform: translateX(3px); }
+
+.plan-cta.is-primary {
+  color: #fff;
+  background: linear-gradient(135deg, var(--accent-purple), var(--accent-indigo));
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 10px 24px -10px rgba(168, 85, 247, 0.6);
+}
+
+.plan-cta.is-primary:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    0 14px 30px -10px rgba(168, 85, 247, 0.7);
+}
+
+.plan-cta:active { transform: translateY(0); }
+
+.pricing-note {
+  max-width: 38rem;
+  margin: 1.5rem auto 0;
+  padding: 0 1rem;
+  font-size: 0.85rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* ============ MATRIX ============ */
+.matrix {
+  overflow-x: auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+}
+
+.matrix-head,
+.matrix-row {
+  display: grid;
+  grid-template-columns: minmax(12rem, 2fr) repeat(3, minmax(8rem, 1fr));
+  align-items: center;
+}
+
+.matrix-head {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.matrix-cell {
+  padding: 1rem 1.2rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.matrix-cell.cell-label {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.matrix-cell.is-accent {
+  background: color-mix(in srgb, var(--accent-purple) 5%, transparent);
+  color: var(--accent-purple);
+}
+
+.matrix-head .matrix-cell {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.matrix-head .matrix-cell.is-accent { color: var(--accent-purple); }
+
+.matrix-row {
+  border-top: 1px solid var(--border-color);
+  transition: background 0.18s ease;
+}
+
+.matrix-row:hover { background: var(--bg-hover); }
+
+.mx-ic {
+  width: 18px;
+  height: 18px;
+}
+
+.mx-ic.is-ok { color: var(--status-success); }
+.mx-ic.is-off { color: var(--text-muted); opacity: 0.45; }
+
+.mx-txt {
+  font-variant-numeric: tabular-nums;
+  color: inherit;
+}
+
+/* ============ FAQ ============ */
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-width: 50rem;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.faq-row {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 0.85rem;
+  transition: border-color 0.2s ease;
+}
+
+.faq-row[open] {
+  border-color: color-mix(in srgb, var(--accent-purple) 32%, var(--border-color));
+}
+
+.faq-q {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.05rem 1.2rem;
+  cursor: pointer;
+  list-style: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.faq-q::-webkit-details-marker { display: none; }
+
+.faq-q svg {
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.faq-row[open] .faq-q svg {
+  transform: rotate(180deg);
+  color: var(--accent-purple);
+}
+
+.faq-a {
+  padding: 0 1.2rem 1.2rem;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+
+/* ============ CTA ============ */
+.cta-panel {
+  position: relative;
+  padding: clamp(2rem, 5vw, 3.5rem);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 1.5rem;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.75rem;
+  align-items: center;
+}
+
+@media (min-width: 840px) {
+  .cta-panel { grid-template-columns: 1.4fr auto; }
+}
+
+.cta-title {
+  font-size: clamp(1.6rem, 3vw, 2.3rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.6rem;
+}
+
+.cta-sub {
+  max-width: 32rem;
+  font-size: 0.96rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.cta-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.btn-primary,
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.2rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  border-radius: 0.7rem;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s, border-color 0.2s;
+}
+
+.btn-primary {
+  color: #fff;
+  background: linear-gradient(135deg, var(--accent-purple), var(--accent-indigo));
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 10px 24px -10px rgba(168, 85, 247, 0.6);
+}
+
+.btn-primary svg {
+  width: 15px;
+  height: 15px;
+  transition: transform 0.22s;
+}
+
+.btn-primary:hover { transform: translateY(-1px); }
+.btn-primary:hover svg { transform: translateX(3px); }
+
+.btn-ghost {
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.btn-ghost:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-hover);
 }
 </style>

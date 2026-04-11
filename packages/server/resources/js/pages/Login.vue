@@ -1,154 +1,101 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-    <!-- Background Gradient -->
-    <div class="absolute inset-0 bg-gradient-to-br from-surface-1 via-surface-2 to-surface-1">
-      <div class="absolute inset-0 dark:bg-grid-pattern bg-dot-pattern opacity-[0.03]"></div>
-      <div class="auth-orb auth-orb--purple"></div>
-      <div class="auth-orb auth-orb--indigo"></div>
-    </div>
-
-    <div class="w-full max-w-md relative z-10">
-      <!-- Logo & Header -->
-      <div class="text-center mb-8">
-        <router-link to="/" class="inline-block mb-4">
-          <Logo variant="icon" size="xl" />
-        </router-link>
-        <h1 class="text-3xl font-bold gradient-text mb-2">Welcome Back</h1>
-        <p class="text-skin-secondary">Sign in to your ClaudeNest account</p>
+  <AuthShell>
+    <div class="auth-card">
+      <div class="auth-heading">
+        <h1 class="auth-title">{{ t('auth.welcome_back') }}</h1>
+        <p class="auth-subtitle">{{ t('auth.sign_in') }}</p>
       </div>
 
-      <!-- Card -->
-      <Card hoverable class="backdrop-blur-sm">
-        <!-- OAuth Buttons -->
-        <div class="space-y-3 mb-6">
-          <Button
-            variant="secondary"
-            block
-            size="lg"
-            @click="socialLogin('google')"
-          >
-            <svg class="w-5 h-5" viewBox="0 0 24 24">
-              <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-              <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-            </svg>
-            Continue with Google
-          </Button>
+      <div class="oauth-row">
+        <button type="button" class="oauth-btn" @click="socialLogin('google')">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.3-1.6 3.8-5.5 3.8-3.3 0-6-2.7-6-6.1s2.7-6.1 6-6.1c1.9 0 3.1.8 3.9 1.5l2.7-2.6C16.9 3.1 14.7 2 12 2 6.5 2 2 6.5 2 12s4.5 10 10 10c5.8 0 9.7-4.1 9.7-9.8 0-.7-.1-1.2-.2-1.7H12z" />
+          </svg>
+          <span>Google</span>
+        </button>
+        <button type="button" class="oauth-btn" @click="socialLogin('github')">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+          </svg>
+          <span>GitHub</span>
+        </button>
+      </div>
 
-          <Button
-            variant="secondary"
-            block
-            size="lg"
-            @click="socialLogin('github')"
-          >
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-            </svg>
-            Continue with GitHub
-          </Button>
-        </div>
+      <div class="divider">
+        <span class="divider-label">{{ t('auth.or_continue_with') }}</span>
+      </div>
 
-        <!-- Divider -->
-        <div class="relative mb-6">
-          <div class="absolute inset-0 flex items-center">
-            <div class="w-full border-t border-skin"></div>
-          </div>
-          <div class="relative flex justify-center text-sm">
-            <span class="px-3 bg-surface-2 text-skin-secondary">or continue with email</span>
-          </div>
-        </div>
-
-        <!-- Email/Password Form -->
-        <form @submit.prevent="handleLogin" class="space-y-4">
-          <Input
+      <form class="auth-form" @submit.prevent="handleLogin" novalidate>
+        <div class="field">
+          <label for="login-email" class="field-label">{{ t('auth.email') }}</label>
+          <input
+            id="login-email"
             v-model="email"
             type="email"
-            label="Email"
-            placeholder="you@example.com"
             required
             autocomplete="email"
-            :error="errors.email"
-          >
-            <template #left-icon>
-              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-              </svg>
-            </template>
-          </Input>
+            :placeholder="t('auth.email_placeholder')"
+            class="field-input"
+            :class="{ 'has-error': errors.email }"
+            :disabled="isLoading"
+          />
+          <span v-if="errors.email" class="field-error">{{ errors.email }}</span>
+        </div>
 
-          <Input
+        <div class="field">
+          <label for="login-password" class="field-label">{{ t('auth.password') }}</label>
+          <input
+            id="login-password"
             v-model="password"
             type="password"
-            label="Password"
-            placeholder="••••••••"
             required
             autocomplete="current-password"
-            :error="errors.password"
-          >
-            <template #left-icon>
-              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-            </template>
-          </Input>
+            :placeholder="t('auth.password_placeholder')"
+            class="field-input"
+            :class="{ 'has-error': errors.password }"
+            :disabled="isLoading"
+          />
+          <span v-if="errors.password" class="field-error">{{ errors.password }}</span>
+        </div>
 
-          <div class="flex items-center justify-between">
-            <label class="flex items-center gap-2 cursor-pointer group">
-              <input
-                v-model="rememberMe"
-                type="checkbox"
-                class="w-4 h-4 rounded border-skin bg-surface-3 text-brand-purple focus:ring-brand-purple focus:ring-offset-2"
-              />
-              <span class="text-sm text-skin-secondary group-hover:text-skin-primary transition-colors">Remember me</span>
-            </label>
-            <router-link to="/forgot-password" class="text-sm text-brand-purple hover:text-brand-cyan transition-colors">
-              Forgot password?
-            </router-link>
-          </div>
+        <div class="form-row">
+          <label class="remember">
+            <input v-model="rememberMe" type="checkbox" />
+            <span>{{ t('auth.remember_me') }}</span>
+          </label>
+          <router-link to="/forgot-password" class="form-link">{{ t('auth.forgot_password') }}</router-link>
+        </div>
 
-          <Button
-            type="submit"
-            block
-            size="lg"
-            :loading="isLoading"
-          >
-            Sign In
-          </Button>
-        </form>
-      </Card>
+        <button type="submit" class="btn-primary" :disabled="isLoading">
+          <span v-if="!isLoading">
+            {{ t('auth.sign_in_button') }}
+          </span>
+          <span v-else class="spinner">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" opacity="0.25" />
+              <path d="M12 2a10 10 0 0 1 10 10" />
+            </svg>
+          </span>
+        </button>
+      </form>
 
-      <!-- Register Link -->
-      <p class="text-center mt-6 text-sm text-skin-secondary">
-        Don't have an account?
-        <router-link to="/register" class="text-brand-purple hover:text-brand-cyan transition-colors font-medium ml-1">
-          Create one now
-        </router-link>
+      <p class="auth-footer-text">
+        {{ t('auth.no_account') }}
+        <router-link to="/register" class="form-link">{{ t('auth.sign_up') }}</router-link>
       </p>
-
-      <!-- Back to Home -->
-      <div class="text-center mt-4">
-        <router-link to="/" class="text-sm text-skin-secondary hover:text-skin-primary transition-colors inline-flex items-center gap-1">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          Back to home
-        </router-link>
-      </div>
     </div>
-  </div>
+  </AuthShell>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { useToast } from '@/composables/useToast';
-import Card from '@/components/common/Card.vue';
-import Button from '@/components/common/Button.vue';
-import Input from '@/components/common/Input.vue';
-import Logo from '@/components/common/Logo.vue';
+import AuthShell from '@/components/public/AuthShell.vue';
 
+const { t } = useI18n();
 const router = useRouter();
 const authStore = useAuthStore();
 const toast = useToast();
@@ -163,28 +110,27 @@ async function handleLogin(): Promise<void> {
   errors.value = {};
 
   if (!email.value) {
-    errors.value.email = 'Email is required';
+    errors.value.email = t('auth.email_required');
     return;
   }
   if (!password.value) {
-    errors.value.password = 'Password is required';
+    errors.value.password = t('auth.password_required');
     return;
   }
 
   isLoading.value = true;
-
   try {
     await authStore.login(email.value, password.value);
-    toast.success('Welcome back!', 'You have been successfully logged in.');
+    toast.success(t('auth.welcome_back'), t('auth.login_success'));
     router.push('/dashboard');
-  } catch (error) {
-    toast.error('Login failed', 'Invalid email or password. Please try again.');
+  } catch {
+    toast.error(t('common.error'), t('auth.login_failed'));
   } finally {
     isLoading.value = false;
   }
 }
 
-function socialLogin(provider: string): void {
+function socialLogin(provider: 'google' | 'github'): void {
   const width = 500;
   const height = 600;
   const left = window.screenX + (window.outerWidth - width) / 2;
@@ -193,43 +139,249 @@ function socialLogin(provider: string): void {
   const popup = window.open(
     `/api/auth/${provider}/redirect`,
     'OAuth',
-    `width=${width},height=${height},left=${left},top=${top}`
+    `width=${width},height=${height},left=${left},top=${top}`,
   );
 
-  window.addEventListener('message', (event) => {
-    if (event.data?.type === 'oauth-success' && event.data.token) {
-      authStore.setToken(event.data.token);
-      authStore.fetchUser().then(() => {
-        router.push('/dashboard');
-      });
-    }
-    popup?.close();
-  }, { once: true });
+  window.addEventListener(
+    'message',
+    (event: MessageEvent) => {
+      if (event.data?.type === 'oauth-success' && event.data.token) {
+        authStore.setToken(event.data.token);
+        authStore.fetchUser().then(() => {
+          router.push('/dashboard');
+        });
+      }
+      popup?.close();
+    },
+    { once: true },
+  );
 }
 </script>
 
 <style scoped>
-/* Auth Orbs */
-.auth-orb {
+.auth-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.auth-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  text-align: left;
+}
+
+.auth-title {
+  font-size: clamp(1.6rem, 3vw, 2rem);
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-indigo) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  padding-bottom: 0.1em;
+}
+
+.auth-subtitle {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.oauth-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.6rem;
+}
+
+.oauth-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 0.65rem;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.oauth-btn svg {
+  width: 17px;
+  height: 17px;
+}
+
+.oauth-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-hover);
+  transform: translateY(-1px);
+}
+
+.oauth-btn:active { transform: translateY(0); }
+
+.divider {
+  position: relative;
+  text-align: center;
+}
+
+.divider::before {
+  content: '';
   position: absolute;
-  border-radius: 50%;
-  filter: blur(100px);
-  opacity: 0.3;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--border-color);
 }
 
-.auth-orb--purple {
-  width: 400px;
-  height: 400px;
-  top: -10%;
-  right: -10%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--accent-purple, #a855f7) 40%, transparent) 0%, transparent 70%);
+.divider-label {
+  position: relative;
+  display: inline-block;
+  padding: 0 0.75rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  background: var(--bg-primary);
 }
 
-.auth-orb--indigo {
-  width: 350px;
-  height: 350px;
-  bottom: -10%;
-  left: -10%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--accent-indigo, #6366f1) 30%, transparent) 0%, transparent 70%);
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.field-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-primary);
+}
+
+.field-input {
+  padding: 0.78rem 0.95rem;
+  font-size: 0.92rem;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 0.65rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.field-input::placeholder { color: var(--text-muted); }
+
+.field-input:hover {
+  border-color: var(--border-hover);
+}
+
+.field-input:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--accent-purple) 55%, var(--border-color));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-purple) 16%, transparent);
+}
+
+.field-input.has-error {
+  border-color: var(--status-error);
+}
+
+.field-input.has-error:focus {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--status-error) 16%, transparent);
+}
+
+.field-error {
+  font-size: 0.76rem;
+  color: var(--status-error);
+}
+
+.form-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: -0.25rem;
+}
+
+.remember {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.remember input {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--accent-purple);
+}
+
+.form-link {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent-purple);
+  transition: color 0.2s;
+}
+
+.form-link:hover { color: var(--accent-indigo); }
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.25rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, var(--accent-purple), var(--accent-indigo));
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 0.7rem;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 10px 24px -10px rgba(168, 85, 247, 0.6);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, opacity 0.2s;
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    0 14px 30px -10px rgba(168, 85, 247, 0.7);
+}
+
+.btn-primary:active:not(:disabled) { transform: translateY(0); }
+
+.btn-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.spinner svg {
+  width: 18px;
+  height: 18px;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.auth-footer-text {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-align: center;
 }
 </style>
