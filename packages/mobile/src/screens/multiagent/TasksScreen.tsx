@@ -61,7 +61,7 @@ export const TasksScreen: React.FC<Props> = ({ route, navigation }) => {
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Create',
-          onPress: async (title) => {
+          onPress: async (title: string | undefined) => {
             if (title) {
               try {
                 await createTask(projectId, { title });
@@ -101,7 +101,7 @@ export const TasksScreen: React.FC<Props> = ({ route, navigation }) => {
                 onPress: () => handleCompleteTask(task),
               }
             : null,
-        ].filter(Boolean) as { text: string; onPress?: () => void; style?: string }[]
+        ].filter(Boolean) as { text: string; onPress?: () => void; style?: 'cancel' | 'default' | 'destructive' }[]
       );
     },
     [claimTask]
@@ -116,7 +116,7 @@ export const TasksScreen: React.FC<Props> = ({ route, navigation }) => {
           { text: 'Cancel', style: 'cancel' },
           {
             text: 'Complete',
-            onPress: async (summary) => {
+            onPress: async (summary: string | undefined) => {
               try {
                 await completeTask(task.id, summary || 'Completed', []);
               } catch (error) {
@@ -165,7 +165,7 @@ export const TasksScreen: React.FC<Props> = ({ route, navigation }) => {
 
   // Sort tasks by status and priority
   const sortedTasks = [...tasks].sort((a, b) => {
-    const statusOrder = { pending: 0, in_progress: 1, blocked: 2, review: 3, done: 4 };
+    const statusOrder: Record<string, number> = { backlog: 0, pending: 1, in_progress: 2, blocked: 3, review: 4, done: 5 };
     const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
 
     if (statusOrder[a.status] !== statusOrder[b.status]) {

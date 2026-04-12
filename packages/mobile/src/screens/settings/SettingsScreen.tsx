@@ -13,7 +13,9 @@ import {
   Alert,
   Linking,
 } from 'react-native';
-import { MaterialIcons as Icon } from '@expo/vector-icons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+type IconName = React.ComponentProps<typeof MaterialIcons>['name'];
+const Icon = MaterialIcons;
 import { colors, spacing, borderRadius, typography } from '@/theme';
 import { useAuthStore } from '@/stores/authStore';
 import { useMachinesStore } from '@/stores/machinesStore';
@@ -24,7 +26,7 @@ import type { SettingsStackParamList } from '@/navigation/types';
 type Props = NativeStackScreenProps<SettingsStackParamList, 'SettingsMain'>;
 
 interface SettingsItemProps {
-  icon: string;
+  icon: IconName;
   title: string;
   subtitle?: string;
   onPress: () => void;

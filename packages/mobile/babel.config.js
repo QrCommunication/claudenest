@@ -12,10 +12,11 @@ module.exports = function (api) {
           alias: { '@': './src' },
         },
       ],
-      // Reanimated plugin DISABLED — causes createAnimatedComponent crashes
-      // with RN 0.76 Fabric components + uniwind + gesture-handler.
-      // Using RN's built-in Animated API instead.
-      // 'react-native-reanimated/plugin',
+      // Reanimated plugin — required for Reanimated 4 + New Architecture.
+      // The crashes with createAnimatedComponent that required disabling this
+      // in SDK 52 / RN 0.76 (Old Arch) are resolved in SDK 55 / RN 0.83 (New Arch).
+      // MUST be listed last as per Reanimated docs.
+      'react-native-reanimated/plugin',
     ],
   };
 };

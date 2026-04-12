@@ -60,7 +60,7 @@ export const LocksScreen: React.FC<Props> = ({ route, navigation }) => {
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Lock',
-          onPress: async (path) => {
+          onPress: async (path: string | undefined) => {
             if (path) {
               try {
                 await createLock(projectId, path, 'Locked from mobile app');

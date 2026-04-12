@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
-    "newArchEnabled": false,
+    "newArchEnabled": true,
     "scheme": "claudenest",
     "splash": {
       "backgroundColor": "#0f0f1a"
@@ -31,7 +31,8 @@
             "backgroundColor": "#0f0f1a"
           }
         }
-      ]
+      ],
+      "expo-web-browser"
     ]
   }
 }

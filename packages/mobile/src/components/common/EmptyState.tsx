@@ -4,12 +4,14 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { MaterialIcons as Icon } from '@expo/vector-icons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { colors, spacing, typography } from '@/theme';
 import { Button } from './Button';
 
+type MaterialIconName = React.ComponentProps<typeof MaterialIcons>['name'];
+
 interface EmptyStateProps {
-  icon?: string;
+  icon?: MaterialIconName;
   title: string;
   description?: string;
   actionLabel?: string;
@@ -26,7 +28,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.iconContainer}>
-        <Icon name={icon} size={48} color={colors.text.muted} />
+        <MaterialIcons name={icon} size={48} color={colors.text.muted} />
       </View>
       <Text style={styles.title}>{title}</Text>
       {description && <Text style={styles.description}>{description}</Text>}

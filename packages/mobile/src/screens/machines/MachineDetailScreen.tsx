@@ -46,8 +46,7 @@ export const MachineDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   }, [machineId, wakeMachine]);
 
   const handleNewSession = useCallback(() => {
-    navigation.navigate('SessionsList', { machineId });
-    // Navigate to new session screen
+    // Navigate to the Sessions tab and open the new session screen
     navigation.getParent()?.navigate('SessionsTab', {
       screen: 'NewSession',
       params: { machineId },
@@ -181,7 +180,7 @@ export const MachineDetailScreen: React.FC<Props> = ({ route, navigation }) => {
       </Card>
 
       {/* Danger Zone */}
-      <Card style={[styles.infoCard, styles.dangerCard]}>
+      <Card style={StyleSheet.flatten([styles.infoCard, styles.dangerCard])}>
         <CardHeader title="Danger Zone" />
         <CardContent>
           <TouchableOpacity style={styles.dangerButton} onPress={handleDelete}>

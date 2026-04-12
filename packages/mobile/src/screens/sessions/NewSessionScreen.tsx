@@ -12,7 +12,9 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import { MaterialIcons as Icon } from '@expo/vector-icons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+type IconName = React.ComponentProps<typeof MaterialIcons>['name'];
+const Icon = MaterialIcons;
 import { colors, spacing, borderRadius, typography } from '@/theme';
 import { useSessionsStore } from '@/stores/sessionsStore';
 import { useMachinesStore } from '@/stores/machinesStore';
@@ -23,7 +25,7 @@ import type { SessionsStackParamList } from '@/navigation/types';
 
 type Props = NativeStackScreenProps<SessionsStackParamList, 'NewSession'>;
 
-const MODES: { value: SessionMode; label: string; icon: string; description: string }[] = [
+const MODES: { value: SessionMode; label: string; icon: IconName; description: string }[] = [
   {
     value: 'interactive',
     label: 'Interactive',

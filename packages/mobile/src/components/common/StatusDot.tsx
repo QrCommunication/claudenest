@@ -30,9 +30,9 @@ export const StatusDot: React.FC<StatusDotProps> = ({
       );
       animation.start();
       return () => animation.stop();
-    } else {
-      scale.setValue(1);
     }
+    scale.setValue(1);
+    return undefined;
   }, [status, pulse, scale]);
 
   const getColor = () => {

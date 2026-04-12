@@ -199,7 +199,8 @@ export const useSessionsStore = create<SessionsState>()(
 
         const unsubscribeOutput = websocket.on(
           'session:output',
-          (payload: { sessionId: string; data: string }) => {
+          (raw: unknown) => {
+            const payload = raw as { sessionId: string; data: string };
             if (payload.sessionId === sessionId) {
               get().appendOutput(sessionId, payload.data);
             }
@@ -208,7 +209,8 @@ export const useSessionsStore = create<SessionsState>()(
 
         const unsubscribeStatus = websocket.on(
           'session:status',
-          (payload: { sessionId: string; status: SessionStatus }) => {
+          (raw: unknown) => {
+            const payload = raw as { sessionId: string; status: SessionStatus };
             if (payload.sessionId === sessionId) {
               get().updateSessionStatus(sessionId, payload.status);
             }
@@ -217,7 +219,8 @@ export const useSessionsStore = create<SessionsState>()(
 
         const unsubscribeEnded = websocket.on(
           'session:ended',
-          (payload: { sessionId: string; exitCode: number }) => {
+          (raw: unknown) => {
+            const payload = raw as { sessionId: string; exitCode: number };
             if (payload.sessionId === sessionId) {
               get().updateSessionStatus(sessionId, 'completed');
               set((state) => {

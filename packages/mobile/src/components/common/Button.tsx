@@ -9,10 +9,12 @@ import {
   StyleSheet,
   ActivityIndicator,
   View,
+  type ViewStyle,
+  type TextStyle,
   type TouchableOpacityProps,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { colors, spacing, borderRadius, typography } from '@/theme';
+import { colors, borderRadius, typography } from '@/theme';
 
 interface ButtonProps extends TouchableOpacityProps {
   title: string;
@@ -23,6 +25,22 @@ interface ButtonProps extends TouchableOpacityProps {
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
 }
+
+// Size styles declared outside StyleSheet.create to allow nested objects
+const sizeStyles: Record<'small' | 'medium' | 'large', { container: ViewStyle; text: TextStyle }> = {
+  small: {
+    container: { paddingVertical: 8, paddingHorizontal: 16 },
+    text: { fontSize: typography.size.sm },
+  },
+  medium: {
+    container: { paddingVertical: 12, paddingHorizontal: 24 },
+    text: { fontSize: typography.size.base },
+  },
+  large: {
+    container: { paddingVertical: 16, paddingHorizontal: 32 },
+    text: { fontSize: typography.size.md },
+  },
+};
 
 export const Button: React.FC<ButtonProps> = ({
   title,
@@ -37,16 +55,7 @@ export const Button: React.FC<ButtonProps> = ({
 }) => {
   const isDisabled = disabled || loading;
 
-  const getSizeStyles = () => {
-    switch (size) {
-      case 'small':
-        return styles.small;
-      case 'large':
-        return styles.large;
-      default:
-        return styles.medium;
-    }
-  };
+  const getSizeStyles = () => sizeStyles[size];
 
   const getVariantStyles = () => {
     switch (variant) {
@@ -149,34 +158,6 @@ const styles = StyleSheet.create({
   },
   text: {
     fontWeight: '600',
-  },
-  // Sizes
-  small: {
-    container: {
-      paddingVertical: 8,
-      paddingHorizontal: 16,
-    },
-    text: {
-      fontSize: typography.size.sm,
-    },
-  },
-  medium: {
-    container: {
-      paddingVertical: 12,
-      paddingHorizontal: 24,
-    },
-    text: {
-      fontSize: typography.size.base,
-    },
-  },
-  large: {
-    container: {
-      paddingVertical: 16,
-      paddingHorizontal: 32,
-    },
-    text: {
-      fontSize: typography.size.md,
-    },
   },
   // Variants
   primary: {},

@@ -12,12 +12,15 @@ import {
   Linking,
   TouchableOpacity,
 } from 'react-native';
-import { MaterialIcons as Icon } from '@expo/vector-icons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+type IconName = React.ComponentProps<typeof MaterialIcons>['name'];
+// Alias to preserve usage pattern
+const Icon = MaterialIcons;
 import LinearGradient from 'react-native-linear-gradient';
 import { colors, spacing, borderRadius, typography } from '@/theme';
 import { Card } from '@/components/common';
 
-const LINKS = [
+const LINKS: Array<{ icon: IconName; label: string; url: string }> = [
   { icon: 'public', label: 'Website', url: 'https://claudenest.app' },
   { icon: 'code', label: 'GitHub', url: 'https://github.com/claudenest' },
   { icon: 'description', label: 'Documentation', url: 'https://docs.claudenest.app' },
@@ -40,7 +43,7 @@ export const AboutScreen: React.FC = () => {
           end={{ x: 1, y: 1 }}
           style={styles.logoContainer}
         >
-          <Icon name="nest-wifi-router" size={60} color={colors.text.primary} />
+          <Icon name={'router' as IconName} size={60} color={colors.text.primary} />
         </LinearGradient>
         <Text style={styles.appName}>ClaudeNest</Text>
         <Text style={styles.version}>Version 1.0.0</Text>

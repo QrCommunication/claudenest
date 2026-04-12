@@ -403,7 +403,7 @@ export const useProjectsStore = create<ProjectsState>()(
 
         const unsubscribeTask = websocket.on(
           'task:updated',
-          (payload: { taskId: string; status: string }) => {
+          (_raw: unknown) => {
             // Refresh tasks for this project
             get().fetchTasks(projectId);
           }
@@ -411,7 +411,8 @@ export const useProjectsStore = create<ProjectsState>()(
 
         const unsubscribeLock = websocket.on(
           'file:locked',
-          (payload: { projectId: string; path: string; lockedBy: string }) => {
+          (raw: unknown) => {
+            const payload = raw as { projectId: string; path: string; lockedBy: string };
             if (payload.projectId === projectId) {
               get().fetchLocks(projectId);
             }
@@ -420,7 +421,8 @@ export const useProjectsStore = create<ProjectsState>()(
 
         const unsubscribeUnlock = websocket.on(
           'file:unlocked',
-          (payload: { projectId: string; path: string }) => {
+          (raw: unknown) => {
+            const payload = raw as { projectId: string; path: string };
             if (payload.projectId === projectId) {
               get().fetchLocks(projectId);
             }
@@ -429,7 +431,8 @@ export const useProjectsStore = create<ProjectsState>()(
 
         const unsubscribeInstance = websocket.on(
           'instance:connected',
-          (payload: { projectId: string }) => {
+          (raw: unknown) => {
+            const payload = raw as { projectId: string };
             if (payload.projectId === projectId) {
               get().fetchInstances(projectId);
             }

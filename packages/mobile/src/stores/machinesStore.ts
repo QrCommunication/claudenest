@@ -189,7 +189,8 @@ export const useMachinesStore = create<MachinesState>()(
 
         const unsubscribeStatus = websocket.on(
           'machine:status',
-          (payload: { machineId: string; status: MachineStatus }) => {
+          (raw: unknown) => {
+            const payload = raw as { machineId: string; status: MachineStatus };
             if (payload.machineId === machineId) {
               get().updateMachineStatus(machineId, payload.status);
             }

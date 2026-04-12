@@ -12,7 +12,9 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import { MaterialIcons as Icon } from '@expo/vector-icons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+type IconName = React.ComponentProps<typeof MaterialIcons>['name'];
+const Icon = MaterialIcons;
 import { colors, spacing, borderRadius, typography } from '@/theme';
 import { useProjectsStore } from '@/stores/projectsStore';
 import { Card, CardHeader, CardContent, LoadingSpinner } from '@/components/common';
@@ -22,7 +24,7 @@ import type { ProjectsStackParamList } from '@/navigation/types';
 
 type Props = NativeStackScreenProps<ProjectsStackParamList, 'ProjectDetail'>;
 
-const ACTION_ITEMS = [
+const ACTION_ITEMS: Array<{ key: string; icon: IconName; label: string; color: string }> = [
   { key: 'tasks', icon: 'assignment', label: 'Tasks', color: colors.primary.purple },
   { key: 'context', icon: 'description', label: 'Context', color: colors.semantic.info },
   { key: 'locks', icon: 'lock', label: 'Locks', color: colors.semantic.warning },
@@ -85,7 +87,7 @@ export const ProjectScreen: React.FC<Props> = ({ route, navigation }) => {
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Send',
-          onPress: async (message) => {
+          onPress: async (message: string | undefined) => {
             if (message) {
               setIsBroadcasting(true);
               try {

@@ -66,7 +66,7 @@ interface MachineCardProps {
 function MachineCard({ machine, onLaunch }: MachineCardProps) {
   const isOnline = machine.status === 'online';
   const platformEmoji = PLATFORM_EMOJI[machine.platform ?? 'linux'] ?? '🖥️';
-  const sessionCount = machine.active_sessions_count ?? 0;
+  const sessionCount = machine.activeSessions ?? 0;
 
   return (
     <View className="bg-bg2 rounded-2xl p-4 mb-3 border border-bg4">
@@ -88,9 +88,9 @@ function MachineCard({ machine, onLaunch }: MachineCardProps) {
           {machine.hostname}
         </Text>
       ) : null}
-      {machine.last_seen_human ? (
+      {machine.lastSeenAt ? (
         <Text className="text-muted text-xs mb-3">
-          Vu {machine.last_seen_human}
+          Vu {new Date(machine.lastSeenAt).toLocaleString()}
         </Text>
       ) : null}
 

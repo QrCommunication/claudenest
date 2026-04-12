@@ -36,11 +36,11 @@ export const colors = {
     info: '#22d3ee',
   },
 
-  // Gradients
+  // Gradients — typed as string[] for LinearGradient compatibility
   gradients: {
-    primary: ['#a855f7', '#6366f1'] as const,
-    accent: ['#22d3ee', '#a855f7'] as const,
-    background: ['#0f0f1a', '#1a1b26', '#24283b'] as const,
+    primary: ['#a855f7', '#6366f1'] as string[],
+    accent: ['#22d3ee', '#a855f7'] as string[],
+    background: ['#0f0f1a', '#1a1b26', '#24283b'] as string[],
   },
 
   // Terminal-specific colors
