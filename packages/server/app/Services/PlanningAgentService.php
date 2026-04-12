@@ -24,27 +24,36 @@ class PlanningAgentService
                 'summary' => $project->summary,
                 'architecture' => $project->architecture,
             ],
-            'epics' => $project->epics()->ordered()->get()->map(fn (Epic $e) => [
-                'id' => $e->id,
-                'title' => $e->title,
-                'status' => $e->status,
-                'priority' => $e->priority,
-                'tasks_count' => $e->tasks_count,
-                'completed_tasks_count' => $e->completed_tasks_count,
-                'progress_percentage' => $e->progress_percentage,
-            ])->toArray(),
-            'sprints' => $project->sprints()->ordered()->get()->map(fn (Sprint $s) => [
-                'id' => $s->id,
-                'name' => $s->name,
-                'status' => $s->status,
-                'start_date' => $s->start_date?->format('Y-m-d'),
-                'end_date' => $s->end_date?->format('Y-m-d'),
-                'total_story_points' => $s->total_story_points,
-                'completed_story_points' => $s->completed_story_points,
-                'progress_percentage' => $s->progress_percentage,
-            ])->toArray(),
+            'epics' => $project->epics()
+                ->withCount(['tasks', 'tasks as completed_tasks_count' => fn ($q) => $q->where('status', 'done')])
+                ->ordered()
+                ->get()
+                ->map(fn (Epic $e) => [
+                    'id' => $e->id,
+                    'title' => $e->title,
+                    'status' => $e->status,
+                    'priority' => $e->priority,
+                    'tasks_count' => $e->tasks_count,
+                    'completed_tasks_count' => $e->completed_tasks_count,
+                    'progress_percentage' => $e->tasks_count > 0 ? round(($e->completed_tasks_count / $e->tasks_count) * 100, 1) : 0,
+                ])->toArray(),
+            'sprints' => $project->sprints()
+                ->withCount(['tasks', 'tasks as completed_tasks_count' => fn ($q) => $q->where('status', 'done')])
+                ->ordered()
+                ->get()
+                ->map(fn (Sprint $s) => [
+                    'id' => $s->id,
+                    'name' => $s->name,
+                    'status' => $s->status,
+                    'start_date' => $s->start_date?->format('Y-m-d'),
+                    'end_date' => $s->end_date?->format('Y-m-d'),
+                    'total_story_points' => $s->tasks()->sum('story_points'),
+                    'completed_story_points' => $s->tasks()->where('status', 'done')->sum('story_points'),
+                    'progress_percentage' => $s->tasks_count > 0 ? round(($s->completed_tasks_count / $s->tasks_count) * 100, 1) : 0,
+                ])->toArray(),
             'tasks' => $project->tasks()
                 ->rootTasks()
+                ->withCount('children')
                 ->orderBy('sort_order')
                 ->limit(50)
                 ->get()
@@ -56,7 +65,7 @@ class PlanningAgentService
                     'epic_id' => $t->epic_id,
                     'sprint_id' => $t->sprint_id,
                     'story_points' => $t->story_points,
-                    'subtasks_count' => $t->subtasks_count,
+                    'subtasks_count' => $t->children_count,
                 ])->toArray(),
             'stats' => [
                 'total_tasks' => $project->tasks()->count(),
@@ -169,7 +178,11 @@ class PlanningAgentService
     private function updateTask(array $data): array
     {
         $task = SharedTask::findOrFail($data['task_id']);
-        $task->update(collect($data)->except('task_id')->toArray());
+        $task->update(collect($data)->only([
+            'title', 'description', 'priority', 'status',
+            'epic_id', 'sprint_id', 'story_points', 'labels',
+            'sort_order', 'due_date',
+        ])->toArray());
 
         return ['id' => $task->id, 'title' => $task->title];
     }

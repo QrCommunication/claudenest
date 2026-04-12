@@ -37,15 +37,18 @@ class RunnerAgentService
         $updates = [];
 
         // 1. Epics : marquer "done" si toutes les tâches sont terminées
-        $project->epics()->where('status', '!=', 'done')->each(function (Epic $epic) use (&$updates): void {
-            if ($epic->tasks_count > 0 && $epic->tasks_count === $epic->completed_tasks_count) {
-                $epic->markDone();
-                $updates[] = ['type' => 'epic_completed', 'id' => $epic->id, 'title' => $epic->title];
-            } elseif ($epic->status === 'open' && $epic->completed_tasks_count > 0) {
-                $epic->markInProgress();
-                $updates[] = ['type' => 'epic_started', 'id' => $epic->id, 'title' => $epic->title];
-            }
-        });
+        $project->epics()
+            ->withCount(['tasks', 'tasks as completed_tasks_count' => fn ($q) => $q->where('status', 'done')])
+            ->where('status', '!=', 'done')
+            ->each(function (Epic $epic) use (&$updates): void {
+                if ($epic->tasks_count > 0 && $epic->tasks_count === $epic->completed_tasks_count) {
+                    $epic->markDone();
+                    $updates[] = ['type' => 'epic_completed', 'id' => $epic->id, 'title' => $epic->title];
+                } elseif ($epic->status === 'open' && $epic->completed_tasks_count > 0) {
+                    $epic->markInProgress();
+                    $updates[] = ['type' => 'epic_started', 'id' => $epic->id, 'title' => $epic->title];
+                }
+            });
 
         // 2. Tâches parentes : mettre à jour selon les subtasks
         SharedTask::forProject($project->id)
@@ -99,10 +102,17 @@ class RunnerAgentService
      */
     public function getProgressMetrics(SharedProject $project): array
     {
-        $totalPoints = $project->tasks()->sum('story_points') ?: 0;
-        $completedPoints = $project->tasks()->done()->sum('story_points') ?: 0;
-        $totalTasks = $project->tasks()->count();
-        $completedTasks = $project->tasks()->done()->count();
+        // Consolidate all status-based counts and points into a single query
+        $statusCounts = $project->tasks()
+            ->selectRaw('status, count(*) as count, coalesce(sum(story_points), 0) as points')
+            ->groupBy('status')
+            ->get()
+            ->keyBy('status');
+
+        $totalTasks = $statusCounts->sum('count');
+        $totalPoints = $statusCounts->sum('points');
+        $completedTasks = $statusCounts->get('done')?->count ?? 0;
+        $completedPoints = $statusCounts->get('done')?->points ?? 0;
 
         $activeSprint = $project->active_sprint;
 
@@ -138,12 +148,12 @@ class RunnerAgentService
                     'capacity' => $s->capacity,
                 ])->toArray(),
             'by_status' => [
-                'backlog' => $project->tasks()->backlog()->count(),
-                'pending' => $project->tasks()->pending()->count(),
-                'in_progress' => $project->tasks()->inProgress()->count(),
-                'blocked' => $project->tasks()->byStatus('blocked')->count(),
-                'review' => $project->tasks()->byStatus('review')->count(),
-                'done' => $project->tasks()->done()->count(),
+                'backlog' => $statusCounts->get('backlog')?->count ?? 0,
+                'pending' => $statusCounts->get('pending')?->count ?? 0,
+                'in_progress' => $statusCounts->get('in_progress')?->count ?? 0,
+                'blocked' => $statusCounts->get('blocked')?->count ?? 0,
+                'review' => $statusCounts->get('review')?->count ?? 0,
+                'done' => $completedTasks,
             ],
         ];
     }

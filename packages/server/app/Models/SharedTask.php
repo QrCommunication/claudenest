@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasVersion4Uuids;
@@ -342,28 +344,30 @@ class SharedTask extends Model
 
     public function release(?string $reason = null): void
     {
-        $previousOwner = $this->assigned_to;
+        DB::transaction(function () use ($reason) {
+            $previousOwner = $this->assigned_to;
 
-        $this->update([
-            'assigned_to' => null,
-            'status' => 'pending',
-            'claimed_at' => null,
-            'blocked_by' => $reason,
-        ]);
+            $this->update([
+                'assigned_to' => null,
+                'status' => 'pending',
+                'claimed_at' => null,
+                'blocked_by' => $reason,
+            ]);
 
-        // Release file locks held by the previous owner for this task's files
-        if ($previousOwner && !empty($this->files)) {
-            foreach ($this->files as $file) {
-                FileLock::releaseLock($this->project_id, $file, $previousOwner);
+            // Release file locks held by the previous owner for this task's files
+            if ($previousOwner && !empty($this->files)) {
+                foreach ($this->files as $file) {
+                    FileLock::releaseLock($this->project_id, $file, $previousOwner);
+                }
             }
-        }
 
-        // Log activity
-        $this->project->logActivity('task_released', null, [
-            'task_id' => $this->id,
-            'task_title' => $this->title,
-            'reason' => $reason,
-        ]);
+            // Log activity
+            $this->project->logActivity('task_released', null, [
+                'task_id' => $this->id,
+                'task_title' => $this->title,
+                'reason' => $reason,
+            ]);
+        });
     }
 
     public function complete(string $summary, array $filesModified = []): void

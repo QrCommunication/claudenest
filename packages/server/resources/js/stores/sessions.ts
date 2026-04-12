@@ -262,7 +262,7 @@ export const useSessionsStore = defineStore('sessions', () => {
         currentSession.value.pty_size = { cols, rows };
       }
     } catch (err) {
-      console.error('Failed to resize session:', err);
+      error.value = err instanceof Error ? err.message : 'Failed to resize session';
       throw err;
     }
   }

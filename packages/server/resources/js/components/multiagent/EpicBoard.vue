@@ -3,7 +3,7 @@
     <!-- Header avec bouton d'ajout -->
     <div class="epic-board-header">
       <h3 class="text-sm font-medium text-white/70">Epics</h3>
-      <button class="add-epic-btn" @click="showCreateModal = true">
+      <button class="add-epic-btn" @click="$emit('create')">
         <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
           <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
         </svg>
@@ -47,7 +47,7 @@
       <!-- Empty state -->
       <div v-if="epics.length === 0" class="epic-empty">
         <p class="text-white/40 text-sm">No epics yet</p>
-        <button class="text-purple-400 text-sm hover:text-purple-300" @click="showCreateModal = true">
+        <button class="text-purple-400 text-sm hover:text-purple-300" @click="$emit('create')">
           Create your first epic
         </button>
       </div>
@@ -56,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import type { Epic } from '@/types/multiagent';
 
 interface Props {
@@ -74,8 +74,6 @@ defineEmits<{
   update: [epicId: string, data: Partial<Epic>];
   delete: [epicId: string];
 }>();
-
-const showCreateModal = ref(false);
 
 const sortedEpics = computed(() =>
   [...props.epics].sort((a, b) => a.sort_order - b.sort_order)

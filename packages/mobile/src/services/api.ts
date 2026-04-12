@@ -172,7 +172,7 @@ export const projectsApi = {
     }>(`/projects/${id}/context`),
   
   queryContext: (id: string, query: string) =>
-    api.post<import('@/types').ContextChunk[]>(`/projects/${id}/context`, { query }),
+    api.post<import('@/types').ContextChunk[]>(`/projects/${id}/context/query`, { query }),
   
   updateContext: (id: string, data: Partial<import('@/types').SharedProject>) =>
     api.patch(`/projects/${id}/context`, data),

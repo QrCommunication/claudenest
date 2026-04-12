@@ -7,15 +7,15 @@ interface SprintCardProps {
   onPress: (sprint: Sprint) => void;
 }
 
+const SPRINT_STATUS_COLORS: Record<string, string> = {
+  planning: '#94a3b8',
+  active: '#a855f7',
+  completed: '#22c55e',
+  cancelled: '#ef4444',
+};
+
 export const SprintCard = memo(function SprintCard({ sprint, onPress }: SprintCardProps) {
   const handlePress = useCallback(() => onPress(sprint), [sprint, onPress]);
-
-  const statusColors: Record<string, string> = {
-    planning: '#94a3b8',
-    active: '#a855f7',
-    completed: '#22c55e',
-    cancelled: '#ef4444',
-  };
 
   const formatDate = (d: string | null) => {
     if (!d) return '—';
@@ -26,8 +26,8 @@ export const SprintCard = memo(function SprintCard({ sprint, onPress }: SprintCa
     <TouchableOpacity onPress={handlePress} style={styles.container} activeOpacity={0.7}>
       <View style={styles.header}>
         <Text style={styles.name} numberOfLines={1}>{sprint.name}</Text>
-        <View style={[styles.statusBadge, { backgroundColor: statusColors[sprint.status] + '25' }]}>
-          <Text style={[styles.statusText, { color: statusColors[sprint.status] }]}>{sprint.status}</Text>
+        <View style={[styles.statusBadge, { backgroundColor: SPRINT_STATUS_COLORS[sprint.status] + '25' }]}>
+          <Text style={[styles.statusText, { color: SPRINT_STATUS_COLORS[sprint.status] }]}>{sprint.status}</Text>
         </View>
       </View>
 

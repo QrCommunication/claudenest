@@ -46,7 +46,7 @@
             <span class="message-author">{{ msg.role === 'user' ? 'You' : 'Planning Agent' }}</span>
             <span class="message-time">{{ formatTime(msg.timestamp) }}</span>
           </div>
-          <div class="message-content" v-html="msg.content" />
+          <div class="message-content">{{ msg.content }}</div>
 
           <!-- Actions preview (si l'agent propose des modifications) -->
           <div v-if="msg.actions && msg.actions.length > 0" class="message-actions">

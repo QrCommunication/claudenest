@@ -63,6 +63,8 @@ export const TaskCard = memo(function TaskCard({
         return 'error';
       case 'pending':
         return 'default';
+      case 'backlog':
+        return 'default';
       default:
         return 'default';
     }

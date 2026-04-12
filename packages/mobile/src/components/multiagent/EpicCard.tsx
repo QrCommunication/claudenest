@@ -7,22 +7,22 @@ interface EpicCardProps {
   onPress: (epic: Epic) => void;
 }
 
+const EPIC_STATUS_COLORS: Record<string, string> = {
+  open: '#94a3b8',
+  in_progress: '#a855f7',
+  done: '#22c55e',
+};
+
 export const EpicCard = memo(function EpicCard({ epic, onPress }: EpicCardProps) {
   const handlePress = useCallback(() => onPress(epic), [epic, onPress]);
-
-  const statusColors: Record<string, string> = {
-    open: '#94a3b8',
-    in_progress: '#a855f7',
-    done: '#22c55e',
-  };
 
   return (
     <TouchableOpacity onPress={handlePress} style={styles.container} activeOpacity={0.7}>
       <View style={styles.header}>
         <View style={[styles.colorDot, { backgroundColor: epic.color }]} />
         <Text style={styles.title} numberOfLines={1}>{epic.title}</Text>
-        <View style={[styles.statusBadge, { backgroundColor: statusColors[epic.status] + '25' }]}>
-          <Text style={[styles.statusText, { color: statusColors[epic.status] }]}>
+        <View style={[styles.statusBadge, { backgroundColor: EPIC_STATUS_COLORS[epic.status] + '25' }]}>
+          <Text style={[styles.statusText, { color: EPIC_STATUS_COLORS[epic.status] }]}>
             {epic.status.replace('_', ' ')}
           </Text>
         </View>

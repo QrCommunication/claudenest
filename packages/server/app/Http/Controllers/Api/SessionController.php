@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
@@ -583,21 +585,4 @@ class SessionController extends Controller
         return $data;
     }
 
-    /**
-     * Helper: Error response.
-     */
-    private function errorResponse(string $code, string $message, int $status): JsonResponse
-    {
-        return response()->json([
-            'success' => false,
-            'error' => [
-                'code' => $code,
-                'message' => $message,
-            ],
-            'meta' => [
-                'timestamp' => now()->toIso8601String(),
-                'request_id' => request()->header('X-Request-ID', uniqid()),
-            ],
-        ], $status);
-    }
 }
