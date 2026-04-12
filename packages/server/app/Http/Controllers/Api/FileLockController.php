@@ -447,6 +447,54 @@ class FileLockController extends Controller
     }
 
     /**
+     * Check for lock conflicts on multiple files.
+     *
+     * @OA\Post(
+     *     path="/api/projects/{projectId}/locks/conflicts",
+     *     tags={"File Locks"},
+     *     summary="Check lock conflicts for multiple files",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(name="projectId", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\RequestBody(required=true, @OA\JsonContent(
+     *         required={"paths", "instance_id"},
+     *         @OA\Property(property="paths", type="array", @OA\Items(type="string")),
+     *         @OA\Property(property="instance_id", type="string")
+     *     )),
+     *     @OA\Response(response=200, description="Conflict check results")
+     * )
+     */
+    public function conflicts(Request $request, string $projectId): JsonResponse
+    {
+        $project = SharedProject::findOrFail($projectId);
+        $this->authorize('view', $project);
+
+        $validated = $request->validate([
+            'paths' => 'required|array|min:1|max:100',
+            'paths.*' => 'string|max:1024',
+            'instance_id' => 'required|string',
+        ]);
+
+        $conflicts = FileLock::checkConflicts(
+            $projectId,
+            $validated['paths'],
+            $validated['instance_id']
+        );
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'has_conflicts' => count($conflicts) > 0,
+                'conflicts' => $conflicts,
+                'checked_count' => count($validated['paths']),
+            ],
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
+    }
+
+    /**
      * Helper: Get project belonging to authenticated user.
      */
     private function getUserProject(Request $request, string $id): ?SharedProject

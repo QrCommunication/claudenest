@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasVersion4Uuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class FileLock extends Model
@@ -143,7 +144,12 @@ class FileLock extends Model
     /**
      * Try to acquire a lock on a file.
      *
-     * @return FileLock|false Returns the lock if successful, false if already locked
+     * Uses a DB transaction with row-level locking (lockForUpdate) to prevent
+     * race conditions when multiple instances try to acquire the same lock
+     * concurrently. cleanupExpired() runs outside the transaction to avoid
+     * cascading rollback on the DELETE.
+     *
+     * @return FileLock|false Returns the lock if successful, false if already locked by another instance
      */
     public static function acquire(
         string $projectId,
@@ -152,46 +158,49 @@ class FileLock extends Model
         ?string $reason = null,
         ?int $durationMinutes = null
     ): self|false {
-        // Clean up any expired locks first
+        // Cleanup OUTSIDE the transaction to avoid rollback cascade
         static::cleanupExpired();
 
-        // Check if already locked
-        $existing = static::forProject($projectId)
-            ->forPath($path)
-            ->active()
-            ->first();
+        return DB::transaction(function () use ($projectId, $path, $instanceId, $reason, $durationMinutes) {
+            // Atomic check with row-level lock
+            $existing = static::forProject($projectId)
+                ->forPath($path)
+                ->active()
+                ->lockForUpdate()
+                ->first();
 
-        if ($existing && $existing->locked_by !== $instanceId) {
-            return false;
-        }
+            if ($existing && $existing->locked_by !== $instanceId) {
+                return false;
+            }
 
-        // If already locked by this instance, extend it
-        if ($existing) {
-            $existing->touchLock();
-            return $existing;
-        }
+            // Already locked by this instance — extend
+            if ($existing) {
+                $existing->touchLock();
+                return $existing;
+            }
 
-        // Get lock duration from project settings
-        if ($durationMinutes === null) {
-            $project = SharedProject::find($projectId);
-            $durationMinutes = $project?->getSetting('lockTimeoutMinutes', 30);
-        }
+            // Get lock duration from project settings
+            if ($durationMinutes === null) {
+                $project = SharedProject::find($projectId);
+                $durationMinutes = $project?->getSetting('lockTimeoutMinutes', 30);
+            }
 
-        $lock = static::create([
-            'project_id' => $projectId,
-            'path' => $path,
-            'locked_by' => $instanceId,
-            'reason' => $reason,
-            'expires_at' => now()->addMinutes($durationMinutes),
-        ]);
+            $lock = static::create([
+                'project_id' => $projectId,
+                'path' => $path,
+                'locked_by' => $instanceId,
+                'reason' => $reason,
+                'expires_at' => now()->addMinutes($durationMinutes),
+            ]);
 
-        // Log activity
-        $project?->logActivity('file_locked', $instanceId, [
-            'path' => $path,
-            'reason' => $reason,
-        ]);
+            // Log activity
+            $lock->project?->logActivity('file_locked', $instanceId, [
+                'path' => $path,
+                'reason' => $reason,
+            ]);
 
-        return $lock;
+            return $lock;
+        });
     }
 
     /**
@@ -298,6 +307,49 @@ class FileLock extends Model
                 'remainingSeconds' => $lock->remaining_time,
             ])
             ->toArray();
+    }
+
+    /**
+     * Check which files from a list are locked by OTHER instances.
+     * Returns only conflicting locks (not own locks).
+     *
+     * @param string $projectId
+     * @param array<string> $paths Files to check
+     * @param string $instanceId The requesting instance (own locks are NOT conflicts)
+     * @return array<array{path: string, locked_by: string, reason: ?string, expires_at: string, remaining_seconds: int}>
+     */
+    public static function checkConflicts(string $projectId, array $paths, string $instanceId): array
+    {
+        if (empty($paths)) {
+            return [];
+        }
+
+        static::cleanupExpired();
+
+        return static::forProject($projectId)
+            ->whereIn('path', $paths)
+            ->active()
+            ->where('locked_by', '!=', $instanceId)
+            ->get()
+            ->map(fn (self $lock) => [
+                'path' => $lock->path,
+                'locked_by' => $lock->locked_by,
+                'reason' => $lock->reason,
+                'expires_at' => $lock->expires_at->toIso8601String(),
+                'remaining_seconds' => $lock->remaining_time,
+            ])
+            ->toArray();
+    }
+
+    /**
+     * Extend all active locks held by an instance (bulk operation for heartbeat).
+     */
+    public static function extendByInstance(string $projectId, string $instanceId, int $minutes = 30): int
+    {
+        return static::forProject($projectId)
+            ->byInstance($instanceId)
+            ->active()
+            ->update(['expires_at' => now()->addMinutes($minutes)]);
     }
 
     /**

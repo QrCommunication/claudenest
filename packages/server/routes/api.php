@@ -177,6 +177,7 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::post('projects/{project}/locks/check', [Api\FileLockController::class, 'check']);
     Route::post('projects/{project}/locks/extend', [Api\FileLockController::class, 'extend']);
     Route::post('projects/{project}/locks/bulk', [Api\FileLockController::class, 'bulkLock']);
+    Route::post('projects/{project}/locks/conflicts', [Api\FileLockController::class, 'conflicts']);
     Route::post('projects/{project}/locks/release', [Api\FileLockController::class, 'destroy']);
     Route::post('projects/{project}/locks/force-release', [Api\FileLockController::class, 'forceDestroy']);
     Route::post('projects/{project}/locks/release-by-instance', [Api\FileLockController::class, 'releaseByInstance']);

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ClaudeInstance;
+use App\Models\FileLock;
 use App\Models\SharedProject;
 use App\Services\OrchestratorService;
 use Illuminate\Http\JsonResponse;
@@ -71,9 +72,20 @@ class InstanceController extends Controller
 
         $instance->updateActivity();
 
+        // Auto-extend file locks held by this instance
+        $locksExtended = 0;
+        if ($instance->project_id) {
+            $locksExtended = FileLock::extendByInstance(
+                $instance->project_id,
+                $instanceId
+            );
+        }
+
         return response()->json([
             'success' => true,
-            'data' => $this->formatInstance($instance->fresh()),
+            'data' => array_merge($this->formatInstance($instance->fresh()), [
+                'locks_extended' => $locksExtended,
+            ]),
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
             ],

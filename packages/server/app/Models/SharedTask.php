@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use App\Models\FileLock;
 
 class SharedTask extends Model
 {
@@ -293,6 +294,34 @@ class SharedTask extends Model
                 return false;
             }
 
+            // Check and acquire file locks BEFORE claiming
+            $filesToLock = $task->files ?? [];
+            if (!empty($filesToLock)) {
+                // Check for conflicts: any file locked by a different instance
+                foreach ($filesToLock as $file) {
+                    $owner = FileLock::getOwner($task->project_id, $file);
+                    if ($owner !== null && $owner !== $instanceId) {
+                        // File is locked by another instance — cannot claim
+                        return false;
+                    }
+                }
+
+                // Acquire locks on all task files
+                foreach ($filesToLock as $file) {
+                    $lock = FileLock::acquire(
+                        $task->project_id,
+                        $file,
+                        $instanceId,
+                        "Task: {$task->title}"
+                    );
+
+                    if ($lock === false) {
+                        // Lock acquisition failed (race condition) — rollback
+                        throw new \RuntimeException("Failed to acquire lock on {$file}");
+                    }
+                }
+            }
+
             $task->update([
                 'assigned_to' => $instanceId,
                 'status' => 'in_progress',
@@ -304,6 +333,7 @@ class SharedTask extends Model
             $this->project->logActivity('task_claimed', $instanceId, [
                 'task_id' => $this->id,
                 'task_title' => $this->title,
+                'files_locked' => count($filesToLock),
             ]);
 
             return true;
@@ -312,12 +342,21 @@ class SharedTask extends Model
 
     public function release(?string $reason = null): void
     {
+        $previousOwner = $this->assigned_to;
+
         $this->update([
             'assigned_to' => null,
             'status' => 'pending',
             'claimed_at' => null,
             'blocked_by' => $reason,
         ]);
+
+        // Release file locks held by the previous owner for this task's files
+        if ($previousOwner && !empty($this->files)) {
+            foreach ($this->files as $file) {
+                FileLock::releaseLock($this->project_id, $file, $previousOwner);
+            }
+        }
 
         // Log activity
         $this->project->logActivity('task_released', null, [
@@ -329,20 +368,36 @@ class SharedTask extends Model
 
     public function complete(string $summary, array $filesModified = []): void
     {
-        $this->update([
-            'status' => 'done',
-            'completed_at' => now(),
-            'completion_summary' => $summary,
-            'files_modified' => $filesModified,
-        ]);
+        DB::transaction(function () use ($summary, $filesModified) {
+            $assignedTo = $this->assigned_to;
 
-        // Log activity
-        $this->project->logActivity('task_completed', $this->assigned_to, [
-            'task_id' => $this->id,
-            'task_title' => $this->title,
-            'summary' => $summary,
-            'files_modified' => $filesModified,
-        ]);
+            $this->update([
+                'status' => 'done',
+                'completed_at' => now(),
+                'completion_summary' => $summary,
+                'files_modified' => $filesModified,
+            ]);
+
+            // Release all file locks held for this task
+            if ($assignedTo) {
+                $filesToRelease = array_unique(array_merge(
+                    $this->files ?? [],
+                    $filesModified
+                ));
+
+                foreach ($filesToRelease as $file) {
+                    FileLock::releaseLock($this->project_id, $file, $assignedTo);
+                }
+            }
+
+            // Log activity
+            $this->project->logActivity('task_completed', $assignedTo, [
+                'task_id' => $this->id,
+                'task_title' => $this->title,
+                'summary' => $summary,
+                'files_modified' => $filesModified,
+            ]);
+        });
     }
 
     public function block(string $reason): void
