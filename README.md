@@ -115,18 +115,21 @@ The Runner Agent runs on a schedule and does not require user interaction. It sc
 
 | Layer | Technology | Version |
 |-------|-----------|---------|
-| Backend | Laravel (PHP) | 12 (PHP 8.3+) |
-| Frontend | Vue.js (Composition API, TypeScript) | 3.5 |
-| Build | Vite + laravel-vite-plugin | 7.3 |
-| State (Web) | Pinia | 2.3 |
+| Backend | Laravel (PHP 8.4+) | 13 |
+| Frontend | Vue.js (Composition API) | 3.5 |
+| Build | Vite + Rolldown (Rust) | 8.0 |
+| State (Web) | Pinia | 3.0 |
 | Terminal | xterm.js + WebGL addon | 5.5 |
-| Styling | Tailwind CSS | 3.4 |
-| WebSocket | Laravel Reverb | 1.x |
+| Styling | Tailwind CSS (CSS-first) | 4.1 |
+| TypeScript | Strict mode | 6.0 |
+| WebSocket | Laravel Reverb | 1.10 |
 | Auth | Laravel Sanctum + Socialite | 4.x |
 | Database | PostgreSQL + pgvector | 16+ |
 | Cache/Queue | Redis | 7+ |
-| Agent | Node.js + TypeScript + node-pty | 20 LTS |
-| Mobile | React Native + Zustand | 0.83 |
+| Agent | Node.js + TypeScript + node-pty | 24 LTS |
+| Mobile | Expo 55, React Native, React 19 | 0.83 |
+| Mobile State | Zustand | 5.0 |
+| Mobile Animations | Reanimated (New Architecture) | 4.2 |
 | Embeddings | Ollama (bge-small-en-v1.5) | -- |
 | Summarization | Ollama (Mistral 7B) | -- |
 
