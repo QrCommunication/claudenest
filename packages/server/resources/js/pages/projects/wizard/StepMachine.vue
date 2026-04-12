@@ -66,7 +66,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-@reference "tailwindcss";
+@reference "../../../../css/tailwind.css";
 .step-machine {
   @apply space-y-4;
 }

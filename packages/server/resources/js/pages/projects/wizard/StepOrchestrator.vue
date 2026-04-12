@@ -103,7 +103,7 @@ defineProps<Props>();
 </script>
 
 <style scoped>
-@reference "tailwindcss";
+@reference "../../../../css/tailwind.css";
 .step-orchestrator {
   @apply space-y-6;
 }

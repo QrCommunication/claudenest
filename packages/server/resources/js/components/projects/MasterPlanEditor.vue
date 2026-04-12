@@ -197,7 +197,7 @@ function priorityClass(priority: string): string {
 </script>
 
 <style scoped>
-@reference "../../../css/app.css";
+@reference "../../../css/tailwind.css";
 .master-plan-editor {
   @apply space-y-4;
 }

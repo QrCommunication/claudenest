@@ -208,7 +208,7 @@ watch(
 </script>
 
 <style scoped>
-@reference "../../../css/app.css";
+@reference "../../../css/tailwind.css";
 .remote-file-tree {
   @apply rounded-lg border border-skin bg-surface-3 overflow-hidden;
 }

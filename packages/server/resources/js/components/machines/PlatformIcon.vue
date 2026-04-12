@@ -44,7 +44,7 @@ const platformLabel = computed(() => {
 </script>
 
 <style scoped>
-@reference "../../../css/app.css";
+@reference "../../../css/tailwind.css";
 .platform-icon {
   @apply w-6 h-6 flex items-center justify-center rounded-lg;
 }

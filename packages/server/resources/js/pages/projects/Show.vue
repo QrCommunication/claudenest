@@ -463,7 +463,7 @@ function formatDuration(seconds: number): string {
 </script>
 
 <style scoped>
-@reference "../../../css/app.css";
+@reference "../../../css/tailwind.css";
 .project-show-page {
   @apply p-6;
 }

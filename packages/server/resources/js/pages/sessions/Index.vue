@@ -433,7 +433,7 @@ function formatRelativeTime(dateString: string): string {
 </script>
 
 <style scoped>
-@reference "../../../css/app.css";
+@reference "../../../css/tailwind.css";
 .sessions-page {
   @apply p-6 space-y-6;
 }

@@ -18,7 +18,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-@reference "../../css/app.css";
+@reference "../../css/tailwind.css";
 .projects-redirect {
   @apply flex flex-col items-center justify-center min-h-[60vh];
 }

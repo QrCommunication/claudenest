@@ -100,7 +100,7 @@ function truncate(text: string, length: number): string {
 </script>
 
 <style scoped>
-@reference "../../../css/app.css";
+@reference "../../../css/tailwind.css";
 .instance-card {
   @apply bg-surface-2 rounded-xl border border-skin p-4 transition-all duration-200;
 }

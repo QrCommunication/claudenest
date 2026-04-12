@@ -168,7 +168,7 @@ function resetForm() {
 </script>
 
 <style scoped>
-@reference "../../../css/app.css";
+@reference "../../../css/tailwind.css";
 .task-form {
   @apply space-y-4;
 }

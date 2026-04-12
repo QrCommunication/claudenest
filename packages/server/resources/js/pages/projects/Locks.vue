@@ -432,7 +432,7 @@ async function extendLock(lock: FileLock) {
 </script>
 
 <style scoped>
-@reference "../../../css/app.css";
+@reference "../../../css/tailwind.css";
 .file-locks-page {
   @apply space-y-6;
 }

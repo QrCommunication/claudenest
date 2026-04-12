@@ -359,7 +359,7 @@ function handleSubmit() {
 </script>
 
 <style scoped>
-@reference "../../../css/app.css";
+@reference "../../../css/tailwind.css";
 .project-form {
   @apply space-y-6 max-h-[70vh] overflow-y-auto pr-2;
 }

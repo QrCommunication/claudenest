@@ -123,7 +123,7 @@ function formatTokens(tokens: number): string {
 </script>
 
 <style scoped>
-@reference "../../../css/app.css";
+@reference "../../../css/tailwind.css";
 .task-card {
   @apply p-4 bg-surface-3 rounded-lg border border-skin cursor-pointer;
   @apply hover:border-brand-purple/50 transition-all duration-200;

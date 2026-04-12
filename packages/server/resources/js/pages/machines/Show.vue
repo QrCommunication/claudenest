@@ -496,7 +496,7 @@ function formatCapability(cap: string): string {
 </script>
 
 <style scoped>
-@reference "../../../css/app.css";
+@reference "../../../css/tailwind.css";
 .machine-detail-page {
   @apply p-6;
 }

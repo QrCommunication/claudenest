@@ -89,7 +89,7 @@ const tooltip = computed(() => {
 </script>
 
 <style scoped>
-@reference "../../../css/app.css";
+@reference "../../../css/tailwind.css";
 .instance-badge {
   @apply inline-flex items-center gap-2;
 }

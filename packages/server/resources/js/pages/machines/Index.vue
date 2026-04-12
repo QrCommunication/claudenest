@@ -364,7 +364,7 @@ async function wakeMachine(id: string) {
 </script>
 
 <style scoped>
-@reference "../../../css/app.css";
+@reference "../../../css/tailwind.css";
 .machines-page {
   @apply p-6 space-y-6;
 }

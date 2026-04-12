@@ -267,7 +267,7 @@ const lastUsedText = computed(() => {
 </script>
 
 <style scoped>
-@reference "../../../css/app.css";
+@reference "../../../css/tailwind.css";
 .credential-card {
   @apply rounded-lg overflow-hidden;
   background: var(--bg-card, var(--surface-2, #24283b));

@@ -231,7 +231,7 @@ async function handleDelete(id: string): Promise<void> {
 </script>
 
 <style scoped>
-@reference "../../../css/app.css";
+@reference "../../../css/tailwind.css";
 .credentials-page {
   @apply p-6;
 }

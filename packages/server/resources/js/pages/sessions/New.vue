@@ -266,7 +266,7 @@ async function startSession() {
 </script>
 
 <style scoped>
-@reference "../../../css/app.css";
+@reference "../../../css/tailwind.css";
 .new-session-page {
   @apply p-6;
 }

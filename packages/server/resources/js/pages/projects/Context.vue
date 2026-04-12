@@ -346,7 +346,7 @@ function formatRelativeTime(date: string): string {
 </script>
 
 <style scoped>
-@reference "../../../css/app.css";
+@reference "../../../css/tailwind.css";
 .context-viewer-page {
   @apply space-y-6;
 }

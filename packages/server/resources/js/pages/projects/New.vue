@@ -253,7 +253,7 @@ function handleMasterPlanUpdate(plan: MasterPlan): void {
 </script>
 
 <style scoped>
-@reference "../../../css/app.css";
+@reference "../../../css/tailwind.css";
 .wizard-page {
   @apply max-w-4xl mx-auto space-y-6;
 }

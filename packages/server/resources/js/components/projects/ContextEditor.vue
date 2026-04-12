@@ -54,7 +54,7 @@ const computedRows = computed(() => {
 </script>
 
 <style scoped>
-@reference "../../../css/app.css";
+@reference "../../../css/tailwind.css";
 .context-editor {
   @apply w-full;
 }

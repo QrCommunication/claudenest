@@ -86,7 +86,7 @@ async function handleGenerate(): Promise<void> {
 </script>
 
 <style scoped>
-@reference "tailwindcss";
+@reference "../../../../css/tailwind.css";
 .step-context {
   @apply space-y-4;
 }

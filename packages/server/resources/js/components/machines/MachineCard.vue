@@ -115,7 +115,7 @@ const machineHasWakeOnLan = computed(() =>
 </script>
 
 <style scoped>
-@reference "../../../css/app.css";
+@reference "../../../css/tailwind.css";
 .machine-card {
   @apply relative bg-surface-2 border border-skin rounded-xl p-4 transition-all duration-200;
 }

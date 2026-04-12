@@ -1,0 +1,56 @@
+@import "tailwindcss";
+@import "./themes.css";
+
+/* ===== Dark mode: class strategy ===== */
+@variant dark (&:where(.dark, .dark *));
+
+/* ====================== THEME TOKENS ====================== */
+@theme {
+  /* Brand Colors */
+  --color-brand-purple: #a855f7;
+  --color-brand-indigo: #6366f1;
+  --color-brand-cyan: #22d3ee;
+
+  /* Dark Palette */
+  --color-dark-1: #0f0f1a;
+  --color-dark-2: #1a1b26;
+  --color-dark-3: #24283b;
+  --color-dark-4: #3b4261;
+
+  /* Surface Colors */
+  --color-surface-1: rgb(var(--surface-1-rgb) / <alpha-value>);
+  --color-surface-2: rgb(var(--surface-2-rgb) / <alpha-value>);
+  --color-surface-3: rgb(var(--surface-3-rgb) / <alpha-value>);
+  --color-surface-4: rgb(var(--surface-4-rgb) / <alpha-value>);
+
+  /* Semantic Text Colors */
+  --color-skin-primary: var(--text-primary);
+  --color-skin-secondary: var(--text-secondary);
+  --color-skin-muted: var(--text-muted);
+
+  /* Semantic Border */
+  --color-skin: var(--border);
+
+  /* Glass Background */
+  --color-glass: var(--glass-bg);
+
+  /* Fonts */
+  --font-family-sans: Inter, system-ui, -apple-system, sans-serif;
+  --font-family-mono: "JetBrains Mono", monospace;
+
+  /* Border Radius */
+  --radius-card: 12px;
+  --radius-button: 8px;
+
+  /* Animations */
+  --animate-fade-in: fadeIn 0.2s ease-out;
+  --animate-slide-in-right: slideInRight 0.3s ease-out;
+  --animate-slide-in-left: slideInLeft 0.3s ease-out;
+  --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-scanline: scanline 4s linear infinite;
+  --animate-terminal-glow: terminalGlow 2s ease-in-out infinite alternate;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-code-scroll: codeScroll 20s linear infinite;
+  --animate-cursor-blink: cursorBlink 1s step-end infinite;
+  --animate-glow-pulse: glowPulse 2s ease-in-out infinite;
+}

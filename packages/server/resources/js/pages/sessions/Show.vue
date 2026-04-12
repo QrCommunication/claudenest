@@ -16,7 +16,7 @@
 </template>
 
 <style scoped>
-@reference "../../../css/app.css";
+@reference "../../../css/tailwind.css";
 .session-detail-page {
   @apply p-6;
 }

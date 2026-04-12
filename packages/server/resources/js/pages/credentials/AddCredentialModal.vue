@@ -380,7 +380,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-@reference "../../../css/app.css";
+@reference "../../../css/tailwind.css";
 .modal-overlay {
   @apply fixed inset-0 z-50 flex items-center justify-center p-4;
   background: color-mix(in srgb, var(--bg-primary, var(--surface-1)) 80%, transparent);

@@ -104,7 +104,7 @@ function formatRemaining(seconds: number): string {
 </script>
 
 <style scoped>
-@reference "../../../css/app.css";
+@reference "../../../css/tailwind.css";
 .file-lock-indicator {
   @apply flex items-center gap-2;
 }

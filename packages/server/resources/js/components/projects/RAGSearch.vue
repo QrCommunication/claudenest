@@ -104,7 +104,7 @@ function truncate(text: string, length: number): string {
 </script>
 
 <style scoped>
-@reference "../../../css/app.css";
+@reference "../../../css/tailwind.css";
 .rag-search {
   @apply relative flex-1 max-w-xl;
 }

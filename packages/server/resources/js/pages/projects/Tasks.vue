@@ -418,7 +418,7 @@ function getTaskTitle(taskId: string): string {
 </script>
 
 <style scoped>
-@reference "../../../css/app.css";
+@reference "../../../css/tailwind.css";
 .tasks-board-page {
   @apply space-y-6;
 }

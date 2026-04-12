@@ -234,7 +234,7 @@ function saveChanges() {
 </script>
 
 <style scoped>
-@reference "../../../css/app.css";
+@reference "../../../css/tailwind.css";
 .context-panel {
   @apply bg-surface-2 rounded-xl border border-skin flex flex-col;
 }
