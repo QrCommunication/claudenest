@@ -24,8 +24,8 @@
             <div class="token-usage">
               <span class="token-label">Token Usage</span>
               <div class="token-bar">
-                <div 
-                  class="token-progress" 
+                <div
+                  class="token-progress"
                   :style="{ width: `${project.token_usage_percent}%` }"
                   :class="{ 'is-high': project.token_usage_percent > 80 }"
                 />
@@ -37,8 +37,8 @@
 
         <!-- Tabs -->
         <div class="tabs">
-          <button 
-            v-for="tab in tabs" 
+          <button
+            v-for="tab in tabs"
             :key="tab.id"
             class="tab"
             :class="{ active: activeTab === tab.id }"
@@ -48,10 +48,13 @@
               <path :d="tab.icon" />
             </svg>
             {{ tab.label }}
+            <span v-if="tab.count !== undefined" class="tab-count">{{ tab.count }}</span>
           </button>
         </div>
       </div>
 
+      <!-- Main content with optional Planning sidebar -->
+      <div class="content-with-sidebar">
       <!-- Tab Content -->
       <div class="tab-content">
         <!-- Overview Tab -->
@@ -160,9 +163,45 @@
           </Card>
         </div>
 
-        <!-- Tasks Tab -->
+        <!-- Tasks Tab (enriched with epic/sprint filters) -->
         <div v-else-if="activeTab === 'tasks'" class="tab-panel">
+          <div class="tasks-filters">
+            <select v-model="epicFilter" class="filter-select">
+              <option value="">All Epics</option>
+              <option v-for="epic in epicsStore.epics" :key="epic.id" :value="epic.id">
+                {{ epic.title }}
+              </option>
+            </select>
+            <select v-model="sprintFilter" class="filter-select">
+              <option value="">All Sprints</option>
+              <option v-for="sprint in sprintsStore.sprints" :key="sprint.id" :value="sprint.id">
+                {{ sprint.name }}
+              </option>
+            </select>
+          </div>
           <TasksBoard :project-id="projectId" />
+        </div>
+
+        <!-- Epics Tab -->
+        <div v-else-if="activeTab === 'epics'" class="tab-panel">
+          <EpicBoard
+            :epics="epicsStore.epics"
+            :selected-epic-id="epicsStore.selectedEpic?.id || ''"
+            @select="epicsStore.selectEpic($event)"
+            @create="showCreateEpicModal = true"
+          />
+        </div>
+
+        <!-- Sprints Tab -->
+        <div v-else-if="activeTab === 'sprints'" class="tab-panel">
+          <SprintBoard :sprint="sprintsStore.currentSprint || null">
+            <TasksBoard :project-id="projectId" />
+          </SprintBoard>
+          <BurndownChart
+            v-if="sprintsStore.burndownData.length > 0"
+            :data="sprintsStore.burndownData"
+            class="mt-6"
+          />
         </div>
 
         <!-- Context Tab -->
@@ -256,6 +295,17 @@
           </Card>
         </div>
       </div>
+
+      </div><!-- /tab-content -->
+
+      <!-- Planning Chat Sidebar -->
+      <PlanningChat
+        :project-id="projectId"
+        @send-message="handlePlanningMessage"
+        @approve-actions="handleApproveActions"
+        ref="planningChatRef"
+      />
+      </div><!-- /content-with-sidebar -->
     </template>
 
     <!-- Not Found -->
@@ -273,16 +323,25 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useProjectsStore } from '@/stores/projects';
 import { useMachinesStore } from '@/stores/machines';
+import { useEpicsStore } from '@/stores/epics';
+import { useSprintsStore } from '@/stores/sprints';
 import { useToast } from '@/composables/useToast';
+import { api } from '@/composables/useApi';
 import Card from '@/components/common/Card.vue';
 import InstanceBadge from '@/components/projects/InstanceBadge.vue';
 import TasksBoard from './Tasks.vue';
 import ContextViewer from './Context.vue';
 import OrchestrationPanel from './Orchestration.vue';
+import EpicBoard from '@/components/multiagent/EpicBoard.vue';
+import SprintBoard from '@/components/multiagent/SprintBoard.vue';
+import BurndownChart from '@/components/multiagent/BurndownChart.vue';
+import PlanningChat from '@/components/multiagent/PlanningChat.vue';
 
 const route = useRoute();
 const projectsStore = useProjectsStore();
 const machinesStore = useMachinesStore();
+const epicsStore = useEpicsStore();
+const sprintsStore = useSprintsStore();
 const toast = useToast();
 
 const projectId = computed(() => route.params.id as string);
@@ -292,15 +351,21 @@ const instances = computed(() => projectsStore.instances);
 const activityLogs = computed(() => projectsStore.activityLogs);
 
 const activeTab = ref('overview');
+const epicFilter = ref('');
+const sprintFilter = ref('');
+const showCreateEpicModal = ref(false);
+const planningChatRef = ref<InstanceType<typeof PlanningChat> | null>(null);
 
-const tabs = [
+const tabs = computed(() => [
   { id: 'overview', label: 'Overview', icon: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z' },
-  { id: 'tasks', label: 'Tasks', icon: 'M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z' },
+  { id: 'tasks', label: 'Tasks', icon: 'M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z', count: projectStats.value?.total_tasks },
+  { id: 'epics', label: 'Epics', icon: 'M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z', count: epicsStore.epics.length },
+  { id: 'sprints', label: 'Sprints', icon: 'M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z', count: sprintsStore.sprints.length },
   { id: 'context', label: 'Context', icon: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z' },
   { id: 'orchestration', label: 'Orchestration', icon: 'M22 11V3h-7v3H9V3H2v8h7V8h2v10h4v3h7v-8h-7v3h-2V8h2v3h7zM7 9H4V5h3v4zm10 6h3v4h-3v-4zm0-10h3v4h-3V5z' },
   { id: 'instances', label: 'Instances', icon: 'M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z' },
   { id: 'activity', label: 'Activity', icon: 'M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z' },
-];
+]);
 
 const machineName = computed(() => {
   if (!project.value) return 'Unknown';
@@ -318,16 +383,51 @@ watch(projectId, async () => {
 
 async function loadProject() {
   if (!projectId.value) return;
-  
+
   try {
     await Promise.all([
       projectsStore.fetchProject(projectId.value),
       projectsStore.fetchProjectStats(projectId.value),
       projectsStore.fetchInstances(projectId.value),
       projectsStore.fetchActivity(projectId.value, 100),
+      epicsStore.fetchEpics(projectId.value),
+      sprintsStore.fetchSprints(projectId.value),
     ]);
+
+    // Load burndown for active sprint
+    if (sprintsStore.currentSprint) {
+      await sprintsStore.fetchBurndown(sprintsStore.currentSprint.id);
+    }
   } catch (err) {
     toast.error('Failed to load project');
+  }
+}
+
+// Planning Chat handlers
+async function handlePlanningMessage(message: string) {
+  try {
+    const response = await api.get(`/projects/${projectId.value}/planning/context`);
+    // The actual LLM call would happen here via backend
+    // For now, return context summary as placeholder
+    planningChatRef.value?.receiveMessage(
+      `I've analyzed the project context. There are ${response.data.data.stats.total_tasks} tasks across ${response.data.data.epics.length} epics. How can I help you plan?`
+    );
+  } catch {
+    planningChatRef.value?.receiveMessage('Failed to load project context. Please try again.');
+  }
+}
+
+async function handleApproveActions(actions: Array<{ type: string; data: Record<string, unknown> }>) {
+  try {
+    const response = await api.post(`/projects/${projectId.value}/planning/execute`, { actions });
+    const results = response.data.data.results;
+    const successCount = results.filter((r: { success: boolean }) => r.success).length;
+    toast.success(`${successCount} action(s) applied successfully`);
+
+    // Refresh data
+    await loadProject();
+  } catch {
+    toast.error('Failed to execute planning actions');
   }
 }
 
@@ -453,8 +553,30 @@ function formatDuration(seconds: number): string {
   @apply w-4 h-4;
 }
 
+.content-with-sidebar {
+  @apply flex gap-0 mt-6;
+}
+
 .tab-content {
-  @apply mt-6;
+  @apply flex-1 min-w-0;
+}
+
+.tab-count {
+  @apply text-xs bg-white/10 px-1.5 py-0 rounded-full ml-1;
+  font-variant-numeric: tabular-nums;
+}
+
+.tab.active .tab-count {
+  @apply bg-brand-purple/20 text-brand-purple;
+}
+
+.tasks-filters {
+  @apply flex items-center gap-3 mb-4;
+}
+
+.filter-select {
+  @apply bg-surface-3 border border-skin text-skin-primary text-sm rounded-md px-3 py-1.5;
+  @apply focus:outline-none focus:border-brand-purple transition-colors;
 }
 
 .overview-grid {

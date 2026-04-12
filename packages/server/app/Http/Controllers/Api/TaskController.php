@@ -33,9 +33,13 @@ class TaskController extends Controller
         $this->authorize('view', $project);
 
         $validated = $request->validate([
-            'status' => 'string|in:pending,in_progress,blocked,review,done',
+            'status' => 'string|in:backlog,pending,in_progress,blocked,review,done',
             'assigned_to' => 'string',
             'priority' => 'string|in:low,medium,high,critical',
+            'epic_id' => 'uuid|exists:epics,id',
+            'sprint_id' => 'uuid|exists:sprints,id',
+            'parent_id' => 'uuid|exists:shared_tasks,id',
+            'root_only' => 'boolean',
         ]);
 
         $query = $project->tasks()->orderBy('created_at', 'desc');
@@ -50,6 +54,22 @@ class TaskController extends Controller
 
         if (isset($validated['priority'])) {
             $query->byPriority($validated['priority']);
+        }
+
+        if (isset($validated['epic_id'])) {
+            $query->byEpic($validated['epic_id']);
+        }
+
+        if (isset($validated['sprint_id'])) {
+            $query->bySprint($validated['sprint_id']);
+        }
+
+        if (isset($validated['parent_id'])) {
+            $query->subtasksOf($validated['parent_id']);
+        }
+
+        if ($request->boolean('root_only')) {
+            $query->rootTasks();
         }
 
         $tasks = $query->paginate($request->input('per_page', 20));
@@ -98,6 +118,13 @@ class TaskController extends Controller
             'estimated_tokens' => 'integer|min:1',
             'dependencies' => 'array',
             'dependencies.*' => 'uuid|exists:shared_tasks,id',
+            'epic_id' => 'nullable|uuid|exists:epics,id',
+            'sprint_id' => 'nullable|uuid|exists:sprints,id',
+            'parent_id' => 'nullable|uuid|exists:shared_tasks,id',
+            'story_points' => 'nullable|integer|min:1|max:100',
+            'due_date' => 'nullable|date',
+            'labels' => 'array',
+            'labels.*' => 'string|max:50',
         ]);
 
         $task = $project->tasks()->create([
@@ -109,6 +136,12 @@ class TaskController extends Controller
             'estimated_tokens' => $validated['estimated_tokens'] ?? null,
             'dependencies' => $validated['dependencies'] ?? [],
             'created_by' => $request->input('instance_id') ?? $request->user()->id,
+            'epic_id' => $validated['epic_id'] ?? null,
+            'sprint_id' => $validated['sprint_id'] ?? null,
+            'parent_id' => $validated['parent_id'] ?? null,
+            'story_points' => $validated['story_points'] ?? null,
+            'due_date' => $validated['due_date'] ?? null,
+            'labels' => $validated['labels'] ?? [],
         ]);
 
         // Broadcast task creation
@@ -181,9 +214,17 @@ class TaskController extends Controller
             'title' => 'string|max:255',
             'description' => 'nullable|string',
             'priority' => 'string|in:low,medium,high,critical',
+            'status' => 'string|in:backlog,pending,in_progress,blocked,review,done',
             'files' => 'array',
             'files.*' => 'string',
             'estimated_tokens' => 'integer|min:1',
+            'epic_id' => 'nullable|uuid|exists:epics,id',
+            'sprint_id' => 'nullable|uuid|exists:sprints,id',
+            'parent_id' => 'nullable|uuid|exists:shared_tasks,id',
+            'story_points' => 'nullable|integer|min:1|max:100',
+            'due_date' => 'nullable|date',
+            'labels' => 'array',
+            'labels.*' => 'string|max:50',
         ]);
 
         $task->update($validated);
@@ -470,6 +511,53 @@ class TaskController extends Controller
     }
 
     /**
+     * List subtasks of a task.
+     */
+    public function subtasks(Request $request, string $id): JsonResponse
+    {
+        $task = SharedTask::with('project')->findOrFail($id);
+        $this->authorize('view', $task);
+
+        $subtasks = $task->children()->ordered()->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $subtasks->map(fn ($t) => $this->formatTask($t)),
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
+    }
+
+    /**
+     * Move a task to a different epic, sprint or status.
+     */
+    public function move(Request $request, string $id): JsonResponse
+    {
+        $task = SharedTask::with('project')->findOrFail($id);
+        $this->authorize('update', $task);
+
+        $validated = $request->validate([
+            'epic_id' => 'nullable|uuid|exists:epics,id',
+            'sprint_id' => 'nullable|uuid|exists:sprints,id',
+            'status' => 'nullable|string|in:backlog,pending,in_progress,blocked,review,done',
+            'sort_order' => 'nullable|integer|min:0',
+        ]);
+
+        $task->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'data' => $this->formatTask($task),
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
+    }
+
+    /**
      * Helper: Get project belonging to authenticated user.
      */
     private function getUserProject(Request $request, string $id): ?SharedProject
@@ -497,6 +585,17 @@ class TaskController extends Controller
             'completed_at' => $task->completed_at,
             'created_at' => $task->created_at,
             'updated_at' => $task->updated_at,
+            'wave' => $task->wave,
+            'epic_id' => $task->epic_id,
+            'sprint_id' => $task->sprint_id,
+            'parent_id' => $task->parent_id,
+            'story_points' => $task->story_points,
+            'due_date' => $task->due_date?->format('Y-m-d'),
+            'sort_order' => $task->sort_order,
+            'labels' => $task->labels ?? [],
+            'has_subtasks' => $task->has_subtasks,
+            'subtasks_count' => $task->subtasks_count,
+            'completed_subtasks_count' => $task->completed_subtasks_count,
         ];
 
         if ($detailed) {

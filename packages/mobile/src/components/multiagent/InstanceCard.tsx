@@ -4,8 +4,8 @@
  */
 
 import React, { memo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import { View, Text, StyleSheet, Animated } from 'react-native';
+import { useFadeIn } from '@/utils/animations';
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { colors, spacing, borderRadius, typography } from '@/theme';
 import type { ClaudeInstance, InstanceStatus } from '@/types';
@@ -37,8 +37,10 @@ export const InstanceCard = memo(function InstanceCard({
     (instance.contextTokens / instance.maxContextTokens) * 100
   );
 
+  const fadeStyle = useFadeIn();
+
   return (
-    <Animated.View entering={FadeIn.duration(300)}>
+    <Animated.View style={fadeStyle}>
       <View style={styles.container}>
         <View style={styles.header}>
           <View style={styles.iconContainer}>

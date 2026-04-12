@@ -12,8 +12,10 @@ module.exports = function (api) {
           alias: { '@': './src' },
         },
       ],
-      // Reanimated must be last
-      'react-native-reanimated/plugin',
+      // Reanimated plugin DISABLED — causes createAnimatedComponent crashes
+      // with RN 0.76 Fabric components + uniwind + gesture-handler.
+      // Using RN's built-in Animated API instead.
+      // 'react-native-reanimated/plugin',
     ],
   };
 };

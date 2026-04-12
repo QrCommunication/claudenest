@@ -67,7 +67,7 @@ export interface UpdateProjectForm {
 
 // ==================== TASK TYPES ====================
 
-export type TaskStatus = 'pending' | 'in_progress' | 'blocked' | 'review' | 'done';
+export type TaskStatus = 'backlog' | 'pending' | 'in_progress' | 'blocked' | 'review' | 'done';
 export type TaskPriority = 'low' | 'medium' | 'high' | 'critical';
 
 export interface SharedTask {
@@ -85,6 +85,17 @@ export interface SharedTask {
   completed_at: string | null;
   created_at: string;
   updated_at: string;
+  wave?: number;
+  epic_id: string | null;
+  sprint_id: string | null;
+  parent_id: string | null;
+  story_points: number | null;
+  due_date: string | null;
+  sort_order: number;
+  labels: string[];
+  has_subtasks: boolean;
+  subtasks_count: number;
+  completed_subtasks_count: number;
   // Detailed fields
   files?: string[];
   estimated_tokens?: number;
@@ -103,14 +114,117 @@ export interface CreateTaskForm {
   files?: string[];
   estimated_tokens?: number;
   dependencies?: string[];
+  epic_id?: string;
+  sprint_id?: string;
+  parent_id?: string;
+  story_points?: number;
+  due_date?: string;
+  labels?: string[];
 }
 
 export interface UpdateTaskForm {
   title?: string;
   description?: string;
   priority?: TaskPriority;
+  status?: TaskStatus;
   files?: string[];
   estimated_tokens?: number;
+  epic_id?: string;
+  sprint_id?: string;
+  parent_id?: string;
+  story_points?: number;
+  due_date?: string;
+  labels?: string[];
+}
+
+// ==================== EPIC TYPES ====================
+
+export type EpicStatus = 'open' | 'in_progress' | 'done';
+
+export interface Epic {
+  id: string;
+  project_id: string;
+  title: string;
+  description: string | null;
+  color: string;
+  icon: string | null;
+  status: EpicStatus;
+  priority: TaskPriority;
+  sort_order: number;
+  tasks_count: number;
+  completed_tasks_count: number;
+  progress_percentage: number;
+  started_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateEpicForm {
+  title: string;
+  description?: string;
+  color?: string;
+  icon?: string;
+  priority?: TaskPriority;
+}
+
+export interface UpdateEpicForm {
+  title?: string;
+  description?: string;
+  color?: string;
+  icon?: string;
+  status?: EpicStatus;
+  priority?: TaskPriority;
+}
+
+// ==================== SPRINT TYPES ====================
+
+export type SprintStatus = 'planning' | 'active' | 'completed' | 'cancelled';
+
+export interface Sprint {
+  id: string;
+  project_id: string;
+  name: string;
+  goal: string | null;
+  status: SprintStatus;
+  start_date: string | null;
+  end_date: string | null;
+  velocity: number | null;
+  capacity: number | null;
+  sort_order: number;
+  tasks_count: number;
+  completed_tasks_count: number;
+  total_story_points: number;
+  completed_story_points: number;
+  progress_percentage: number;
+  remaining_days: number | null;
+  is_overdue: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateSprintForm {
+  name: string;
+  goal?: string;
+  start_date?: string;
+  end_date?: string;
+  capacity?: number;
+}
+
+export interface UpdateSprintForm {
+  name?: string;
+  goal?: string;
+  start_date?: string;
+  end_date?: string;
+  capacity?: number;
+  status?: SprintStatus;
+}
+
+export interface BurndownDataPoint {
+  date: string;
+  remaining: number;
+  completed: number;
+  ideal: number;
 }
 
 export interface CompleteTaskForm {
@@ -221,7 +335,10 @@ export type ActivityType =
   | 'context_updated'
   | 'broadcast'
   | 'instance_connected'
-  | 'instance_disconnected';
+  | 'instance_disconnected'
+  | 'epic_updated'
+  | 'sprint_started'
+  | 'sprint_completed';
 
 export interface ActivityLog {
   id: string;
@@ -254,8 +371,10 @@ export interface KanbanColumn {
 }
 
 export const KANBAN_COLUMNS: KanbanColumn[] = [
+  { id: 'backlog', title: 'Backlog', color: 'bg-slate-500' },
   { id: 'pending', title: 'Pending', color: 'bg-gray-500' },
   { id: 'in_progress', title: 'In Progress', color: 'bg-brand-purple' },
+  { id: 'blocked', title: 'Blocked', color: 'bg-red-500' },
   { id: 'review', title: 'Review', color: 'bg-brand-cyan' },
   { id: 'done', title: 'Done', color: 'bg-green-500' },
 ];

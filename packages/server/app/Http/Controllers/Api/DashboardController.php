@@ -47,7 +47,7 @@ class DashboardController extends Controller
         $projectIds = $user->sharedProjects()->pluck('id');
         $projectsTotal = $projectIds->count();
         $projectsActive = $user->sharedProjects()
-            ->whereHas('instances', fn ($q) => $q->where('status', 'active'))
+            ->whereHas('claudeInstances', fn ($q) => $q->where('status', 'active'))
             ->count();
 
         // Tasks

@@ -1,8 +1,9 @@
 /**
- * LoginScreen — Authentification email + mot de passe
+ * LoginScreen — Email + mot de passe
+ * Inscription et gestion de compte = web uniquement
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -12,14 +13,19 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Linking,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useAuthStore } from '@/stores/authStore';
+
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://claudenest.io';
 
 export function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const passwordRef = useRef<TextInput>(null);
 
   const { loginWithPassword, isLoading, error, clearError } = useAuthStore();
 
@@ -31,6 +37,10 @@ export function LoginScreen() {
     } catch {
       // Error is set in the store
     }
+  };
+
+  const openRegister = () => {
+    Linking.openURL(`${API_URL}/register`);
   };
 
   return (
@@ -49,7 +59,7 @@ export function LoginScreen() {
         {/* ── Brand ── */}
         <View className="items-center mb-12">
           <View className="w-20 h-20 rounded-2xl bg-primary items-center justify-center mb-5">
-            <Text style={{ color: 'white', fontSize: 36, fontWeight: 'bold' }}>{'<'}</Text>
+            <MaterialIcons name="terminal" size={40} color="white" />
           </View>
           <Text className="text-white text-3xl font-bold tracking-tight">ClaudeNest</Text>
           <Text className="text-text-secondary text-sm mt-2">
@@ -69,18 +79,26 @@ export function LoginScreen() {
           {/* Email */}
           <View>
             <Text className="text-text-secondary text-sm font-medium mb-2">Email</Text>
-            <TextInput
-              className="bg-bg2 border border-bg4 rounded-xl px-4 py-3.5 text-white text-base"
-              placeholder="vous@example.com"
-              placeholderTextColor="#64748b"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              autoCorrect={false}
-              returnKeyType="next"
-              textContentType="emailAddress"
-            />
+            <View className="flex-row items-center bg-bg2 border border-bg4 rounded-xl">
+              <View className="pl-4">
+                <MaterialIcons name="email" size={20} color="#64748b" />
+              </View>
+              <TextInput
+                className="flex-1 px-3 py-3.5 text-white text-base"
+                placeholder="vous@example.com"
+                placeholderTextColor="#64748b"
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                autoCorrect={false}
+                returnKeyType="next"
+                textContentType="emailAddress"
+                autoComplete="email"
+                onSubmitEditing={() => passwordRef.current?.focus()}
+                editable={!isLoading}
+              />
+            </View>
           </View>
 
           {/* Password */}
@@ -89,9 +107,13 @@ export function LoginScreen() {
               Mot de passe
             </Text>
             <View className="flex-row items-center bg-bg2 border border-bg4 rounded-xl">
+              <View className="pl-4">
+                <MaterialIcons name="lock" size={20} color="#64748b" />
+              </View>
               <TextInput
-                className="flex-1 px-4 py-3.5 text-white text-base"
-                placeholder="••••••••"
+                ref={passwordRef}
+                className="flex-1 px-3 py-3.5 text-white text-base"
+                placeholder="Votre mot de passe"
                 placeholderTextColor="#64748b"
                 value={password}
                 onChangeText={setPassword}
@@ -99,15 +121,19 @@ export function LoginScreen() {
                 returnKeyType="done"
                 onSubmitEditing={handleLogin}
                 textContentType="password"
+                autoComplete="password"
+                editable={!isLoading}
               />
               <Pressable
                 onPress={() => setShowPassword(v => !v)}
                 className="px-4 py-3.5"
                 hitSlop={8}
               >
-                <Text style={{ fontSize: 18 }}>
-                  {showPassword ? '🙈' : '👁️'}
-                </Text>
+                <MaterialIcons
+                  name={showPassword ? 'visibility-off' : 'visibility'}
+                  size={22}
+                  color="#64748b"
+                />
               </Pressable>
             </View>
           </View>
@@ -130,9 +156,16 @@ export function LoginScreen() {
         </View>
 
         {/* ── Footer ── */}
-        <Text className="text-muted text-xs text-center mt-10">
-          ClaudeNest — Remote Claude Code Orchestration
-        </Text>
+        <View className="mt-10 items-center gap-y-3">
+          <Pressable onPress={openRegister} hitSlop={8}>
+            <Text className="text-primary text-sm">
+              Pas de compte ? Inscrivez-vous sur le web
+            </Text>
+          </Pressable>
+          <Text className="text-muted text-xs text-center">
+            ClaudeNest — Remote Claude Code Orchestration
+          </Text>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );

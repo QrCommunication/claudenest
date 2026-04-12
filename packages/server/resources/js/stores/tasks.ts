@@ -25,6 +25,7 @@ export const useTasksStore = defineStore('tasks', () => {
   // ==================== GETTERS ====================
   const tasksByStatus = computed(() => {
     const grouped: Record<TaskStatus, SharedTask[]> = {
+      backlog: [],
       pending: [],
       in_progress: [],
       blocked: [],
@@ -32,7 +33,9 @@ export const useTasksStore = defineStore('tasks', () => {
       done: [],
     };
     tasks.value.forEach(task => {
-      grouped[task.status].push(task);
+      if (grouped[task.status]) {
+        grouped[task.status].push(task);
+      }
     });
     return grouped;
   });
@@ -73,6 +76,42 @@ export const useTasksStore = defineStore('tasks', () => {
     });
     return priority;
   });
+
+  const backlogTasks = computed(() =>
+    tasks.value.filter(t => t.status === 'backlog')
+  );
+
+  const tasksByEpic = computed(() => {
+    const grouped: Record<string, SharedTask[]> = { unassigned: [] };
+    tasks.value.forEach(task => {
+      const key = task.epic_id || 'unassigned';
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(task);
+    });
+    return grouped;
+  });
+
+  const tasksBySprint = computed(() => {
+    const grouped: Record<string, SharedTask[]> = { backlog: [] };
+    tasks.value.forEach(task => {
+      const key = task.sprint_id || 'backlog';
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(task);
+    });
+    return grouped;
+  });
+
+  const rootTasks = computed(() =>
+    tasks.value.filter(t => !t.parent_id)
+  );
+
+  const totalStoryPoints = computed(() =>
+    tasks.value.reduce((sum, t) => sum + (t.story_points || 0), 0)
+  );
+
+  const completedStoryPoints = computed(() =>
+    tasks.value.filter(t => t.status === 'done').reduce((sum, t) => sum + (t.story_points || 0), 0)
+  );
 
   // ==================== ACTIONS ====================
 
@@ -369,6 +408,75 @@ export const useTasksStore = defineStore('tasks', () => {
     }
   }
 
+  /**
+   * Fetch subtasks for a given task
+   * @throws {Error} If the fetch fails
+   */
+  async function fetchSubtasks(taskId: string): Promise<SharedTask[]> {
+    try {
+      const response = await api.get<ApiResponse<SharedTask[]>>(`/tasks/${taskId}/subtasks`);
+      return response.data.data;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to fetch subtasks';
+      throw err;
+    }
+  }
+
+  /**
+   * Move a task to a different epic, sprint, status, or sort position
+   * @throws {Error} If the move fails
+   */
+  async function moveTaskTo(taskId: string, data: {
+    epic_id?: string | null;
+    sprint_id?: string | null;
+    status?: TaskStatus;
+    sort_order?: number;
+  }): Promise<SharedTask> {
+    try {
+      const response = await api.post<ApiResponse<SharedTask>>(`/tasks/${taskId}/move`, data);
+      const updated = response.data.data;
+      const index = tasks.value.findIndex(t => t.id === taskId);
+      if (index !== -1) {
+        tasks.value[index] = { ...tasks.value[index], ...updated };
+      }
+      if (selectedTask.value?.id === taskId) {
+        selectedTask.value = { ...selectedTask.value, ...updated };
+      }
+      return updated;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to move task';
+      throw err;
+    }
+  }
+
+  /**
+   * Fetch tasks for a project with extended filter support (epic, sprint, parent, root)
+   * @throws {Error} If the fetch fails
+   */
+  async function fetchTasksFiltered(projectId: string, filters: {
+    status?: TaskStatus;
+    priority?: TaskPriority;
+    epic_id?: string;
+    sprint_id?: string;
+    parent_id?: string;
+    root_only?: boolean;
+  }): Promise<SharedTask[]> {
+    isLoading.value = true;
+    error.value = null;
+    try {
+      const response = await api.get<PaginatedResponse<SharedTask>>(`/projects/${projectId}/tasks`, {
+        params: filters,
+      });
+      tasks.value = response.data.data;
+      return response.data.data;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to fetch tasks';
+      throw err;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   return {
     // State
     tasks,
@@ -388,6 +496,12 @@ export const useTasksStore = defineStore('tasks', () => {
     claimedTasks,
     unclaimedTasks,
     tasksByPriority,
+    backlogTasks,
+    tasksByEpic,
+    tasksBySprint,
+    rootTasks,
+    totalStoryPoints,
+    completedStoryPoints,
 
     // Actions
     fetchTasks,
@@ -406,5 +520,8 @@ export const useTasksStore = defineStore('tasks', () => {
     updateTaskLocal,
     addTaskLocal,
     removeTaskLocal,
+    fetchSubtasks,
+    moveTaskTo,
+    fetchTasksFiltered,
   };
 });

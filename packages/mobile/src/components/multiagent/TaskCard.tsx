@@ -4,8 +4,8 @@
  */
 
 import React, { memo, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import { useFadeIn } from '@/utils/animations';
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { colors, spacing, borderRadius, typography } from '@/theme';
 import type { SharedTask, TaskPriority, TaskStatus } from '@/types';
@@ -71,8 +71,10 @@ export const TaskCard = memo(function TaskCard({
   const isPending = task.status === 'pending';
   const isInProgress = task.status === 'in_progress';
 
+  const fadeStyle = useFadeIn();
+
   return (
-    <Animated.View entering={FadeIn.duration(300)}>
+    <Animated.View style={fadeStyle}>
       <TouchableOpacity
         style={styles.container}
         onPress={handlePress}

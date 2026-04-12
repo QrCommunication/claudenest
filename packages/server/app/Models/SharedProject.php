@@ -104,6 +104,16 @@ class SharedProject extends Model
         return $this->hasMany(SharedTask::class, 'project_id');
     }
 
+    public function epics(): HasMany
+    {
+        return $this->hasMany(Epic::class, 'project_id');
+    }
+
+    public function sprints(): HasMany
+    {
+        return $this->hasMany(Sprint::class, 'project_id');
+    }
+
     public function claudeInstances(): HasMany
     {
         return $this->hasMany(ClaudeInstance::class, 'project_id');
@@ -159,6 +169,21 @@ class SharedProject extends Model
     public function getPendingTasksCountAttribute(): int
     {
         return $this->tasks()->where('status', 'pending')->count();
+    }
+
+    public function getActiveSprintAttribute(): ?Sprint
+    {
+        return $this->sprints()->active()->first();
+    }
+
+    public function getEpicsCountAttribute(): int
+    {
+        return $this->epics()->count();
+    }
+
+    public function getSprintsCountAttribute(): int
+    {
+        return $this->sprints()->count();
     }
 
     // ==================== HELPERS ====================

@@ -99,7 +99,7 @@ export const ProjectsListScreen: React.FC<Props> = ({ navigation }) => {
       )}
 
       <FlatList
-        data={projects}
+        data={projects.filter((p, i, arr) => arr.findIndex(x => x.id === p.id) === i)}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         contentContainerStyle={styles.listContent}

@@ -65,11 +65,15 @@ interface Props {
   columns: KanbanColumn[];
   searchQuery?: string;
   priorityFilter?: TaskPriority | '';
+  epicFilter?: string;
+  sprintFilter?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   searchQuery: '',
   priorityFilter: '',
+  epicFilter: '',
+  sprintFilter: '',
 });
 
 const emit = defineEmits<{
@@ -86,19 +90,27 @@ const dragOverColumn = ref<TaskStatus | null>(null);
 
 const filteredTasks = computed(() => {
   let tasks = [...props.tasks];
-  
+
+  if (props.epicFilter) {
+    tasks = tasks.filter(t => t.epic_id === props.epicFilter);
+  }
+
+  if (props.sprintFilter) {
+    tasks = tasks.filter(t => t.sprint_id === props.sprintFilter);
+  }
+
   if (props.searchQuery) {
     const query = props.searchQuery.toLowerCase();
-    tasks = tasks.filter(t => 
+    tasks = tasks.filter(t =>
       t.title.toLowerCase().includes(query) ||
       t.description?.toLowerCase().includes(query)
     );
   }
-  
+
   if (props.priorityFilter) {
     tasks = tasks.filter(t => t.priority === props.priorityFilter);
   }
-  
+
   return tasks;
 });
 

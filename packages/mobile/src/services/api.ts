@@ -10,7 +10,10 @@ import axios, {
   InternalAxiosRequestConfig,
 } from 'axios';
 import type { ApiResponse, ApiError } from '@/types';
-import { useAuthStore } from '@/stores/authStore';
+
+// Lazy import to break require cycle: authStore → api → authStore
+// getAuthStore().getState() is accessed at runtime, not at import time
+const getAuthStore = () => require('@/stores/authStore').useAuthStore;
 
 // API Configuration — override via EXPO_PUBLIC_API_URL in .env
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://api.claudenest.app';
@@ -29,7 +32,7 @@ const apiClient: AxiosInstance = axios.create({
 // Request interceptor - add auth token
 apiClient.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
-    const token = useAuthStore.getState().accessToken;
+    const token = getAuthStore().getState().accessToken;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -44,37 +47,10 @@ apiClient.interceptors.response.use(
   async (error: AxiosError<ApiResponse<unknown>>) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-    // Handle 401 Unauthorized - try to refresh token
+    // Handle 401 Unauthorized — session expired, force re-login
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      
-      try {
-        const refreshToken = useAuthStore.getState().refreshToken;
-        if (!refreshToken) {
-          throw new Error('No refresh token available');
-        }
-
-        // Attempt token refresh
-        const response = await axios.post(`${API_BASE_URL}/api/${API_VERSION}/auth/refresh`, {
-          refresh_token: refreshToken,
-        });
-
-        const { access_token, refresh_token } = response.data.data;
-        
-        // Update tokens in store
-        useAuthStore.getState().setTokens({
-          accessToken: access_token,
-          refreshToken: refresh_token,
-        });
-
-        // Retry original request with new token
-        originalRequest.headers.Authorization = `Bearer ${access_token}`;
-        return apiClient(originalRequest);
-      } catch (refreshError) {
-        // Refresh failed - logout user
-        useAuthStore.getState().logout();
-        return Promise.reject(refreshError);
-      }
+      getAuthStore().getState().logout();
     }
 
     // Format error for consistent handling
@@ -108,22 +84,11 @@ export const api = {
 
 // Specific API endpoints
 export const authApi = {
-  // Email + password login (standard Sanctum)
   loginWithPassword: (email: string, password: string) =>
     api.post<{ user: import('@/types').User; token: string; expires_at: string }>(
       '/auth/login',
       { email, password }
     ),
-
-  // Magic link (kept for compatibility)
-  login: (email: string) =>
-    api.post<{ message: string }>('/auth/magic-link', { email }),
-
-  verifyMagicLink: (token: string) =>
-    api.post<{
-      user: import('@/types').User;
-      tokens: { access_token: string; refresh_token: string };
-    }>('/auth/magic-link/verify', { token }),
 
   logout: () => api.post('/auth/logout'),
 
@@ -244,14 +209,79 @@ export const tasksApi = {
   
   claim: (id: string, instanceId: string) =>
     api.post<import('@/types').SharedTask>(`/tasks/${id}/claim`, { instance_id: instanceId }),
-  
+
   release: (id: string) => api.post(`/tasks/${id}/release`),
-  
+
   complete: (id: string, summary: string, filesModified: string[]) =>
     api.post<import('@/types').SharedTask>(`/tasks/${id}/complete`, {
       summary,
       files_modified: filesModified,
     }),
+
+  getSubtasks: (id: string) =>
+    api.get<import('@/types').SharedTask[]>(`/tasks/${id}/subtasks`),
+
+  move: (id: string, data: { epic_id?: string | null; sprint_id?: string | null; sort_order?: number }) =>
+    api.post<import('@/types').SharedTask>(`/tasks/${id}/move`, data),
+};
+
+export const planningApi = {
+  getContext: (projectId: string) =>
+    api.get<{ context: string; suggestions: string[] }>(`/projects/${projectId}/planning/context`),
+
+  execute: (projectId: string, data: { prompt: string; options?: Record<string, unknown> }) =>
+    api.post<{ result: string }>(`/projects/${projectId}/planning/execute`, data),
+};
+
+export const runnerApi = {
+  getHealth: (projectId: string) =>
+    api.get<{ status: string; details: Record<string, unknown> }>(`/projects/${projectId}/runner/health`),
+
+  autoUpdate: (projectId: string) =>
+    api.post<{ updated: boolean; message: string }>(`/projects/${projectId}/runner/auto-update`),
+
+  getProgress: (projectId: string) =>
+    api.get<{ progress: number; current_task: string | null; details: Record<string, unknown> }>(`/projects/${projectId}/runner/progress`),
+};
+
+export const epicsApi = {
+  list: (projectId: string) =>
+    api.get<import('@/types').Epic[]>(`/projects/${projectId}/epics`),
+
+  get: (id: string) => api.get<import('@/types').Epic>(`/epics/${id}`),
+
+  create: (projectId: string, data: Partial<import('@/types').Epic>) =>
+    api.post<import('@/types').Epic>(`/projects/${projectId}/epics`, data),
+
+  update: (id: string, data: Partial<import('@/types').Epic>) =>
+    api.patch<import('@/types').Epic>(`/epics/${id}`, data),
+
+  delete: (id: string) => api.delete(`/epics/${id}`),
+
+  reorder: (id: string, sortOrder: number) =>
+    api.post(`/epics/${id}/reorder`, { sort_order: sortOrder }),
+};
+
+export const sprintsApi = {
+  list: (projectId: string) =>
+    api.get<import('@/types').Sprint[]>(`/projects/${projectId}/sprints`),
+
+  get: (id: string) => api.get<import('@/types').Sprint>(`/sprints/${id}`),
+
+  create: (projectId: string, data: Partial<import('@/types').Sprint>) =>
+    api.post<import('@/types').Sprint>(`/projects/${projectId}/sprints`, data),
+
+  update: (id: string, data: Partial<import('@/types').Sprint>) =>
+    api.patch<import('@/types').Sprint>(`/sprints/${id}`, data),
+
+  delete: (id: string) => api.delete(`/sprints/${id}`),
+
+  start: (id: string) => api.post<import('@/types').Sprint>(`/sprints/${id}/start`),
+
+  complete: (id: string) => api.post<import('@/types').Sprint>(`/sprints/${id}/complete`),
+
+  getBurndown: (id: string) =>
+    api.get<import('@/types').BurndownDataPoint[]>(`/sprints/${id}/burndown`),
 };
 
 export const locksApi = {

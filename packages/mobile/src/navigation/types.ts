@@ -12,7 +12,6 @@ export type RootStackParamList = {
 
 // Auth Stack
 export type AuthStackParamList = {
-  Onboarding: undefined;
   Login: undefined;
 };
 

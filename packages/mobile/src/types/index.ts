@@ -15,14 +15,12 @@ export interface User {
 
 export interface AuthTokens {
   accessToken: string;
-  refreshToken?: string;
   expiresAt?: number;
 }
 
 export interface LoginCredentials {
   email: string;
-  password?: string;
-  magicLink?: boolean;
+  password: string;
 }
 
 // ==================== MACHINE TYPES ====================
@@ -144,7 +142,7 @@ export interface ProjectSettings {
 // ==================== TASK TYPES ====================
 
 export type TaskPriority = 'low' | 'medium' | 'high' | 'critical';
-export type TaskStatus = 'pending' | 'in_progress' | 'blocked' | 'review' | 'done';
+export type TaskStatus = 'backlog' | 'pending' | 'in_progress' | 'blocked' | 'review' | 'done';
 
 export interface SharedTask {
   id: string;
@@ -165,6 +163,70 @@ export interface SharedTask {
   createdBy: string;
   createdAt: string;
   updatedAt: string;
+  epic_id: string | null;
+  sprint_id: string | null;
+  parent_id: string | null;
+  story_points: number | null;
+  due_date: string | null;
+  sort_order: number;
+  labels: string[];
+  has_subtasks: boolean;
+  subtasks_count: number;
+  completed_subtasks_count: number;
+}
+
+// ==================== EPIC TYPES ====================
+export type EpicStatus = 'open' | 'in_progress' | 'done';
+
+export interface Epic {
+  id: string;
+  project_id: string;
+  title: string;
+  description: string | null;
+  color: string;
+  icon: string | null;
+  status: EpicStatus;
+  priority: TaskPriority;
+  sort_order: number;
+  tasks_count: number;
+  completed_tasks_count: number;
+  progress_percentage: number;
+  started_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// ==================== SPRINT TYPES ====================
+export type SprintStatus = 'planning' | 'active' | 'completed' | 'cancelled';
+
+export interface Sprint {
+  id: string;
+  project_id: string;
+  name: string;
+  goal: string | null;
+  status: SprintStatus;
+  start_date: string | null;
+  end_date: string | null;
+  velocity: number | null;
+  capacity: number | null;
+  sort_order: number;
+  tasks_count: number;
+  completed_tasks_count: number;
+  total_story_points: number;
+  completed_story_points: number;
+  progress_percentage: number;
+  remaining_days: number | null;
+  is_overdue: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BurndownDataPoint {
+  date: string;
+  remaining: number;
+  completed: number;
+  ideal: number;
 }
 
 // ==================== CONTEXT TYPES ====================
@@ -330,51 +392,16 @@ export interface WebSocketMessage {
 }
 
 // ==================== NAVIGATION TYPES ====================
-
-export type RootStackParamList = {
-  Auth: undefined;
-  Main: undefined;
-};
-
-export type AuthStackParamList = {
-  Onboarding: undefined;
-  Login: undefined;
-};
-
-export type MainTabParamList = {
-  Machines: undefined;
-  Sessions: undefined;
-  Projects: undefined;
-  Settings: undefined;
-};
-
-export type MachinesStackParamList = {
-  MachinesList: undefined;
-  MachineDetail: { machineId: string };
-  PairMachine: undefined;
-};
-
-export type SessionsStackParamList = {
-  SessionsList: { machineId?: string };
-  Session: { sessionId: string };
-  NewSession: { machineId: string };
-};
-
-export type ProjectsStackParamList = {
-  ProjectsList: undefined;
-  ProjectDetail: { projectId: string };
-  Tasks: { projectId: string };
-  Context: { projectId: string };
-  Locks: { projectId: string };
-};
-
-export type SettingsStackParamList = {
-  SettingsMain: undefined;
-  Skills: { machineId: string };
-  MCPServers: { machineId: string };
-  Commands: { machineId: string };
-  About: undefined;
-};
+// Source of truth: navigation/types.ts — re-export from there
+export type {
+  RootStackParamList,
+  AuthStackParamList,
+  MainTabParamList,
+  MachinesStackParamList,
+  SessionsStackParamList,
+  ProjectsStackParamList,
+  SettingsStackParamList,
+} from '@/navigation/types';
 
 // ==================== THEME TYPES ====================
 

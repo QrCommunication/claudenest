@@ -4,8 +4,8 @@
  */
 
 import React, { memo, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import { useFadeIn } from '@/utils/animations';
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { colors, spacing, borderRadius, typography } from '@/theme';
 import type { FileLock } from '@/types';
@@ -28,8 +28,10 @@ export const LockCard = memo(function LockCard({
   const fileName = lock.path.split('/').pop() || lock.path;
   const directory = lock.path.split('/').slice(0, -1).join('/') || '/';
 
+  const fadeStyle = useFadeIn();
+
   return (
-    <Animated.View entering={FadeIn.duration(300)}>
+    <Animated.View style={fadeStyle}>
       <View style={styles.container}>
         <View style={styles.iconContainer}>
           <Icon name="lock" size={20} color={colors.semantic.warning} />

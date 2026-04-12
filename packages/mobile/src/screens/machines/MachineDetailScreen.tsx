@@ -119,7 +119,7 @@ export const MachineDetailScreen: React.FC<Props> = ({ route, navigation }) => {
                 ]}
               />
               <Text style={styles.status}>
-                {machine.status.charAt(0).toUpperCase() + machine.status.slice(1)}
+                {(machine.status || 'unknown').charAt(0).toUpperCase() + (machine.status || 'unknown').slice(1)}
               </Text>
             </View>
           </View>
@@ -148,12 +148,12 @@ export const MachineDetailScreen: React.FC<Props> = ({ route, navigation }) => {
       <Card style={styles.infoCard}>
         <CardHeader title="System Information" />
         <CardContent>
-          <InfoRow label="Platform" value={machine.platform} />
-          <InfoRow label="Architecture" value={machine.arch} />
-          <InfoRow label="Node Version" value={machine.nodeVersion} />
-          <InfoRow label="Agent Version" value={machine.agentVersion} />
+          <InfoRow label="Platform" value={machine.platform || 'N/A'} />
+          <InfoRow label="Architecture" value={machine.arch || 'N/A'} />
+          <InfoRow label="Node Version" value={machine.nodeVersion || 'N/A'} />
+          <InfoRow label="Agent Version" value={machine.agentVersion || 'N/A'} />
           <InfoRow label="Claude Version" value={machine.claudeVersion || 'N/A'} />
-          <InfoRow label="Max Sessions" value={machine.maxSessions.toString()} />
+          <InfoRow label="Max Sessions" value={String(machine.maxSessions ?? 'N/A')} />
         </CardContent>
       </Card>
 

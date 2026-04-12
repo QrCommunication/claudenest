@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasVersion4Uuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -34,6 +35,9 @@ class SharedTask extends Model
      */
     protected $fillable = [
         'project_id',
+        'parent_id',
+        'epic_id',
+        'sprint_id',
         'wave',
         'title',
         'description',
@@ -45,6 +49,10 @@ class SharedTask extends Model
         'blocked_by',
         'files',
         'estimated_tokens',
+        'story_points',
+        'due_date',
+        'sort_order',
+        'labels',
         'completed_at',
         'completion_summary',
         'files_modified',
@@ -59,7 +67,11 @@ class SharedTask extends Model
         'dependencies' => 'array',
         'files' => 'array',
         'files_modified' => 'array',
+        'labels' => 'array',
         'estimated_tokens' => 'integer',
+        'story_points' => 'integer',
+        'sort_order' => 'integer',
+        'due_date' => 'date',
         'claimed_at' => 'datetime',
         'completed_at' => 'datetime',
         'created_at' => 'datetime',
@@ -82,7 +94,7 @@ class SharedTask extends Model
 
     public const PRIORITIES = ['low', 'medium', 'high', 'critical'];
 
-    public const STATUSES = ['pending', 'in_progress', 'blocked', 'review', 'done'];
+    public const STATUSES = ['backlog', 'pending', 'in_progress', 'blocked', 'review', 'done'];
 
     // ==================== RELATIONSHIPS ====================
 
@@ -94,6 +106,26 @@ class SharedTask extends Model
     public function assignedInstance(): HasOne
     {
         return $this->hasOne(ClaudeInstance::class, 'current_task_id');
+    }
+
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_id');
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(self::class, 'parent_id');
+    }
+
+    public function epic(): BelongsTo
+    {
+        return $this->belongsTo(Epic::class);
+    }
+
+    public function sprint(): BelongsTo
+    {
+        return $this->belongsTo(Sprint::class);
     }
 
     // ==================== SCOPES ====================
@@ -164,6 +196,36 @@ class SharedTask extends Model
                      });
     }
 
+    public function scopeByEpic($query, string $epicId)
+    {
+        return $query->where('epic_id', $epicId);
+    }
+
+    public function scopeBySprint($query, string $sprintId)
+    {
+        return $query->where('sprint_id', $sprintId);
+    }
+
+    public function scopeRootTasks($query)
+    {
+        return $query->whereNull('parent_id');
+    }
+
+    public function scopeSubtasksOf($query, string $parentId)
+    {
+        return $query->where('parent_id', $parentId);
+    }
+
+    public function scopeBacklog($query)
+    {
+        return $query->where('status', 'backlog');
+    }
+
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('sort_order');
+    }
+
     // ==================== ACCESSORS ====================
 
     public function getIsClaimedAttribute(): bool
@@ -199,6 +261,21 @@ class SharedTask extends Model
             'low' => 1,
             default => 0,
         };
+    }
+
+    public function getSubtasksCountAttribute(): int
+    {
+        return $this->children()->count();
+    }
+
+    public function getCompletedSubtasksCountAttribute(): int
+    {
+        return $this->children()->where('status', 'done')->count();
+    }
+
+    public function getHasSubtasksAttribute(): bool
+    {
+        return $this->children()->exists();
     }
 
     // ==================== HELPERS ====================
@@ -318,6 +395,7 @@ class SharedTask extends Model
         return static::forProject($projectId)
             ->readyToStart()
             ->orderByRaw("COALESCE(wave, 999) ASC")
+            ->orderBy('sort_order', 'asc')
             ->orderByRaw("
                 CASE priority
                     WHEN 'critical' THEN 4
@@ -337,6 +415,7 @@ class SharedTask extends Model
             $task = static::forProject($projectId)
                 ->readyToStart()
                 ->orderByRaw("COALESCE(wave, 999) ASC")
+                ->orderBy('sort_order', 'asc')
                 ->orderByRaw("
                     CASE priority
                         WHEN 'critical' THEN 4

@@ -141,6 +141,35 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::post('tasks/{task}/claim', [Api\TaskController::class, 'claim']);
     Route::post('tasks/{task}/release', [Api\TaskController::class, 'release']);
     Route::post('tasks/{task}/complete', [Api\TaskController::class, 'complete']);
+    Route::get('tasks/{task}/subtasks', [Api\TaskController::class, 'subtasks']);
+    Route::post('tasks/{task}/move', [Api\TaskController::class, 'move']);
+
+    // ==================== EPICS ====================
+    Route::get('projects/{project}/epics', [Api\EpicController::class, 'index']);
+    Route::post('projects/{project}/epics', [Api\EpicController::class, 'store']);
+    Route::get('epics/{epic}', [Api\EpicController::class, 'show']);
+    Route::patch('epics/{epic}', [Api\EpicController::class, 'update']);
+    Route::delete('epics/{epic}', [Api\EpicController::class, 'destroy']);
+    Route::post('epics/{epic}/reorder', [Api\EpicController::class, 'reorder']);
+
+    // ==================== SPRINTS ====================
+    Route::get('projects/{project}/sprints', [Api\SprintController::class, 'index']);
+    Route::post('projects/{project}/sprints', [Api\SprintController::class, 'store']);
+    Route::get('sprints/{sprint}', [Api\SprintController::class, 'show']);
+    Route::patch('sprints/{sprint}', [Api\SprintController::class, 'update']);
+    Route::delete('sprints/{sprint}', [Api\SprintController::class, 'destroy']);
+    Route::post('sprints/{sprint}/start', [Api\SprintController::class, 'start']);
+    Route::post('sprints/{sprint}/complete', [Api\SprintController::class, 'complete']);
+    Route::get('sprints/{sprint}/burndown', [Api\SprintController::class, 'burndown']);
+
+    // ==================== PLANNING AGENT ====================
+    Route::get('projects/{project}/planning/context', [Api\PlanningController::class, 'context']);
+    Route::post('projects/{project}/planning/execute', [Api\PlanningController::class, 'execute']);
+
+    // ==================== RUNNER AGENT ====================
+    Route::get('projects/{project}/runner/health', [Api\RunnerController::class, 'healthCheck']);
+    Route::post('projects/{project}/runner/auto-update', [Api\RunnerController::class, 'autoUpdate']);
+    Route::get('projects/{project}/runner/progress', [Api\RunnerController::class, 'progress']);
 
     // ==================== FILE LOCKS ====================
     Route::get('projects/{project}/locks', [Api\FileLockController::class, 'index']);

@@ -3,9 +3,8 @@
  * Displays a machine/endpoint in a card format
  */
 
-import React, { memo, useCallback } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import React, { memo, useCallback, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Animated, Pressable } from 'react-native';
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { colors, spacing, borderRadius, typography } from '@/theme';
 import type { Machine } from '@/types';
@@ -22,6 +21,12 @@ export const MachineCard = memo(function MachineCard({
   onPress,
   onLongPress,
 }: MachineCardProps) {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
+  }, [fadeAnim]);
+
   const handlePress = useCallback(() => {
     onPress(machine);
   }, [machine, onPress]);
@@ -32,50 +37,33 @@ export const MachineCard = memo(function MachineCard({
 
   const getPlatformIcon = () => {
     switch (machine.platform) {
-      case 'darwin':
-        return 'laptop-mac';
-      case 'win32':
-        return 'laptop-windows';
-      case 'linux':
-        return 'computer';
-      default:
-        return 'computer';
+      case 'darwin': return 'laptop-mac';
+      case 'win32': return 'laptop-windows';
+      case 'linux': return 'computer';
+      default: return 'computer';
     }
   };
 
   const getStatusLabel = () => {
     switch (machine.status) {
-      case 'online':
-        return 'Online';
-      case 'offline':
-        return 'Offline';
-      case 'connecting':
-        return 'Connecting...';
-      default:
-        return machine.status;
+      case 'online': return 'Online';
+      case 'offline': return 'Offline';
+      case 'connecting': return 'Connecting...';
+      default: return machine.status;
     }
   };
 
   return (
-    <Animated.View entering={FadeIn.duration(300)}>
-      <Animated.View
+    <Animated.View style={{ opacity: fadeAnim }}>
+      <Pressable
         style={styles.container}
+        onPress={handlePress}
+        onLongPress={handleLongPress}
         accessible
         accessibilityRole="button"
         accessibilityLabel={`${machine.name}, ${getStatusLabel()}`}
       >
-        <Animated.View
-          style={styles.touchable}
-          onTouchEnd={handlePress}
-          onTouchStart={(e) => {
-            // Handle long press with timer
-            const timer = setTimeout(() => {
-              handleLongPress();
-            }, 500);
-            const clear = () => clearTimeout(timer);
-            e.target?.addEventListener?.('touchend', clear, { once: true });
-          }}
-        >
+        <View style={styles.touchable}>
           <View style={styles.header}>
             <View style={styles.iconContainer}>
               <Icon name={getPlatformIcon()} size={24} color={colors.primary.purple} />
@@ -108,17 +96,13 @@ export const MachineCard = memo(function MachineCard({
           </View>
 
           <View style={styles.footer}>
-            <Badge
-              text={machine.platform}
-              variant="default"
-              size="small"
-            />
+            <Badge text={machine.platform} variant="default" size="small" />
             {machine.status === 'online' && (
               <Badge text="Ready" variant="success" size="small" />
             )}
           </View>
-        </Animated.View>
-      </Animated.View>
+        </View>
+      </Pressable>
     </Animated.View>
   );
 });
@@ -133,53 +117,18 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
     overflow: 'hidden',
   },
-  touchable: {
-    padding: spacing.md,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-  },
+  touchable: { padding: spacing.md },
+  header: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm },
   iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: borderRadius.base,
-    backgroundColor: colors.background.dark2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: spacing.sm,
+    width: 40, height: 40, borderRadius: borderRadius.base,
+    backgroundColor: colors.background.dark2, justifyContent: 'center',
+    alignItems: 'center', marginRight: spacing.sm,
   },
-  titleContainer: {
-    flex: 1,
-  },
-  name: {
-    fontSize: typography.size.md,
-    fontWeight: '600',
-    color: colors.text.primary,
-  },
-  hostname: {
-    fontSize: typography.size.sm,
-    color: colors.text.secondary,
-    marginTop: 2,
-  },
-  details: {
-    marginTop: spacing.xs,
-    gap: spacing.xs,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  detailText: {
-    fontSize: typography.size.sm,
-    color: colors.text.secondary,
-  },
-  footer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    marginTop: spacing.md,
-  },
+  titleContainer: { flex: 1 },
+  name: { fontSize: typography.size.md, fontWeight: '600', color: colors.text.primary },
+  hostname: { fontSize: typography.size.sm, color: colors.text.secondary, marginTop: 2 },
+  details: { marginTop: spacing.xs, gap: spacing.xs },
+  detailRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  detailText: { fontSize: typography.size.sm, color: colors.text.secondary },
+  footer: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.md },
 });

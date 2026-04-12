@@ -77,7 +77,8 @@ class WebSocketService {
     });
 
     this.socket.on('connect_error', (error) => {
-      console.error('[WebSocket] Connection error:', error.message);
+      // Use warn instead of error to avoid red screen in dev
+      console.warn('[WebSocket] Connection error:', error.message);
       this.connectionState = 'error';
       this.reconnectAttempts++;
       this.emit('connection:error', { error: error.message });

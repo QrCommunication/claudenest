@@ -5,14 +5,15 @@
 import React from 'react';
 import {
   View,
+  Animated,
   TouchableOpacity,
   Text,
   StyleSheet,
   type ViewStyle,
   type TextStyle,
 } from 'react-native';
-import Animated, { FadeIn } from 'react-native-reanimated';
 import { colors, spacing, borderRadius } from '@/theme';
+import { useFadeIn } from '@/utils/animations';
 
 interface CardProps {
   children: React.ReactNode;
@@ -20,7 +21,6 @@ interface CardProps {
   onPress?: () => void;
   onLongPress?: () => void;
   disabled?: boolean;
-  entering?: any;
 }
 
 export const Card: React.FC<CardProps> = ({
@@ -29,10 +29,10 @@ export const Card: React.FC<CardProps> = ({
   onPress,
   onLongPress,
   disabled,
-  entering = FadeIn.duration(300),
 }) => {
+  const fadeStyle = useFadeIn();
   const content = (
-    <Animated.View entering={entering} style={[styles.container, style]}>
+    <Animated.View style={[styles.container, style, fadeStyle]}>
       {children}
     </Animated.View>
   );

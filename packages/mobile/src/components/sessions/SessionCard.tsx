@@ -4,8 +4,8 @@
  */
 
 import React, { memo, useCallback } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import { View, Text, StyleSheet, Animated } from 'react-native';
+import { useFadeIn } from '@/utils/animations';
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { colors, spacing, borderRadius, typography } from '@/theme';
 import type { Session, SessionStatus } from '@/types';
@@ -56,12 +56,11 @@ export const SessionCard = memo(function SessionCard({
     }
   };
 
+  const fadeStyle = useFadeIn();
+
   return (
-    <Animated.View entering={FadeIn.duration(300)}>
-      <Animated.View
-        style={styles.container}
-        onTouchEnd={handlePress}
-      >
+    <Animated.View style={[styles.container, fadeStyle]} onTouchEnd={handlePress}>
+      <View>
         <View style={styles.header}>
           <View style={styles.iconContainer}>
             <Icon name={getModeIcon()} size={20} color={colors.primary.purple} />
@@ -102,7 +101,7 @@ export const SessionCard = memo(function SessionCard({
             {formatDistanceToNow(session.createdAt)}
           </Text>
         </View>
-      </Animated.View>
+      </View>
     </Animated.View>
   );
 });

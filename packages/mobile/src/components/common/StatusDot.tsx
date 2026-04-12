@@ -1,17 +1,10 @@
 /**
  * StatusDot Component
- * Shows a colored dot indicating status
+ * Shows a colored dot indicating status with pulse animation
  */
 
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  withSpring,
-  withRepeat,
-  withSequence,
-  useSharedValue,
-} from 'react-native-reanimated';
+import React, { useEffect, useRef } from 'react';
+import { Animated, StyleSheet, Easing } from 'react-native';
 import { colors } from '@/theme';
 
 interface StatusDotProps {
@@ -25,42 +18,32 @@ export const StatusDot: React.FC<StatusDotProps> = ({
   size = 12,
   pulse = false,
 }) => {
-  const scale = useSharedValue(1);
+  const scale = useRef(new Animated.Value(1)).current;
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (pulse && (status === 'connecting' || status === 'busy')) {
-      scale.value = withRepeat(
-        withSequence(
-          withSpring(1.2, { damping: 2 }),
-          withSpring(1, { damping: 2 })
-        ),
-        -1,
-        true
+      const animation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(scale, { toValue: 1.3, duration: 600, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+          Animated.timing(scale, { toValue: 1, duration: 600, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        ])
       );
+      animation.start();
+      return () => animation.stop();
     } else {
-      scale.value = 1;
+      scale.setValue(1);
     }
   }, [status, pulse, scale]);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
   const getColor = () => {
     switch (status) {
-      case 'online':
-        return colors.status.online;
+      case 'online': return colors.status.online;
       case 'offline':
-      case 'error':
-        return colors.status.offline;
-      case 'connecting':
-        return colors.status.connecting;
-      case 'busy':
-        return colors.status.busy;
-      case 'idle':
-        return colors.status.idle;
-      default:
-        return colors.text.muted;
+      case 'error': return colors.status.offline;
+      case 'connecting': return colors.status.connecting;
+      case 'busy': return colors.status.busy;
+      case 'idle': return colors.status.idle;
+      default: return colors.text.muted;
     }
   };
 
@@ -73,8 +56,8 @@ export const StatusDot: React.FC<StatusDotProps> = ({
           height: size,
           borderRadius: size / 2,
           backgroundColor: getColor(),
+          transform: [{ scale }],
         },
-        animatedStyle,
       ]}
     />
   );
