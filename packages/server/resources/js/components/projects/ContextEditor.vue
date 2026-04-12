@@ -54,6 +54,7 @@ const computedRows = computed(() => {
 </script>
 
 <style scoped>
+@reference "../../../css/app.css";
 .context-editor {
   @apply w-full;
 }

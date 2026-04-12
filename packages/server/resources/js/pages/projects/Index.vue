@@ -390,6 +390,7 @@ async function deleteProject() {
 </script>
 
 <style scoped>
+@reference "../../../css/app.css";
 .projects-page {
   @apply p-6;
 }

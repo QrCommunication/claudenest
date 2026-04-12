@@ -16,6 +16,7 @@
 </template>
 
 <style scoped>
+@reference "../../../css/app.css";
 .session-detail-page {
   @apply p-6;
 }

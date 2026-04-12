@@ -27,6 +27,7 @@ const tooltip = computed(() => {
 </script>
 
 <style scoped>
+@reference "../../../css/app.css";
 .status-dot {
   @apply inline-block w-3 h-3 rounded-full;
 }

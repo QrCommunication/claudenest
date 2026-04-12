@@ -9,7 +9,7 @@
   >
     <div
       :class="[
-        'pointer-events-auto w-full max-w-sm overflow-hidden rounded-card shadow-lg ring-1 ring-black ring-opacity-5',
+        'pointer-events-auto w-full max-w-sm overflow-hidden rounded-card shadow-lg ring-1 ring-black/5',
         variantClasses[toast.type],
       ]"
     >

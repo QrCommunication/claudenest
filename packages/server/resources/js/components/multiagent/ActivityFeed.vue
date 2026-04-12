@@ -171,6 +171,7 @@ function toggleDetails(activityId: string) {
 </script>
 
 <style scoped>
+@reference "../../../css/app.css";
 .activity-feed {
   @apply bg-surface-2 rounded-xl border border-skin flex flex-col h-full max-h-[600px];
 }

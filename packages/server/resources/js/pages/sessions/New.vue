@@ -266,6 +266,7 @@ async function startSession() {
 </script>
 
 <style scoped>
+@reference "../../../css/app.css";
 .new-session-page {
   @apply p-6;
 }

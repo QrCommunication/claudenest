@@ -1,0 +1,13 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "types": ["vite/client", "vitest/globals", "node"],
+        "noEmit": true
+    },
+    "include": [
+        "resources/js/**/*.ts",
+        "resources/js/**/*.vue",
+        "resources/js/**/*.d.ts"
+    ],
+    "exclude": ["node_modules", "vendor", "public"]
+}

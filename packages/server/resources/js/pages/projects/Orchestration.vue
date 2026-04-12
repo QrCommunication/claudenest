@@ -232,6 +232,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+@reference "../../../css/app.css";
 .orchestration-page {
   @apply space-y-8;
 }

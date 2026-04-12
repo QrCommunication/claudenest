@@ -259,6 +259,7 @@ defineExpose({ showToken });
 </script>
 
 <style scoped>
+@reference "../../../css/app.css";
 .modal-overlay {
   @apply fixed inset-0 z-50 flex items-center justify-center p-4;
   background: rgba(15, 15, 26, 0.8);

@@ -21,7 +21,7 @@ vi.mock('@/composables/useToast', () => ({
 // Get the mocked api instance for assertion / control in tests
 import { api } from '@/composables/useApi';
 
-const mockApi = api as { get: ReturnType<typeof vi.fn>; post: ReturnType<typeof vi.fn> };
+const mockApi = api as unknown as { get: ReturnType<typeof vi.fn>; post: ReturnType<typeof vi.fn> };
 
 describe('Auth Store', () => {
   beforeEach(() => {

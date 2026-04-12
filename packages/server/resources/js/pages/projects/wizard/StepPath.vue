@@ -120,6 +120,7 @@ async function handleScan(): Promise<void> {
 </script>
 
 <style scoped>
+@reference "tailwindcss";
 .step-path {
   @apply space-y-4;
 }

@@ -92,6 +92,7 @@ const emit = defineEmits<{
 </script>
 
 <style scoped>
+@reference "tailwindcss";
 .step-tasks {
   @apply space-y-4;
 }

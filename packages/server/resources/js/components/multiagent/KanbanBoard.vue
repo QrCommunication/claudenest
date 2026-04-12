@@ -179,6 +179,7 @@ function onDrop(columnId: TaskStatus, event: DragEvent) {
 </script>
 
 <style scoped>
+@reference "../../../css/app.css";
 .kanban-board {
   @apply grid gap-6;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));

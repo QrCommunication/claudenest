@@ -37,6 +37,7 @@ watch(() => props.output, async () => {
 </script>
 
 <style scoped>
+@reference "../../../css/app.css";
 .decomposition-progress {
   @apply space-y-3;
 }

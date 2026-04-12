@@ -66,6 +66,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+@reference "tailwindcss";
 .step-machine {
   @apply space-y-4;
 }

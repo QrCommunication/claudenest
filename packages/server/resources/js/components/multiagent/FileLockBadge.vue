@@ -113,6 +113,7 @@ function handleClick() {
 </script>
 
 <style scoped>
+@reference "../../../css/app.css";
 .file-lock-badge {
   @apply flex items-center gap-3 p-3 rounded-lg border transition-all duration-200 cursor-pointer;
   @apply bg-surface-3 border-skin hover:border-surface-3;

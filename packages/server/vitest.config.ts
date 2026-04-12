@@ -5,6 +5,9 @@ import path from 'path';
 export default defineConfig({
   plugins: [vue()],
   test: {
+    typecheck: {
+      tsconfig: './tsconfig.test.json',
+    },
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./resources/js/__tests__/setup.ts'],

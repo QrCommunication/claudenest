@@ -12,12 +12,11 @@
         "lib": ["ESNext", "DOM"],
         "skipLibCheck": true,
         "noEmit": true,
-        "baseUrl": ".",
         "paths": {
-            "@/*": ["resources/js/*"]
+            "@/*": ["./resources/js/*"]
         },
         "types": ["vite/client"]
     },
     "include": ["resources/js/**/*.ts", "resources/js/**/*.vue", "resources/js/**/*.d.ts"],
-    "exclude": ["node_modules", "vendor", "public"]
+    "exclude": ["node_modules", "vendor", "public", "resources/js/__tests__"]
 }

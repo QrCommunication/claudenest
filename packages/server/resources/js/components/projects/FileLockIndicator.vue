@@ -104,6 +104,7 @@ function formatRemaining(seconds: number): string {
 </script>
 
 <style scoped>
+@reference "../../../css/app.css";
 .file-lock-indicator {
   @apply flex items-center gap-2;
 }

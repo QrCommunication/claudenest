@@ -168,6 +168,7 @@ function resetForm() {
 </script>
 
 <style scoped>
+@reference "../../../css/app.css";
 .task-form {
   @apply space-y-4;
 }

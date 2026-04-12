@@ -117,6 +117,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+@reference "../../../css/app.css";
 .prd-input {
   @apply space-y-4;
 }
