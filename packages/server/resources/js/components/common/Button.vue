@@ -2,7 +2,8 @@
   <button
     :type="type"
     :disabled="disabled || loading"
-    :class="buttonClasses"
+    class="relative inline-flex items-center justify-center font-medium rounded-button transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+    :class="[variantClass, sizeClass, block ? 'w-full' : '']"
     @click="$emit('click', $event)"
   >
     <span
@@ -64,48 +65,95 @@ defineEmits<{
   click: [event: MouseEvent];
 }>();
 
-const buttonClasses = computed(() => {
-  const baseClasses = [
-    'relative',
-    'inline-flex',
-    'items-center',
-    'justify-center',
-    'font-medium',
-    'rounded-button',
-    'transition-all',
-    'duration-200',
-    'focus:outline-none',
-    'focus:ring-2',
-    'focus:ring-offset-2',
-    'focus:ring-offset-[var(--surface-1)]',
-    'disabled:opacity-50',
-    'disabled:cursor-not-allowed',
-  ];
-
-  // Variant classes
-  const variantClasses: Record<ButtonVariant, string> = {
-    primary: 'bg-gradient-to-r from-brand-purple to-brand-indigo text-white hover:opacity-90 focus:ring-brand-purple',
-    secondary: 'bg-surface-3 text-skin-primary border border-skin hover:bg-surface-4 focus:ring-surface-4',
-    danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
-    ghost: 'bg-transparent text-skin-secondary hover:bg-surface-3 hover:text-skin-primary focus:ring-surface-4',
-    success: 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500',
-    warning: 'bg-yellow-600 text-white hover:bg-yellow-700 focus:ring-yellow-500',
-    error: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
-    info: 'bg-cyan-600 text-white hover:bg-cyan-700 focus:ring-cyan-500',
+const variantClass = computed(() => {
+  const variants: Record<ButtonVariant, string> = {
+    primary: 'btn-primary',
+    secondary: 'btn-secondary',
+    danger: 'btn-danger',
+    ghost: 'btn-ghost',
+    success: 'btn-success',
+    warning: 'btn-warning',
+    error: 'btn-danger',
+    info: 'btn-info',
   };
+  return variants[props.variant];
+});
 
-  // Size classes
-  const sizeClasses: Record<ButtonSize, string> = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-sm',
-    lg: 'px-6 py-3 text-base',
+const sizeClass = computed(() => {
+  const sizes: Record<ButtonSize, string> = {
+    sm: 'btn-sm',
+    md: 'btn-md',
+    lg: 'btn-lg',
   };
-
-  return [
-    ...baseClasses,
-    variantClasses[props.variant],
-    sizeClasses[props.size],
-    props.block ? 'w-full' : '',
-  ].join(' ');
+  return sizes[props.size];
 });
 </script>
+
+<style scoped>
+@reference "/resources/css/tailwind.css";
+
+/* Variants */
+.btn-primary {
+  @apply bg-gradient-to-r from-brand-purple to-brand-indigo text-white;
+}
+.btn-primary:hover { opacity: 0.9; }
+
+.btn-secondary {
+  @apply bg-surface-3 text-skin-primary border border-skin;
+}
+.btn-secondary:hover { @apply bg-surface-4; }
+
+.btn-danger {
+  background-color: #dc2626;
+  color: white;
+}
+.btn-danger:hover { background-color: #b91c1c; }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+}
+.btn-ghost:hover {
+  @apply bg-surface-3;
+  color: var(--text-primary);
+}
+
+.btn-success {
+  background-color: #16a34a;
+  color: white;
+}
+.btn-success:hover { background-color: #15803d; }
+
+.btn-warning {
+  background-color: #ca8a04;
+  color: white;
+}
+.btn-warning:hover { background-color: #a16207; }
+
+.btn-info {
+  background-color: #0891b2;
+  color: white;
+}
+.btn-info:hover { background-color: #0e7490; }
+
+/* Sizes */
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.8125rem;
+}
+
+.btn-md {
+  padding: 8px 16px;
+  font-size: 0.875rem;
+}
+
+.btn-lg {
+  padding: 12px 24px;
+  font-size: 1rem;
+}
+
+/* Active feedback */
+button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+</style>
