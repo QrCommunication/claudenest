@@ -90,7 +90,7 @@ const sizeClass = computed(() => {
 </script>
 
 <style scoped>
-@reference "../../../../css/tailwind.css";
+@reference "../../../css/tailwind.css";
 
 /* Variants */
 .btn-primary {
