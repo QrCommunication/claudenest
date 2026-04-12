@@ -144,6 +144,18 @@ const routes: RouteRecordRaw[] = [
                 },
             },
             {
+                path: 'projects/new',
+                name: 'projects.new',
+                component: () => import('@/pages/projects/New.vue'),
+                meta: {
+                    requiresAuth: true,
+                    breadcrumb: [
+                        { label: 'Projects', to: '/projects' },
+                        { label: 'New Project' },
+                    ],
+                },
+            },
+            {
                 path: 'projects/:id',
                 name: 'projects.show',
                 component: () => import('@/pages/projects/Show.vue'),
