@@ -84,6 +84,12 @@ const routes: RouteRecordRaw[] = [
         name: 'projects.orchestration',
         component: () => import('./pages/projects/Orchestration.vue'),
       },
+      // Tasks (global view across projects)
+      {
+        path: '/tasks',
+        name: 'tasks',
+        component: () => import('./pages/tasks/Index.vue'),
+      },
       // Credentials
       {
         path: '/credentials',
@@ -127,6 +133,12 @@ const routes: RouteRecordRaw[] = [
         path: '/commands',
         name: 'commands',
         component: () => import('./pages/commands/Index.vue'),
+      },
+      // Settings
+      {
+        path: '/settings',
+        name: 'settings',
+        component: () => import('./pages/Settings.vue'),
       },
     ],
   },
