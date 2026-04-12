@@ -131,6 +131,6 @@ async function handleGenerate(): Promise<void> {
 }
 
 .field-textarea {
-  @apply w-full px-4 py-3 bg-surface-2 border border-skin rounded-lg text-skin-primary text-sm leading-relaxed placeholder-skin-secondary focus:outline-none focus:border-brand-purple resize-y;
+  @apply w-full px-4 py-3 bg-surface-2 border border-skin rounded-lg text-skin-primary text-sm leading-relaxed placeholder:text-skin-secondary focus:outline-none focus:border-brand-purple resize-y;
 }
 </style>

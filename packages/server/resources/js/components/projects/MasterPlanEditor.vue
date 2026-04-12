@@ -285,7 +285,7 @@ function priorityClass(priority: string): string {
 .priority-low { @apply text-skin-muted; }
 
 .task-title-input {
-  @apply flex-1 bg-transparent border-none text-sm text-skin-primary placeholder-skin-secondary
+  @apply flex-1 bg-transparent border-none text-sm text-skin-primary placeholder:text-skin-secondary
          focus:outline-none focus:ring-0;
 }
 
@@ -295,7 +295,7 @@ function priorityClass(priority: string): string {
 
 .task-desc-input {
   @apply w-full bg-surface-3 border border-skin rounded text-xs text-skin-secondary p-2
-         placeholder-skin-secondary resize-none focus:outline-none focus:ring-1 focus:ring-brand-purple/30;
+         placeholder:text-skin-secondary resize-none focus:outline-none focus:ring-1 focus:ring-brand-purple/30;
 }
 
 .task-files {

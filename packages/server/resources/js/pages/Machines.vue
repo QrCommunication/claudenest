@@ -187,7 +187,7 @@
           <input
             v-model="pairingCodeDisplay"
             type="text"
-            class="w-full bg-surface-1 border border-skin rounded-lg px-4 py-3 text-center text-2xl font-mono tracking-[0.3em] text-skin-primary placeholder-skin-secondary focus:outline-none focus:border-brand-purple focus:ring-1 focus:ring-brand-purple uppercase"
+            class="w-full bg-surface-1 border border-skin rounded-lg px-4 py-3 text-center text-2xl font-mono tracking-[0.3em] text-skin-primary placeholder:text-skin-secondary focus:outline-none focus:border-brand-purple focus:ring-1 focus:ring-brand-purple uppercase"
             placeholder="XXX-XXX"
             maxlength="7"
             autocomplete="off"

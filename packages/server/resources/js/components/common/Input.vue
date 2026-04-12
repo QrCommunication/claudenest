@@ -26,7 +26,7 @@
         :disabled="disabled"
         :required="required"
         :class="[
-          'block w-full rounded-button bg-surface-3 border text-skin-primary placeholder-skin-secondary',
+          'block w-full rounded-button bg-surface-3 border text-skin-primary placeholder:text-skin-secondary',
           'focus:outline-none focus:ring-2 focus:ring-brand-purple/50 focus:border-brand-purple',
           'transition-colors duration-200',
           'disabled:opacity-50 disabled:cursor-not-allowed',

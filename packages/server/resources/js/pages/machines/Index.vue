@@ -449,7 +449,7 @@ async function wakeMachine(id: string) {
 }
 
 .search-box input {
-  @apply flex-1 bg-transparent text-skin-primary placeholder-skin-secondary outline-none;
+  @apply flex-1 bg-transparent text-skin-primary placeholder:text-skin-secondary outline-none;
 }
 
 .filter-tabs {

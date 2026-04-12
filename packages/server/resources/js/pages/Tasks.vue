@@ -156,7 +156,7 @@
           <textarea
             v-model="newTask.description"
             rows="2"
-            class="block w-full rounded-button bg-surface-3 border border-skin text-skin-primary placeholder-skin-secondary px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-purple/50 focus:border-brand-purple transition-colors resize-none"
+            class="block w-full rounded-button bg-surface-3 border border-skin text-skin-primary placeholder:text-skin-secondary px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-purple/50 focus:border-brand-purple transition-colors resize-none"
             placeholder="Optional description..."
           />
         </div>

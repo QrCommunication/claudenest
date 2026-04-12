@@ -169,7 +169,7 @@ const emit = defineEmits<{
 }
 
 .task-desc-input {
-  @apply w-full px-3 py-2 bg-surface-3 border border-skin rounded-lg text-skin-primary text-sm placeholder-skin-secondary focus:outline-none focus:border-brand-purple resize-y ml-8;
+  @apply w-full px-3 py-2 bg-surface-3 border border-skin rounded-lg text-skin-primary text-sm placeholder:text-skin-secondary focus:outline-none focus:border-brand-purple resize-y ml-8;
 }
 
 .empty-tasks {

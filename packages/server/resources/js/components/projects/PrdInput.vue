@@ -139,7 +139,7 @@ onMounted(async () => {
 
 .prd-textarea {
   @apply w-full bg-surface-3 border border-skin rounded-lg p-3 text-sm text-skin-primary
-         placeholder-skin-secondary resize-y focus:outline-none focus:ring-1 focus:ring-brand-purple/50
+         placeholder:text-skin-secondary resize-y focus:outline-none focus:ring-1 focus:ring-brand-purple/50
          font-mono;
 }
 
