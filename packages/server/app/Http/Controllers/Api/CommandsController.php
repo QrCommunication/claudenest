@@ -1003,18 +1003,4 @@ class CommandsController extends Controller
      * @param  int     $status   HTTP status code
      * @return JsonResponse
      */
-    private function errorResponse(string $code, string $message, int $status): JsonResponse
-    {
-        return response()->json([
-            'success' => false,
-            'error' => [
-                'code' => $code,
-                'message' => $message,
-            ],
-            'meta' => [
-                'timestamp' => now()->toIso8601String(),
-                'request_id' => request()->header('X-Request-ID', uniqid()),
-            ],
-        ], $status);
-    }
 }

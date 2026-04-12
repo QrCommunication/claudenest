@@ -224,18 +224,4 @@ class DecompositionController extends Controller
         return $this->decompose($request, $project);
     }
 
-    private function errorResponse(string $code, string $message, int $status): JsonResponse
-    {
-        return response()->json([
-            'success' => false,
-            'error' => [
-                'code' => $code,
-                'message' => $message,
-            ],
-            'meta' => [
-                'timestamp' => now()->toIso8601String(),
-                'request_id' => request()->header('X-Request-ID', uniqid()),
-            ],
-        ], $status);
-    }
 }
