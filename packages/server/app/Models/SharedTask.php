@@ -229,6 +229,23 @@ class SharedTask extends Model
         return $query->orderBy('sort_order');
     }
 
+    public function scopePrioritized($query)
+    {
+        return $query
+            ->orderByRaw("COALESCE(wave, 999) ASC")
+            ->orderBy('sort_order', 'asc')
+            ->orderByRaw("
+                CASE priority
+                    WHEN 'critical' THEN 4
+                    WHEN 'high' THEN 3
+                    WHEN 'medium' THEN 2
+                    WHEN 'low' THEN 1
+                    ELSE 0
+                END DESC
+            ")
+            ->orderBy('created_at', 'asc');
+    }
+
     // ==================== ACCESSORS ====================
 
     public function getIsClaimedAttribute(): bool
@@ -453,18 +470,7 @@ class SharedTask extends Model
     {
         return static::forProject($projectId)
             ->readyToStart()
-            ->orderByRaw("COALESCE(wave, 999) ASC")
-            ->orderBy('sort_order', 'asc')
-            ->orderByRaw("
-                CASE priority
-                    WHEN 'critical' THEN 4
-                    WHEN 'high' THEN 3
-                    WHEN 'medium' THEN 2
-                    WHEN 'low' THEN 1
-                    ELSE 0
-                END DESC
-            ")
-            ->orderBy('created_at', 'asc')
+            ->prioritized()
             ->first();
     }
 
@@ -473,18 +479,7 @@ class SharedTask extends Model
         return DB::transaction(function () use ($projectId, $instanceId) {
             $task = static::forProject($projectId)
                 ->readyToStart()
-                ->orderByRaw("COALESCE(wave, 999) ASC")
-                ->orderBy('sort_order', 'asc')
-                ->orderByRaw("
-                    CASE priority
-                        WHEN 'critical' THEN 4
-                        WHEN 'high' THEN 3
-                        WHEN 'medium' THEN 2
-                        WHEN 'low' THEN 1
-                        ELSE 0
-                    END DESC
-                ")
-                ->orderBy('created_at', 'asc')
+                ->prioritized()
                 ->lockForUpdate()
                 ->first();
 

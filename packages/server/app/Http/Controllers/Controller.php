@@ -25,4 +25,9 @@ abstract class Controller
             ],
         ], $status);
     }
+
+    protected function getUserProject(\Illuminate\Http\Request $request, string $id): ?\App\Models\SharedProject
+    {
+        return \App\Models\SharedProject::forUser($request->user()->id)->find($id);
+    }
 }

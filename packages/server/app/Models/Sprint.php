@@ -108,11 +108,6 @@ class Sprint extends Model
         return $query->where('status', 'completed');
     }
 
-    public function scopeCurrent($query)
-    {
-        return $query->where('status', 'active');
-    }
-
     public function scopeOrdered($query)
     {
         return $query->orderBy('sort_order')->orderBy('created_at');

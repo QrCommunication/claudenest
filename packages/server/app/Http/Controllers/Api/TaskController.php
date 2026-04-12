@@ -560,14 +560,6 @@ class TaskController extends Controller
     }
 
     /**
-     * Helper: Get project belonging to authenticated user.
-     */
-    private function getUserProject(Request $request, string $id): ?SharedProject
-    {
-        return SharedProject::forUser($request->user()->id)->find($id);
-    }
-
-    /**
      * Helper: Format task data.
      */
     private function formatTask(SharedTask $task, bool $detailed = false): array
