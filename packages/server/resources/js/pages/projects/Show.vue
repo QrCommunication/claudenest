@@ -294,7 +294,6 @@
             </div>
           </Card>
         </div>
-      </div>
 
       </div><!-- /tab-content -->
 
