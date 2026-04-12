@@ -1,261 +1,171 @@
 # Changelog
 
-All notable changes to ClaudeNest will be documented in this file.
+All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-### Added - Backend
+## [1.2.0] - 2026-04-12
 
-#### Authorization & Security
-- **7 New Authorization Policies** - Complete policy coverage for all models
-  - `MachinePolicy` - Machine ownership verification
-  - `SessionPolicy` - Session access control
-  - `SkillPolicy` - Skill management authorization (via machine)
-  - `MCPServerPolicy` - MCP server authorization (via machine)
-  - `CommandPolicy` - Command authorization (via machine)
-  - `FileLockPolicy` - File lock authorization (via project)
-  - `TaskPolicy` - Task authorization (via project)
-- **API Request Logging Middleware** (`LogApiRequests`) - Comprehensive logging of all API requests with:
-  - Request method, URL, IP, user agent
-  - Response status, duration
-  - User ID tracking
-  - Request ID for distributed tracing
-- **Global Error Handler** - Standardized API error responses with:
-  - Consistent error codes and messages
-  - Proper HTTP status codes
-  - Request IDs and timestamps
-  - Production-safe error messages
+### Added
 
-#### Testing Infrastructure
-- **98 PHPUnit Test Cases** across 11 test files:
-  - 6 Feature test suites (Auth, Machine, Session, Project, Task, FileLock)
-  - 3 Unit test suites (Services, Policies)
-  - `TestCase` base class with helper methods
-- **6 Model Factories** - For easy test data generation
-  - `UserFactory`, `MachineFactory`, `SessionFactory`
-  - `SharedProjectFactory`, `SharedTaskFactory`, `FileLockFactory`
-- **Comprehensive Test Documentation** - `tests/README.md` with examples and best practices
-
-#### Database & Demo Data
-- **DemoSeeder** (738 lines) - Production-quality demo data including:
-  - Demo user (demo@claudenest.com / password)
-  - 2 machines (MacBook Pro online, Ubuntu Server offline)
-  - 1 realistic e-commerce API project
-  - 7 context chunks with RAG
-  - 5 tasks in various states
-  - 2 Claude instances
-  - 2 sessions (running + completed)
-  - 3 skills
-  - 2 MCP servers with tools
-  - 5 discovered commands
-- **Database Seeder Documentation** - `database/seeders/README.md`
-
-#### Configuration
-- **Updated `.env.example`** - Fixed critical configuration issues:
-  - Changed DB_CONNECTION from MySQL to PostgreSQL (required for pgvector)
-  - Updated DB_PORT from 3306 to 5432
-  - Added Ollama configuration with latest models
-  - Added helpful comments for embedding dimensions
-- **Updated Ollama Config** - Latest model names and versions:
-  - `mistral:7b` → `mistral`
-  - `qllama/bge-small-en-v1.5` → `nomic-embed-text`
-  - Updated embedding dimensions to 768
-  - Backward compatibility with OLLAMA_URL
-
-### Added - Frontend
-
-#### Error Handling & Resilience
-- **WebSocket Reconnection with Exponential Backoff** - Automatic reconnection with:
-  - Exponential delay: 1s → 2s → 4s → 8s → 16s → 30s (max)
-  - Max 5 reconnection attempts
-  - Proper cleanup on disconnect
-- **API Retry Logic** - Automatic retry for failed requests:
-  - Max 3 retries with exponential backoff
-  - Retries on specific errors: 408, 429, 500, 502, 503, 504
-  - Prevents retry storms
-
-#### Testing Infrastructure
-- **28 Vitest Test Cases** across 3 test files:
-  - Component tests (Modal)
-  - Composable tests (useApi)
-  - Store tests (auth)
-- **Vitest Configuration** - Complete setup with jsdom, Vue Test Utils
-- **Test Mocks** - Global mocks for localStorage, matchMedia, fetch
-
-#### Documentation
-- **JSDoc Comments** - Added to all async store actions with `@throws` annotations
-- **Frontend Test Documentation** - `TESTING.md` with examples
-
-### Fixed - Backend
-
-#### Code Quality
-- **Removed 398 lines of redundant code** - Replaced manual ownership checks with policy authorization
-- **Service Implementation Verification** - All services now have:
-  - Proper error handling with try-catch blocks
-  - Complete PHPDoc comments
-  - Consistent return types
-  - Availability checks for external services
-
-#### Policy Enforcement
-- **8 Controllers Updated** with proper authorization:
-  - `MachineController` - 7 methods
-  - `SessionController` - 8 methods
-  - `ProjectController` - 9 methods
-  - `TaskController` - 9 methods
-  - `FileLockController` - 8 methods
-  - `SkillsController` - 7 methods
-  - `MCPController` - 10 methods
-  - `CommandsController` - 8 methods
-
-### Fixed - Frontend
-
-#### Memory Leaks
-- **Modal Component** - Fixed escape key listener leak
-  - Proper cleanup in `onUnmounted`
-  - Extracted cleanup logic to avoid duplication
-- **useTheme Composable** - Fixed media query listener leak
-  - Singleton pattern with reference counting
-  - Prevents duplicate listeners
-- **useToast Composable** - Fixed timeout leak
-  - Timeout tracking with Map
-  - Clear timeouts on toast removal
-  - Added `clearAll()` method
-
-#### Type Safety
-- **Removed all `any` types** - Replaced with proper error handling
-  - Used `err: unknown` pattern
-  - Proper error type checking with `instanceof Error`
-  - Fixed variable shadowing issues
-
-#### Error Messages
-- **Improved 403 Error Message** - Changed from "Forbidden" to "You do not have permission to access this resource"
+- Project management system with Epics, Sprints, and subtasks hierarchy
+- Planning Agent for conversational project planning with 8 action types
+- Runner Agent for automated project health monitoring and status updates
+- BurndownChart component (SVG pure, no external dependencies)
+- PlanningChat sidebar for real-time agent interaction
+- Sprint board with velocity tracking and progress ring
+- Epic board with color-coded progress tracking
+- Batch file lock conflict detection endpoint (`POST /locks/conflicts`)
+- Heartbeat auto-extend for file locks
+- Task-lock integration (auto-lock on claim, auto-release on complete)
+- `useAsyncAction` composable for store error-handling deduplication
+- API Resources: `TaskResource`, `SessionResource`, `ProjectResource`, `InstanceResource`
 
 ### Changed
 
-#### Backend
-- **Error Response Format** - Standardized across all endpoints:
-  ```json
-  {
-    "success": false,
-    "error": {
-      "code": "ERROR_CODE",
-      "message": "Human-readable message"
-    },
-    "meta": {
-      "timestamp": "2024-02-08T00:00:00.000000Z",
-      "request_id": "unique-id"
-    }
-  }
-  ```
+- `FileLock::acquire()` now uses `DB::transaction` + `lockForUpdate` for atomic acquisition
+- `SharedTask` enriched with `parent_id`, `epic_id`, `sprint_id`, `story_points`, `labels`
+- KanbanBoard enhanced with epic and sprint filters
+- Project `Show.vue` page now has 8 tabs including Epics, Sprints, and Planning Chat
+- Agent install script includes `DBUS_SESSION_BUS_ADDRESS` for systemd/keytar compatibility
 
-#### Frontend
-- **WebSocket Service** - Refactored with named constants instead of magic numbers
-- **Store Error Handling** - Consistent pattern across all stores
+### Fixed
 
-### Documentation
+- Race condition in file lock acquisition (two instances could lock the same file simultaneously)
+- `AuthorizesRequests` trait missing from base `Controller` class (Laravel 11)
+- `projects.new` route missing from `router/index.ts`
+- Invalid Tailwind class `placeholder-skin-secondary` replaced with `placeholder:` modifier (9 occurrences)
+- `Sprint::getTotalStoryPointsAttribute` calculating from wrong column
+- `SprintController::store` returning non-standard response format
+- Extra closing `</div>` breaking Vue template parsing in `Show.vue`
 
-- **CLAUDE.md** - Already comprehensive, no changes needed
-- **TESTING.md** - New comprehensive testing guide
-- **tests/README.md** - Detailed PHPUnit testing guide
-- **database/seeders/README.md** - Demo data documentation
-- **CHANGELOG.md** - This file
+### Removed
 
-## Summary Statistics
+- Orphan `router.ts` file (354 lines, duplicate of `router/index.ts`)
+- Dead pages `Sessions.vue` and `Tasks.vue` (615 lines total)
+- Duplicate `errorResponse()` helper removed from 7 controllers (centralized)
+- Duplicate scope `scopeCurrent` (identical to `scopeActive`)
 
-### Backend Changes
-- **Files Created**: 24
-- **Files Modified**: 12
-- **Lines Added**: 3,847
-- **Lines Removed**: 516
-- **Net Change**: +3,331 lines
-- **Test Cases**: 98
-- **Factories**: 6
-- **Policies**: 7
+## [1.1.0] - 2026-04-11
 
-### Frontend Changes
-- **Files Created**: 5
-- **Files Modified**: 8
-- **Lines Added**: 892
-- **Lines Removed**: 223
-- **Net Change**: +669 lines
-- **Test Cases**: 28
-- **Memory Leaks Fixed**: 3
+### Added
 
-### Total Impact
-- **Total Files Created**: 29
-- **Total Files Modified**: 20
-- **Total Test Cases**: 126
-- **Code Coverage**: Ready for measurement
+- Public landing page with hero section, feature highlights, and social proof
+- Pricing page with plan comparison
+- Documentation layout with sidebar navigation and component library
+- Changelog public page
+- Full FR/EN internationalization for auth pages (login, register)
 
-## Security
+### Changed
 
-- ✅ **CodeQL Security Scan**: 0 vulnerabilities detected
-- ✅ **Policy Authorization**: Complete coverage for all protected resources
-- ✅ **API Logging**: All requests logged for audit trail
-- ✅ **Error Handling**: No sensitive data leaked in production errors
+- Application layout refactored to IDE-style with collapsible sidebar, tab bar, and status bar
+- Public pages isolated from authenticated app layout
 
-## Testing
+## [1.0.0] - 2026-03-09
 
-- ✅ **Backend**: 98 test cases ready to run
-- ✅ **Frontend**: 28 test cases ready to run
-- ✅ **Factories**: 6 model factories for easy test data
-- ✅ **Documentation**: Comprehensive testing guides
+### Added
 
-## Breaking Changes
+**Authorization & Security**
 
-**None** - All changes are backward compatible.
+- 7 authorization policies with complete model coverage: `MachinePolicy`, `SessionPolicy`, `SkillPolicy`, `MCPServerPolicy`, `CommandPolicy`, `FileLockPolicy`, `SharedTaskPolicy`
+- `CommandPolicy` registered for `DiscoveredCommand` with `execute` ability
+- `LogApiRequests` middleware — logs method, URL, IP, user agent, response status, duration, user ID, and request ID
+- Global error handler with standardized API responses (error codes, HTTP status, request IDs, production-safe messages)
 
-## Migration Guide
+**Testing Infrastructure**
 
-### For Existing Installations
+- 98 PHPUnit test cases across 11 test files (6 Feature suites, 3 Unit suites)
+- `TestCase` base class with shared helper methods
+- 6 model factories: `UserFactory`, `MachineFactory`, `SessionFactory`, `SharedProjectFactory`, `SharedTaskFactory`, `FileLockFactory`
+- 28 Vitest test cases across 3 test files (Modal component, `useApi` composable, auth store)
+- Vitest configuration with jsdom, Vue Test Utils, and global mocks (localStorage, matchMedia, fetch)
 
-1. **Update Environment Configuration**:
-   ```bash
-   # Ensure PostgreSQL configuration
-   DB_CONNECTION=pgsql
-   DB_PORT=5432
-   
-   # Update Ollama configuration
-   OLLAMA_HOST=http://localhost:11434
-   OLLAMA_MODEL=mistral
-   OLLAMA_EMBEDDING_MODEL=nomic-embed-text
-   ```
+**Database & Demo Data**
 
-2. **Run Migrations** (if not already done):
-   ```bash
-   php artisan migrate
-   ```
+- `DemoSeeder` with production-quality demo data: demo user, 2 machines, 1 e-commerce project, 7 context chunks, 5 tasks, 2 Claude instances, 2 sessions, 3 skills, 2 MCP servers, 5 discovered commands
+- `EmbeddingService::generateBatch()` method with `normalize` parameter
 
-3. **Optional: Seed Demo Data**:
-   ```bash
-   php artisan db:seed --class=DemoSeeder
-   ```
+**Frontend Resilience**
 
-4. **Install Frontend Dependencies** (for testing):
-   ```bash
-   npm install
-   ```
+- WebSocket reconnection with exponential backoff (1s → 2s → 4s → 8s → 16s → 30s max, 5 attempts)
+- API retry logic with exponential backoff (max 3 retries, on HTTP 408/429/500/502/503/504)
 
-5. **Run Tests**:
-   ```bash
-   # Backend
-   php artisan test
-   
-   # Frontend
-   npm test
-   ```
+### Changed
 
-## Contributors
+- Error response format standardized across all API endpoints (`success`, `error.code`, `error.message`, `meta.timestamp`, `meta.request_id`)
+- 8 controllers updated with policy authorization replacing manual ownership checks: `MachineController`, `SessionController`, `ProjectController`, `TaskController`, `FileLockController`, `SkillsController`, `MCPController`, `CommandsController`
+- `.env.example` updated: DB driver switched to PostgreSQL (`pgsql`, port `5432`), Ollama models updated to `mistral` and `nomic-embed-text`, embedding dimensions set to 768
+- WebSocket service refactored with named constants replacing magic numbers
+- `useTheme` composable refactored to singleton pattern with reference counting to prevent duplicate media query listeners
 
-- Code Review Agent (Comprehensive review and refactoring)
-- Security Team (CodeQL scanning)
+### Fixed
 
----
+- `Modal` component: escape key listener leak fixed with proper `onUnmounted` cleanup
+- `useTheme` composable: media query listener leak fixed
+- `useToast` composable: timeout leak fixed with `Map`-based tracking and `clearAll()` method
+- All `any` types removed from frontend — replaced with `unknown` and `instanceof Error` checks
+- 403 error message changed from "Forbidden" to a human-readable message
+- Axios response interceptor guarded against undefined `error.config`
+- `Modal.spec.ts` mounting actual `Modal.vue` instead of inline mock
+- `useTheme.ts` singleton `mediaQuery` with ref counting
+- WebSocket `terminalReconnectAttempts` and `terminalReconnectTimer` fields restored after cleanup
+- `SharedTaskPolicy` renamed from `TaskPolicy` with `claim`, `release`, and `complete` abilities
 
-For more information, see:
-- [README.md](README.md) - Project overview
-- [CLAUDE.md](CLAUDE.md) - AI agent documentation
-- [TESTING.md](TESTING.md) - Testing guide
+### Removed
+
+- 398 lines of redundant manual ownership checks replaced by policy authorization
+
+## [0.3.0] - 2026-02-16
+
+### Added
+
+- User roles system
+- Complete RAG pipeline with reranker (pgvector + `bge-small-en-v1.5`)
+- Internationalization for auth pages via vue-i18n
+
+### Changed
+
+- Authentication flow and navigation refactored for clarity
+- Dashboard view improved with deployment status indicators
+
+## [0.2.0] - 2026-02-04
+
+### Added
+
+- Complete ClaudeNest platform initial implementation
+- Laravel 11 backend with PostgreSQL + pgvector
+- Vue.js 3 web dashboard with xterm.js terminal
+- React Native mobile app (iOS & Android)
+- Node.js agent with node-pty for PTY management
+- Real-time WebSocket communication via Laravel Reverb
+- Multi-agent system: shared projects, context chunks, task coordination, file locking
+- Context RAG with 384-dimensional vector embeddings
+- MCP (Model Context Protocol) server management
+- Credential management with AES-256-CBC encryption
+- Dark/light theme system with CSS variables
+- Full FR/EN internationalization
+
+### Fixed
+
+- Laravel 11 compatibility issues
+- TypeScript duplicate type errors
+
+## [0.1.0] - 2026-01-01
+
+### Added
+
+- Initial project structure and monorepo setup (`packages/server`, `packages/agent`, `packages/mobile`)
+- LICENSE file and README with project documentation
+- Domain infrastructure documentation
+- `.gitignore` and `deploy.sh` baseline
+
+[Unreleased]: https://github.com/QrCommunication/claudenest/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/QrCommunication/claudenest/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/QrCommunication/claudenest/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/QrCommunication/claudenest/compare/v0.3.0...v1.0.0
+[0.3.0]: https://github.com/QrCommunication/claudenest/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/QrCommunication/claudenest/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/QrCommunication/claudenest/releases/tag/v0.1.0

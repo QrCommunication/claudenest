@@ -437,8 +437,12 @@ An automated install script is available for Ubuntu/Debian servers:
 
 ## Documentation
 
+### Technical (Developers)
+
 | Document | Description |
 |----------|-------------|
+| [CLAUDE.md](./CLAUDE.md) | AI agent reference — single source of truth for the codebase |
+| [CHANGELOG.md](./CHANGELOG.md) | All notable changes (Keep a Changelog format) |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design and technical reference |
 | [docs/API.md](docs/API.md) | Full API documentation |
 | [docs/AI-MODELS.md](docs/AI-MODELS.md) | Ollama models and RAG configuration |
@@ -446,6 +450,23 @@ An automated install script is available for Ubuntu/Debian servers:
 | [docs/DEPLOYMENT-BAREMETAL.md](docs/DEPLOYMENT-BAREMETAL.md) | Bare-metal production setup |
 | [docs/DOMAINS.md](docs/DOMAINS.md) | Domain and DNS configuration |
 | [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) | Contribution guidelines |
+| [docs/audit-docs.md](docs/audit-docs.md) | Documentation inventory and gap analysis |
+
+### Guides (Users)
+
+| Document | Description |
+|----------|-------------|
+| [Task Coordination](packages/server/resources/js/pages/docs/guides/TaskCoordination.vue) | Epics, Sprints, subtasks, Planning Agent guide |
+| [File Locking](packages/server/resources/js/pages/docs/guides/FileLocking.vue) | Atomic locks, task integration, heartbeat |
+| [Online Docs](https://claudenest.io/docs) | Full documentation portal |
+
+### Marketing & Business
+
+| Document | Description |
+|----------|-------------|
+| [docs/marketing/one-pager.md](docs/marketing/one-pager.md) | Product pitch — problem, solution, key numbers |
+| [docs/marketing/feature-highlights.md](docs/marketing/feature-highlights.md) | Feature cards with benefits |
+| [docs/marketing/analyse-business.md](docs/marketing/analyse-business.md) | Business analysis — personas, use cases, competitive advantages |
 | [branding/BRAND-GUIDELINES.md](branding/BRAND-GUIDELINES.md) | Brand identity and assets |
 
 ---
