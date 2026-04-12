@@ -1,16 +1,24 @@
 <template>
-  <div class="code-block" :class="{ 'with-filename': filename }">
+  <div class="code-block" :class="{ 'with-filename': filename, 'with-lines': showLineNumbers }">
     <div class="code-header">
-      <span v-if="filename" class="filename">{{ filename }}</span>
-      <span v-else class="language">{{ displayLanguage }}</span>
-      <button class="copy-btn" @click="copyCode" :class="{ copied: copied }">
-        <svg v-if="!copied" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+      <div class="code-header-left">
+        <span v-if="filename" class="filename">{{ filename }}</span>
+        <span v-else class="language-badge" :class="languageClass">{{ displayLanguage }}</span>
+      </div>
+      <button
+        class="copy-btn"
+        :class="{ copied: copied }"
+        @click="copyCode"
+        :aria-label="copied ? 'Copied' : 'Copy code'"
+      >
+        <svg v-if="!copied" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+          <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
         </svg>
-        <svg v-else viewBox="0 0 24 24" fill="currentColor">
-          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+        <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
         </svg>
-        {{ copied ? 'Copied!' : 'Copy' }}
+        <span class="copy-label">{{ copied ? 'Copied!' : 'Copy' }}</span>
       </button>
     </div>
     <pre :class="`language-${language}`"><code ref="codeRef">{{ code }}</code></pre>
@@ -24,9 +32,12 @@ interface Props {
   code: string;
   language: string;
   filename?: string;
+  showLineNumbers?: boolean;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  showLineNumbers: false,
+});
 
 const codeRef = ref<HTMLElement>();
 const copied = ref(false);
@@ -58,6 +69,23 @@ const displayLanguage = computed(() => {
   return langMap[props.language] || props.language.toUpperCase();
 });
 
+const languageClass = computed(() => {
+  const classMap: Record<string, string> = {
+    'bash': 'lang-shell',
+    'sh': 'lang-shell',
+    'shell': 'lang-shell',
+    'js': 'lang-js',
+    'javascript': 'lang-js',
+    'ts': 'lang-ts',
+    'typescript': 'lang-ts',
+    'php': 'lang-php',
+    'json': 'lang-json',
+    'python': 'lang-python',
+    'py': 'lang-python',
+  };
+  return classMap[props.language] || 'lang-default';
+});
+
 const copyCode = async () => {
   try {
     await navigator.clipboard.writeText(props.code);
@@ -70,16 +98,12 @@ const copyCode = async () => {
   }
 };
 
-// Simple syntax highlighting on mount
 onMounted(() => {
   if (codeRef.value) {
     applySyntaxHighlighting(codeRef.value, props.language);
   }
 });
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
-/** Escape raw text so it is safe to inject into innerHTML. */
 function escapeHtml(text: string): string {
   return text
     .replace(/&/g, '&amp;')
@@ -92,26 +116,17 @@ function span(cls: string, escapedText: string): string {
   return `<span class="${cls}">${escapedText}</span>`;
 }
 
-// ─── Language highlighters ───────────────────────────────────────────────────
-// All functions receive raw (unescaped) text and return safe HTML.
-// Strategy: escape first → then apply spans so class attributes are never
-// corrupted by regex cascades.
-
 function highlightJson(raw: string): string {
   return raw.split('\n').map(line => {
     const e = escapeHtml(line);
     return e
-      // Key: "word":
       .replace(/(&quot;)([^&"]*?)(&quot;)(\s*:)/g,
         (_m, q1, key, q2, colon) => span('token-key', `${q1}${key}${q2}`) + colon,
       )
-      // String value: : "..."
       .replace(/(:\s*)(&quot;)([^&"]*?)(&quot;)/g,
         (_m, sep, q1, val, q2) => sep + span('token-string', `${q1}${val}${q2}`),
       )
-      // Boolean / null
       .replace(/\b(true|false|null)\b/g, v => span('token-boolean', v))
-      // Number (after : only)
       .replace(/(:\s*)(-?\d+\.?\d*)\b/g,
         (_m, sep, n) => sep + span('token-number', n),
       );
@@ -122,21 +137,15 @@ function highlightShell(raw: string): string {
   const KEYWORDS = /\b(curl|wget|echo|export|if|then|else|fi|for|do|done|while|function|npm|npx|yarn|pnpm|php|artisan|composer|git|sudo|chmod|chown|mkdir|cp|mv|rm|ln|systemctl|docker|bash|sh)\b/g;
 
   return raw.split('\n').map(line => {
-    // Comment lines (# …) — escape and wrap entirely
     if (/^\s*#/.test(line)) {
       return span('token-comment', escapeHtml(line));
     }
-
     const e = escapeHtml(line);
-
     return e
-      // Double-quoted strings (after HTML-escaping, " becomes &quot;)
       .replace(/(&quot;)(.*?)(&quot;)/g,
         (_m, q1, content, q2) => span('token-string', `${q1}${content}${q2}`),
       )
-      // Shell keywords
       .replace(KEYWORDS, kw => span('token-keyword', kw))
-      // Flags: -f or --flag (must be preceded by space or start of line)
       .replace(/(^|\s)(--?[a-zA-Z][a-zA-Z-]*)/g,
         (_m, before, flag) => before + span('token-flag', flag),
       );
@@ -147,29 +156,21 @@ function highlightJsTs(raw: string): string {
   const KEYWORDS = /\b(const|let|var|function|async|await|return|import|export|from|class|interface|type|if|else|try|catch|throw|new|extends|implements|readonly|public|private|protected|static|void|boolean|number|string|null|undefined|true|false)\b/g;
 
   return raw.split('\n').map(line => {
-    // Single-line comment
     if (/^\s*\/\//.test(line)) {
       return span('token-comment', escapeHtml(line));
     }
-
     const e = escapeHtml(line);
-
     return e
-      // Template literals (simplified — single-line backtick strings)
       .replace(/(`)([^`]*?)(`)/g,
         (_m, q1, content, q2) => span('token-string', `${q1}${content}${q2}`),
       )
-      // Double-quoted strings
       .replace(/(&quot;)([^&]*?)(&quot;)/g,
         (_m, q1, content, q2) => span('token-string', `${q1}${content}${q2}`),
       )
-      // Single-quoted strings
       .replace(/(')(.*?)(')/g,
         (_m, q1, content, q2) => span('token-string', `${q1}${content}${q2}`),
       )
-      // Keywords
       .replace(KEYWORDS, kw => span('token-keyword', kw))
-      // Numbers (standalone)
       .replace(/\b(\d+\.?\d*)\b/g, n => span('token-number', n));
   }).join('\n');
 }
@@ -178,36 +179,25 @@ function highlightPhp(raw: string): string {
   const KEYWORDS = /\b(class|function|public|private|protected|return|if|else|try|catch|throw|new|use|namespace|extends|implements|abstract|static|readonly|array|string|int|float|bool|void|null|true|false)\b/g;
 
   return raw.split('\n').map(line => {
-    // Comment lines
     if (/^\s*(\/\/|\/\*|\*)/.test(line)) {
       return span('token-comment', escapeHtml(line));
     }
-
     const e = escapeHtml(line);
-
     return e
-      // Double-quoted strings
       .replace(/(&quot;)([^&]*?)(&quot;)/g,
         (_m, q1, content, q2) => span('token-string', `${q1}${content}${q2}`),
       )
-      // Single-quoted strings
       .replace(/(')(.*?)(')/g,
         (_m, q1, content, q2) => span('token-string', `${q1}${content}${q2}`),
       )
-      // Keywords
       .replace(KEYWORDS, kw => span('token-keyword', kw))
-      // PHP variables ($var)
       .replace(/(\$[a-zA-Z_][a-zA-Z0-9_]*)/g, v => span('token-variable', v))
-      // Numbers
       .replace(/\b(\d+\.?\d*)\b/g, n => span('token-number', n));
   }).join('\n');
 }
 
-// ─── Entry point ─────────────────────────────────────────────────────────────
-
 function applySyntaxHighlighting(element: HTMLElement, language: string) {
   const code = element.textContent || '';
-
   let highlighted: string;
 
   if (language === 'json') {
@@ -219,157 +209,163 @@ function applySyntaxHighlighting(element: HTMLElement, language: string) {
   } else if (language === 'php') {
     highlighted = highlightPhp(code);
   } else {
-    // Plain text / unknown language — escape only, no spans
     highlighted = escapeHtml(code);
   }
 
-  // All text content is HTML-escaped before being wrapped in spans,
-  // so innerHTML here is safe from XSS.
   element.innerHTML = highlighted;
 }
 </script>
 
 <style scoped>
 .code-block {
-  margin: 1.5rem 0;
-  border-radius: 12px;
+  margin: 1.25rem 0;
+  border-radius: 8px;
   overflow: hidden;
-  background: var(--code-bg, var(--surface-1));
-  border: 1px solid var(--border-color, var(--border));
+  background: #0d1117;
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .code-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 1rem;
-  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
-  border-bottom: 1px solid color-mix(in srgb, var(--text-primary) 5%, transparent);
+  padding: 0.55rem 0.85rem;
+  background: #161b22;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.code-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .filename {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
+  font-size: 0.78rem;
+  color: #8b949e;
   font-family: 'JetBrains Mono', monospace;
 }
 
-.language {
-  font-size: 0.75rem;
-  color: var(--text-muted);
+.language-badge {
+  display: inline-block;
+  padding: 0.1rem 0.4rem;
+  font-size: 0.65rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
+  border-radius: 3px;
+  color: #8b949e;
+  background: rgba(255, 255, 255, 0.06);
 }
+
+.language-badge.lang-shell { color: #7ee787; background: rgba(126, 231, 135, 0.1); }
+.language-badge.lang-js { color: #f0e68c; background: rgba(240, 230, 140, 0.1); }
+.language-badge.lang-ts { color: #79c0ff; background: rgba(121, 192, 255, 0.1); }
+.language-badge.lang-php { color: #d2a8ff; background: rgba(210, 168, 255, 0.1); }
+.language-badge.lang-json { color: #ffa657; background: rgba(255, 166, 87, 0.1); }
+.language-badge.lang-python { color: #79c0ff; background: rgba(121, 192, 255, 0.1); }
 
 .copy-btn {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.4rem 0.75rem;
-  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
-  border: 1px solid var(--border-color, var(--border));
-  border-radius: 6px;
-  color: var(--text-secondary);
-  font-size: 0.8rem;
+  gap: 0.3rem;
+  padding: 0.3rem 0.55rem;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 5px;
+  color: #8b949e;
+  font-size: 0.72rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
 .copy-btn:hover {
-  background: color-mix(in srgb, var(--text-primary) 10%, transparent);
-  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.06);
+  color: #c9d1d9;
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .copy-btn.copied {
-  background: rgba(34, 197, 94, 0.2);
-  border-color: rgba(34, 197, 94, 0.3);
-  color: #4ade80;
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.2);
+  color: #7ee787;
 }
 
 .copy-btn svg {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
+}
+
+.copy-label {
+  font-family: 'IBM Plex Sans', sans-serif;
 }
 
 pre {
   margin: 0;
-  padding: 1.25rem;
+  padding: 1rem 1.15rem;
   overflow-x: auto;
-  font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', monospace;
-  font-size: 0.875rem;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.82rem;
   line-height: 1.6;
-  color: var(--text-primary);
+  color: #c9d1d9;
 }
 
 code {
   font-family: inherit;
 }
 
-/* Syntax Highlighting Tokens — dark mode defaults */
-:deep(.token-key) {
-  color: #7dd3fc;
+/* Syntax Highlighting Tokens */
+:deep(.token-key) { color: #7dd3fc; }
+:deep(.token-string) { color: #7ee787; }
+:deep(.token-number) { color: #ffa657; }
+:deep(.token-boolean) { color: #d2a8ff; }
+:deep(.token-comment) { color: #8b949e; font-style: italic; }
+:deep(.token-keyword) { color: #ff7b72; }
+:deep(.token-flag) { color: #ffa657; }
+:deep(.token-variable) { color: #ffa657; }
+
+/* Light mode overrides */
+html:not(.dark) .code-block {
+  background: #f6f8fa;
+  border-color: #d0d7de;
 }
 
-:deep(.token-string) {
-  color: #86efac;
+html:not(.dark) .code-header {
+  background: #eaeef2;
+  border-bottom-color: #d0d7de;
 }
 
-:deep(.token-number) {
-  color: #fca5a5;
+html:not(.dark) .filename { color: #57606a; }
+
+html:not(.dark) .language-badge {
+  color: #57606a;
+  background: rgba(0, 0, 0, 0.05);
 }
 
-:deep(.token-boolean) {
-  color: #c084fc;
+html:not(.dark) .copy-btn {
+  color: #57606a;
+  border-color: #d0d7de;
 }
 
-:deep(.token-comment) {
-  color: var(--text-muted);
-  font-style: italic;
+html:not(.dark) .copy-btn:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: #24292f;
 }
 
-:deep(.token-keyword) {
-  color: #c084fc;
-}
+html:not(.dark) pre { color: #24292f; }
 
-:deep(.token-flag) {
-  color: #fcd34d;
-}
+html:not(.dark) :deep(.token-key) { color: #1d4ed8; }
+html:not(.dark) :deep(.token-string) { color: #16a34a; }
+html:not(.dark) :deep(.token-number) { color: #cf222e; }
+html:not(.dark) :deep(.token-boolean) { color: #8250df; }
+html:not(.dark) :deep(.token-comment) { color: #6e7781; }
+html:not(.dark) :deep(.token-keyword) { color: #cf222e; }
+html:not(.dark) :deep(.token-flag) { color: #953800; }
+html:not(.dark) :deep(.token-variable) { color: #cf222e; }
 
-:deep(.token-variable) {
-  color: #fca5a5;
-}
-
-/* Syntax Highlighting Tokens — light mode overrides */
-html:not(.dark) :deep(.token-key) {
-  color: #1d4ed8;
-}
-
-html:not(.dark) :deep(.token-string) {
-  color: #16a34a;
-}
-
-html:not(.dark) :deep(.token-number) {
-  color: #dc2626;
-}
-
-html:not(.dark) :deep(.token-boolean) {
-  color: #9333ea;
-}
-
-html:not(.dark) :deep(.token-keyword) {
-  color: #9333ea;
-}
-
-html:not(.dark) :deep(.token-flag) {
-  color: #b45309;
-}
-
-html:not(.dark) :deep(.token-variable) {
-  color: #dc2626;
-}
-
-/* Scrollbar */
+/* Custom scrollbar */
 pre::-webkit-scrollbar {
-  height: 8px;
+  height: 6px;
 }
 
 pre::-webkit-scrollbar-track {
@@ -377,7 +373,18 @@ pre::-webkit-scrollbar-track {
 }
 
 pre::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--text-primary) 10%, transparent);
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+}
+
+pre::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+/* ============ REDUCED MOTION ============ */
+@media (prefers-reduced-motion: reduce) {
+  .copy-btn {
+    transition: none;
+  }
 }
 </style>

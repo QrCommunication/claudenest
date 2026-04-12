@@ -8,7 +8,7 @@ const isSidebarOpen = ref(true);
 const searchQuery = ref('');
 const searchResults = ref<Array<{ type: 'nav' | 'endpoint'; data: any }>>([]);
 const currentVersion = ref('v1.2.0');
-const availableVersions = ['v1.2.0', 'v1.1.0', 'v1.0.0'];
+const availableVersions: string[] = [];
 
 export function useDocs() {
   const route = useRoute();
@@ -88,9 +88,9 @@ export function useDocs() {
   const getMethodColor = (method: string): string => {
     const colors: Record<string, string> = {
       GET: '#22c55e',    // green
-      POST: '#a855f7',   // purple
-      PUT: '#6366f1',    // indigo (brand)
-      PATCH: '#f59e0b',  // amber
+      POST: '#3b82f6',   // blue
+      PUT: '#6366f1',    // indigo
+      PATCH: '#eab308',  // yellow
       DELETE: '#ef4444'  // red
     };
     return colors[method] || '#64748b';

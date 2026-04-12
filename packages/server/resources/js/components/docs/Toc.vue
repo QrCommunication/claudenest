@@ -7,9 +7,9 @@
         :key="heading.id"
         :href="`#${heading.id}`"
         class="toc-link"
-        :class="{ 
+        :class="{
           'is-active': activeHeading === heading.id,
-          [`level-${heading.level}`]: true 
+          [`level-${heading.level}`]: true
         }"
         @click.prevent="scrollToHeading(heading.id)"
       >
@@ -20,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
 interface Heading {
@@ -34,24 +34,25 @@ const headings = ref<Heading[]>([]);
 const activeHeading = ref<string>('');
 
 const extractHeadings = () => {
-  // Wait for DOM to update
   nextTick(() => {
     const article = document.querySelector('.doc-content, .api-content');
     if (!article) return;
 
-    const headingElements = article.querySelectorAll('h2, h3, h4');
-    headings.value = Array.from(headingElements).map((el) => ({
-      id: el.id,
-      text: el.textContent || '',
-      level: parseInt(el.tagName.charAt(1)),
-    }));
+    const headingElements = article.querySelectorAll('h2, h3');
+    headings.value = Array.from(headingElements)
+      .filter(el => el.id)
+      .map((el) => ({
+        id: el.id,
+        text: el.textContent || '',
+        level: parseInt(el.tagName.charAt(1)),
+      }));
   });
 };
 
 const scrollToHeading = (id: string) => {
   const element = document.getElementById(id);
   if (element) {
-    const offset = 100; // Account for fixed header
+    const offset = 80;
     const top = element.offsetTop - offset;
     window.scrollTo({ top, behavior: 'smooth' });
     activeHeading.value = id;
@@ -70,7 +71,7 @@ let observer: IntersectionObserver | null = null;
 
 const setupObserver = () => {
   observer = new IntersectionObserver(observerCallback, {
-    rootMargin: '-100px 0px -66%',
+    rootMargin: '-80px 0px -66%',
     threshold: 0,
   });
 
@@ -82,7 +83,6 @@ const setupObserver = () => {
   });
 };
 
-// Watch for route changes to extract new headings
 onMounted(() => {
   extractHeadings();
   setupObserver();
@@ -92,8 +92,6 @@ onUnmounted(() => {
   observer?.disconnect();
 });
 
-// Re-extract headings when route changes
-import { watch } from 'vue';
 watch(() => route.path, () => {
   observer?.disconnect();
   extractHeadings();
@@ -104,37 +102,35 @@ watch(() => route.path, () => {
 <style scoped>
 .toc {
   position: sticky;
-  top: 2rem;
+  top: 76px;
 }
 
 .toc-title {
-  font-size: 0.8rem;
+  font-size: 0.68rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-muted);
-  margin: 0 0 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--border-color, var(--border));
+  margin: 0 0 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .toc-nav {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.15rem;
 }
 
 .toc-link {
   display: block;
-  padding: 0.375rem 0;
+  padding: 0.25rem 0 0.25rem 0.65rem;
   color: var(--text-muted);
   text-decoration: none;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   line-height: 1.4;
   border-left: 2px solid transparent;
-  padding-left: 0.75rem;
-  margin-left: -0.75rem;
-  transition: all 0.15s;
+  transition: color 0.15s ease, border-color 0.15s ease;
 }
 
 .toc-link:hover {
@@ -142,9 +138,8 @@ watch(() => route.path, () => {
 }
 
 .toc-link.is-active {
-  color: var(--accent-purple, #a855f7);
-  border-left-color: var(--accent-purple, #a855f7);
-  font-weight: 500;
+  color: #3b82f6;
+  border-left-color: #3b82f6;
 }
 
 .toc-link.level-2 {
@@ -152,12 +147,14 @@ watch(() => route.path, () => {
 }
 
 .toc-link.level-3 {
-  padding-left: 1.25rem;
-  font-size: 0.8rem;
+  padding-left: 1.15rem;
+  font-size: 0.75rem;
 }
 
-.toc-link.level-4 {
-  padding-left: 1.75rem;
-  font-size: 0.75rem;
+/* ============ REDUCED MOTION ============ */
+@media (prefers-reduced-motion: reduce) {
+  .toc-link {
+    transition: none;
+  }
 }
 </style>

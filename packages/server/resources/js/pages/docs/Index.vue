@@ -2,11 +2,7 @@
   <article class="doc-content">
     <!-- Hero Header -->
     <header class="doc-hero">
-      <div class="hero-badge">
-        <span class="badge-dot"></span>
-        v1.2.0 -- Production Ready
-      </div>
-      <h1>ClaudeNest Documentation</h1>
+      <h1>Documentation</h1>
       <p class="hero-lead">
         The open-source platform for remote Claude Code orchestration. Control sessions,
         coordinate multiple agents, manage projects with epics, sprints, and Kanban boards,
@@ -14,13 +10,13 @@
       </p>
       <div class="hero-actions">
         <router-link to="/docs/quickstart" class="hero-btn primary">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke-linecap="round" stroke-linejoin="round"/>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
           </svg>
           Quickstart Guide
         </router-link>
         <router-link to="/docs/api/authentication" class="hero-btn secondary">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/>
           </svg>
           API Reference
@@ -37,127 +33,22 @@
         AI-powered planning, and automated monitoring for Claude Code.
       </p>
       <div class="nav-cards">
-        <router-link to="/docs/installation" class="nav-card">
-          <div class="nav-card-icon install">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+        <router-link
+          v-for="(card, index) in navCards"
+          :key="card.title"
+          :to="card.to"
+          class="nav-card"
+          :style="{ '--stagger': index }"
+        >
+          <div class="nav-card-icon" :class="card.iconClass">
+            <component :is="card.iconComponent" />
           </div>
-          <div class="nav-card-content">
-            <h3>Installation</h3>
-            <p>Deploy with Docker Compose or install on bare-metal for production.</p>
+          <div class="nav-card-body">
+            <h3>{{ card.title }}</h3>
+            <p>{{ card.description }}</p>
           </div>
-          <svg class="nav-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </router-link>
-
-        <router-link to="/docs/api/authentication" class="nav-card">
-          <div class="nav-card-icon auth">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-              <path d="M7 11V7a5 5 0 0110 0v4" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div class="nav-card-content">
-            <h3>Authentication</h3>
-            <p>OAuth, API tokens, and machine registration for secure access.</p>
-          </div>
-          <svg class="nav-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </router-link>
-
-        <router-link to="/docs/api/sessions" class="nav-card">
-          <div class="nav-card-icon sessions">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="4 17 10 11 4 5"/>
-              <line x1="12" y1="19" x2="20" y2="19" stroke-linecap="round"/>
-            </svg>
-          </div>
-          <div class="nav-card-content">
-            <h3>Sessions</h3>
-            <p>Create and manage interactive Claude Code terminal sessions.</p>
-          </div>
-          <svg class="nav-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </router-link>
-
-        <router-link to="/docs/websocket" class="nav-card">
-          <div class="nav-card-icon websocket">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div class="nav-card-content">
-            <h3>WebSocket</h3>
-            <p>Real-time bidirectional communication for session streaming.</p>
-          </div>
-          <svg class="nav-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </router-link>
-
-        <router-link to="/docs/api/projects" class="nav-card">
-          <div class="nav-card-icon multiagent">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
-              <circle cx="9" cy="7" r="4"/>
-              <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div class="nav-card-content">
-            <h3>Multi-Agent</h3>
-            <p>Coordinate multiple Claude instances with shared context and tasks.</p>
-          </div>
-          <svg class="nav-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </router-link>
-
-        <router-link to="/docs/api/mcp" class="nav-card">
-          <div class="nav-card-icon mcp">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div class="nav-card-content">
-            <h3>MCP Integration</h3>
-            <p>Discover and manage Model Context Protocol servers and tools.</p>
-          </div>
-          <svg class="nav-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </router-link>
-
-        <router-link to="/docs/guides/task-coordination" class="nav-card">
-          <div class="nav-card-icon project-mgmt">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M4 6h16M4 10h16M4 14h10M4 18h6" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div class="nav-card-content">
-            <h3>Project Management</h3>
-            <p>Epics, sprints, Kanban boards, burndown charts, and story points.</p>
-          </div>
-          <svg class="nav-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </router-link>
-
-        <router-link to="/docs/api/credentials" class="nav-card">
-          <div class="nav-card-icon credentials">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M15 7h2a5 5 0 010 10h-2m-6 0H7A5 5 0 017 7h2M8 12h8" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div class="nav-card-content">
-            <h3>Credentials</h3>
-            <p>Manage Claude API keys and OAuth tokens with AES-256-CBC encryption.</p>
-          </div>
-          <svg class="nav-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
+          <svg class="nav-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
           </svg>
         </router-link>
       </div>
@@ -171,35 +62,35 @@
         communication between web clients, mobile apps, and local agents running Claude Code.
       </p>
       <div class="arch-diagram">
-        <div class="arch-row clients-row">
-          <div class="arch-node client">
-            <div class="arch-node-icon">
+        <div class="arch-row">
+          <div class="arch-node">
+            <div class="arch-node-icon client-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <rect x="2" y="3" width="20" height="14" rx="2"/>
                 <path d="M8 21h8M12 17v4"/>
               </svg>
             </div>
-            <span>Web Dashboard</span>
+            <span class="arch-label">Web Dashboard</span>
             <span class="arch-tech">Vue.js + xterm.js</span>
           </div>
-          <div class="arch-node client">
-            <div class="arch-node-icon">
+          <div class="arch-node">
+            <div class="arch-node-icon client-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <rect x="5" y="2" width="14" height="20" rx="2"/>
                 <line x1="12" y1="18" x2="12" y2="18" stroke-linecap="round"/>
               </svg>
             </div>
-            <span>Mobile App</span>
+            <span class="arch-label">Mobile App</span>
             <span class="arch-tech">React Native</span>
           </div>
-          <div class="arch-node client">
-            <div class="arch-node-icon">
+          <div class="arch-node">
+            <div class="arch-node-icon client-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <polyline points="4 17 10 11 4 5"/>
                 <line x1="12" y1="19" x2="20" y2="19"/>
               </svg>
             </div>
-            <span>Agent Daemon</span>
+            <span class="arch-label">Agent Daemon</span>
             <span class="arch-tech">Node.js + node-pty</span>
           </div>
         </div>
@@ -212,7 +103,7 @@
           </div>
         </div>
 
-        <div class="arch-row server-row">
+        <div class="arch-row">
           <div class="arch-node server-node">
             <div class="arch-node-icon server-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -222,44 +113,44 @@
                 <circle cx="6" cy="18" r="1" fill="currentColor"/>
               </svg>
             </div>
-            <span>ClaudeNest Server</span>
+            <span class="arch-label">ClaudeNest Server</span>
             <span class="arch-tech">Laravel 13 + Reverb 1.10 + RAG</span>
           </div>
         </div>
 
         <div class="arch-connector">
-          <div class="connector-line triple"></div>
+          <div class="connector-line"></div>
         </div>
 
-        <div class="arch-row infra-row">
-          <div class="arch-node infra">
-            <div class="arch-node-icon">
+        <div class="arch-row">
+          <div class="arch-node">
+            <div class="arch-node-icon infra-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <ellipse cx="12" cy="5" rx="9" ry="3"/>
                 <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
                 <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
               </svg>
             </div>
-            <span>PostgreSQL</span>
+            <span class="arch-label">PostgreSQL</span>
             <span class="arch-tech">+ pgvector</span>
           </div>
-          <div class="arch-node infra">
-            <div class="arch-node-icon">
+          <div class="arch-node">
+            <div class="arch-node-icon infra-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
               </svg>
             </div>
-            <span>Redis</span>
+            <span class="arch-label">Redis</span>
             <span class="arch-tech">Cache + Queues</span>
           </div>
-          <div class="arch-node infra">
-            <div class="arch-node-icon">
+          <div class="arch-node">
+            <div class="arch-node-icon infra-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <circle cx="12" cy="12" r="3"/>
                 <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
               </svg>
             </div>
-            <span>Ollama</span>
+            <span class="arch-label">Ollama</span>
             <span class="arch-tech">Mistral 7B</span>
           </div>
         </div>
@@ -286,11 +177,7 @@
               Clone the repository and start services with Docker Compose. This sets up
               PostgreSQL with pgvector, Redis, and the Laravel application.
             </p>
-            <CodeBlock
-              :code="installCode"
-              language="bash"
-              filename="terminal"
-            />
+            <CodeBlock :code="installCode" language="bash" filename="terminal" />
           </div>
         </div>
 
@@ -305,22 +192,11 @@
               Copy the example environment file, generate an application key, and run
               database migrations. Adjust the <code>.env</code> file for your setup.
             </p>
-            <CodeBlock
-              :code="configCode"
-              language="bash"
-              filename="terminal"
-            />
-            <div class="callout info">
-              <div class="callout-icon">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-                </svg>
-              </div>
-              <div class="callout-content">
-                <strong>Note:</strong> PostgreSQL must have the <code>pgvector</code> extension
-                installed for context RAG features to work. The Docker setup handles this automatically.
-              </div>
-            </div>
+            <CodeBlock :code="configCode" language="bash" filename="terminal" />
+            <Callout type="info">
+              <strong>Note:</strong> PostgreSQL must have the <code>pgvector</code> extension
+              installed for context RAG features to work. The Docker setup handles this automatically.
+            </Callout>
           </div>
         </div>
 
@@ -334,11 +210,7 @@
               Register a machine from the dashboard, install the agent on your local
               machine, and start it with the generated token.
             </p>
-            <CodeBlock
-              :code="agentCode"
-              language="bash"
-              filename="terminal"
-            />
+            <CodeBlock :code="agentCode" language="bash" filename="terminal" />
           </div>
         </div>
       </div>
@@ -360,11 +232,7 @@
         Include your API token in the <code>Authorization</code> header on every request.
         Tokens are obtained via the login endpoint or OAuth flow.
       </p>
-      <CodeBlock
-        :code="authHeaderCode"
-        language="bash"
-        filename="curl"
-      />
+      <CodeBlock :code="authHeaderCode" language="bash" filename="curl" />
 
       <h3 id="response-format">Response Format</h3>
       <p>All successful responses share a consistent envelope structure:</p>
@@ -409,8 +277,8 @@
           </div>
         </div>
         <div class="ws-flow-arrow">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
           </svg>
         </div>
         <div class="ws-flow-step">
@@ -421,8 +289,8 @@
           </div>
         </div>
         <div class="ws-flow-arrow">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
           </svg>
         </div>
         <div class="ws-flow-step">
@@ -433,8 +301,8 @@
           </div>
         </div>
         <div class="ws-flow-arrow">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
           </svg>
         </div>
         <div class="ws-flow-step">
@@ -474,8 +342,8 @@
 
       <router-link to="/docs/websocket" class="section-link">
         Full WebSocket documentation
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
         </svg>
       </router-link>
     </section>
@@ -494,9 +362,9 @@
         <div class="feature-card">
           <div class="feature-card-header">
             <div class="feature-card-icon context">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                 <circle cx="11" cy="11" r="8"/>
-                <path d="M21 21l-4.35-4.35" stroke-linecap="round"/>
+                <path d="M21 21l-4.35-4.35"/>
               </svg>
             </div>
             <h4>Context RAG</h4>
@@ -511,9 +379,9 @@
         <div class="feature-card">
           <div class="feature-card-header">
             <div class="feature-card-icon tasks">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M9 11l3 3L22 4"/>
-                <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
               </svg>
             </div>
             <h4>Task Coordination</h4>
@@ -528,7 +396,7 @@
         <div class="feature-card">
           <div class="feature-card-header">
             <div class="feature-card-icon locks">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="11" width="18" height="11" rx="2"/>
                 <path d="M7 11V7a5 5 0 0110 0v4"/>
               </svg>
@@ -615,7 +483,7 @@
 
         <router-link to="/docs/api/authentication" class="resource-card">
           <div class="resource-icon api">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/>
             </svg>
           </div>
@@ -627,8 +495,8 @@
 
         <router-link to="/changelog" class="resource-card">
           <div class="resource-icon changelog">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke-linecap="round" stroke-linejoin="round"/>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
               <polyline points="14 2 14 8 20 8"/>
               <line x1="16" y1="13" x2="8" y2="13"/>
               <line x1="16" y1="17" x2="8" y2="17"/>
@@ -646,7 +514,64 @@
 </template>
 
 <script setup lang="ts">
+import { h, type FunctionalComponent } from 'vue';
 import CodeBlock from '@/components/docs/CodeBlock.vue';
+import Callout from '@/components/docs/Callout.vue';
+
+// --- Icon components for nav cards ---
+const IconDownload: FunctionalComponent = () => h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+  h('path', { d: 'M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4' }),
+  h('path', { d: 'M7 10l5 5 5-5' }),
+  h('path', { d: 'M12 15V3' }),
+]);
+
+const IconLock: FunctionalComponent = () => h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+  h('rect', { x: '3', y: '11', width: '18', height: '11', rx: '2', ry: '2' }),
+  h('path', { d: 'M7 11V7a5 5 0 0110 0v4' }),
+]);
+
+const IconTerminal: FunctionalComponent = () => h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round' }, [
+  h('polyline', { points: '4 17 10 11 4 5' }),
+  h('line', { x1: '12', y1: '19', x2: '20', y2: '19' }),
+]);
+
+const IconActivity: FunctionalComponent = () => h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+  h('path', { d: 'M22 12h-4l-3 9L9 3l-3 9H2' }),
+]);
+
+const IconUsers: FunctionalComponent = () => h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+  h('path', { d: 'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2' }),
+  h('circle', { cx: '9', cy: '7', r: '4' }),
+  h('path', { d: 'M23 21v-2a4 4 0 00-3-3.87' }),
+  h('path', { d: 'M16 3.13a4 4 0 010 7.75' }),
+]);
+
+const IconLayers: FunctionalComponent = () => h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+  h('path', { d: 'M12 2L2 7l10 5 10-5-10-5z' }),
+  h('path', { d: 'M2 17l10 5 10-5' }),
+  h('path', { d: 'M2 12l10 5 10-5' }),
+]);
+
+const IconList: FunctionalComponent = () => h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+  h('path', { d: 'M4 6h16M4 10h16M4 14h10M4 18h6' }),
+]);
+
+const IconLink: FunctionalComponent = () => h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
+  h('path', { d: 'M15 7h2a5 5 0 010 10h-2' }),
+  h('path', { d: 'M9 17H7A5 5 0 017 7h2' }),
+  h('path', { d: 'M8 12h8' }),
+]);
+
+const navCards = [
+  { to: '/docs/installation', title: 'Installation', description: 'Deploy with Docker Compose or install on bare-metal for production.', iconClass: 'install', iconComponent: IconDownload },
+  { to: '/docs/api/authentication', title: 'Authentication', description: 'OAuth, API tokens, and machine registration for secure access.', iconClass: 'auth', iconComponent: IconLock },
+  { to: '/docs/api/sessions', title: 'Sessions', description: 'Create and manage interactive Claude Code terminal sessions.', iconClass: 'sessions', iconComponent: IconTerminal },
+  { to: '/docs/websocket', title: 'WebSocket', description: 'Real-time bidirectional communication for session streaming.', iconClass: 'websocket', iconComponent: IconActivity },
+  { to: '/docs/api/projects', title: 'Multi-Agent', description: 'Coordinate multiple Claude instances with shared context and tasks.', iconClass: 'multiagent', iconComponent: IconUsers },
+  { to: '/docs/api/mcp', title: 'MCP Integration', description: 'Discover and manage Model Context Protocol servers and tools.', iconClass: 'mcp', iconComponent: IconLayers },
+  { to: '/docs/guides/task-coordination', title: 'Project Management', description: 'Epics, sprints, Kanban boards, burndown charts, and story points.', iconClass: 'project-mgmt', iconComponent: IconList },
+  { to: '/docs/api/credentials', title: 'Credentials', description: 'Manage Claude API keys and OAuth tokens with AES-256-CBC encryption.', iconClass: 'credentials', iconComponent: IconLink },
+];
 
 // --- Code Samples ---
 
@@ -885,152 +810,125 @@ const cliCommands: CliCommand[] = [
 
 <style scoped>
 .doc-content {
-  max-width: 768px;
+  max-width: 720px;
 }
 
 /* ========================
    Hero Header
    ======================== */
 .doc-hero {
-  margin-bottom: 3.5rem;
-  padding-bottom: 2.5rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--border-color, var(--border)) 50%, transparent);
-}
-
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.35rem 0.85rem;
-  background: color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
-  border: 1px solid rgba(168, 85, 247, 0.25);
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--accent-purple-light, #c084fc);
-  margin-bottom: 1.25rem;
-}
-
-.badge-dot {
-  width: 6px;
-  height: 6px;
-  background: #22c55e;
-  border-radius: 50%;
-  animation: pulse-dot 2s infinite;
-}
-
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .doc-hero h1 {
-  font-size: 2.75rem;
-  font-weight: 800;
-  margin: 0 0 1rem;
-  background: linear-gradient(135deg, var(--accent-purple, #a855f7) 0%, var(--accent-indigo, #6366f1) 40%, var(--accent-cyan, #22d3ee) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-size: clamp(1.75rem, 3.5vw, 2.25rem);
+  font-weight: 600;
+  margin: 0 0 0.75rem;
+  color: var(--text-primary);
+  letter-spacing: -0.025em;
   line-height: 1.15;
-  letter-spacing: -0.02em;
 }
 
 .hero-lead {
-  font-size: 1.2rem;
-  color: var(--text-secondary);
-  line-height: 1.65;
-  margin: 0 0 1.75rem;
-  max-width: 640px;
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  line-height: 1.7;
+  margin: 0 0 1.5rem;
+  max-width: 600px;
 }
 
 .hero-actions {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.6rem;
   flex-wrap: wrap;
 }
 
 .hero-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.7rem 1.25rem;
-  border-radius: 10px;
-  font-size: 0.9rem;
+  gap: 0.45rem;
+  padding: 0.55rem 1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
   font-weight: 600;
   text-decoration: none;
-  transition: all 0.2s;
+  transition: transform 160ms ease-out, background 0.15s ease;
+}
+
+.hero-btn:active {
+  transform: scale(0.97);
 }
 
 .hero-btn svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
 }
 
 .hero-btn.primary {
-  background: linear-gradient(135deg, var(--accent-purple, #a855f7), var(--accent-indigo, #6366f1));
-  color: var(--text-primary);
-  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.35);
+  background: #3b82f6;
+  color: #fff;
 }
 
 .hero-btn.primary:hover {
-  box-shadow: 0 6px 20px rgba(168, 85, 247, 0.5);
-  transform: translateY(-1px);
+  background: #2563eb;
 }
 
 .hero-btn.secondary {
-  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-color);
   color: var(--text-primary);
 }
 
 .hero-btn.secondary:hover {
-  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
-  border-color: rgba(168, 85, 247, 0.4);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--border-hover);
 }
 
 /* ========================
    Shared Section Styles
    ======================== */
 section {
-  margin-bottom: 3.5rem;
+  margin-bottom: 3rem;
 }
 
 h2 {
-  font-size: 1.65rem;
-  font-weight: 700;
-  margin: 0 0 0.75rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 0.6rem;
   color: var(--text-primary);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
 }
 
 h3 {
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   font-weight: 600;
-  margin: 1.75rem 0 0.6rem;
+  margin: 1.5rem 0 0.5rem;
   color: var(--text-primary);
 }
 
 h4 {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
-  margin: 0 0 0.4rem;
+  margin: 0 0 0.35rem;
   color: var(--text-primary);
 }
 
 p {
   color: var(--text-secondary);
-  line-height: 1.7;
-  margin: 0 0 1rem;
+  line-height: 1.75;
+  margin: 0 0 0.85rem;
+  max-width: 65ch;
 }
 
 code {
-  font-family: 'JetBrains Mono', 'Fira Code', monospace;
-  font-size: 0.88em;
-  background: color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
-  padding: 0.15rem 0.4rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85em;
+  background: rgba(59, 130, 246, 0.08);
+  padding: 0.12rem 0.35rem;
   border-radius: 4px;
-  color: var(--accent-purple-light, #c084fc);
+  color: #60a5fa;
 }
 
 /* ========================
@@ -1038,133 +936,119 @@ code {
    ======================== */
 .nav-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 0.75rem;
-  margin-top: 1.25rem;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 0.6rem;
+  margin-top: 1rem;
 }
 
 .nav-card {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1.15rem 1.25rem;
-  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
-  border: 1px solid var(--border-color, var(--border));
-  border-radius: 12px;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
   text-decoration: none;
   color: inherit;
-  transition: all 0.2s;
+  transition: transform 160ms ease-out, border-color 0.15s ease, background 0.15s ease;
+  animation: card-enter 0.4s cubic-bezier(0.23, 1, 0.32, 1) both;
+  animation-delay: calc(var(--stagger) * 50ms);
+}
+
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .nav-card:hover {
-  background: color-mix(in srgb, var(--text-primary) 4%, transparent);
-  border-color: rgba(168, 85, 247, 0.3);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  background: rgba(59, 130, 246, 0.03);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+.nav-card:active {
+  transform: scale(0.98);
 }
 
 .nav-card-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
-.nav-card-icon svg {
-  width: 22px;
-  height: 22px;
+.nav-card-icon :deep(svg) {
+  width: 18px;
+  height: 18px;
 }
 
-.nav-card-icon.install {
-  background: rgba(34, 211, 238, 0.12);
-  color: var(--accent-cyan, #22d3ee);
-}
+.nav-card-icon.install { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+.nav-card-icon.auth { background: rgba(168, 85, 247, 0.1); color: #a855f7; }
+.nav-card-icon.sessions { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
+.nav-card-icon.websocket { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+.nav-card-icon.multiagent { background: rgba(99, 102, 241, 0.1); color: #6366f1; }
+.nav-card-icon.mcp { background: rgba(244, 114, 182, 0.1); color: #f472b6; }
+.nav-card-icon.project-mgmt { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
+.nav-card-icon.credentials { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
 
-.nav-card-icon.auth {
-  background: rgba(168, 85, 247, 0.12);
-  color: var(--accent-purple, #a855f7);
-}
-
-.nav-card-icon.sessions {
-  background: rgba(34, 197, 94, 0.12);
-  color: #4ade80;
-}
-
-.nav-card-icon.websocket {
-  background: rgba(251, 191, 36, 0.12);
-  color: #fbbf24;
-}
-
-.nav-card-icon.multiagent {
-  background: rgba(99, 102, 241, 0.12);
-  color: #818cf8;
-}
-
-.nav-card-icon.mcp {
-  background: rgba(244, 114, 182, 0.12);
-  color: #f472b6;
-}
-
-.nav-card-icon.project-mgmt {
-  background: rgba(34, 197, 94, 0.12);
-  color: #4ade80;
-}
-
-.nav-card-icon.credentials {
-  background: rgba(251, 191, 36, 0.12);
-  color: #fbbf24;
-}
-
-.nav-card-content {
+.nav-card-body {
   flex: 1;
   min-width: 0;
 }
 
-.nav-card-content h3 {
-  font-size: 0.95rem;
+.nav-card-body h3 {
+  font-size: 0.88rem;
   font-weight: 600;
-  margin: 0 0 0.2rem;
+  margin: 0 0 0.15rem;
   color: var(--text-primary);
 }
 
-.nav-card-content p {
-  font-size: 0.825rem;
+.nav-card-body p {
+  font-size: 0.78rem;
   color: var(--text-muted);
   margin: 0;
   line-height: 1.4;
+  max-width: none;
 }
 
 .nav-card-arrow {
-  width: 18px;
-  height: 18px;
-  color: #475569;
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
   flex-shrink: 0;
-  transition: transform 0.2s, color 0.2s;
+  transition: transform 160ms ease-out, color 0.15s ease;
+  opacity: 0.5;
 }
 
 .nav-card:hover .nav-card-arrow {
-  color: var(--accent-purple, #a855f7);
-  transform: translateX(3px);
+  color: #3b82f6;
+  transform: translateX(2px);
+  opacity: 1;
 }
 
 /* ========================
    Architecture Diagram
    ======================== */
 .arch-diagram {
-  margin-top: 1.5rem;
-  padding: 2rem 1.5rem;
-  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
-  border: 1px solid var(--border-color, var(--border));
-  border-radius: 16px;
+  margin-top: 1.25rem;
+  padding: 1.5rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
 }
 
 .arch-row {
   display: flex;
   justify-content: center;
-  gap: 1.5rem;
+  gap: 1rem;
   flex-wrap: wrap;
 }
 
@@ -1172,105 +1056,91 @@ code {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.35rem;
-  padding: 1rem 1.25rem;
-  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
-  border: 1px solid var(--border-color, var(--border));
-  border-radius: 12px;
-  min-width: 130px;
+  gap: 0.25rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  min-width: 120px;
   text-align: center;
-  transition: border-color 0.2s;
+  transition: border-color 0.15s ease;
 }
 
 .arch-node:hover {
-  border-color: rgba(168, 85, 247, 0.3);
+  border-color: rgba(59, 130, 246, 0.3);
 }
 
 .arch-node-icon {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.15rem;
 }
 
 .arch-node-icon svg {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
 }
 
-.arch-node.client .arch-node-icon {
-  color: var(--accent-cyan, #22d3ee);
+.client-icon { color: #3b82f6; }
+.server-icon { color: #a855f7; }
+.infra-icon { color: #f59e0b; }
+
+.server-node {
+  background: rgba(168, 85, 247, 0.05);
+  border-color: rgba(168, 85, 247, 0.2);
 }
 
-.arch-node.server-node {
-  background: color-mix(in srgb, var(--accent-purple, #a855f7) 8%, transparent);
-  border-color: rgba(168, 85, 247, 0.25);
-}
-
-.server-icon {
-  color: var(--accent-purple, #a855f7);
-}
-
-.arch-node.infra .arch-node-icon {
-  color: #fbbf24;
-}
-
-.arch-node span {
-  font-size: 0.85rem;
+.arch-label {
+  font-size: 0.82rem;
   font-weight: 500;
   color: var(--text-primary);
 }
 
 .arch-tech {
-  font-size: 0.72rem !important;
-  color: var(--text-muted) !important;
-  font-weight: 400 !important;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-weight: 400;
 }
 
 .arch-connector {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0.75rem 0;
+  padding: 0.5rem 0;
 }
 
 .connector-line {
-  width: 2px;
-  height: 28px;
-  background: linear-gradient(to bottom, rgba(168, 85, 247, 0.4), rgba(34, 211, 238, 0.4));
-  border-radius: 1px;
-}
-
-.connector-line.triple {
-  background: linear-gradient(to bottom, rgba(168, 85, 247, 0.4), rgba(251, 191, 36, 0.4));
+  width: 1px;
+  height: 24px;
+  background: var(--border-color);
 }
 
 .connector-labels {
   display: flex;
-  gap: 1rem;
-  margin-top: 0.35rem;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
 }
 
 .connector-labels span {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   color: var(--text-muted);
-  padding: 0.15rem 0.5rem;
-  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
-  border-radius: 4px;
+  padding: 0.1rem 0.4rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 3px;
 }
 
 /* ========================
    Getting Started Steps
    ======================== */
 .steps-timeline {
-  margin-top: 1.5rem;
+  margin-top: 1.25rem;
 }
 
 .step {
   display: flex;
-  gap: 1.25rem;
+  gap: 1rem;
   position: relative;
 }
 
@@ -1282,104 +1152,62 @@ code {
 }
 
 .step-number {
-  width: 32px;
-  height: 32px;
-  background: linear-gradient(135deg, var(--accent-purple, #a855f7), var(--accent-indigo, #6366f1));
+  width: 28px;
+  height: 28px;
+  background: #3b82f6;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #fff;
 }
 
 .step-line {
-  width: 2px;
+  width: 1px;
   flex: 1;
-  background: linear-gradient(to bottom, rgba(168, 85, 247, 0.3), rgba(168, 85, 247, 0.05));
-  margin: 0.5rem 0;
-  min-height: 20px;
+  background: var(--border-color);
+  margin: 0.4rem 0;
+  min-height: 16px;
 }
 
 .step-body {
   flex: 1;
-  padding-bottom: 2rem;
+  padding-bottom: 1.75rem;
 }
 
 .step-body h3 {
-  margin: 0.15rem 0 0.5rem;
-  font-size: 1.1rem;
+  margin: 0.1rem 0 0.4rem;
+  font-size: 1.05rem;
 }
 
 .step-body p {
-  margin-bottom: 1rem;
-}
-
-/* ========================
-   Callout
-   ======================== */
-.callout {
-  display: flex;
-  gap: 0.75rem;
-  padding: 1rem 1.25rem;
-  border-radius: 10px;
-  margin: 1.25rem 0;
-}
-
-.callout.info {
-  background: rgba(59, 130, 246, 0.08);
-  border: 1px solid rgba(59, 130, 246, 0.2);
-}
-
-.callout-icon {
-  flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  margin-top: 0.1rem;
-}
-
-.callout-icon svg {
-  width: 20px;
-  height: 20px;
-}
-
-.callout.info .callout-icon {
-  color: #60a5fa;
-}
-
-.callout-content {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  line-height: 1.6;
-}
-
-.callout-content strong {
-  color: var(--text-primary);
+  margin-bottom: 0.85rem;
 }
 
 /* ========================
    Endpoint Table
    ======================== */
 .endpoint-overview {
-  margin-top: 1.5rem;
+  margin-top: 1.25rem;
 }
 
 .endpoint-table {
-  border: 1px solid var(--border-color, var(--border));
-  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
   overflow: hidden;
-  margin-top: 0.75rem;
+  margin-top: 0.6rem;
 }
 
 .endpoint-row {
   display: grid;
-  grid-template-columns: 70px 1fr 1fr;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
+  grid-template-columns: 60px 1fr 1fr;
+  gap: 0.6rem;
+  padding: 0.6rem 0.85rem;
   align-items: center;
-  border-bottom: 1px solid color-mix(in srgb, var(--border-color, var(--border)) 50%, transparent);
-  transition: background 0.15s;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 0.15s ease;
 }
 
 .endpoint-row:last-child {
@@ -1387,18 +1215,18 @@ code {
 }
 
 .endpoint-row:not(.header):hover {
-  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .endpoint-row.header {
-  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
-  border-bottom: 1px solid var(--border-color, var(--border));
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .endpoint-row.header .ep-method,
 .endpoint-row.header .ep-path,
 .endpoint-row.header .ep-desc {
-  font-size: 0.72rem;
+  font-size: 0.65rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -1409,24 +1237,25 @@ code {
 }
 
 .ep-method {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.03em;
+  font-family: 'JetBrains Mono', monospace;
 }
 
 .ep-method.get { color: #22c55e; }
-.ep-method.post { color: var(--accent-purple, #a855f7); }
-.ep-method.patch { color: #f59e0b; }
+.ep-method.post { color: #3b82f6; }
+.ep-method.patch { color: #eab308; }
 .ep-method.delete { color: #ef4444; }
 
 .ep-path {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--text-secondary);
 }
 
 .ep-desc {
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
 }
 
@@ -1436,34 +1265,32 @@ code {
 .ws-flow {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin: 1.5rem 0;
-  padding: 1.25rem;
-  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
-  border: 1px solid var(--border-color, var(--border));
-  border-radius: 12px;
+  gap: 0.4rem;
+  margin: 1.25rem 0;
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
   overflow-x: auto;
 }
 
 .ws-flow-step {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
   flex-shrink: 0;
 }
 
 .ws-flow-num {
-  width: 26px;
-  height: 26px;
-  background: color-mix(in srgb, var(--accent-purple, #a855f7) 15%, transparent);
-  border: 1px solid rgba(168, 85, 247, 0.3);
+  width: 22px;
+  height: 22px;
+  background: rgba(59, 130, 246, 0.12);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  color: var(--accent-purple-light, #c084fc);
+  color: #3b82f6;
   flex-shrink: 0;
 }
 
@@ -1473,12 +1300,12 @@ code {
 }
 
 .ws-flow-content strong {
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   color: var(--text-primary);
 }
 
 .ws-flow-content span {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   color: var(--text-muted);
 }
 
@@ -1487,9 +1314,10 @@ code {
 }
 
 .ws-flow-arrow svg {
-  width: 16px;
-  height: 16px;
-  color: #475569;
+  width: 14px;
+  height: 14px;
+  color: var(--text-muted);
+  opacity: 0.4;
 }
 
 /* ========================
@@ -1497,53 +1325,46 @@ code {
    ======================== */
 .events-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 0.75rem;
-  margin: 1rem 0 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.6rem;
+  margin: 0.85rem 0 1.25rem;
 }
 
 .event-item {
-  padding: 1rem;
-  border-radius: 10px;
-  border: 1px solid var(--border-color, var(--border));
-  transition: border-color 0.2s;
-}
-
-.event-item:hover {
-  border-color: rgba(255, 255, 255, 0.15);
+  padding: 0.85rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
 }
 
 .event-item.outgoing {
-  background: rgba(59, 130, 246, 0.05);
   border-color: rgba(59, 130, 246, 0.15);
 }
 
 .event-item.incoming {
-  background: rgba(34, 197, 94, 0.05);
   border-color: rgba(34, 197, 94, 0.15);
 }
 
 .event-direction {
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 600;
-  margin-bottom: 0.35rem;
-}
-
-.event-item.outgoing .event-direction { color: #60a5fa; }
-.event-item.incoming .event-direction { color: #4ade80; }
-
-.event-name {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--text-primary);
   margin-bottom: 0.25rem;
 }
 
+.event-item.outgoing .event-direction { color: #3b82f6; }
+.event-item.incoming .event-direction { color: #22c55e; }
+
+.event-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.2rem;
+}
+
 .event-desc {
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
   line-height: 1.4;
 }
@@ -1554,23 +1375,22 @@ code {
 .section-link {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  color: var(--accent-purple, #a855f7);
+  gap: 0.35rem;
+  color: #3b82f6;
   text-decoration: none;
   font-weight: 500;
-  font-size: 0.9rem;
-  margin-top: 0.5rem;
-  transition: gap 0.2s;
+  font-size: 0.85rem;
+  margin-top: 0.4rem;
+  transition: gap 160ms ease-out;
 }
 
 .section-link:hover {
-  gap: 0.65rem;
-  text-decoration: underline;
+  gap: 0.55rem;
 }
 
 .section-link svg {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
 }
 
 /* ========================
@@ -1579,33 +1399,32 @@ code {
 .feature-cards {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-  margin-top: 1.25rem;
+  gap: 1rem;
+  margin-top: 1rem;
 }
 
 .feature-card {
-  padding: 1.5rem;
-  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
-  border: 1px solid var(--border-color, var(--border));
-  border-radius: 14px;
-  transition: border-color 0.2s;
+  padding: 1.25rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  transition: border-color 0.15s ease;
 }
 
 .feature-card:hover {
-  border-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .feature-card-header {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
+  gap: 0.65rem;
+  margin-bottom: 0.6rem;
 }
 
 .feature-card-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 9px;
+  width: 32px;
+  height: 32px;
+  border-radius: 7px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1613,53 +1432,42 @@ code {
 }
 
 .feature-card-icon svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
 
-.feature-card-icon.context {
-  background: rgba(34, 211, 238, 0.12);
-  color: var(--accent-cyan, #22d3ee);
-}
-
-.feature-card-icon.tasks {
-  background: rgba(168, 85, 247, 0.12);
-  color: var(--accent-purple, #a855f7);
-}
-
-.feature-card-icon.locks {
-  background: rgba(251, 191, 36, 0.12);
-  color: #fbbf24;
-}
+.feature-card-icon.context { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+.feature-card-icon.tasks { background: rgba(168, 85, 247, 0.1); color: #a855f7; }
+.feature-card-icon.locks { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
 
 .feature-card-header h4 {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: 1rem;
 }
 
 .feature-card > p {
-  font-size: 0.9rem;
-  margin-bottom: 0.75rem;
+  font-size: 0.88rem;
+  margin-bottom: 0.6rem;
 }
 
 /* ========================
    CLI Table
    ======================== */
 .cli-table {
-  border: 1px solid var(--border-color, var(--border));
-  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
   overflow: hidden;
-  margin: 1rem 0 1.5rem;
+  margin: 0.85rem 0 1.25rem;
 }
 
 .cli-row {
   display: grid;
-  grid-template-columns: 300px 1fr;
-  gap: 1rem;
-  padding: 0.65rem 1rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--border-color, var(--border)) 50%, transparent);
+  grid-template-columns: 280px 1fr;
+  gap: 0.85rem;
+  padding: 0.55rem 0.85rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   align-items: center;
-  transition: background 0.15s;
+  transition: background 0.15s ease;
 }
 
 .cli-row:last-child {
@@ -1667,17 +1475,17 @@ code {
 }
 
 .cli-row:not(.header):hover {
-  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .cli-row.header {
-  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
-  border-bottom: 1px solid var(--border-color, var(--border));
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .cli-row.header .cli-cmd,
 .cli-row.header .cli-desc {
-  font-size: 0.72rem;
+  font-size: 0.65rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -1688,12 +1496,12 @@ code {
 }
 
 .cli-cmd {
-  font-size: 0.82rem;
-  color: var(--accent-cyan, #22d3ee);
+  font-size: 0.78rem;
+  color: #3b82f6;
 }
 
 .cli-desc {
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   color: var(--text-secondary);
 }
 
@@ -1702,34 +1510,35 @@ code {
    ======================== */
 .resource-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 0.75rem;
-  margin-top: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.6rem;
+  margin-top: 0.85rem;
 }
 
 .resource-card {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.25rem;
-  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
-  border: 1px solid var(--border-color, var(--border));
-  border-radius: 12px;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
   text-decoration: none;
   color: inherit;
-  transition: all 0.2s;
+  transition: transform 160ms ease-out, border-color 0.15s ease;
 }
 
 .resource-card:hover {
-  background: color-mix(in srgb, var(--text-primary) 4%, transparent);
-  border-color: rgba(168, 85, 247, 0.3);
-  transform: translateY(-1px);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+.resource-card:active {
+  transform: scale(0.98);
 }
 
 .resource-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1737,29 +1546,14 @@ code {
 }
 
 .resource-icon svg {
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
 }
 
-.resource-icon.github {
-  background: var(--border-color, var(--border));
-  color: var(--text-primary);
-}
-
-.resource-icon.discord {
-  background: rgba(88, 101, 242, 0.15);
-  color: #7289da;
-}
-
-.resource-icon.api {
-  background: rgba(168, 85, 247, 0.12);
-  color: var(--accent-purple, #a855f7);
-}
-
-.resource-icon.changelog {
-  background: rgba(34, 211, 238, 0.12);
-  color: var(--accent-cyan, #22d3ee);
-}
+.resource-icon.github { background: rgba(255, 255, 255, 0.06); color: var(--text-primary); }
+.resource-icon.discord { background: rgba(88, 101, 242, 0.12); color: #7289da; }
+.resource-icon.api { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+.resource-icon.changelog { background: rgba(168, 85, 247, 0.1); color: #a855f7; }
 
 .resource-content {
   display: flex;
@@ -1767,14 +1561,14 @@ code {
 }
 
 .resource-content strong {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--text-primary);
 }
 
 .resource-content span {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
-  margin-top: 0.15rem;
+  margin-top: 0.1rem;
 }
 
 /* ========================
@@ -1782,11 +1576,11 @@ code {
    ======================== */
 @media (max-width: 768px) {
   .doc-hero h1 {
-    font-size: 2rem;
+    font-size: 1.75rem;
   }
 
   .hero-lead {
-    font-size: 1.05rem;
+    font-size: 0.95rem;
   }
 
   .hero-actions {
@@ -1804,18 +1598,18 @@ code {
   .arch-row {
     flex-direction: column;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.6rem;
   }
 
   .arch-node {
     width: 100%;
-    max-width: 200px;
+    max-width: 180px;
   }
 
   .ws-flow {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.75rem;
+    gap: 0.6rem;
   }
 
   .ws-flow-arrow {
@@ -1828,7 +1622,7 @@ code {
   }
 
   .endpoint-row {
-    grid-template-columns: 55px 1fr;
+    grid-template-columns: 50px 1fr;
   }
 
   .endpoint-row .ep-desc {
@@ -1841,7 +1635,7 @@ code {
 
   .cli-row {
     grid-template-columns: 1fr;
-    gap: 0.25rem;
+    gap: 0.2rem;
   }
 
   .resource-grid {
@@ -1851,15 +1645,31 @@ code {
 
 @media (max-width: 480px) {
   .doc-hero h1 {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
   }
 
   section {
-    margin-bottom: 2.5rem;
+    margin-bottom: 2.25rem;
   }
 
   .feature-card {
-    padding: 1.15rem;
+    padding: 1rem;
+  }
+}
+
+/* ========================
+   Reduced Motion
+   ======================== */
+@media (prefers-reduced-motion: reduce) {
+  .nav-card {
+    animation: none;
+  }
+
+  .nav-card,
+  .hero-btn,
+  .resource-card,
+  .section-link {
+    transition: none;
   }
 }
 </style>

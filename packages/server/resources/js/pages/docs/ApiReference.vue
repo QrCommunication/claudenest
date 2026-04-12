@@ -6,7 +6,7 @@
     </header>
 
     <!-- Category Navigation -->
-    <nav class="category-nav">
+    <nav class="category-nav" aria-label="API categories">
       <router-link
         v-for="cat in apiCategories"
         :key="cat.id"
@@ -33,25 +33,27 @@
 
     <!-- Error Codes Reference -->
     <section v-if="currentCategory === 'health'" class="error-codes-section">
-      <h2>Error Codes Reference</h2>
+      <h2 id="error-codes">Error Codes Reference</h2>
       <p>All API errors follow a consistent format with error codes:</p>
-      
-      <table class="error-table">
-        <thead>
-          <tr>
-            <th>Code</th>
-            <th>Message</th>
-            <th>HTTP</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="error in errorCodes" :key="error.code">
-            <td><code>{{ error.code }}</code></td>
-            <td>{{ error.message }}</td>
-            <td><span class="http-badge">{{ error.http }}</span></td>
-          </tr>
-        </tbody>
-      </table>
+
+      <div class="error-table-wrapper">
+        <table class="error-table">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Message</th>
+              <th>HTTP</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="error in errorCodes" :key="error.code">
+              <td><code>{{ error.code }}</code></td>
+              <td>{{ error.message }}</td>
+              <td><span class="http-badge">{{ error.http }}</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </section>
   </article>
 </template>
@@ -74,108 +76,120 @@ const category = computed(() => {
 
 <style scoped>
 .api-content {
-  max-width: 900px;
+  max-width: 720px;
 }
 
+/* Header */
 .doc-header {
-  margin-bottom: 2rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid var(--border-color, var(--border));
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .doc-header h1 {
-  font-size: 2.5rem;
-  font-weight: 800;
-  margin: 0 0 1rem;
-  background: linear-gradient(135deg, var(--accent-purple, #a855f7), var(--accent-cyan, #22d3ee));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
 }
 
 .lead {
-  font-size: 1.25rem;
-  color: var(--text-secondary);
+  font-size: 1rem;
+  color: var(--text-muted);
   line-height: 1.6;
   margin: 0;
+  max-width: 65ch;
 }
 
 /* Category Navigation */
 .category-nav {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 2rem;
-  padding: 1rem;
-  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
-  border: 1px solid var(--border-color, var(--border));
-  border-radius: 12px;
+  gap: 0.3rem;
+  margin-bottom: 1.5rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .category-link {
-  padding: 0.5rem 0.875rem;
-  color: var(--text-secondary);
+  padding: 0.35rem 0.65rem;
+  color: var(--text-muted);
   text-decoration: none;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  transition: all 0.15s;
+  border-radius: 5px;
+  font-size: 0.82rem;
+  transition: color 0.15s ease, background 0.15s ease;
   white-space: nowrap;
 }
 
 .category-link:hover {
-  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
-  color: var(--text-primary);
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .category-link.is-active {
-  background: color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
-  color: var(--accent-purple, #a855f7);
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.08);
   font-weight: 500;
 }
 
 /* Endpoints */
 .endpoints {
-  margin-top: 2rem;
+  margin-top: 0.5rem;
 }
 
 /* Error Codes Section */
 .error-codes-section {
-  margin-top: 3rem;
-  padding-top: 2rem;
-  border-top: 1px solid var(--border-color, var(--border));
+  margin-top: 2.5rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--border-color);
 }
 
 .error-codes-section h2 {
-  font-size: 1.75rem;
-  font-weight: 700;
-  margin: 0 0 1rem;
+  font-size: 1.35rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
   color: var(--text-primary);
+  letter-spacing: -0.01em;
 }
 
 .error-codes-section p {
   color: var(--text-secondary);
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
+  line-height: 1.7;
+}
+
+.error-table-wrapper {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .error-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9rem;
+  font-size: 0.82rem;
 }
 
 .error-table th,
 .error-table td {
-  padding: 0.75rem;
+  padding: 0.6rem 0.85rem;
   text-align: left;
-  border-bottom: 1px solid var(--border-color, var(--border));
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.error-table tr:last-child td {
+  border-bottom: none;
 }
 
 .error-table th {
   font-weight: 600;
   color: var(--text-muted);
-  font-size: 0.8rem;
+  font-size: 0.68rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .error-table td {
@@ -184,41 +198,49 @@ const category = computed(() => {
 
 .error-table code {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.85rem;
-  color: #fca5a5;
-  background: rgba(239, 68, 68, 0.1);
-  padding: 0.2rem 0.4rem;
-  border-radius: 4px;
+  font-size: 0.78rem;
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.08);
+  padding: 0.15rem 0.35rem;
+  border-radius: 3px;
 }
 
 .http-badge {
   display: inline-block;
-  padding: 0.2rem 0.5rem;
-  background: color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
-  color: var(--accent-purple, #a855f7);
-  border-radius: 4px;
-  font-size: 0.8rem;
+  padding: 0.15rem 0.4rem;
+  background: rgba(59, 130, 246, 0.08);
+  color: #60a5fa;
+  border-radius: 3px;
+  font-size: 0.75rem;
   font-weight: 500;
+  font-family: 'JetBrains Mono', monospace;
 }
 
 @media (max-width: 768px) {
   .doc-header h1 {
-    font-size: 2rem;
+    font-size: 1.5rem;
   }
-  
+
   .category-nav {
     overflow-x: auto;
     flex-wrap: nowrap;
-    padding: 0.75rem;
+    padding: 0.5rem 0;
   }
-  
+
   .error-table {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
   }
-  
+
   .error-table th,
   .error-table td {
-    padding: 0.5rem;
+    padding: 0.45rem 0.6rem;
+  }
+}
+
+/* ============ REDUCED MOTION ============ */
+@media (prefers-reduced-motion: reduce) {
+  .category-link {
+    transition: none;
   }
 }
 </style>

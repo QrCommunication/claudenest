@@ -1,74 +1,96 @@
 <template>
-  <div :id="endpointId" class="endpoint-card">
-    <!-- Header -->
-    <div class="endpoint-header">
-      <div class="endpoint-meta">
-        <span class="method-badge" :style="{ backgroundColor: methodColor }">
-          {{ method }}
-        </span>
+  <div :id="endpointId" class="endpoint-card" :class="{ 'is-expanded': expanded }">
+    <!-- Clickable Header -->
+    <button
+      class="endpoint-header"
+      @click="expanded = !expanded"
+      :aria-expanded="expanded"
+      type="button"
+    >
+      <div class="endpoint-header-left">
+        <span class="method-badge" :class="method.toLowerCase()">{{ method }}</span>
         <code class="endpoint-path">{{ path }}</code>
       </div>
-      <p class="endpoint-description">{{ description }}</p>
-    </div>
-
-    <!-- Actions -->
-    <div class="endpoint-actions">
-      <button class="copy-btn" @click="copyEndpoint">
-        <svg v-if="!copied" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+      <span class="endpoint-desc">{{ description }}</span>
+      <div class="endpoint-header-right">
+        <button
+          class="copy-path-btn"
+          @click.stop="copyEndpoint"
+          :aria-label="copied ? 'Copied' : 'Copy endpoint'"
+          type="button"
+        >
+          <svg v-if="!copied" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+          </svg>
+          <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </button>
+        <svg
+          class="chevron-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M9 18l6-6-6-6" />
         </svg>
-        <svg v-else viewBox="0 0 24 24" fill="currentColor">
-          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-        </svg>
-        {{ copied ? 'Copied!' : 'Copy' }}
-      </button>
-    </div>
-
-    <!-- Parameters -->
-    <div v-if="params?.length" class="endpoint-section">
-      <h4 class="section-title">Parameters</h4>
-      <table class="params-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Required</th>
-            <th>Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="param in params" :key="param.name">
-            <td><code>{{ param.name }}</code></td>
-            <td><span class="type-badge">{{ param.type }}</span></td>
-            <td>
-              <span class="required-badge" :class="{ required: param.required }">
-                {{ param.required ? 'Yes' : 'No' }}
-              </span>
-            </td>
-            <td>{{ param.description }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Code Examples -->
-    <div v-if="codeExamples.length" class="endpoint-section">
-      <h4 class="section-title">Examples</h4>
-      <CodeTabs :tabs="codeExamples" />
-    </div>
-
-    <!-- Responses -->
-    <div v-if="responses?.length" class="endpoint-section">
-      <h4 class="section-title">Responses</h4>
-      <div v-for="(resp, i) in responses" :key="i" class="response-block">
-        <div class="response-header">
-          <span class="http-status" :class="String(resp.status).startsWith('2') ? 'status-ok' : 'status-err'">
-            {{ resp.status }}
-          </span>
-          <span v-if="resp.description" class="response-desc">{{ resp.description }}</span>
-        </div>
-        <CodeBlock :code="resp.body" language="json" />
       </div>
+    </button>
+
+    <!-- Expandable Body -->
+    <div v-if="expanded" class="endpoint-body">
+      <!-- Parameters -->
+      <div v-if="params?.length" class="endpoint-section">
+        <h4 class="section-title">Parameters</h4>
+        <table class="params-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Required</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="param in params" :key="param.name">
+              <td><code>{{ param.name }}</code></td>
+              <td><span class="type-badge">{{ param.type }}</span></td>
+              <td>
+                <span class="required-badge" :class="{ required: param.required }">
+                  {{ param.required ? 'Yes' : 'No' }}
+                </span>
+              </td>
+              <td>{{ param.description }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Code Examples -->
+      <div v-if="codeExamples.length" class="endpoint-section">
+        <h4 class="section-title">Examples</h4>
+        <CodeTabs :tabs="codeExamples" />
+      </div>
+
+      <!-- Responses -->
+      <div v-if="responses?.length" class="endpoint-section">
+        <h4 class="section-title">Responses</h4>
+        <div v-for="(resp, i) in responses" :key="i" class="response-block">
+          <div class="response-header">
+            <span class="http-status" :class="String(resp.status).startsWith('2') ? 'status-ok' : 'status-err'">
+              {{ resp.status }}
+            </span>
+            <span v-if="resp.description" class="response-desc">{{ resp.description }}</span>
+          </div>
+          <CodeBlock :code="resp.body" language="json" />
+        </div>
+      </div>
+
+      <slot />
     </div>
   </div>
 </template>
@@ -103,11 +125,10 @@ const props = defineProps<{
   responses?: ResponseExample[];
 }>();
 
-const { getMethodColor, copyToClipboard } = useDocs();
+const { copyToClipboard } = useDocs();
 
+const expanded = ref(false);
 const copied = ref(false);
-
-const methodColor = computed(() => getMethodColor(props.method));
 
 const endpointId = computed(() => {
   return props.path
@@ -139,116 +160,179 @@ const codeExamples = computed(() => {
 
 <style scoped>
 .endpoint-card {
-  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
-  border: 1px solid color-mix(in srgb, var(--text-primary) 8%, transparent);
-  border-radius: 12px;
-  margin-bottom: 2rem;
-  overflow: hidden;
+  border-bottom: 1px solid var(--border-color);
 }
 
+.endpoint-card:last-child {
+  border-bottom: none;
+}
+
+/* Header */
 .endpoint-header {
-  padding: 1.25rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--text-primary) 8%, transparent);
-}
-
-.endpoint-meta {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin-bottom: 0.75rem;
-  flex-wrap: wrap;
+  width: 100%;
+  padding: 0.85rem 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  text-align: left;
+  transition: opacity 0.15s ease;
+}
+
+.endpoint-header:hover {
+  opacity: 0.85;
+}
+
+.endpoint-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
 }
 
 .method-badge {
-  padding: 0.375rem 0.625rem;
-  border-radius: 6px;
-  font-size: 0.75rem;
+  display: inline-block;
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-primary);
+  letter-spacing: 0.03em;
+  line-height: 1;
+}
+
+.method-badge.get {
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.method-badge.post {
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.method-badge.put {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.method-badge.patch {
+  color: #eab308;
+  background: rgba(234, 179, 8, 0.1);
+}
+
+.method-badge.delete {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
 }
 
 .endpoint-path {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.95rem;
+  font-size: 0.82rem;
   color: var(--text-primary);
   background: none;
+  padding: 0;
+  border: none;
 }
 
-.endpoint-description {
-  color: var(--text-secondary);
-  font-size: 0.95rem;
-  margin: 0;
-  line-height: 1.5;
+.endpoint-desc {
+  flex: 1;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
-.endpoint-actions {
-  display: flex;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--text-primary) 8%, transparent);
-}
-
-.copy-btn {
+.endpoint-header-right {
   display: flex;
   align-items: center;
-  gap: 0.375rem;
-  padding: 0.5rem 0.75rem;
-  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
-  border: 1px solid var(--border-color, var(--border));
-  border-radius: 8px;
-  color: var(--text-secondary);
-  font-size: 0.85rem;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.copy-path-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--text-muted);
   cursor: pointer;
-  transition: all 0.2s;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
 }
 
-.copy-btn:hover {
-  background: color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent);
-  border-color: color-mix(in srgb, var(--accent-purple, #a855f7) 30%, transparent);
-  color: var(--text-primary);
+.endpoint-header:hover .copy-path-btn {
+  opacity: 1;
 }
 
-.copy-btn svg {
+.copy-path-btn:hover {
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.copy-path-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.chevron-icon {
   width: 16px;
   height: 16px;
+  color: var(--text-muted);
+  transition: transform 0.2s cubic-bezier(0.23, 1, 0.32, 1);
+  flex-shrink: 0;
+}
+
+.is-expanded .chevron-icon {
+  transform: rotate(90deg);
+}
+
+/* Body */
+.endpoint-body {
+  padding: 0 0 1.25rem 0;
 }
 
 .endpoint-section {
-  padding: 1.25rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--text-primary) 8%, transparent);
-}
-
-.endpoint-section:last-child {
-  border-bottom: none;
+  padding: 0.75rem 0;
 }
 
 .section-title {
-  font-size: 0.9rem;
+  font-size: 0.78rem;
   font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin: 0 0 0.75rem;
 }
 
 /* Parameters Table */
 .params-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
 }
 
 .params-table th,
 .params-table td {
-  padding: 0.625rem 0.75rem;
+  padding: 0.5rem 0.65rem;
   text-align: left;
-  border-bottom: 1px solid color-mix(in srgb, var(--text-primary) 5%, transparent);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .params-table th {
   font-weight: 600;
   color: var(--text-muted);
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -259,35 +343,40 @@ const codeExamples = computed(() => {
 
 .params-table code {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--text-primary);
+  background: none;
+  padding: 0;
+  border: none;
 }
 
 .type-badge {
   display: inline-block;
-  padding: 0.2rem 0.4rem;
-  background: color-mix(in srgb, var(--accent-cyan, #22d3ee) 10%, transparent);
-  color: var(--accent-cyan, #22d3ee);
-  border-radius: 4px;
-  font-size: 0.75rem;
+  padding: 0.1rem 0.35rem;
+  background: rgba(59, 130, 246, 0.08);
+  color: #60a5fa;
+  border-radius: 3px;
+  font-size: 0.72rem;
+  font-family: 'JetBrains Mono', monospace;
 }
 
 .required-badge {
   display: inline-block;
-  padding: 0.2rem 0.4rem;
-  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
+  padding: 0.1rem 0.35rem;
+  background: rgba(255, 255, 255, 0.04);
   color: var(--text-muted);
-  border-radius: 4px;
-  font-size: 0.75rem;
+  border-radius: 3px;
+  font-size: 0.72rem;
 }
 
 .required-badge.required {
-  background: color-mix(in srgb, var(--status-error, #ef4444) 10%, transparent);
-  color: var(--status-error, #ef4444);
+  background: rgba(239, 68, 68, 0.08);
+  color: #f87171;
 }
 
+/* Responses */
 .response-block {
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .response-block:last-child {
@@ -297,31 +386,55 @@ const codeExamples = computed(() => {
 .response-header {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.5rem;
+  gap: 0.6rem;
+  margin-bottom: 0.4rem;
 }
 
 .http-status {
   display: inline-block;
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.8rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
+  font-size: 0.75rem;
   font-weight: 600;
   font-family: 'JetBrains Mono', monospace;
 }
 
 .status-ok {
-  background: color-mix(in srgb, #22c55e 10%, transparent);
-  color: #22c55e;
+  background: rgba(34, 197, 94, 0.08);
+  color: #4ade80;
 }
 
 .status-err {
-  background: color-mix(in srgb, var(--status-error, #ef4444) 10%, transparent);
-  color: var(--status-error, #ef4444);
+  background: rgba(239, 68, 68, 0.08);
+  color: #f87171;
 }
 
 .response-desc {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   color: var(--text-secondary);
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .endpoint-desc {
+    display: none;
+  }
+
+  .endpoint-header {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .params-table {
+    font-size: 0.75rem;
+  }
+}
+
+/* ============ REDUCED MOTION ============ */
+@media (prefers-reduced-motion: reduce) {
+  .chevron-icon,
+  .copy-path-btn {
+    transition: none;
+  }
 }
 </style>
