@@ -3,9 +3,9 @@
     <header class="doc-header">
       <h1>Architecture Overview</h1>
       <p class="lead">
-        ClaudeNest follows a distributed architecture with three main packages: a Laravel server
-        acting as the central hub, lightweight Node.js agents running on developer machines, and
-        native mobile apps for on-the-go access.
+        ClaudeNest v1.2 follows a distributed architecture with three main packages: a Laravel 13
+        server acting as the central hub, lightweight Node.js 24 agents running on developer machines,
+        and native Expo 55 / React Native mobile apps for on-the-go access.
       </p>
     </header>
 
@@ -25,17 +25,17 @@
             <div class="arch-box">
               <span class="arch-icon">WEB</span>
               <span class="arch-name">Web Dashboard</span>
-              <span class="arch-tech">Vue.js 3 + xterm.js</span>
+              <span class="arch-tech">Vue.js 3.5 + Vite 8 + xterm.js</span>
             </div>
             <div class="arch-box">
               <span class="arch-icon">MOB</span>
               <span class="arch-name">Mobile App</span>
-              <span class="arch-tech">React Native</span>
+              <span class="arch-tech">Expo 55 + React Native 0.83</span>
             </div>
             <div class="arch-box">
               <span class="arch-icon">AGT</span>
               <span class="arch-name">Agent</span>
-              <span class="arch-tech">Node.js + node-pty</span>
+              <span class="arch-tech">Node.js 24 + node-pty</span>
             </div>
           </div>
         </div>
@@ -55,18 +55,18 @@
           <div class="arch-boxes">
             <div class="arch-box highlight">
               <span class="arch-icon">API</span>
-              <span class="arch-name">Laravel 11</span>
-              <span class="arch-tech">REST + Sanctum Auth</span>
+              <span class="arch-name">Laravel 13</span>
+              <span class="arch-tech">PHP 8.4 + Sanctum Auth</span>
             </div>
             <div class="arch-box highlight">
               <span class="arch-icon">WS</span>
-              <span class="arch-name">Reverb</span>
+              <span class="arch-name">Reverb 1.10</span>
               <span class="arch-tech">WebSocket Relay</span>
             </div>
             <div class="arch-box highlight">
               <span class="arch-icon">RAG</span>
               <span class="arch-name">Context Engine</span>
-              <span class="arch-tech">Embeddings + Search</span>
+              <span class="arch-tech">pgvector 384d + bge-small-en</span>
             </div>
           </div>
         </div>
@@ -118,7 +118,7 @@
     <section id="server">
       <h2>Server Package</h2>
       <p>
-        The server is a <strong>Laravel 11</strong> application that serves as the central orchestration
+        The server is a <strong>Laravel 13</strong> application that serves as the central orchestration
         hub. It exposes a REST API for CRUD operations, hosts the Vue.js SPA dashboard, and runs a
         WebSocket relay via Laravel Reverb for real-time communication.
       </p>
@@ -129,8 +129,12 @@
         <li>Machine registration and health monitoring</li>
         <li>Session lifecycle management (create, attach, terminate)</li>
         <li>Multi-agent coordination (tasks, file locks, shared context)</li>
-        <li>RAG engine with pgvector for context retrieval</li>
-        <li>Real-time event broadcasting via Laravel Reverb</li>
+        <li>Project management with epics, sprints, and Kanban boards</li>
+        <li>Planning Agent service for AI-powered task decomposition</li>
+        <li>Runner Agent service for automated sprint monitoring</li>
+        <li>RAG engine with pgvector (384d bge-small-en-v1.5) for context retrieval</li>
+        <li>Credential management with AES-256-CBC encryption</li>
+        <li>Real-time event broadcasting via Laravel Reverb 1.10</li>
       </ul>
 
       <h3>Directory Layout</h3>
@@ -170,19 +174,24 @@
     <section id="mobile">
       <h2>Mobile Package</h2>
       <p>
-        The mobile package is a <strong>React Native</strong> application targeting both iOS and Android.
-        It provides on-the-go access to sessions, machines, and multi-agent projects with native
-        performance and platform-specific UI conventions.
+        The mobile package is an <strong>Expo 55 / React Native 0.83</strong> application built with
+        <strong>React 19</strong>, targeting both iOS and Android. It provides on-the-go access to
+        sessions, machines, project management, and multi-agent coordination with native performance.
       </p>
 
       <h3>Key Features</h3>
       <ul>
         <li>Real-time session monitoring and interaction</li>
         <li>Machine status overview and Wake-on-LAN</li>
-        <li>Multi-agent task board with drag-and-drop</li>
-        <li>Push notifications for session events</li>
+        <li>Dashboard with aggregated metrics</li>
+        <li>Epic and sprint management with burndown charts</li>
+        <li>Kanban board with drag-and-drop task management</li>
+        <li>Planning Agent chat interface</li>
+        <li>Multi-agent orchestration monitoring</li>
+        <li>Push notifications for session and task events</li>
         <li>Biometric authentication (Face ID / fingerprint)</li>
-        <li>Offline support with Zustand persisted stores</li>
+        <li>Offline support with Zustand 5 persisted stores</li>
+        <li>Animations via Reanimated 4</li>
       </ul>
 
       <h3>State Management</h3>
@@ -235,12 +244,22 @@ const serverStructure = ref(`packages/server/
   app/
     Http/Controllers/Api/   # REST API controllers
     Models/                  # Eloquent models (UUID primary keys)
-    Services/                # Business logic (RAG, embedding, MCP)
+      Epic.php               # Epic model (feature grouping)
+      Sprint.php             # Sprint model (time-boxed iteration)
+      SharedTask.php         # Task model (subtasks, story points)
+      ClaudeCredential.php   # Encrypted credential storage
+    Services/                # Business logic
+      ContextRAGService.php  # RAG search with pgvector
+      EmbeddingService.php   # bge-small-en-v1.5 embeddings
+      PlanningAgentService.php # AI planning agent
+      RunnerAgentService.php   # Automated monitoring agent
+      CredentialService.php    # AES-256-CBC credential management
+      MCPManagerService.php    # MCP server orchestration
     Events/                  # Broadcast events (sessions, tasks, locks)
-  resources/js/              # Vue.js 3 SPA
+  resources/js/              # Vue.js 3.5 SPA (Vite 8, Tailwind 4.1)
     components/              # Reusable UI components
     pages/                   # Route-level page components
-    stores/                  # Pinia state management
+    stores/                  # Pinia 3 state management
     composables/             # Shared composition functions
   routes/
     api.php                  # API route definitions

@@ -39,7 +39,7 @@
 
       <p class="tip">
         <span class="tip-icon">&#128161;</span>
-        The agent requires <strong>Node.js 20 LTS</strong> or later. On Linux and macOS
+        The agent requires <strong>Node.js 24 LTS</strong> or later. On Linux and macOS
         the <code>node-pty</code> native add-on is compiled during install, so you also
         need a C++ toolchain (build-essential / Xcode CLI tools).
       </p>

@@ -3,7 +3,7 @@
     <header class="doc-header">
       <span class="badge">Cookbook</span>
       <h1>Mobile App Setup</h1>
-      <p class="lead">Configure and build the ClaudeNest React Native mobile app for iOS and Android.</p>
+      <p class="lead">Configure and build the ClaudeNest mobile app with Expo 55, React Native 0.83, and React 19 for iOS and Android.</p>
     </header>
 
     <section id="prerequisites">
@@ -16,22 +16,22 @@
         <div class="prereq-item">
           <span class="check">&#10003;</span>
           <div>
-            <strong>Node.js 20 LTS</strong>
+            <strong>Node.js 24 LTS</strong>
             <span>Required for the Metro bundler and build scripts</span>
           </div>
         </div>
         <div class="prereq-item">
           <span class="check">&#10003;</span>
           <div>
-            <strong>React Native CLI</strong>
-            <span><code>npm install -g react-native-cli</code></span>
+            <strong>Expo CLI</strong>
+            <span><code>npm install -g expo-cli</code></span>
           </div>
         </div>
         <div class="prereq-item">
           <span class="check">&#10003;</span>
           <div>
-            <strong>Xcode 15+ (iOS)</strong>
-            <span>macOS only — available from the Mac App Store</span>
+            <strong>Xcode 16+ (iOS)</strong>
+            <span>macOS only -- available from the Mac App Store</span>
           </div>
         </div>
         <div class="prereq-item">
@@ -66,8 +66,8 @@
       <div class="callout tip">
         <span class="callout-icon">i</span>
         <div>
-          <strong>Use the React Native environment doctor</strong>
-          <p>Run <code>npx react-native doctor</code> inside <code>packages/mobile</code> to get a checklist of missing or misconfigured dependencies.</p>
+          <strong>Use the Expo doctor</strong>
+          <p>Run <code>npx expo doctor</code> inside <code>packages/mobile</code> to get a checklist of missing or misconfigured dependencies.</p>
         </div>
       </div>
     </section>
@@ -252,6 +252,60 @@
       />
     </section>
 
+    <section id="mobile-features">
+      <h2>Mobile Features (v1.2)</h2>
+      <p>
+        The mobile app provides full access to ClaudeNest's project management and multi-agent
+        features. Built with Expo 55, React Native 0.83, React 19, Reanimated 4, and Zustand 5.
+      </p>
+
+      <h3>Available Screens</h3>
+      <ul>
+        <li><strong>Dashboard</strong> -- Aggregated metrics: machines online, active sessions, task progress, sprint burndown</li>
+        <li><strong>Machines</strong> -- List machines, view details, trigger Wake-on-LAN</li>
+        <li><strong>Sessions</strong> -- Monitor active Claude Code sessions in real-time</li>
+        <li><strong>Projects</strong> -- Manage shared projects with context, instances, and tasks</li>
+        <li><strong>Epics</strong> -- Create and track epics with progress percentage and task counts</li>
+        <li><strong>Sprints</strong> -- Manage time-boxed sprints with burndown charts</li>
+        <li><strong>Kanban Board</strong> -- Drag-and-drop task management across status columns</li>
+        <li><strong>Planning Chat</strong> -- Conversational interface to the Planning Agent</li>
+        <li><strong>Orchestration</strong> -- Monitor all Claude instances, their current tasks, and resource usage</li>
+        <li><strong>Settings</strong> -- Server configuration, theme, notifications, and credential management</li>
+      </ul>
+
+      <h3>Key Libraries</h3>
+      <div class="prereq-grid">
+        <div class="prereq-item">
+          <span class="check">&#10003;</span>
+          <div>
+            <strong>React 19</strong>
+            <span>Latest React with concurrent features</span>
+          </div>
+        </div>
+        <div class="prereq-item">
+          <span class="check">&#10003;</span>
+          <div>
+            <strong>Reanimated 4</strong>
+            <span>60fps native animations and layout transitions</span>
+          </div>
+        </div>
+        <div class="prereq-item">
+          <span class="check">&#10003;</span>
+          <div>
+            <strong>Zustand 5</strong>
+            <span>Lightweight state management with persist middleware</span>
+          </div>
+        </div>
+        <div class="prereq-item">
+          <span class="check">&#10003;</span>
+          <div>
+            <strong>React Navigation 7</strong>
+            <span>Native stack and tab navigation</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section id="push-notifications">
       <h2>Push Notifications</h2>
       <p>
@@ -413,15 +467,15 @@ import { ref } from 'vue';
 import CodeBlock from '@/components/docs/CodeBlock.vue';
 import CodeTabs from '@/components/docs/CodeTabs.vue';
 
-const prereqCheckCode = ref(`# Node.js version (must be 20+)
+const prereqCheckCode = ref(`# Node.js version (must be 24+)
 node --version
-# v20.x.x
+# v24.x.x
 
 # npm version
 npm --version
 
-# React Native CLI
-npx react-native --version
+# Expo CLI
+npx expo --version
 
 # iOS: Xcode command-line tools
 xcode-select --version
@@ -479,7 +533,7 @@ WS_URL=wss://api.claudenest.io:8080
 
 # App metadata
 APP_NAME=ClaudeNest
-APP_VERSION=1.0.0
+APP_VERSION=1.2.0
 
 # Firebase (Android push notifications)
 FCM_SENDER_ID=123456789012`);
@@ -522,11 +576,14 @@ pod deintegrate && pod install`);
 
 const iosXcodeOpen = ref(`open packages/mobile/ios/ClaudeNest.xcworkspace`);
 
-const iosRunCode = ref(`# Run on the default simulator (iPhone booted or last used)
+const iosRunCode = ref(`# Run via Expo (recommended)
+npx expo run:ios
+
+# Or run on the default simulator
 npx react-native run-ios
 
 # Run on a specific simulator
-npx react-native run-ios --simulator="iPhone 15 Pro"
+npx react-native run-ios --simulator="iPhone 16 Pro"
 
 # Run on a connected physical device (device must be trusted)
 npx react-native run-ios --device "Your iPhone Name"`);
@@ -544,7 +601,7 @@ const gradlePropertiesCode = ref(`# packages/mobile/android/gradle.properties
 # SDK location — override if not using ANDROID_HOME
 # sdk.dir=/Users/you/Library/Android/sdk
 
-# Hermes engine (recommended for RN 0.73+)
+# Hermes engine (enabled by default in RN 0.83+)
 hermesEnabled=true
 
 # Release signing — only needed for production builds
@@ -553,7 +610,10 @@ MYAPP_UPLOAD_STORE_PASSWORD=your-store-password
 MYAPP_UPLOAD_KEY_ALIAS=claudenest
 MYAPP_UPLOAD_KEY_PASSWORD=your-key-password`);
 
-const androidRunCode = ref(`# Run on the default emulator or connected device
+const androidRunCode = ref(`# Run via Expo (recommended)
+npx expo run:android
+
+# Or run on the default emulator or connected device
 npx react-native run-android
 
 # Run on a specific device (get device id with: adb devices)
@@ -568,20 +628,22 @@ const runTabs = ref([
     label: 'iOS',
     language: 'bash',
     filename: 'Terminal',
-    code: `# Terminal 1 — start Metro bundler
-npx react-native start
+    code: `# Start Expo dev server and build for iOS
+npx expo run:ios
 
-# Terminal 2 — build and install on iOS
-npx react-native run-ios --simulator="iPhone 15 Pro"`,
+# Or use the classic Metro + React Native CLI
+npx react-native start
+npx react-native run-ios --simulator="iPhone 16 Pro"`,
   },
   {
     label: 'Android',
     language: 'bash',
     filename: 'Terminal',
-    code: `# Terminal 1 — start Metro bundler
-npx react-native start
+    code: `# Start Expo dev server and build for Android
+npx expo run:android
 
-# Terminal 2 — build and install on Android
+# Or use the classic Metro + React Native CLI
+npx react-native start
 npx react-native run-android`,
   },
 ]);
@@ -689,34 +751,55 @@ export async function unregisterPushNotifications(): Promise<void> {
 
 const productionBuildTabs = ref([
   {
-    label: 'iOS',
+    label: 'EAS Build (recommended)',
+    language: 'bash',
+    filename: 'Terminal',
+    code: `# Install EAS CLI
+npm install -g eas-cli
+
+# Configure EAS Build (first time)
+cd packages/mobile
+eas build:configure
+
+# Build for iOS (App Store)
+eas build --platform ios --profile production
+
+# Build for Android (Google Play)
+eas build --platform android --profile production
+
+# Submit to stores
+eas submit --platform ios
+eas submit --platform android`,
+  },
+  {
+    label: 'iOS (manual)',
     language: 'bash',
     filename: 'Terminal',
     code: `# Build a release .ipa via xcodebuild (requires signing configured in Xcode)
 cd packages/mobile/ios
-xcodebuild \
-  -workspace ClaudeNest.xcworkspace \
-  -scheme ClaudeNest \
-  -configuration Release \
-  -archivePath build/ClaudeNest.xcarchive \
+xcodebuild \\
+  -workspace ClaudeNest.xcworkspace \\
+  -scheme ClaudeNest \\
+  -configuration Release \\
+  -archivePath build/ClaudeNest.xcarchive \\
   archive
 
 # Export the archive to an .ipa
-xcodebuild -exportArchive \
-  -archivePath build/ClaudeNest.xcarchive \
-  -exportOptionsPlist ExportOptions.plist \
+xcodebuild -exportArchive \\
+  -archivePath build/ClaudeNest.xcarchive \\
+  -exportOptionsPlist ExportOptions.plist \\
   -exportPath build/ipa`,
   },
   {
-    label: 'Android',
+    label: 'Android (manual)',
     language: 'bash',
     filename: 'Terminal',
     code: `# Generate a release keystore (first time only)
-keytool -genkeypair -v \
-  -storetype PKCS12 \
-  -keystore packages/mobile/android/app/claudenest-release.keystore \
-  -alias claudenest \
-  -keyalg RSA -keysize 2048 \
+keytool -genkeypair -v \\
+  -storetype PKCS12 \\
+  -keystore packages/mobile/android/app/claudenest-release.keystore \\
+  -alias claudenest \\
+  -keyalg RSA -keysize 2048 \\
   -validity 10000
 
 # Build a signed release AAB (recommended for Google Play)
@@ -737,7 +820,7 @@ API_URL=https://api.claudenest.io
 WS_URL=wss://api.claudenest.io:8080
 
 APP_NAME=ClaudeNest
-APP_VERSION=1.0.0
+APP_VERSION=1.2.0
 
 FCM_SENDER_ID=123456789012`);
 

@@ -115,6 +115,42 @@ export const docsNavigation: NavSection[] = [
         description: 'Discovered commands'
       },
       {
+        id: 'credentials-api',
+        title: 'Credentials',
+        path: '/docs/api/credentials',
+        description: 'API keys and OAuth tokens'
+      },
+      {
+        id: 'epics-api',
+        title: 'Epics',
+        path: '/docs/api/epics',
+        description: 'Feature-level task grouping'
+      },
+      {
+        id: 'sprints-api',
+        title: 'Sprints',
+        path: '/docs/api/sprints',
+        description: 'Time-boxed iterations'
+      },
+      {
+        id: 'planning-agent-api',
+        title: 'Planning Agent',
+        path: '/docs/api/planning-agent',
+        description: 'AI-powered project planning'
+      },
+      {
+        id: 'runner-agent-api',
+        title: 'Runner Agent',
+        path: '/docs/api/runner-agent',
+        description: 'Automated sprint monitoring'
+      },
+      {
+        id: 'dashboard-api',
+        title: 'Dashboard',
+        path: '/docs/api/dashboard',
+        description: 'Aggregated metrics'
+      },
+      {
         id: 'health-api',
         title: 'Health',
         path: '/docs/api/health',
@@ -359,6 +395,37 @@ export const docsNavigation: NavSection[] = [
         title: 'Privacy Policy',
         path: '/docs/privacy',
         description: 'GDPR-compliant privacy policy'
+      }
+    ]
+  },
+  {
+    id: 'legal',
+    title: 'Légal',
+    icon: 'book',
+    items: [
+      {
+        id: 'legal-mentions-legales',
+        title: 'Mentions légales',
+        path: '/docs/mentions-legales',
+        description: 'Informations légales (France)'
+      },
+      {
+        id: 'legal-privacy',
+        title: 'Politique de confidentialité',
+        path: '/docs/privacy',
+        description: 'Politique RGPD'
+      },
+      {
+        id: 'legal-terms',
+        title: 'CGU',
+        path: '/docs/terms',
+        description: 'Conditions générales d\'utilisation'
+      },
+      {
+        id: 'legal-cookies',
+        title: 'Cookies',
+        path: '/docs/cookies',
+        description: 'Politique de cookies'
       }
     ]
   }

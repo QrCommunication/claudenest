@@ -3,8 +3,9 @@
     <header class="doc-header">
       <h1>Quickstart</h1>
       <p class="lead">
-        Get up and running with ClaudeNest in minutes. Create your first machine, 
-        start a session, and interact with Claude Code remotely.
+        Get up and running with ClaudeNest in minutes. Create your first machine,
+        start a session, create a shared project, and interact with Claude Code remotely.
+        Then explore epics, sprints, and the Planning Agent for full project management.
       </p>
     </header>
 
@@ -154,6 +155,46 @@
       />
     </section>
 
+    <section id="create-epic">
+      <h2>Create an Epic</h2>
+      <p>Organize related tasks into epics for feature-level tracking:</p>
+
+      <CodeBlock
+        :code="createEpicCode"
+        language="bash"
+        filename="Request"
+      />
+
+      <CodeBlock
+        :code="createEpicResponse"
+        language="json"
+        filename="Response"
+      />
+    </section>
+
+    <section id="planning-agent">
+      <h2>Use the Planning Agent</h2>
+      <p>Ask the Planning Agent to decompose work and suggest sprint scope:</p>
+
+      <CodeBlock
+        :code="planningAgentCode"
+        language="bash"
+        filename="Request"
+      />
+
+      <CodeBlock
+        :code="planningAgentResponse"
+        language="json"
+        filename="Response"
+      />
+
+      <p class="tip">
+        <span class="tip-icon">&#128161;</span>
+        The Planning Agent uses your backlog, velocity history, and epic structure to make
+        data-driven suggestions. Let it propose the sprint scope, then fine-tune manually.
+      </p>
+    </section>
+
     <section id="javascript-sdk">
       <h2>Using the JavaScript SDK</h2>
       <p>For easier integration, use the official JavaScript SDK:</p>
@@ -173,6 +214,14 @@
     <section id="next-steps">
       <h2>Next Steps</h2>
       <div class="next-steps">
+        <router-link to="/docs/guides/multi-agent" class="next-step">
+          <strong>Multi-Agent Guide</strong>
+          <span>Set up multi-agent collaboration with Planning Agent →</span>
+        </router-link>
+        <router-link to="/docs/guides/task-coordination" class="next-step">
+          <strong>Task Coordination</strong>
+          <span>Epics, sprints, Kanban boards, and story points →</span>
+        </router-link>
         <router-link to="/docs/api/machines" class="next-step">
           <strong>Machines API</strong>
           <span>Manage your registered machines →</span>
@@ -180,14 +229,6 @@
         <router-link to="/docs/api/sessions" class="next-step">
           <strong>Sessions API</strong>
           <span>Create and manage Claude Code sessions →</span>
-        </router-link>
-        <router-link to="/docs/api/projects" class="next-step">
-          <strong>Projects API</strong>
-          <span>Set up multi-agent collaboration →</span>
-        </router-link>
-        <router-link to="/docs/sdks/javascript" class="next-step">
-          <strong>JavaScript SDK</strong>
-          <span>Full SDK documentation →</span>
         </router-link>
       </div>
     </section>
@@ -201,8 +242,8 @@ const healthResponse = `{
   "success": true,
   "data": {
     "status": "ok",
-    "version": "1.0.0",
-    "timestamp": "2026-02-02T17:00:00Z"
+    "version": "1.2.0",
+    "timestamp": "2026-04-12T17:00:00Z"
   }
 }`;
 
@@ -369,6 +410,47 @@ const queryContextResponse = `{
     "query": "How is authentication implemented?",
     "result_count": 1,
     "used_embeddings": true
+  }
+}`;
+
+const createEpicCode = `curl -X POST https://claudenest.yourdomain.com/api/projects/550e8400-e29b-41d4-a716-446655440004/epics \\
+  -H 'Authorization: Bearer your-api-token' \\
+  -H 'Content-Type: application/json' \\
+  -d '{
+    "name": "User Authentication",
+    "description": "Complete auth system with OAuth, MFA, and password reset"
+  }'`;
+
+const createEpicResponse = `{
+  "success": true,
+  "data": {
+    "id": "epic-550e8400-auth",
+    "project_id": "550e8400-e29b-41d4-a716-446655440004",
+    "name": "User Authentication",
+    "status": "pending",
+    "total_tasks": 0,
+    "completed_tasks": 0,
+    "percent_done": 0
+  }
+}`;
+
+const planningAgentCode = `curl -X POST https://claudenest.yourdomain.com/api/projects/550e8400-e29b-41d4-a716-446655440004/planning/chat \\
+  -H 'Authorization: Bearer your-api-token' \\
+  -H 'Content-Type: application/json' \\
+  -d '{
+    "message": "Break down the authentication epic into tasks for Sprint 16"
+  }'`;
+
+const planningAgentResponse = `{
+  "success": true,
+  "data": {
+    "reply": "I suggest 4 tasks for the authentication epic totaling 19 story points...",
+    "actions": [
+      { "type": "create_task", "title": "Implement OAuth2 login flow", "story_points": 5, "epic_id": "epic-550e8400-auth" },
+      { "type": "create_task", "title": "Add email/password registration", "story_points": 3, "epic_id": "epic-550e8400-auth" },
+      { "type": "create_task", "title": "Implement MFA with TOTP", "story_points": 8, "epic_id": "epic-550e8400-auth" },
+      { "type": "create_task", "title": "Add password reset flow", "story_points": 3, "epic_id": "epic-550e8400-auth" }
+    ]
   }
 }`;
 

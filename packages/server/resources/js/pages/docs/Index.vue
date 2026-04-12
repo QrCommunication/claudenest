@@ -4,12 +4,13 @@
     <header class="doc-hero">
       <div class="hero-badge">
         <span class="badge-dot"></span>
-        v1.0.0 -- Production Ready
+        v1.2.0 -- Production Ready
       </div>
       <h1>ClaudeNest Documentation</h1>
       <p class="hero-lead">
         The open-source platform for remote Claude Code orchestration. Control sessions,
-        coordinate multiple agents, and build with real-time WebSocket communication.
+        coordinate multiple agents, manage projects with epics, sprints, and Kanban boards,
+        and build with real-time WebSocket communication.
       </p>
       <div class="hero-actions">
         <router-link to="/docs/quickstart" class="hero-btn primary">
@@ -32,7 +33,8 @@
       <h2>Explore the Platform</h2>
       <p>
         ClaudeNest consists of three core packages that work together to provide
-        seamless remote access and multi-agent coordination for Claude Code.
+        seamless remote access, multi-agent coordination, project management with epics and sprints,
+        AI-powered planning, and automated monitoring for Claude Code.
       </p>
       <div class="nav-cards">
         <router-link to="/docs/installation" class="nav-card">
@@ -128,6 +130,36 @@
             <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </router-link>
+
+        <router-link to="/docs/guides/task-coordination" class="nav-card">
+          <div class="nav-card-icon project-mgmt">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 6h16M4 10h16M4 14h10M4 18h6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="nav-card-content">
+            <h3>Project Management</h3>
+            <p>Epics, sprints, Kanban boards, burndown charts, and story points.</p>
+          </div>
+          <svg class="nav-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </router-link>
+
+        <router-link to="/docs/api/credentials" class="nav-card">
+          <div class="nav-card-icon credentials">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 7h2a5 5 0 010 10h-2m-6 0H7A5 5 0 017 7h2M8 12h8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="nav-card-content">
+            <h3>Credentials</h3>
+            <p>Manage Claude API keys and OAuth tokens with AES-256-CBC encryption.</p>
+          </div>
+          <svg class="nav-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </router-link>
       </div>
     </section>
 
@@ -191,7 +223,7 @@
               </svg>
             </div>
             <span>ClaudeNest Server</span>
-            <span class="arch-tech">Laravel 11 + Reverb + RAG</span>
+            <span class="arch-tech">Laravel 13 + Reverb 1.10 + RAG</span>
           </div>
         </div>
 
@@ -453,8 +485,9 @@
       <h2>Multi-Agent Coordination</h2>
       <p>
         ClaudeNest enables multiple Claude Code instances to work on the same project
-        simultaneously. The system provides shared context, task coordination, and
-        file locking to prevent conflicts.
+        simultaneously. The system provides shared context, task coordination with
+        epics and sprints, file locking, a conversational Planning Agent, and an
+        automated Runner Agent for monitoring.
       </p>
 
       <div class="feature-cards">
@@ -826,6 +859,11 @@ const coreEndpoints: Endpoint[] = [
   { method: 'GET', path: '/api/projects/{id}/tasks', description: 'List tasks in a shared project' },
   { method: 'POST', path: '/api/tasks/{id}/claim', description: 'Atomically claim a task for an agent' },
   { method: 'POST', path: '/api/projects/{id}/context/query', description: 'Semantic search over project context' },
+  { method: 'GET', path: '/api/projects/{id}/epics', description: 'List epics with aggregate progress' },
+  { method: 'GET', path: '/api/projects/{id}/sprints', description: 'List sprints with burndown data' },
+  { method: 'POST', path: '/api/projects/{id}/planning/execute', description: 'Trigger the Planning Agent' },
+  { method: 'GET', path: '/api/projects/{id}/runner/progress', description: 'Live sprint progress from Runner Agent' },
+  { method: 'GET', path: '/api/credentials', description: 'List encrypted Claude API credentials' },
 ];
 
 interface CliCommand {
@@ -1068,6 +1106,16 @@ code {
 .nav-card-icon.mcp {
   background: rgba(244, 114, 182, 0.12);
   color: #f472b6;
+}
+
+.nav-card-icon.project-mgmt {
+  background: rgba(34, 197, 94, 0.12);
+  color: #4ade80;
+}
+
+.nav-card-icon.credentials {
+  background: rgba(251, 191, 36, 0.12);
+  color: #fbbf24;
 }
 
 .nav-card-content {

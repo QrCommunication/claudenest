@@ -7,8 +7,8 @@ import { apiCategories, searchEndpoints, errorCodes } from '@/data/api-endpoints
 const isSidebarOpen = ref(true);
 const searchQuery = ref('');
 const searchResults = ref<Array<{ type: 'nav' | 'endpoint'; data: any }>>([]);
-const currentVersion = ref('v1.0.0');
-const availableVersions = ['v1.0.0', 'v0.9.0', 'v0.8.0'];
+const currentVersion = ref('v1.2.0');
+const availableVersions = ['v1.2.0', 'v1.1.0', 'v1.0.0'];
 
 export function useDocs() {
   const route = useRoute();

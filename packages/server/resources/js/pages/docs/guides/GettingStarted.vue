@@ -35,7 +35,7 @@
 
       <h3>Server (Hub)</h3>
       <p>
-        The central Laravel 11 application handles authentication, API routing,
+        The central Laravel 13 application handles authentication, API routing,
         WebSocket relay via Laravel Reverb, and persistent storage in PostgreSQL
         with pgvector for embeddings. It also serves the Vue.js web dashboard.
       </p>
@@ -85,16 +85,16 @@
 
       <h3>For the Server</h3>
       <ul class="checklist">
-        <li><span class="check">&#10003;</span> PHP 8.3+ with required extensions (pgsql, redis, pcntl)</li>
+        <li><span class="check">&#10003;</span> PHP 8.4+ with required extensions (pgsql, redis, pcntl)</li>
         <li><span class="check">&#10003;</span> PostgreSQL 16+ with the pgvector extension</li>
         <li><span class="check">&#10003;</span> Redis 7+ for caching, queues, and broadcasting</li>
-        <li><span class="check">&#10003;</span> Node.js 20+ and npm (for building the frontend)</li>
+        <li><span class="check">&#10003;</span> Node.js 24+ and npm (for building the frontend)</li>
         <li><span class="check">&#10003;</span> Composer 2.x for PHP dependencies</li>
       </ul>
 
       <h3>For the Agent</h3>
       <ul class="checklist">
-        <li><span class="check">&#10003;</span> Node.js 20 LTS</li>
+        <li><span class="check">&#10003;</span> Node.js 24 LTS</li>
         <li><span class="check">&#10003;</span> Claude Code CLI installed and authenticated</li>
         <li><span class="check">&#10003;</span> Network access to the ClaudeNest server (outbound WebSocket)</li>
       </ul>
@@ -144,16 +144,16 @@ import CodeTabs from '@/components/docs/CodeTabs.vue';
 
 const serverStackCode = `Server Components
 -----------------
-Laravel 11          API & WebSocket relay
-PostgreSQL 16       Primary database + pgvector embeddings
-Redis 7             Cache, queues, broadcasting
+Laravel 13          API & WebSocket relay
+PostgreSQL 16+      Primary database + pgvector embeddings
+Redis 7+            Cache, queues, broadcasting
 Laravel Reverb      WebSocket server
-Vue.js 3            Web dashboard (SPA)
+Vue.js 3.5          Web dashboard (SPA)
 xterm.js            Terminal emulation in the browser`;
 
 const agentStackCode = `Agent Components
 ----------------
-Node.js 20          Runtime
+Node.js 24 LTS      Runtime
 node-pty            PTY management for Claude Code processes
 ws                  WebSocket client (connects to server)
 keytar              Secure credential storage (OS keychain)

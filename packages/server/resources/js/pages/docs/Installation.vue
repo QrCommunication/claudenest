@@ -14,21 +14,21 @@
         <div class="prereq-item">
           <span class="check">✓</span>
           <div>
-            <strong>Node.js 20+</strong>
+            <strong>Node.js 24+</strong>
             <span>Required for the agent</span>
           </div>
         </div>
         <div class="prereq-item">
           <span class="check">✓</span>
           <div>
-            <strong>PHP 8.3+</strong>
+            <strong>PHP 8.4+</strong>
             <span>Required for the server</span>
           </div>
         </div>
         <div class="prereq-item">
           <span class="check">✓</span>
           <div>
-            <strong>PostgreSQL 15+</strong>
+            <strong>PostgreSQL 16+</strong>
             <span>With pgvector extension</span>
           </div>
         </div>
@@ -203,8 +203,11 @@ sudo systemctl reload nginx"
         Install it on any machine where you want to run Claude Code.
       </p>
 
-      <CodeBlock 
-        code="# Install via npm
+      <CodeBlock
+        code="# Quick install via script
+curl -fsSL https://claudenest.io/install-agent.sh | bash
+
+# Or install via npm
 npm install -g @claudenest/agent
 
 # Or install from source
@@ -223,7 +226,7 @@ claudenest-agent start
 
 # Or run as a service
 claudenest-agent install-service
-claudenest-agent start-service" 
+claudenest-agent start-service"
         language="bash"
         filename="Terminal"
       />
@@ -354,8 +357,8 @@ GITHUB_CLIENT_SECRET=your-github-secret
 
 # AI Models (Optional - for RAG)
 OLLAMA_URL=http://ollama:11434
-OLLAMA_MODEL=mistral
-OLLAMA_EMBEDDING_MODEL=nomic-embed-text`;
+OLLAMA_SUMMARIZATION_MODEL=mistral:7b
+OLLAMA_EMBEDDING_MODEL=bge-small-en-v1.5`;
 </script>
 
 <style scoped>

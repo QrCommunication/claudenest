@@ -2,7 +2,7 @@
  * ClaudeNest API Endpoints Documentation
  * 
  * This file contains the complete API reference for ClaudeNest.
- * Last updated: 2026-02-02
+ * Last updated: 2026-04-12
  */
 
 export interface ApiParam {
@@ -1781,6 +1781,403 @@ export const apiCategories: ApiCategory[] = [
     ]
   },
   {
+    id: 'credentials',
+    title: 'Credentials',
+    description: 'Manage Claude API keys and OAuth tokens with AES-256-CBC encryption.',
+    endpoints: [
+      {
+        method: 'GET',
+        path: '/api/credentials',
+        description: 'List all credentials for the authenticated user.',
+        response: `{
+  "success": true,
+  "data": [
+    {
+      "id": "550e8400-...",
+      "name": "Production API Key",
+      "auth_type": "api_key",
+      "is_default": true,
+      "token_status": "active",
+      "last_used_at": "2026-04-10T12:00:00Z",
+      "created_at": "2026-03-01T09:00:00Z"
+    }
+  ]
+}`
+      },
+      {
+        method: 'POST',
+        path: '/api/credentials',
+        description: 'Create a new credential (API key or OAuth token).',
+        body: `{
+  "name": "My API Key",
+  "auth_type": "api_key",
+  "api_key": "sk-ant-...",
+  "is_default": false
+}`,
+        response: `{
+  "success": true,
+  "data": {
+    "id": "550e8400-...",
+    "name": "My API Key",
+    "auth_type": "api_key",
+    "is_default": false,
+    "token_status": "active"
+  }
+}`
+      },
+      {
+        method: 'GET',
+        path: '/api/credentials/{id}',
+        description: 'Get a specific credential (key is masked).',
+        response: `{
+  "success": true,
+  "data": {
+    "id": "550e8400-...",
+    "name": "My API Key",
+    "auth_type": "api_key",
+    "api_key_masked": "sk-ant-...****",
+    "is_default": false,
+    "token_status": "active"
+  }
+}`
+      },
+      {
+        method: 'PUT',
+        path: '/api/credentials/{id}',
+        description: 'Update an existing credential.',
+        body: `{
+  "name": "Updated Name",
+  "api_key": "sk-ant-new-key..."
+}`,
+        response: `{
+  "success": true,
+  "data": { /* updated credential */ }
+}`
+      },
+      {
+        method: 'DELETE',
+        path: '/api/credentials/{id}',
+        description: 'Delete a credential.',
+        response: `{
+  "success": true,
+  "data": { "message": "Credential deleted" }
+}`
+      },
+      {
+        method: 'POST',
+        path: '/api/credentials/{id}/set-default',
+        description: 'Set a credential as the default for this user.',
+        response: `{
+  "success": true,
+  "data": { "id": "...", "is_default": true }
+}`
+      },
+      {
+        method: 'POST',
+        path: '/api/credentials/{id}/validate',
+        description: 'Validate an API key against the Claude API.',
+        response: `{
+  "success": true,
+  "data": { "valid": true, "token_status": "active" }
+}`
+      },
+      {
+        method: 'POST',
+        path: '/api/credentials/{id}/refresh',
+        description: 'Refresh an OAuth token using the stored refresh token.',
+        response: `{
+  "success": true,
+  "data": { "token_status": "active", "oauth_expires_at": "2026-05-10T00:00:00Z" }
+}`
+      }
+    ]
+  },
+  {
+    id: 'epics',
+    title: 'Epics',
+    description: 'Group related tasks into epics for feature-level tracking.',
+    endpoints: [
+      {
+        method: 'GET',
+        path: '/api/projects/{id}/epics',
+        description: 'List all epics for a project with aggregate progress.',
+        response: `{
+  "success": true,
+  "data": [
+    {
+      "id": "epic-001",
+      "project_id": "...",
+      "name": "Payment System",
+      "description": "End-to-end payment integration",
+      "status": "in_progress",
+      "total_tasks": 8,
+      "completed_tasks": 3,
+      "percent_done": 37.5,
+      "total_story_points": 34,
+      "completed_story_points": 13,
+      "created_at": "2026-03-15T09:00:00Z"
+    }
+  ]
+}`
+      },
+      {
+        method: 'POST',
+        path: '/api/projects/{id}/epics',
+        description: 'Create a new epic.',
+        body: `{
+  "name": "User Authentication",
+  "description": "Complete auth system with OAuth and MFA"
+}`,
+        response: `{
+  "success": true,
+  "data": { "id": "epic-002", "name": "User Authentication", "status": "pending" }
+}`
+      },
+      {
+        method: 'PATCH',
+        path: '/api/epics/{id}',
+        description: 'Update an epic.',
+        body: `{
+  "name": "Updated Epic Name",
+  "status": "done"
+}`,
+        response: `{
+  "success": true,
+  "data": { /* updated epic */ }
+}`
+      },
+      {
+        method: 'DELETE',
+        path: '/api/epics/{id}',
+        description: 'Delete an epic (tasks are unlinked, not deleted).',
+        response: `{
+  "success": true,
+  "data": { "message": "Epic deleted" }
+}`
+      }
+    ]
+  },
+  {
+    id: 'sprints',
+    title: 'Sprints',
+    description: 'Time-boxed iterations with burndown tracking and velocity metrics.',
+    endpoints: [
+      {
+        method: 'GET',
+        path: '/api/projects/{id}/sprints',
+        description: 'List all sprints for a project with burndown data.',
+        response: `{
+  "success": true,
+  "data": [
+    {
+      "id": "sprint-2026-w15",
+      "project_id": "...",
+      "name": "Sprint 15",
+      "goal": "Complete checkout flow",
+      "starts_at": "2026-04-07T00:00:00Z",
+      "ends_at": "2026-04-18T18:00:00Z",
+      "status": "active",
+      "total_story_points": 21,
+      "completed_story_points": 8,
+      "total_tasks": 7,
+      "completed_tasks": 3
+    }
+  ]
+}`
+      },
+      {
+        method: 'POST',
+        path: '/api/projects/{id}/sprints',
+        description: 'Create a new sprint.',
+        body: `{
+  "name": "Sprint 16",
+  "goal": "Mobile app integration",
+  "starts_at": "2026-04-21T00:00:00Z",
+  "ends_at": "2026-05-02T18:00:00Z"
+}`,
+        response: `{
+  "success": true,
+  "data": { "id": "sprint-2026-w17", "name": "Sprint 16", "status": "planned" }
+}`
+      },
+      {
+        method: 'PATCH',
+        path: '/api/sprints/{id}',
+        description: 'Update a sprint (name, goal, dates, status).',
+        body: `{ "status": "completed" }`,
+        response: `{
+  "success": true,
+  "data": { /* updated sprint */ }
+}`
+      },
+      {
+        method: 'GET',
+        path: '/api/sprints/{id}/burndown',
+        description: 'Get daily burndown data for a sprint.',
+        response: `{
+  "success": true,
+  "data": {
+    "sprint_id": "sprint-2026-w15",
+    "ideal": [21, 18, 15, 12, 9, 6, 3, 0],
+    "actual": [21, 19, 16, 13, 13, 8, null, null],
+    "dates": ["2026-04-07", "2026-04-08", "..."]
+  }
+}`
+      }
+    ]
+  },
+  {
+    id: 'planning-agent',
+    title: 'Planning Agent',
+    description: 'AI-powered conversational agent for project planning and task decomposition.',
+    endpoints: [
+      {
+        method: 'GET',
+        path: '/api/projects/{id}/planning/context',
+        description: 'Get the current planning context snapshot (backlog, epics, velocity).',
+        response: `{
+  "success": true,
+  "data": {
+    "project_id": "...",
+    "backlog_size": 24,
+    "active_sprint": { "id": "...", "name": "Sprint 15" },
+    "velocity_avg": 18,
+    "suggested_capacity": 21,
+    "unestimated_tasks": 5
+  }
+}`
+      },
+      {
+        method: 'POST',
+        path: '/api/projects/{id}/planning/execute',
+        description: 'Trigger a planning run. Analyses backlog and suggests epic grouping, story points, and sprint scope.',
+        body: `{
+  "goal": "Prepare Sprint 16 focused on mobile features",
+  "constraints": { "max_story_points": 21 }
+}`,
+        response: `{
+  "success": true,
+  "data": {
+    "suggestions": [
+      { "task_id": "...", "suggested_story_points": 5, "suggested_epic": "epic-mobile" },
+      { "task_id": "...", "suggested_story_points": 3, "suggested_sprint": "sprint-2026-w17" }
+    ],
+    "summary": "Recommended 7 tasks totaling 19 story points for Sprint 16."
+  }
+}`
+      },
+      {
+        method: 'POST',
+        path: '/api/projects/{id}/planning/chat',
+        description: 'Conversational interface to the Planning Agent. Send a natural language message and receive structured suggestions.',
+        body: `{
+  "message": "Break down the authentication epic into smaller tasks"
+}`,
+        response: `{
+  "success": true,
+  "data": {
+    "reply": "I suggest splitting the authentication epic into 4 tasks: ...",
+    "actions": [
+      { "type": "create_task", "title": "Implement OAuth2 login flow", "story_points": 5 },
+      { "type": "create_task", "title": "Add MFA support", "story_points": 8 }
+    ]
+  }
+}`
+      }
+    ]
+  },
+  {
+    id: 'runner-agent',
+    title: 'Runner Agent',
+    description: 'Automated monitoring agent that tracks sprint progress and auto-updates task statuses.',
+    endpoints: [
+      {
+        method: 'GET',
+        path: '/api/projects/{id}/runner/health',
+        description: 'Check the health and status of the Runner Agent for a project.',
+        response: `{
+  "success": true,
+  "data": {
+    "status": "active",
+    "last_sweep_at": "2026-04-12T14:30:00Z",
+    "tasks_auto_updated": 12,
+    "alerts_triggered": 2
+  }
+}`
+      },
+      {
+        method: 'POST',
+        path: '/api/projects/{id}/runner/auto-update',
+        description: 'Force a status sweep. The Runner checks all in-progress tasks and updates statuses based on instance activity.',
+        response: `{
+  "success": true,
+  "data": {
+    "tasks_updated": 3,
+    "details": [
+      { "task_id": "...", "old_status": "in_progress", "new_status": "done", "reason": "Instance reported completion" }
+    ]
+  }
+}`
+      },
+      {
+        method: 'GET',
+        path: '/api/projects/{id}/runner/progress',
+        description: 'Get live sprint progress including burndown, velocity, and alerts.',
+        response: `{
+  "success": true,
+  "data": {
+    "sprint": { "id": "...", "name": "Sprint 15", "days_remaining": 4 },
+    "progress_percent": 62,
+    "on_track": true,
+    "velocity_current": 20,
+    "alerts": [
+      { "type": "blocked_task", "task_id": "...", "message": "Task blocked for 2 days" }
+    ]
+  }
+}`
+      },
+      {
+        method: 'GET',
+        path: '/api/projects/{id}/runner/alerts',
+        description: 'List all active alerts from the Runner Agent.',
+        response: `{
+  "success": true,
+  "data": [
+    {
+      "id": "alert-001",
+      "type": "stale_task",
+      "severity": "warning",
+      "message": "Task 'Implement webhooks' has not been updated in 48 hours",
+      "task_id": "...",
+      "created_at": "2026-04-12T10:00:00Z"
+    }
+  ]
+}`
+      }
+    ]
+  },
+  {
+    id: 'dashboard',
+    title: 'Dashboard',
+    description: 'Aggregated metrics and statistics for the dashboard.',
+    endpoints: [
+      {
+        method: 'GET',
+        path: '/api/dashboard',
+        description: 'Get aggregated dashboard metrics (machines, sessions, projects, tasks).',
+        response: `{
+  "success": true,
+  "data": {
+    "machines": { "total": 5, "online": 3 },
+    "sessions": { "active": 2, "total_today": 8 },
+    "projects": { "total": 4, "active_instances": 6 },
+    "tasks": { "pending": 12, "in_progress": 4, "completed_today": 7 }
+  }
+}`
+      }
+    ]
+  },
+  {
     id: 'health',
     title: 'Health',
     description: 'Health check and system status.',
@@ -1793,8 +2190,8 @@ export const apiCategories: ApiCategory[] = [
   "success": true,
   "data": {
     "status": "ok",
-    "version": "1.0.0",
-    "timestamp": "2026-02-02T17:00:00Z"
+    "version": "1.2.0",
+    "timestamp": "2026-04-12T17:00:00Z"
   }
 }`,
         errors: []
@@ -1869,5 +2266,13 @@ export const errorCodes = [
   { code: 'MCP_007', message: 'Tool not found on this server', http: '404' },
   { code: 'CMD_001', message: 'Machine not found', http: '404' },
   { code: 'CMD_002', message: 'Command not found', http: '404' },
-  { code: 'CMD_003', message: 'Machine is offline', http: '400' }
+  { code: 'CMD_003', message: 'Machine is offline', http: '400' },
+  { code: 'CRD_001', message: 'Credential not found', http: '404' },
+  { code: 'CRD_002', message: 'Invalid API key', http: '400' },
+  { code: 'CRD_003', message: 'OAuth token expired', http: '401' },
+  { code: 'EPC_001', message: 'Epic not found', http: '404' },
+  { code: 'SPR_001', message: 'Sprint not found', http: '404' },
+  { code: 'SPR_002', message: 'Sprint date range overlap', http: '409' },
+  { code: 'PLN_001', message: 'Planning Agent unavailable', http: '503' },
+  { code: 'RUN_001', message: 'Runner Agent not active for this project', http: '400' }
 ];

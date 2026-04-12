@@ -4,7 +4,8 @@
       <h1>Multi-Agent Coordination</h1>
       <p class="lead">
         Run multiple Claude instances on the same project with shared context,
-        task distribution, and file locking to prevent conflicts.
+        task distribution, file locking, a conversational Planning Agent, and
+        an automated Runner Agent for sprint monitoring.
       </p>
     </header>
 
@@ -21,10 +22,12 @@
       </p>
       <ol>
         <li>Create a <strong>shared project</strong> on a machine</li>
+        <li>Define <strong>epics</strong> grouping related features and create a <strong>sprint</strong></li>
+        <li>Use the <strong>Planning Agent</strong> to decompose epics into tasks with story points</li>
         <li>Register Claude <strong>instances</strong> against the project</li>
-        <li>Create <strong>tasks</strong> describing the work to do</li>
-        <li>Each instance <strong>claims</strong> a task, locks the relevant files, and works</li>
-        <li>On completion, context is stored for other instances to query</li>
+        <li>Each instance <strong>claims</strong> a task (files are auto-locked), and works</li>
+        <li>The <strong>Runner Agent</strong> monitors progress and auto-updates task statuses</li>
+        <li>On completion, context is stored for other instances to query via RAG</li>
       </ol>
       <p class="tip">
         <span class="tip-icon">&#128161;</span>
@@ -114,24 +117,95 @@
       </p>
     </section>
 
+    <section id="planning-agent">
+      <h2>Planning Agent</h2>
+      <p>
+        The Planning Agent is a conversational AI interface that helps you decompose
+        work, assign story points, and populate sprints. Access it via a chat-style API
+        or from the web dashboard's Planning tab.
+      </p>
+
+      <h3>How It Works</h3>
+      <ol>
+        <li>The agent analyses your current backlog, velocity history, and epic structure</li>
+        <li>You ask it to break down features, estimate work, or suggest sprint scope</li>
+        <li>It returns structured suggestions (create tasks, assign points, group into epics)</li>
+        <li>You approve or modify the suggestions before they are applied</li>
+      </ol>
+
+      <h3>Example: Sprint Planning</h3>
+      <CodeTabs :tabs="planningAgentTabs" />
+
+      <p class="tip">
+        <span class="tip-icon">&#128161;</span>
+        The Planning Agent considers the team's average velocity when suggesting sprint
+        scope. If the last 3 sprints averaged 18 story points, it will not suggest 30
+        points for the next sprint.
+      </p>
+    </section>
+
+    <section id="runner-agent">
+      <h2>Runner Agent</h2>
+      <p>
+        The Runner Agent is an automated monitoring service that runs in the background
+        and keeps your project dashboard in sync. It watches Claude instance activity
+        and automatically updates task statuses.
+      </p>
+
+      <h3>Capabilities</h3>
+      <ul>
+        <li><strong>Auto-status updates</strong> &mdash; Detects when an instance finishes a task and marks it as done</li>
+        <li><strong>Stale task alerts</strong> &mdash; Flags tasks that have been in-progress for too long without activity</li>
+        <li><strong>Sprint progress tracking</strong> &mdash; Provides live burndown data and on-track/off-track indicators</li>
+        <li><strong>Blocked task detection</strong> &mdash; Identifies tasks whose dependencies are stuck</li>
+      </ul>
+
+      <h3>Checking Progress</h3>
+      <CodeTabs :tabs="runnerAgentTabs" />
+    </section>
+
+    <section id="enhanced-file-locking">
+      <h2>Enhanced File Locking</h2>
+      <p>
+        File locking in ClaudeNest v1.2 includes several improvements over basic locks:
+      </p>
+      <ul>
+        <li><strong>Atomic acquisition</strong> via database-level <code>lockForUpdate</code></li>
+        <li><strong>Task-lock integration</strong> &mdash; Files listed in a task's <code>files</code> array
+        are automatically locked when the task is claimed and released when completed</li>
+        <li><strong>Heartbeat auto-extend</strong> &mdash; Locks are automatically extended as long as the
+        agent session is alive, preventing mid-task expiration</li>
+        <li><strong>Batch conflict check</strong> via <code>POST /locks/conflicts</code> &mdash; Check
+        multiple files in a single request before starting a large task</li>
+      </ul>
+      <p>
+        For full details, see the
+        <router-link to="/docs/guides/file-locking">File Locking guide</router-link>.
+      </p>
+    </section>
+
     <section id="next-steps">
       <h2>Next Steps</h2>
       <div class="next-steps">
+        <router-link to="/docs/guides/task-coordination" class="next-step">
+          <strong>Task Coordination</strong>
+          <span>Epics, sprints, subtasks, and Kanban boards &#8594;</span>
+        </router-link>
         <router-link to="/docs/guides/rag-pipeline" class="next-step">
           <strong>RAG Pipeline</strong>
           <span>Learn how context is embedded and queried across instances &#8594;</span>
         </router-link>
         <router-link to="/docs/guides/file-locking" class="next-step">
           <strong>File Locking</strong>
-          <span>Prevent file conflicts between concurrent agents &#8594;</span>
+          <span>Atomic locks, task integration, and heartbeat auto-extend &#8594;</span>
         </router-link>
-        <router-link to="/docs/api/tasks" class="next-step">
-          <strong>Tasks API Reference</strong>
-          <span>Full endpoint documentation for task management &#8594;</span>
+        <router-link to="/docs/api/planning-agent" class="next-step">
+          <strong>Planning Agent API</strong>
+          <span>Conversational planning and task decomposition endpoints &#8594;</span>
         </router-link>
-        <router-link to="/docs/api/projects" class="next-step">
-          <strong>Projects API Reference</strong>
-          <span>Full endpoint documentation for shared projects &#8594;</span>
+        <router-link to="/docs/api/runner-agent" class="next-step">
+          <strong>Runner Agent API</strong>
+          <span>Automated monitoring and auto-update endpoints &#8594;</span>
         </router-link>
       </div>
     </section>
@@ -406,6 +480,69 @@ $task = Http::withToken($token)
         'instance_id' => 'inst-001',
     ])['data'];
 // $task['status'] === 'in_progress'`,
+  },
+]);
+
+// -- Planning Agent -----------------------------------------------------------
+
+const planningAgentTabs = ref([
+  {
+    label: 'cURL',
+    language: 'bash',
+    code: `curl -X POST https://api.claudenest.io/api/projects/{project_id}/planning/chat \\
+  -H "Authorization: Bearer YOUR_TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "message": "Plan Sprint 16 focused on the checkout epic. Our velocity is about 18 points."
+  }'`,
+  },
+  {
+    label: 'JavaScript',
+    language: 'javascript',
+    code: `const response = await fetch(
+  'https://api.claudenest.io/api/projects/{project_id}/planning/chat',
+  {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer YOUR_TOKEN',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      message: 'Plan Sprint 16 focused on the checkout epic. Our velocity is about 18 points.',
+    }),
+  }
+);
+const plan = await response.json();
+console.log(plan.data.reply);
+console.log(plan.data.actions);`,
+  },
+]);
+
+// -- Runner Agent -------------------------------------------------------------
+
+const runnerAgentTabs = ref([
+  {
+    label: 'cURL',
+    language: 'bash',
+    code: `# Check live sprint progress
+curl https://api.claudenest.io/api/projects/{project_id}/runner/progress \\
+  -H "Authorization: Bearer YOUR_TOKEN"
+
+# Force a status sweep
+curl -X POST https://api.claudenest.io/api/projects/{project_id}/runner/auto-update \\
+  -H "Authorization: Bearer YOUR_TOKEN"`,
+  },
+  {
+    label: 'JavaScript',
+    language: 'javascript',
+    code: `// Get live progress
+const response = await fetch(
+  'https://api.claudenest.io/api/projects/{project_id}/runner/progress',
+  { headers: { 'Authorization': 'Bearer YOUR_TOKEN' } }
+);
+const progress = await response.json();
+console.log('On track:', progress.data.on_track);
+console.log('Alerts:', progress.data.alerts);`,
   },
 ]);
 

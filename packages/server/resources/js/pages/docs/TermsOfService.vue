@@ -1,41 +1,44 @@
 <template>
   <article class="doc-content">
     <header class="doc-header">
-      <h1>Terms of Service</h1>
+      <h1>Conditions Generales d'Utilisation</h1>
       <p class="lead">
-        Please read these Terms of Service carefully before using the ClaudeNest platform.
-        By accessing or using ClaudeNest, you agree to be bound by these terms.
+        Veuillez lire attentivement les presentes Conditions Generales d'Utilisation avant d'utiliser
+        la plateforme ClaudeNest. En accedant ou en utilisant ClaudeNest, vous acceptez d'etre lie
+        par les presentes conditions.
       </p>
       <div class="meta-info">
         <span class="meta-item">
           <svg viewBox="0 0 24 24" fill="currentColor" class="meta-icon">
             <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/>
           </svg>
-          Effective Date: February 5, 2026
+          Date d'effet : 12 avril 2026
         </span>
         <span class="meta-item">
           <svg viewBox="0 0 24 24" fill="currentColor" class="meta-icon">
             <path d="M12.87 15.07l-2.54-2.51.03-.03A17.52 17.52 0 0014.07 6H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
           </svg>
-          Version 1.0
+          Version 2.0
         </span>
       </div>
     </header>
 
     <!-- Section 1: Acceptance of Terms -->
     <section id="acceptance-of-terms">
-      <h2 id="acceptance">1. Acceptance of Terms</h2>
+      <h2 id="acceptance">1. Acceptation des conditions</h2>
       <p>
-        By creating an account, accessing, or using the ClaudeNest platform
-        ("Service"), you acknowledge that you have read, understood, and agree to be
-        bound by these Terms of Service ("Terms"). If you are using the Service on
-        behalf of an organization, you represent and warrant that you have the authority
-        to bind that organization to these Terms.
+        En creant un compte, en accedant ou en utilisant la plateforme ClaudeNest
+        (le "Service"), exploitee par QR Communication (SAS), SIREN 940 163 496,
+        23 rue de Richelieu, 75001 Paris, France (l'"Editeur"), vous reconnaissez avoir lu,
+        compris et accepte d'etre lie par les presentes Conditions Generales d'Utilisation
+        (les "CGU"). Si vous utilisez le Service pour le compte d'une organisation, vous
+        declarez et garantissez avoir l'autorite necessaire pour engager cette organisation
+        au respect des presentes CGU.
       </p>
       <p>
-        If you do not agree to these Terms, you must not access or use the Service.
-        Your continued use of the Service following the posting of any changes to these
-        Terms constitutes acceptance of those changes.
+        Si vous n'acceptez pas les presentes CGU, vous ne devez pas acceder ni utiliser
+        le Service. Votre utilisation continue du Service apres la publication de toute
+        modification des presentes CGU constitue l'acceptation de ces modifications.
       </p>
       <div class="notice notice-info">
         <div class="notice-icon">
@@ -44,16 +47,16 @@
           </svg>
         </div>
         <div class="notice-content">
-          <strong>Important:</strong> These Terms constitute a legally binding agreement
-          between you and ClaudeNest. We recommend reviewing them periodically for any
-          updates.
+          <strong>Important :</strong> Les presentes CGU constituent un accord juridiquement
+          contraignant entre vous et QR Communication. Nous vous recommandons de les consulter
+          regulierement pour prendre connaissance de toute mise a jour.
         </div>
       </div>
     </section>
 
     <!-- Section 2: Service Description -->
     <section id="service-description">
-      <h2 id="description">2. Service Description</h2>
+      <h2 id="description">2. Description du Service</h2>
       <p>
         ClaudeNest is a remote Claude Code orchestration platform that provides the
         following capabilities:
@@ -95,7 +98,7 @@
 
     <!-- Section 3: User Accounts -->
     <section id="user-accounts">
-      <h2 id="accounts">3. User Accounts and Registration</h2>
+      <h2 id="accounts">3. Comptes utilisateur et inscription</h2>
 
       <h3 id="account-creation">3.1 Account Creation</h3>
       <p>
@@ -132,7 +135,7 @@
 
     <!-- Section 4: Acceptable Use -->
     <section id="acceptable-use">
-      <h2 id="use-policy">4. Acceptable Use Policy</h2>
+      <h2 id="use-policy">4. Politique d'utilisation acceptable</h2>
       <p>
         You agree to use the Service only for lawful purposes and in accordance with
         these Terms. You must not use the Service to:
@@ -185,16 +188,16 @@
 
     <!-- Section 5: Intellectual Property -->
     <section id="intellectual-property">
-      <h2 id="ip-rights">5. Intellectual Property Rights</h2>
+      <h2 id="ip-rights">5. Propriete intellectuelle</h2>
 
-      <h3 id="our-ip">5.1 ClaudeNest Intellectual Property</h3>
+      <h3 id="our-ip">5.1 Propriete intellectuelle de QR Communication</h3>
       <p>
-        The Service, including its source code, design, features, documentation, logos,
-        and branding, is owned by ClaudeNest and its licensors. The Service is
-        protected by copyright, trademark, and other intellectual property laws of the
-        European Union and international treaties. Nothing in these Terms grants you
-        any right, title, or interest in the Service beyond the limited right to use
-        it as described herein.
+        Le Service, y compris son code source, son design, ses fonctionnalites, sa documentation,
+        ses logos et sa marque, est la propriete de QR Communication et de ses concedants de licence.
+        Le Service est protege par le droit d'auteur, le droit des marques et autres lois relatives
+        a la propriete intellectuelle de l'Union europeenne et des traites internationaux. Rien
+        dans les presentes CGU ne vous confere de droit, titre ou interet sur le Service au-dela
+        du droit limite de l'utiliser tel que decrit dans les presentes.
       </p>
 
       <h3 id="your-content">5.2 Your Content</h3>
@@ -222,7 +225,7 @@
 
     <!-- Section 6: Data Protection -->
     <section id="data-protection">
-      <h2 id="data-privacy">6. Data Protection and Privacy</h2>
+      <h2 id="data-privacy">6. Protection des donnees et vie privee</h2>
 
       <h3 id="gdpr-compliance">6.1 GDPR Compliance</h3>
       <p>
@@ -310,7 +313,7 @@
 
     <!-- Section 7: Service Availability -->
     <section id="service-availability">
-      <h2 id="sla">7. Service Availability and SLA</h2>
+      <h2 id="sla">7. Disponibilite du Service et SLA</h2>
 
       <h3 id="uptime-commitment">7.1 Uptime Commitment</h3>
       <p>
@@ -339,7 +342,7 @@
 
     <!-- Section 8: Limitation of Liability -->
     <section id="limitation-of-liability">
-      <h2 id="liability">8. Limitation of Liability</h2>
+      <h2 id="liability">8. Limitation de responsabilite</h2>
 
       <h3 id="disclaimer">8.1 Disclaimer of Warranties</h3>
       <p>
@@ -398,7 +401,7 @@
 
     <!-- Section 9: Termination -->
     <section id="termination">
-      <h2 id="termination-heading">9. Termination</h2>
+      <h2 id="termination-heading">9. Resiliation</h2>
 
       <h3 id="termination-by-you">9.1 Termination by You</h3>
       <p>
@@ -452,7 +455,7 @@
 
     <!-- Section 10: Changes to Terms -->
     <section id="changes-to-terms">
-      <h2 id="changes">10. Changes to Terms</h2>
+      <h2 id="changes">10. Modifications des CGU</h2>
       <p>
         We reserve the right to modify these Terms at any time. When we make material
         changes, we will:
@@ -483,7 +486,7 @@
 
     <!-- Section 11: Governing Law -->
     <section id="governing-law">
-      <h2 id="law">11. Governing Law and Dispute Resolution</h2>
+      <h2 id="law">11. Droit applicable et resolution des litiges</h2>
 
       <h3 id="applicable-law">11.1 Applicable Law</h3>
       <p>
@@ -523,7 +526,7 @@
 
     <!-- Section 12: Contact Information -->
     <section id="contact-information">
-      <h2 id="contact">12. Contact Information</h2>
+      <h2 id="contact">12. Informations de contact</h2>
       <p>
         If you have any questions, concerns, or requests regarding these Terms of
         Service, please contact us through the following channels:
@@ -537,7 +540,7 @@
           </div>
           <div>
             <h4>General Inquiries</h4>
-            <a href="mailto:contact@claudenest.io">contact@claudenest.io</a>
+            <a href="mailto:contact@qrcommunication.com">contact@qrcommunication.com</a>
           </div>
         </div>
         <div class="contact-card">
@@ -567,7 +570,7 @@
 
     <!-- Section 13: Miscellaneous -->
     <section id="miscellaneous">
-      <h2 id="misc">13. Miscellaneous</h2>
+      <h2 id="misc">13. Dispositions diverses</h2>
 
       <h3 id="entire-agreement">13.1 Entire Agreement</h3>
       <p>
@@ -603,11 +606,11 @@
         corporate reorganization, or sale of all or substantially all of our assets.
       </p>
 
-      <h3 id="language">13.5 Language</h3>
+      <h3 id="language">13.5 Langue</h3>
       <p>
-        These Terms are drafted in English. In the event of a conflict between the
-        English version and any translated version, the English version shall prevail,
-        except where prohibited by applicable law.
+        Les presentes CGU sont redigees en francais. En cas de conflit entre la version
+        francaise et toute version traduite, la version francaise prevaudra, sauf
+        interdiction par la loi applicable.
       </p>
     </section>
 
@@ -615,11 +618,11 @@
     <footer class="terms-footer">
       <div class="footer-divider"></div>
       <p class="footer-text">
-        By using ClaudeNest, you acknowledge that you have read and understood these
-        Terms of Service and agree to be bound by them.
+        En utilisant ClaudeNest, vous reconnaissez avoir lu et compris les presentes
+        Conditions Generales d'Utilisation et acceptez d'y etre lie.
       </p>
       <p class="footer-meta">
-        ClaudeNest &mdash; Terms of Service v1.0 &mdash; Effective February 5, 2026
+        QR Communication &mdash; CGU v2.0 &mdash; Date d'effet : 12 avril 2026
       </p>
     </footer>
   </article>

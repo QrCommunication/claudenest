@@ -21,7 +21,7 @@
         <div class="prereq-item">
           <span class="check">&#10003;</span>
           <div>
-            <strong>PHP 8.3+</strong>
+            <strong>PHP 8.4+</strong>
             <span>With required extensions</span>
           </div>
         </div>
@@ -42,7 +42,7 @@
         <div class="prereq-item">
           <span class="check">&#10003;</span>
           <div>
-            <strong>Node.js 20 LTS</strong>
+            <strong>Node.js 24 LTS</strong>
             <span>Frontend build tooling</span>
           </div>
         </div>
@@ -100,9 +100,9 @@
         filename="Terminal"
       />
 
-      <h3>Install Node.js 20</h3>
+      <h3>Install Node.js 24</h3>
       <CodeBlock
-        code="curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+        code="curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
 sudo apt-get install -y nodejs
 node --version
 npm --version"
@@ -239,15 +239,15 @@ import { ref } from 'vue';
 import CodeBlock from '@/components/docs/CodeBlock.vue';
 import CodeTabs from '@/components/docs/CodeTabs.vue';
 
-const ubuntuDepsCode = ref(`# Add PHP 8.3 PPA
+const ubuntuDepsCode = ref(`# Add PHP 8.4 PPA
 sudo add-apt-repository ppa:ondrej/php -y
 sudo apt-get update
 
-# Install PHP 8.3 and extensions
+# Install PHP 8.4 and extensions
 sudo apt-get install -y \\
-  php8.3-fpm php8.3-cli php8.3-pgsql php8.3-mbstring \\
-  php8.3-xml php8.3-curl php8.3-zip php8.3-bcmath \\
-  php8.3-intl php8.3-readline php8.3-redis
+  php8.4-fpm php8.4-cli php8.4-pgsql php8.4-mbstring \\
+  php8.4-xml php8.4-curl php8.4-zip php8.4-bcmath \\
+  php8.4-intl php8.4-readline php8.4-redis
 
 # Install PostgreSQL 16 with pgvector
 sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \\
@@ -262,18 +262,18 @@ sudo apt-get install -y redis-server
 # Install Nginx
 sudo apt-get install -y nginx`);
 
-const debianDepsCode = ref(`# Add PHP 8.3 repository (Sury)
+const debianDepsCode = ref(`# Add PHP 8.4 repository (Sury)
 sudo apt-get install -y lsb-release ca-certificates apt-transport-https software-properties-common
 sudo wget -qO /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
 echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" | \\
   sudo tee /etc/apt/sources.list.d/sury-php.list
 sudo apt-get update
 
-# Install PHP 8.3 and extensions
+# Install PHP 8.4 and extensions
 sudo apt-get install -y \\
-  php8.3-fpm php8.3-cli php8.3-pgsql php8.3-mbstring \\
-  php8.3-xml php8.3-curl php8.3-zip php8.3-bcmath \\
-  php8.3-intl php8.3-readline php8.3-redis
+  php8.4-fpm php8.4-cli php8.4-pgsql php8.4-mbstring \\
+  php8.4-xml php8.4-curl php8.4-zip php8.4-bcmath \\
+  php8.4-intl php8.4-readline php8.4-redis
 
 # Install PostgreSQL 16 with pgvector
 sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \\
@@ -474,7 +474,7 @@ const nginxCode = ref(`server {
 
     # PHP-FPM
     location ~ \\.php$ {
-        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+        fastcgi_pass unix:/var/run/php/php8.4-fpm.sock;
         fastcgi_index index.php;
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         include fastcgi_params;

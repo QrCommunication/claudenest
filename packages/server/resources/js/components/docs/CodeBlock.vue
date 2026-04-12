@@ -53,6 +53,7 @@ const displayLanguage = computed(() => {
     'ruby': 'Ruby',
     'swift': 'Swift',
     'kotlin': 'Kotlin',
+    'text': 'Text',
   };
   return langMap[props.language] || props.language.toUpperCase();
 });
@@ -76,42 +77,154 @@ onMounted(() => {
   }
 });
 
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+/** Escape raw text so it is safe to inject into innerHTML. */
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function span(cls: string, escapedText: string): string {
+  return `<span class="${cls}">${escapedText}</span>`;
+}
+
+// ─── Language highlighters ───────────────────────────────────────────────────
+// All functions receive raw (unescaped) text and return safe HTML.
+// Strategy: escape first → then apply spans so class attributes are never
+// corrupted by regex cascades.
+
+function highlightJson(raw: string): string {
+  return raw.split('\n').map(line => {
+    const e = escapeHtml(line);
+    return e
+      // Key: "word":
+      .replace(/(&quot;)([^&"]*?)(&quot;)(\s*:)/g,
+        (_m, q1, key, q2, colon) => span('token-key', `${q1}${key}${q2}`) + colon,
+      )
+      // String value: : "..."
+      .replace(/(:\s*)(&quot;)([^&"]*?)(&quot;)/g,
+        (_m, sep, q1, val, q2) => sep + span('token-string', `${q1}${val}${q2}`),
+      )
+      // Boolean / null
+      .replace(/\b(true|false|null)\b/g, v => span('token-boolean', v))
+      // Number (after : only)
+      .replace(/(:\s*)(-?\d+\.?\d*)\b/g,
+        (_m, sep, n) => sep + span('token-number', n),
+      );
+  }).join('\n');
+}
+
+function highlightShell(raw: string): string {
+  const KEYWORDS = /\b(curl|wget|echo|export|if|then|else|fi|for|do|done|while|function|npm|npx|yarn|pnpm|php|artisan|composer|git|sudo|chmod|chown|mkdir|cp|mv|rm|ln|systemctl|docker|bash|sh)\b/g;
+
+  return raw.split('\n').map(line => {
+    // Comment lines (# …) — escape and wrap entirely
+    if (/^\s*#/.test(line)) {
+      return span('token-comment', escapeHtml(line));
+    }
+
+    const e = escapeHtml(line);
+
+    return e
+      // Double-quoted strings (after HTML-escaping, " becomes &quot;)
+      .replace(/(&quot;)(.*?)(&quot;)/g,
+        (_m, q1, content, q2) => span('token-string', `${q1}${content}${q2}`),
+      )
+      // Shell keywords
+      .replace(KEYWORDS, kw => span('token-keyword', kw))
+      // Flags: -f or --flag (must be preceded by space or start of line)
+      .replace(/(^|\s)(--?[a-zA-Z][a-zA-Z-]*)/g,
+        (_m, before, flag) => before + span('token-flag', flag),
+      );
+  }).join('\n');
+}
+
+function highlightJsTs(raw: string): string {
+  const KEYWORDS = /\b(const|let|var|function|async|await|return|import|export|from|class|interface|type|if|else|try|catch|throw|new|extends|implements|readonly|public|private|protected|static|void|boolean|number|string|null|undefined|true|false)\b/g;
+
+  return raw.split('\n').map(line => {
+    // Single-line comment
+    if (/^\s*\/\//.test(line)) {
+      return span('token-comment', escapeHtml(line));
+    }
+
+    const e = escapeHtml(line);
+
+    return e
+      // Template literals (simplified — single-line backtick strings)
+      .replace(/(`)([^`]*?)(`)/g,
+        (_m, q1, content, q2) => span('token-string', `${q1}${content}${q2}`),
+      )
+      // Double-quoted strings
+      .replace(/(&quot;)([^&]*?)(&quot;)/g,
+        (_m, q1, content, q2) => span('token-string', `${q1}${content}${q2}`),
+      )
+      // Single-quoted strings
+      .replace(/(')(.*?)(')/g,
+        (_m, q1, content, q2) => span('token-string', `${q1}${content}${q2}`),
+      )
+      // Keywords
+      .replace(KEYWORDS, kw => span('token-keyword', kw))
+      // Numbers (standalone)
+      .replace(/\b(\d+\.?\d*)\b/g, n => span('token-number', n));
+  }).join('\n');
+}
+
+function highlightPhp(raw: string): string {
+  const KEYWORDS = /\b(class|function|public|private|protected|return|if|else|try|catch|throw|new|use|namespace|extends|implements|abstract|static|readonly|array|string|int|float|bool|void|null|true|false)\b/g;
+
+  return raw.split('\n').map(line => {
+    // Comment lines
+    if (/^\s*(\/\/|\/\*|\*)/.test(line)) {
+      return span('token-comment', escapeHtml(line));
+    }
+
+    const e = escapeHtml(line);
+
+    return e
+      // Double-quoted strings
+      .replace(/(&quot;)([^&]*?)(&quot;)/g,
+        (_m, q1, content, q2) => span('token-string', `${q1}${content}${q2}`),
+      )
+      // Single-quoted strings
+      .replace(/(')(.*?)(')/g,
+        (_m, q1, content, q2) => span('token-string', `${q1}${content}${q2}`),
+      )
+      // Keywords
+      .replace(KEYWORDS, kw => span('token-keyword', kw))
+      // PHP variables ($var)
+      .replace(/(\$[a-zA-Z_][a-zA-Z0-9_]*)/g, v => span('token-variable', v))
+      // Numbers
+      .replace(/\b(\d+\.?\d*)\b/g, n => span('token-number', n));
+  }).join('\n');
+}
+
+// ─── Entry point ─────────────────────────────────────────────────────────────
+
 function applySyntaxHighlighting(element: HTMLElement, language: string) {
   const code = element.textContent || '';
-  
-  // Simple syntax highlighting for common languages
-  let highlighted = code;
-  
+
+  let highlighted: string;
+
   if (language === 'json') {
-    // Highlight JSON
-    highlighted = code
-      .replace(/"([^"]+)":/g, '<span class="token-key">"$1"</span>:')
-      .replace(/: "([^"]+)"/g, ': <span class="token-string">"$1"</span>')
-      .replace(/: (true|false|null)/g, ': <span class="token-boolean">$1</span>')
-      .replace(/: (\d+)/g, ': <span class="token-number">$1</span>');
+    highlighted = highlightJson(code);
   } else if (['bash', 'sh', 'shell'].includes(language)) {
-    // Highlight shell
-    highlighted = code
-      .replace(/(#.*$)/gm, '<span class="token-comment">$1</span>')
-      .replace(/\b(curl|wget|echo|export|if|then|else|fi|for|do|done|while|function)\b/g, '<span class="token-keyword">$1</span>')
-      .replace(/(-{1,2}[a-zA-Z-]+)/g, '<span class="token-flag">$1</span>')
-      .replace(/(".*?")/g, '<span class="token-string">$1</span>');
+    highlighted = highlightShell(code);
   } else if (['js', 'javascript', 'ts', 'typescript'].includes(language)) {
-    // Highlight JavaScript/TypeScript
-    highlighted = code
-      .replace(/(\/\/.*$)/gm, '<span class="token-comment">$1</span>')
-      .replace(/\b(const|let|var|function|async|await|return|import|export|from|class|interface|type|if|else|try|catch)\b/g, '<span class="token-keyword">$1</span>')
-      .replace(/(".*?"|'.*?'|`.*?`)/g, '<span class="token-string">$1</span>')
-      .replace(/\b(\d+)\b/g, '<span class="token-number">$1</span>');
+    highlighted = highlightJsTs(code);
   } else if (language === 'php') {
-    // Highlight PHP
-    highlighted = code
-      .replace(/(\/\/.*$)/gm, '<span class="token-comment">$1</span>')
-      .replace(/\b(php|class|function|public|private|protected|return|if|else|try|catch|throw|new|use)\b/g, '<span class="token-keyword">$1</span>')
-      .replace(/(".*?"|'.*?')/g, '<span class="token-string">$1</span>')
-      .replace(/(\$[a-zA-Z_][a-zA-Z0-9_]*)/g, '<span class="token-variable">$1</span>');
+    highlighted = highlightPhp(code);
+  } else {
+    // Plain text / unknown language — escape only, no spans
+    highlighted = escapeHtml(code);
   }
-  
+
+  // All text content is HTML-escaped before being wrapped in spans,
+  // so innerHTML here is safe from XSS.
   element.innerHTML = highlighted;
 }
 </script>
@@ -210,6 +323,7 @@ code {
 
 :deep(.token-comment) {
   color: var(--text-muted);
+  font-style: italic;
 }
 
 :deep(.token-keyword) {

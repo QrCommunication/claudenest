@@ -38,7 +38,7 @@
 
       <p class="tip">
         <span class="tip-icon">&#128161;</span>
-        The agent requires Node.js 20 LTS or later and Claude Code CLI already
+        The agent requires Node.js 24 LTS or later and Claude Code CLI already
         installed and authenticated on the machine.
       </p>
     </section>

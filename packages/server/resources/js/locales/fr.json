@@ -840,11 +840,17 @@
       "product": "Produit",
       "resources": "Ressources",
       "legal": "Legal",
+      "contact": "Contact",
       "changelog": "Changelog",
       "api_reference": "Reference API",
       "status": "Statut",
       "built_with": "Construit avec",
-      "copyright": "\u00a9 {year} ClaudeNest. Tous droits reserves."
+      "copyright": "\u00a9 {year} QR Communication SAS \u2014 SIREN 940\u202f163\u202f496. Tous droits r\u00e9serv\u00e9s.",
+      "mentions_legales": "Mentions l\u00e9gales",
+      "cookies": "Cookies",
+      "contact_email": "contact@qrcommunication.com",
+      "contact_phone": "+33 1 88 83 34 51",
+      "contact_address": "23 rue de Richelieu, 75001 Paris"
     }
   }
 }

@@ -837,7 +837,7 @@ const logRotateCode = ref(`/opt/claudenest/packages/server/storage/logs/*.log {
     sharedscripts
     postrotate
         # Reload PHP-FPM so it re-opens log file handles
-        systemctl reload php8.3-fpm > /dev/null 2>&1 || true
+        systemctl reload php8.4-fpm > /dev/null 2>&1 || true
     endscript
 }
 

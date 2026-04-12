@@ -409,6 +409,16 @@ const routes: RouteRecordRaw[] = [
                 name: 'docs.privacy',
                 component: () => import('@/pages/docs/PrivacyPolicy.vue'),
             },
+            {
+                path: 'mentions-legales',
+                name: 'docs.mentions-legales',
+                component: () => import('@/pages/docs/MentionsLegales.vue'),
+            },
+            {
+                path: 'cookies',
+                name: 'docs.cookies',
+                component: () => import('@/pages/docs/CookiePolicy.vue'),
+            },
         ],
     },
 

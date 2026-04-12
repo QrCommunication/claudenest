@@ -1,44 +1,63 @@
 <template>
   <article class="doc-content">
     <header class="doc-header">
-      <h1>Privacy Policy</h1>
+      <h1>Politique de Confidentialite</h1>
       <p class="lead">
-        This Privacy Policy explains how ClaudeNest collects, uses, stores, and protects your personal data
-        in compliance with the General Data Protection Regulation (GDPR / RGPD) and applicable privacy laws.
+        La presente Politique de Confidentialite decrit comment QR Communication collecte, utilise,
+        stocke et protege vos donnees a caractere personnel dans le cadre de l'utilisation de la
+        plateforme ClaudeNest, en conformite avec le Reglement General sur la Protection des Donnees
+        (RGPD - Reglement UE 2016/679) et la loi Informatique et Libertes du 6 janvier 1978 modifiee.
       </p>
-      <p class="last-updated">Last updated: February 5, 2026</p>
+      <p class="last-updated">Date d'effet : 12 avril 2026</p>
     </header>
 
     <!-- Table of Contents -->
     <nav class="policy-toc">
-      <h2>Table of Contents</h2>
+      <h2>Sommaire</h2>
       <ol>
-        <li><a href="#data-controller">Data Controller Identity</a></li>
-        <li><a href="#data-we-collect">Data We Collect</a></li>
-        <li><a href="#legal-basis">Legal Basis for Processing</a></li>
-        <li><a href="#how-we-use">How We Use Your Data</a></li>
-        <li><a href="#data-retention">Data Retention</a></li>
-        <li><a href="#data-sharing">Data Sharing and Third Parties</a></li>
-        <li><a href="#your-rights">Your Rights Under GDPR</a></li>
-        <li><a href="#cookies">Cookies and Tracking</a></li>
-        <li><a href="#data-security">Data Security Measures</a></li>
-        <li><a href="#international-transfers">International Data Transfers</a></li>
-        <li><a href="#childrens-privacy">Children's Privacy</a></li>
-        <li><a href="#policy-changes">Changes to This Policy</a></li>
-        <li><a href="#contact-dpo">Contact the DPO</a></li>
+        <li><a href="#data-controller">Responsable du traitement</a></li>
+        <li><a href="#data-we-collect">Donnees collectees</a></li>
+        <li><a href="#legal-basis">Bases legales du traitement</a></li>
+        <li><a href="#how-we-use">Finalites du traitement</a></li>
+        <li><a href="#data-retention">Durees de conservation</a></li>
+        <li><a href="#data-sharing">Partage et sous-traitants</a></li>
+        <li><a href="#your-rights">Vos droits au titre du RGPD</a></li>
+        <li><a href="#cookies">Cookies et traceurs</a></li>
+        <li><a href="#data-security">Mesures de securite</a></li>
+        <li><a href="#international-transfers">Transferts internationaux</a></li>
+        <li><a href="#childrens-privacy">Mineurs</a></li>
+        <li><a href="#policy-changes">Modifications de la politique</a></li>
+        <li><a href="#contact-dpo">Contact du DPO</a></li>
       </ol>
     </nav>
 
     <!-- Section 1: Data Controller -->
     <section id="data-controller">
-      <h2 id="data-controller">1. Data Controller Identity</h2>
+      <h2 id="data-controller">1. Responsable du traitement</h2>
       <p>
-        ClaudeNest is an open-source remote Claude Code orchestration platform. When you self-host ClaudeNest,
-        you (or your organization) act as the Data Controller for all personal data processed through your instance.
+        Le responsable du traitement des donnees a caractere personnel collectees via la
+        plateforme ClaudeNest est :
       </p>
+      <div class="info-card">
+        <div class="info-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/>
+          </svg>
+        </div>
+        <div>
+          <h4>QR Communication (SAS)</h4>
+          <p>
+            SIREN 940 163 496 &mdash; Code APE 73.12Z<br>
+            23 rue de Richelieu, 75001 Paris, France<br>
+            Email : <a href="mailto:contact@qrcommunication.com">contact@qrcommunication.com</a><br>
+            Telephone : <a href="tel:+33188833451">+33 1 88 83 34 51</a>
+          </p>
+        </div>
+      </div>
       <p>
-        If you use a ClaudeNest instance operated by a third party, that third party is the Data Controller.
-        Please refer to their specific privacy policy for details.
+        ClaudeNest est egalement un logiciel open source concu pour l'auto-hebergement. Lorsque
+        vous utilisez une instance exploitee par un tiers, ce tiers est le responsable du
+        traitement. Veuillez vous referer a sa propre politique de confidentialite.
       </p>
       <div class="info-card">
         <div class="info-icon">
@@ -47,11 +66,11 @@
           </svg>
         </div>
         <div>
-          <h4>Self-Hosted Instances</h4>
+          <h4>Instances auto-hebergees</h4>
           <p>
-            As ClaudeNest is designed to be self-hosted, the Data Controller is the entity
-            operating the server. This policy serves as a template and reference for operators
-            to adapt to their specific legal obligations.
+            Pour les instances auto-hebergees, le responsable du traitement est l'entite
+            exploitant le serveur. La presente politique sert de reference et de modele
+            que les operateurs doivent adapter a leurs propres obligations legales.
           </p>
         </div>
       </div>
@@ -59,147 +78,147 @@
 
     <!-- Section 2: Data We Collect -->
     <section id="data-we-collect">
-      <h2 id="data-we-collect">2. Data We Collect</h2>
+      <h2 id="data-we-collect">2. Donnees collectees</h2>
       <p>
-        ClaudeNest collects and processes the following categories of personal data, each for a specific
-        and documented purpose.
+        ClaudeNest collecte et traite les categories suivantes de donnees a caractere personnel,
+        chacune pour une finalite specifique et documentee.
       </p>
 
-      <h3 id="account-data">2.1 Account Data</h3>
+      <h3 id="account-data">2.1 Donnees de compte</h3>
       <div class="data-table-wrapper">
         <table class="data-table">
           <thead>
             <tr>
-              <th>Data</th>
-              <th>Purpose</th>
-              <th>Retention</th>
+              <th>Donnee</th>
+              <th>Finalite</th>
+              <th>Conservation</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td><code>email</code></td>
-              <td>Authentication, account identification, password recovery</td>
-              <td>Until account deletion</td>
+              <td>Authentification, identification du compte, recuperation de mot de passe</td>
+              <td>Jusqu'a suppression du compte</td>
             </tr>
             <tr>
               <td><code>name</code></td>
-              <td>Display name in the interface and collaboration features</td>
-              <td>Until account deletion</td>
+              <td>Nom d'affichage dans l'interface et les fonctionnalites collaboratives</td>
+              <td>Jusqu'a suppression du compte</td>
             </tr>
             <tr>
               <td><code>password_hash</code></td>
-              <td>Secure authentication (bcrypt hashed, never stored in plaintext)</td>
-              <td>Until account deletion</td>
+              <td>Authentification securisee (hache bcrypt, jamais stocke en clair)</td>
+              <td>Jusqu'a suppression du compte</td>
             </tr>
             <tr>
               <td><code>avatar_url</code></td>
-              <td>Profile display (sourced from OAuth providers if applicable)</td>
-              <td>Until account deletion</td>
+              <td>Affichage du profil (provient des fournisseurs OAuth le cas echeant)</td>
+              <td>Jusqu'a suppression du compte</td>
             </tr>
             <tr>
               <td><code>google_id</code> / <code>github_id</code></td>
-              <td>OAuth authentication linking</td>
-              <td>Until account deletion or OAuth unlinking</td>
+              <td>Liaison d'authentification OAuth</td>
+              <td>Jusqu'a suppression du compte ou deliaison OAuth</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <h3 id="machine-data">2.2 Machine Data</h3>
+      <h3 id="machine-data">2.2 Donnees machine</h3>
       <div class="data-table-wrapper">
         <table class="data-table">
           <thead>
             <tr>
-              <th>Data</th>
-              <th>Purpose</th>
-              <th>Retention</th>
+              <th>Donnee</th>
+              <th>Finalite</th>
+              <th>Conservation</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td><code>hostname</code></td>
-              <td>Machine identification in the dashboard</td>
-              <td>Until machine removal</td>
+              <td>Identification de la machine dans le tableau de bord</td>
+              <td>Jusqu'a suppression de la machine</td>
             </tr>
             <tr>
               <td><code>platform</code> / <code>arch</code></td>
-              <td>Compatibility detection (darwin, win32, linux)</td>
-              <td>Until machine removal</td>
+              <td>Detection de compatibilite (darwin, win32, linux)</td>
+              <td>Jusqu'a suppression de la machine</td>
             </tr>
             <tr>
               <td><code>agent_version</code></td>
-              <td>Version tracking for update notifications</td>
-              <td>Until machine removal</td>
+              <td>Suivi de version pour les notifications de mise a jour</td>
+              <td>Jusqu'a suppression de la machine</td>
             </tr>
             <tr>
               <td><code>node_version</code> / <code>claude_version</code></td>
-              <td>Runtime compatibility verification</td>
-              <td>Until machine removal</td>
+              <td>Verification de compatibilite d'execution</td>
+              <td>Jusqu'a suppression de la machine</td>
             </tr>
             <tr>
               <td><code>claude_path</code></td>
-              <td>Locating the Claude Code binary on the machine</td>
-              <td>Until machine removal</td>
+              <td>Localisation du binaire Claude Code sur la machine</td>
+              <td>Jusqu'a suppression de la machine</td>
             </tr>
             <tr>
               <td><code>token_hash</code></td>
-              <td>Machine authentication (hashed, never stored in plaintext)</td>
-              <td>Until machine removal or token regeneration</td>
+              <td>Authentification machine (hache, jamais stocke en clair)</td>
+              <td>Jusqu'a suppression de la machine ou regeneration du token</td>
             </tr>
             <tr>
               <td><code>capabilities</code></td>
-              <td>Feature flag detection (JSON)</td>
-              <td>Until machine removal</td>
+              <td>Detection des fonctionnalites (JSON)</td>
+              <td>Jusqu'a suppression de la machine</td>
             </tr>
             <tr>
               <td><code>last_seen_at</code> / <code>connected_at</code></td>
-              <td>Connection status and uptime monitoring</td>
-              <td>Until machine removal</td>
+              <td>Etat de connexion et surveillance de la disponibilite</td>
+              <td>Jusqu'a suppression de la machine</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <h3 id="session-data">2.3 Session Data</h3>
+      <h3 id="session-data">2.3 Donnees de session</h3>
       <div class="data-table-wrapper">
         <table class="data-table">
           <thead>
             <tr>
-              <th>Data</th>
-              <th>Purpose</th>
-              <th>Retention</th>
+              <th>Donnee</th>
+              <th>Finalite</th>
+              <th>Conservation</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td><code>terminal_output</code></td>
-              <td>Real-time display and session logs for review</td>
-              <td>Configurable (default: 90 days)</td>
+              <td>Affichage temps reel et journaux de session pour consultation</td>
+              <td>Configurable (par defaut : 90 jours)</td>
             </tr>
             <tr>
               <td><code>commands / input</code></td>
-              <td>Input relay between client and agent</td>
-              <td>Transient (WebSocket only) or logged</td>
+              <td>Relais d'entrees entre le client et l'agent</td>
+              <td>Transitoire (WebSocket uniquement) ou journalise</td>
             </tr>
             <tr>
               <td><code>project_path</code></td>
-              <td>Working directory identification</td>
-              <td>Duration of session</td>
+              <td>Identification du repertoire de travail</td>
+              <td>Duree de la session</td>
             </tr>
             <tr>
               <td><code>initial_prompt</code></td>
-              <td>Session startup instruction</td>
-              <td>Duration of session + logs</td>
+              <td>Instruction de demarrage de session</td>
+              <td>Duree de la session + journaux</td>
             </tr>
             <tr>
               <td><code>pid</code> / <code>exit_code</code></td>
-              <td>Process lifecycle management</td>
-              <td>Duration of session + logs</td>
+              <td>Gestion du cycle de vie du processus</td>
+              <td>Duree de la session + journaux</td>
             </tr>
             <tr>
               <td><code>pty_size</code></td>
-              <td>Terminal dimensions for proper rendering</td>
-              <td>Duration of session</td>
+              <td>Dimensions du terminal pour un affichage correct</td>
+              <td>Duree de la session</td>
             </tr>
           </tbody>
         </table>
@@ -212,169 +231,171 @@
           </svg>
         </div>
         <div>
-          <h4>Terminal Output May Contain Sensitive Data</h4>
+          <h4>Les sorties terminal peuvent contenir des donnees sensibles</h4>
           <p>
-            Terminal sessions may inadvertently capture sensitive information such as API keys,
-            credentials, or personal data present in your codebase. ClaudeNest does not filter
-            or redact session output. Operators should implement appropriate data handling
-            policies and inform their users.
+            Les sessions terminal peuvent involontairement capturer des informations sensibles
+            telles que des cles API, des identifiants ou des donnees personnelles presentes dans
+            votre code source. ClaudeNest ne filtre ni ne masque les sorties de session.
+            Les operateurs doivent mettre en place des politiques de traitement des donnees
+            appropriees et en informer leurs utilisateurs.
           </p>
         </div>
       </div>
 
-      <h3 id="context-data">2.4 Context Data (RAG)</h3>
+      <h3 id="context-data">2.4 Donnees de contexte (RAG)</h3>
       <div class="data-table-wrapper">
         <table class="data-table">
           <thead>
             <tr>
-              <th>Data</th>
-              <th>Purpose</th>
-              <th>Retention</th>
+              <th>Donnee</th>
+              <th>Finalite</th>
+              <th>Conservation</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td><code>content</code> (text chunks)</td>
-              <td>Shared project context for multi-agent collaboration</td>
-              <td>Configurable expiration (default: 30 days)</td>
+              <td><code>content</code> (fragments texte)</td>
+              <td>Contexte de projet partage pour la collaboration multi-agent</td>
+              <td>Expiration configurable (par defaut : 30 jours)</td>
             </tr>
             <tr>
-              <td><code>embedding</code> (vector 384d)</td>
-              <td>Semantic similarity search via pgvector (cosine distance)</td>
-              <td>Same as parent content chunk</td>
+              <td><code>embedding</code> (vecteur 384d)</td>
+              <td>Recherche par similarite semantique via pgvector (distance cosinus)</td>
+              <td>Identique au fragment parent</td>
             </tr>
             <tr>
               <td><code>importance_score</code></td>
-              <td>Prioritization of context retrieval</td>
-              <td>Same as parent content chunk</td>
+              <td>Priorisation de la recuperation de contexte</td>
+              <td>Identique au fragment parent</td>
             </tr>
             <tr>
               <td><code>files</code> (references)</td>
-              <td>Linking context to source files</td>
-              <td>Same as parent content chunk</td>
+              <td>Liaison du contexte aux fichiers sources</td>
+              <td>Identique au fragment parent</td>
             </tr>
           </tbody>
         </table>
       </div>
       <p>
-        Embeddings are generated locally using <strong>Ollama</strong> with the <code>bge-small-en-v1.5</code>
-        model. No data is sent to external AI services for embedding generation.
+        Les embeddings sont generes localement via <strong>Ollama</strong> avec le modele
+        <code>bge-small-en-v1.5</code>. Aucune donnee n'est envoyee a des services d'IA
+        externes pour la generation des embeddings.
       </p>
 
-      <h3 id="usage-and-cost-data">2.5 Usage and Cost Data</h3>
+      <h3 id="usage-and-cost-data">2.5 Donnees d'utilisation et de couts</h3>
       <div class="data-table-wrapper">
         <table class="data-table">
           <thead>
             <tr>
-              <th>Data</th>
-              <th>Purpose</th>
-              <th>Retention</th>
+              <th>Donnee</th>
+              <th>Finalite</th>
+              <th>Conservation</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td><code>total_tokens</code></td>
-              <td>Token consumption tracking per session and project</td>
-              <td>Indefinite (aggregated metrics)</td>
+              <td>Suivi de la consommation de tokens par session et par projet</td>
+              <td>Indefinie (metriques agregees)</td>
             </tr>
             <tr>
               <td><code>total_cost</code></td>
-              <td>Cost estimation and budget monitoring</td>
-              <td>Indefinite (aggregated metrics)</td>
+              <td>Estimation des couts et suivi budgetaire</td>
+              <td>Indefinie (metriques agregees)</td>
             </tr>
             <tr>
               <td><code>context_tokens</code></td>
-              <td>Context window usage per Claude instance</td>
-              <td>Duration of instance lifecycle</td>
+              <td>Utilisation de la fenetre de contexte par instance Claude</td>
+              <td>Duree du cycle de vie de l'instance</td>
             </tr>
             <tr>
               <td><code>tasks_completed</code></td>
-              <td>Productivity metrics and instance performance</td>
-              <td>Duration of instance lifecycle</td>
+              <td>Metriques de productivite et performance de l'instance</td>
+              <td>Duree du cycle de vie de l'instance</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <h3 id="activity-logs">2.6 Activity Logs</h3>
+      <h3 id="activity-logs">2.6 Journaux d'activite</h3>
       <p>
-        ClaudeNest records an activity log for each shared project, including the instance ID,
-        event type, and event details (stored as JSONB). These logs are used for audit trails,
-        debugging, and collaboration visibility.
+        ClaudeNest enregistre un journal d'activite pour chaque projet partage, incluant l'identifiant
+        d'instance, le type d'evenement et les details de l'evenement (stockes en JSONB). Ces journaux
+        sont utilises pour les pistes d'audit, le debogage et la visibilite de la collaboration.
       </p>
     </section>
 
     <!-- Section 3: Legal Basis -->
     <section id="legal-basis">
-      <h2 id="legal-basis">3. Legal Basis for Processing (GDPR Article 6)</h2>
+      <h2 id="legal-basis">3. Bases legales du traitement (Article 6 RGPD)</h2>
       <p>
-        ClaudeNest processes personal data under the following legal bases as defined in
-        Article 6(1) of the General Data Protection Regulation:
+        QR Communication traite les donnees personnelles sur les bases legales suivantes,
+        definies a l'article 6(1) du Reglement General sur la Protection des Donnees :
       </p>
 
       <div class="legal-basis-grid">
         <div class="legal-basis-card">
           <div class="basis-header">
             <span class="basis-label">Article 6(1)(b)</span>
-            <h4>Contractual Necessity</h4>
+            <h4>Necessite contractuelle</h4>
           </div>
           <p>
-            Processing of account data, machine data, and session data is necessary for the
-            performance of the contract between you and the service operator (providing the
-            ClaudeNest platform).
+            Le traitement des donnees de compte, des donnees machine et des donnees de session
+            est necessaire a l'execution du contrat entre vous et QR Communication (fourniture
+            de la plateforme ClaudeNest).
           </p>
           <ul>
-            <li>Account creation and authentication</li>
-            <li>Machine registration and management</li>
-            <li>Session creation and terminal relay</li>
-            <li>Multi-agent coordination (tasks, file locks)</li>
+            <li>Creation de compte et authentification</li>
+            <li>Enregistrement et gestion des machines</li>
+            <li>Creation de sessions et relais terminal</li>
+            <li>Coordination multi-agent (taches, verrouillages de fichiers)</li>
           </ul>
         </div>
 
         <div class="legal-basis-card">
           <div class="basis-header">
             <span class="basis-label">Article 6(1)(f)</span>
-            <h4>Legitimate Interest</h4>
+            <h4>Interet legitime</h4>
           </div>
           <p>
-            Processing of usage data, activity logs, and performance metrics is based on our
-            legitimate interest in maintaining and improving the platform.
+            Le traitement des donnees d'utilisation, des journaux d'activite et des metriques
+            de performance est fonde sur notre interet legitime a maintenir et ameliorer la plateforme.
           </p>
           <ul>
-            <li>Token and cost tracking for billing transparency</li>
-            <li>Activity logs for security and audit purposes</li>
-            <li>Performance monitoring and optimization</li>
-            <li>Fraud prevention and abuse detection</li>
+            <li>Suivi des tokens et des couts pour la transparence</li>
+            <li>Journaux d'activite a des fins de securite et d'audit</li>
+            <li>Surveillance des performances et optimisation</li>
+            <li>Prevention de la fraude et detection des abus</li>
           </ul>
         </div>
 
         <div class="legal-basis-card">
           <div class="basis-header">
             <span class="basis-label">Article 6(1)(a)</span>
-            <h4>Consent</h4>
+            <h4>Consentement</h4>
           </div>
           <p>
-            Where applicable, certain processing activities require your explicit consent:
+            Le cas echeant, certaines activites de traitement requierent votre consentement explicite :
           </p>
           <ul>
-            <li>OAuth linking with third-party providers (Google, GitHub)</li>
-            <li>Optional analytics and usage telemetry (if enabled)</li>
-            <li>Push notifications on mobile devices</li>
+            <li>Liaison OAuth avec des fournisseurs tiers (Google, GitHub)</li>
+            <li>Analytiques et telemetrie d'utilisation optionnelles (si activees)</li>
+            <li>Notifications push sur les appareils mobiles</li>
           </ul>
         </div>
 
         <div class="legal-basis-card">
           <div class="basis-header">
             <span class="basis-label">Article 6(1)(c)</span>
-            <h4>Legal Obligation</h4>
+            <h4>Obligation legale</h4>
           </div>
           <p>
-            Certain data may be retained to comply with legal obligations:
+            Certaines donnees peuvent etre conservees pour se conformer a des obligations legales :
           </p>
           <ul>
-            <li>Compliance with lawful data retention requirements</li>
-            <li>Response to legal process or government requests</li>
-            <li>Tax and accounting records (if applicable)</li>
+            <li>Respect des exigences legales de conservation des donnees</li>
+            <li>Reponse aux procedures judiciaires ou aux demandes gouvernementales</li>
+            <li>Documents fiscaux et comptables (le cas echeant)</li>
           </ul>
         </div>
       </div>
@@ -382,8 +403,8 @@
 
     <!-- Section 4: How We Use Data -->
     <section id="how-we-use">
-      <h2 id="how-we-use">4. How We Use Your Data</h2>
-      <p>Your personal data is used exclusively for the following purposes:</p>
+      <h2 id="how-we-use">4. Finalites du traitement</h2>
+      <p>Vos donnees personnelles sont utilisees exclusivement pour les finalites suivantes :</p>
 
       <div class="use-cases">
         <div class="use-case">
@@ -393,8 +414,8 @@
             </svg>
           </div>
           <div>
-            <h4>Authentication and Access Control</h4>
-            <p>Verifying your identity, managing sessions, and enforcing authorization policies.</p>
+            <h4>Authentification et controle d'acces</h4>
+            <p>Verification de votre identite, gestion des sessions et application des politiques d'autorisation.</p>
           </div>
         </div>
 
@@ -405,8 +426,8 @@
             </svg>
           </div>
           <div>
-            <h4>Remote Machine Management</h4>
-            <p>Connecting to your registered machines, managing PTY sessions, and relaying terminal I/O.</p>
+            <h4>Gestion des machines distantes</h4>
+            <p>Connexion a vos machines enregistrees, gestion des sessions PTY et relais d'entrees/sorties terminal.</p>
           </div>
         </div>
 
@@ -417,8 +438,8 @@
             </svg>
           </div>
           <div>
-            <h4>Multi-Agent Collaboration</h4>
-            <p>Coordinating tasks, managing file locks, and sharing context between Claude instances.</p>
+            <h4>Collaboration multi-agent</h4>
+            <p>Coordination des taches, gestion des verrouillages de fichiers et partage de contexte entre instances Claude.</p>
           </div>
         </div>
 
@@ -429,8 +450,8 @@
             </svg>
           </div>
           <div>
-            <h4>Context RAG (Retrieval-Augmented Generation)</h4>
-            <p>Generating local embeddings and performing semantic search to provide relevant context to Claude instances.</p>
+            <h4>Contexte RAG (Generation Augmentee par la Recuperation)</h4>
+            <p>Generation locale d'embeddings et recherche semantique pour fournir un contexte pertinent aux instances Claude.</p>
           </div>
         </div>
 
@@ -441,8 +462,8 @@
             </svg>
           </div>
           <div>
-            <h4>Usage Monitoring and Cost Tracking</h4>
-            <p>Tracking token consumption and cost estimates for transparency and budget management.</p>
+            <h4>Suivi d'utilisation et des couts</h4>
+            <p>Suivi de la consommation de tokens et estimation des couts pour la transparence et la gestion budgetaire.</p>
           </div>
         </div>
 
@@ -453,100 +474,102 @@
             </svg>
           </div>
           <div>
-            <h4>Platform Improvement</h4>
-            <p>Analyzing aggregated, anonymized usage patterns to improve features and performance.</p>
+            <h4>Amelioration de la plateforme</h4>
+            <p>Analyse de donnees d'utilisation agregees et anonymisees pour ameliorer les fonctionnalites et les performances.</p>
           </div>
         </div>
       </div>
 
       <p>
-        ClaudeNest does <strong>not</strong> use your personal data for advertising, profiling,
-        automated decision-making, or any purpose unrelated to the platform's core functionality.
+        ClaudeNest n'utilise <strong>pas</strong> vos donnees personnelles a des fins publicitaires,
+        de profilage, de prise de decision automatisee ou pour toute finalite etrangere aux
+        fonctionnalites principales de la plateforme.
       </p>
     </section>
 
     <!-- Section 5: Data Retention -->
     <section id="data-retention">
-      <h2 id="data-retention">5. Data Retention</h2>
+      <h2 id="data-retention">5. Durees de conservation</h2>
       <p>
-        We retain personal data only as long as necessary for the purposes described in this policy.
-        The following retention periods apply:
+        Nous conservons les donnees personnelles uniquement pendant la duree necessaire aux
+        finalites decrites dans la presente politique. Les durees de conservation suivantes
+        s'appliquent :
       </p>
 
       <div class="data-table-wrapper">
         <table class="data-table">
           <thead>
             <tr>
-              <th>Data Category</th>
-              <th>Retention Period</th>
-              <th>Deletion Trigger</th>
+              <th>Categorie de donnees</th>
+              <th>Duree de conservation</th>
+              <th>Evenement declencheur de suppression</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td>Account data</td>
-              <td>Until account deletion</td>
-              <td>User requests deletion or account is terminated</td>
+              <td>Donnees de compte</td>
+              <td>Jusqu'a suppression du compte</td>
+              <td>L'utilisateur demande la suppression ou le compte est resilie</td>
             </tr>
             <tr>
-              <td>Machine data</td>
-              <td>Until machine removal</td>
-              <td>User removes machine from the platform</td>
+              <td>Donnees machine</td>
+              <td>Jusqu'a suppression de la machine</td>
+              <td>L'utilisateur supprime la machine de la plateforme</td>
             </tr>
             <tr>
-              <td>Session data</td>
-              <td>Configurable (default: 90 days)</td>
-              <td>Automatic expiration or manual deletion</td>
+              <td>Donnees de session</td>
+              <td>Configurable (par defaut : 90 jours)</td>
+              <td>Expiration automatique ou suppression manuelle</td>
             </tr>
             <tr>
-              <td>Session logs</td>
-              <td>Configurable (default: 90 days)</td>
-              <td>Automatic cleanup job</td>
+              <td>Journaux de session</td>
+              <td>Configurable (par defaut : 90 jours)</td>
+              <td>Tache de nettoyage automatique</td>
             </tr>
             <tr>
-              <td>Context chunks</td>
-              <td>Configurable (default: 30 days)</td>
-              <td>Automatic expiration via <code>expires_at</code></td>
+              <td>Fragments de contexte</td>
+              <td>Configurable (par defaut : 30 jours)</td>
+              <td>Expiration automatique via <code>expires_at</code></td>
             </tr>
             <tr>
               <td>Embeddings (pgvector)</td>
-              <td>Same as parent chunk</td>
-              <td>Cascade deletion with context chunk</td>
+              <td>Identique au fragment parent</td>
+              <td>Suppression en cascade avec le fragment de contexte</td>
             </tr>
             <tr>
-              <td>Activity logs</td>
-              <td>Configurable (default: 180 days)</td>
-              <td>Automatic cleanup job</td>
+              <td>Journaux d'activite</td>
+              <td>Configurable (par defaut : 180 jours)</td>
+              <td>Tache de nettoyage automatique</td>
             </tr>
             <tr>
-              <td>File locks</td>
-              <td>Until released or expired</td>
-              <td>Automatic expiration (default: 30 minutes)</td>
+              <td>Verrouillages de fichiers</td>
+              <td>Jusqu'a liberation ou expiration</td>
+              <td>Expiration automatique (par defaut : 30 minutes)</td>
             </tr>
             <tr>
-              <td>Usage metrics</td>
-              <td>Indefinite (aggregated)</td>
-              <td>Account deletion (user-specific data)</td>
+              <td>Metriques d'utilisation</td>
+              <td>Indefinie (agregees)</td>
+              <td>Suppression du compte (donnees specifiques a l'utilisateur)</td>
             </tr>
           </tbody>
         </table>
       </div>
 
       <p>
-        Instance operators can configure retention periods through the <code>claudenest.php</code>
-        configuration file and scheduled cleanup commands.
+        Les operateurs d'instances peuvent configurer les durees de conservation via le fichier
+        de configuration <code>claudenest.php</code> et les commandes de nettoyage planifiees.
       </p>
     </section>
 
     <!-- Section 6: Data Sharing -->
     <section id="data-sharing">
-      <h2 id="data-sharing">6. Data Sharing and Third Parties</h2>
+      <h2 id="data-sharing">6. Partage et sous-traitants</h2>
       <p>
-        ClaudeNest is architected with a strong emphasis on data locality. By design,
-        the platform minimizes external data transfer.
+        ClaudeNest est concu avec un accent fort sur la localite des donnees. Par conception,
+        la plateforme minimise les transferts de donnees externes.
       </p>
 
-      <h3 id="infrastructure-components">6.1 Infrastructure Components</h3>
+      <h3 id="infrastructure-components">6.1 Composants d'infrastructure</h3>
       <div class="third-party-grid">
         <div class="third-party-card">
           <div class="tp-header">
@@ -594,7 +617,7 @@
         </div>
       </div>
 
-      <h3 id="optional-external-services">6.2 Optional External Services</h3>
+      <h3 id="optional-external-services">6.2 Services externes optionnels</h3>
       <div class="third-party-grid">
         <div class="third-party-card">
           <div class="tp-header">
@@ -620,110 +643,113 @@
         </div>
       </div>
 
-      <h3 id="no-data-sales">6.3 No Data Sales</h3>
+      <h3 id="no-data-sales">6.3 Aucune vente de donnees</h3>
       <p>
-        ClaudeNest does <strong>not</strong> sell, rent, lease, or trade personal data to any
-        third party for any purpose whatsoever. We do not engage in data brokering.
+        ClaudeNest ne vend, ne loue, ne cede et n'echange <strong>aucune</strong> donnee personnelle
+        a quelque tiers que ce soit, pour quelque finalite que ce soit. Nous ne pratiquons
+        pas le courtage de donnees.
       </p>
     </section>
 
     <!-- Section 7: Your Rights -->
     <section id="your-rights">
-      <h2 id="your-rights">7. Your Rights Under GDPR</h2>
+      <h2 id="your-rights">7. Vos droits au titre du RGPD</h2>
       <p>
-        Under the General Data Protection Regulation, you have the following rights regarding
-        your personal data. These rights can be exercised by contacting the Data Protection
-        Officer (DPO) of your ClaudeNest instance operator.
+        En vertu du Reglement General sur la Protection des Donnees et de la loi Informatique
+        et Libertes, vous disposez des droits suivants concernant vos donnees personnelles.
+        Ces droits peuvent etre exerces en contactant le Delegue a la Protection des Donnees (DPO).
       </p>
 
       <div class="rights-grid">
         <div class="right-card">
           <div class="right-header">
             <span class="right-article">Art. 15</span>
-            <h4>Right of Access</h4>
+            <h4>Droit d'acces</h4>
           </div>
           <p>
-            You have the right to obtain confirmation of whether your personal data is being
-            processed, and to receive a copy of that data in a structured, commonly used format.
+            Vous avez le droit d'obtenir la confirmation que vos donnees personnelles sont traitees,
+            et de recevoir une copie de ces donnees dans un format structure et couramment utilise.
           </p>
           <div class="right-how">
-            <strong>How to exercise:</strong> Request a data export through your account settings
-            or contact the DPO.
+            <strong>Comment exercer ce droit :</strong> Demandez un export de donnees via les
+            parametres de votre compte ou contactez le DPO.
           </div>
         </div>
 
         <div class="right-card">
           <div class="right-header">
             <span class="right-article">Art. 16</span>
-            <h4>Right to Rectification</h4>
+            <h4>Droit de rectification</h4>
           </div>
           <p>
-            You have the right to request correction of inaccurate personal data, and to have
-            incomplete data completed.
+            Vous avez le droit de demander la correction de donnees personnelles inexactes et de
+            faire completer des donnees incompletes.
           </p>
           <div class="right-how">
-            <strong>How to exercise:</strong> Update your profile in account settings,
-            or contact the DPO for data you cannot modify directly.
+            <strong>Comment exercer ce droit :</strong> Mettez a jour votre profil dans les parametres
+            du compte, ou contactez le DPO pour les donnees que vous ne pouvez pas modifier directement.
           </div>
         </div>
 
         <div class="right-card">
           <div class="right-header">
             <span class="right-article">Art. 17</span>
-            <h4>Right to Erasure ("Right to be Forgotten")</h4>
+            <h4>Droit a l'effacement (droit a l'oubli)</h4>
           </div>
           <p>
-            You have the right to request deletion of your personal data when it is no longer
-            necessary for the purposes for which it was collected, or when you withdraw consent.
+            Vous avez le droit de demander la suppression de vos donnees personnelles lorsqu'elles
+            ne sont plus necessaires aux finalites pour lesquelles elles ont ete collectees, ou
+            lorsque vous retirez votre consentement.
           </p>
           <div class="right-how">
-            <strong>How to exercise:</strong> Delete your account through settings (cascading
-            deletion of all associated data), or contact the DPO.
+            <strong>Comment exercer ce droit :</strong> Supprimez votre compte via les parametres
+            (suppression en cascade de toutes les donnees associees), ou contactez le DPO.
           </div>
         </div>
 
         <div class="right-card">
           <div class="right-header">
             <span class="right-article">Art. 18</span>
-            <h4>Right to Restriction of Processing</h4>
+            <h4>Droit a la limitation du traitement</h4>
           </div>
           <p>
-            You have the right to request restriction of processing of your data in certain
-            circumstances, such as when you contest the accuracy of the data.
+            Vous avez le droit de demander la limitation du traitement de vos donnees dans certaines
+            circonstances, par exemple lorsque vous contestez l'exactitude des donnees.
           </p>
           <div class="right-how">
-            <strong>How to exercise:</strong> Contact the DPO with your specific restriction request.
+            <strong>Comment exercer ce droit :</strong> Contactez le DPO avec votre demande specifique de limitation.
           </div>
         </div>
 
         <div class="right-card">
           <div class="right-header">
             <span class="right-article">Art. 20</span>
-            <h4>Right to Data Portability</h4>
+            <h4>Droit a la portabilite</h4>
           </div>
           <p>
-            You have the right to receive your personal data in a structured, commonly used,
-            and machine-readable format (JSON), and to transmit it to another controller.
+            Vous avez le droit de recevoir vos donnees personnelles dans un format structure,
+            couramment utilise et lisible par machine (JSON), et de les transmettre a un autre
+            responsable de traitement.
           </p>
           <div class="right-how">
-            <strong>How to exercise:</strong> Use the data export feature in your account settings,
-            which provides a JSON archive of all your data.
+            <strong>Comment exercer ce droit :</strong> Utilisez la fonctionnalite d'export de donnees
+            dans les parametres de votre compte, qui fournit une archive JSON de toutes vos donnees.
           </div>
         </div>
 
         <div class="right-card">
           <div class="right-header">
             <span class="right-article">Art. 21</span>
-            <h4>Right to Object</h4>
+            <h4>Droit d'opposition</h4>
           </div>
           <p>
-            You have the right to object to processing of your personal data based on
-            legitimate interests, including profiling. You may also object to processing
-            for direct marketing purposes at any time.
+            Vous avez le droit de vous opposer au traitement de vos donnees personnelles fonde
+            sur l'interet legitime, y compris le profilage. Vous pouvez egalement vous opposer
+            a tout moment au traitement a des fins de prospection commerciale.
           </p>
           <div class="right-how">
-            <strong>How to exercise:</strong> Contact the DPO. Processing will cease unless
-            compelling legitimate grounds override your interests.
+            <strong>Comment exercer ce droit :</strong> Contactez le DPO. Le traitement cessera sauf
+            si des motifs legitimes imperieux prevalent sur vos interets.
           </div>
         </div>
       </div>
@@ -735,97 +761,100 @@
           </svg>
         </div>
         <div>
-          <h4>Right to Lodge a Complaint</h4>
+          <h4>Droit d'introduire une reclamation</h4>
           <p>
-            If you believe your data protection rights have been violated, you have the right
-            to lodge a complaint with your national supervisory authority. In France, this is
-            the <a href="https://www.cnil.fr" target="_blank" rel="noopener">CNIL</a>
-            (Commission Nationale de l'Informatique et des Libertes).
+            Si vous estimez que vos droits en matiere de protection des donnees ont ete violes,
+            vous avez le droit d'introduire une reclamation aupres de l'autorite de controle
+            competente. En France, il s'agit de la
+            <a href="https://www.cnil.fr" target="_blank" rel="noopener">CNIL</a>
+            (Commission Nationale de l'Informatique et des Libertes), 3 place de Fontenoy,
+            TSA 80715, 75334 Paris Cedex 07.
           </p>
         </div>
       </div>
 
       <p>
-        We will respond to all legitimate requests within <strong>30 days</strong>.
-        In complex cases, this period may be extended by an additional 60 days,
-        with prior notification.
+        Nous repondrons a toutes les demandes legitimes dans un delai de <strong>30 jours</strong>.
+        Dans les cas complexes, ce delai peut etre prolonge de 60 jours supplementaires,
+        avec notification prealable.
       </p>
     </section>
 
     <!-- Section 8: Cookies -->
     <section id="cookies">
-      <h2 id="cookies">8. Cookies and Tracking</h2>
+      <h2 id="cookies">8. Cookies et traceurs</h2>
       <p>
-        ClaudeNest uses minimal cookies and does not employ third-party tracking technologies.
+        ClaudeNest utilise un nombre minimal de cookies et n'emploie aucune technologie de suivi tiers.
+        Pour plus de details, consultez notre <router-link to="/docs/cookies">Politique relative aux cookies</router-link>.
       </p>
 
       <div class="data-table-wrapper">
         <table class="data-table">
           <thead>
             <tr>
-              <th>Cookie / Storage</th>
+              <th>Cookie / Stockage</th>
               <th>Type</th>
-              <th>Purpose</th>
-              <th>Duration</th>
+              <th>Finalite</th>
+              <th>Duree</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td><code>XSRF-TOKEN</code></td>
-              <td>Strictly Necessary</td>
-              <td>CSRF protection for form submissions</td>
+              <td>Strictement necessaire</td>
+              <td>Protection CSRF pour les soumissions de formulaires</td>
               <td>Session</td>
             </tr>
             <tr>
               <td><code>laravel_session</code></td>
-              <td>Strictly Necessary</td>
-              <td>Server-side session identification</td>
-              <td>2 hours</td>
+              <td>Strictement necessaire</td>
+              <td>Identification de session cote serveur</td>
+              <td>2 heures</td>
             </tr>
             <tr>
               <td><code>localStorage: auth_token</code></td>
-              <td>Strictly Necessary</td>
-              <td>API authentication token (Sanctum)</td>
-              <td>Until logout</td>
+              <td>Strictement necessaire</td>
+              <td>Jeton d'authentification API (Sanctum)</td>
+              <td>Jusqu'a la deconnexion</td>
             </tr>
             <tr>
               <td><code>localStorage: theme</code></td>
-              <td>Functional</td>
-              <td>User theme preference</td>
-              <td>Persistent</td>
+              <td>Fonctionnel</td>
+              <td>Preference de theme de l'utilisateur</td>
+              <td>Persistant</td>
             </tr>
           </tbody>
         </table>
       </div>
 
       <p>
-        ClaudeNest does <strong>not</strong> use:
+        ClaudeNest n'utilise <strong>pas</strong> :
       </p>
       <ul>
-        <li>Google Analytics or any third-party analytics service</li>
-        <li>Advertising cookies or tracking pixels</li>
-        <li>Cross-site tracking mechanisms</li>
-        <li>Browser fingerprinting techniques</li>
+        <li>Google Analytics ou tout autre service d'analyse tiers</li>
+        <li>De cookies publicitaires ou de pixels de suivi</li>
+        <li>De mecanismes de suivi inter-sites</li>
+        <li>De techniques d'empreinte digitale de navigateur</li>
       </ul>
 
       <p>
-        Since all cookies used are strictly necessary for the platform to function,
-        no cookie consent banner is required under GDPR. However, instance operators
-        may choose to add one for additional transparency.
+        Tous les cookies utilises etant strictement necessaires au fonctionnement de la
+        plateforme, aucune banniere de consentement aux cookies n'est requise conformement
+        au RGPD et aux recommandations de la CNIL.
       </p>
     </section>
 
     <!-- Section 9: Data Security -->
     <section id="data-security">
-      <h2 id="data-security">9. Data Security Measures</h2>
+      <h2 id="data-security">9. Mesures de securite</h2>
       <p>
-        ClaudeNest implements comprehensive technical and organizational measures to protect
-        your personal data against unauthorized access, alteration, disclosure, or destruction.
+        ClaudeNest met en oeuvre des mesures techniques et organisationnelles completes pour proteger
+        vos donnees personnelles contre tout acces non autorise, toute alteration, divulgation ou destruction.
       </p>
 
       <div class="security-measures">
         <div class="measure-category">
-          <h4>Transport Security</h4>
+          <h4>Securite du transport</h4>
           <ul>
             <li><strong>TLS 1.3</strong> enforced for all HTTP and WebSocket connections in production</li>
             <li><strong>HTTPS-only</strong> configuration recommended for all deployments</li>
@@ -834,7 +863,7 @@
         </div>
 
         <div class="measure-category">
-          <h4>Authentication Security</h4>
+          <h4>Securite de l'authentification</h4>
           <ul>
             <li><strong>Bcrypt hashing</strong> for all passwords (never stored in plaintext)</li>
             <li><strong>SHA-256 hashing</strong> for machine tokens and API tokens</li>
@@ -845,7 +874,7 @@
         </div>
 
         <div class="measure-category">
-          <h4>Application Security</h4>
+          <h4>Securite applicative</h4>
           <ul>
             <li><strong>CSRF protection</strong> on all web routes</li>
             <li><strong>Rate limiting</strong> on all API endpoints</li>
@@ -857,7 +886,7 @@
         </div>
 
         <div class="measure-category">
-          <h4>Infrastructure Security</h4>
+          <h4>Securite de l'infrastructure</h4>
           <ul>
             <li><strong>Self-hosted architecture</strong> keeping data on your own infrastructure</li>
             <li><strong>Database encryption at rest</strong> (recommended for production)</li>
@@ -868,7 +897,7 @@
         </div>
 
         <div class="measure-category">
-          <h4>Agent Security</h4>
+          <h4>Securite de l'agent</h4>
           <ul>
             <li><strong>Certificate validation</strong> for TLS connections</li>
             <li><strong>No credential exposure</strong> in logs or terminal output</li>
@@ -881,77 +910,85 @@
 
     <!-- Section 10: International Transfers -->
     <section id="international-transfers">
-      <h2 id="international-transfers">10. International Data Transfers</h2>
+      <h2 id="international-transfers">10. Transferts internationaux</h2>
       <p>
-        ClaudeNest is designed to be self-hosted, meaning your data remains on infrastructure
-        you control. In this default configuration, no international data transfers occur.
+        L'instance officielle de ClaudeNest exploitee par QR Communication est hebergee en
+        France. Dans cette configuration, aucun transfert international de donnees n'a lieu
+        dans le cadre du fonctionnement standard.
       </p>
       <p>
-        If your ClaudeNest instance is hosted in one jurisdiction and accessed from another,
-        the following safeguards should be considered by the instance operator:
+        Pour les instances auto-hebergees, si l'instance est hebergee dans une juridiction et
+        accessible depuis une autre, les garanties suivantes doivent etre considerees par
+        l'operateur :
       </p>
       <ul>
         <li>
-          <strong>EU to EU:</strong> No additional safeguards required under GDPR.
+          <strong>UE vers UE :</strong> Aucune garantie supplementaire requise au titre du RGPD.
         </li>
         <li>
-          <strong>EU to Adequate Countries:</strong> Transfers to countries with an adequacy
-          decision from the European Commission are permitted without additional safeguards.
+          <strong>UE vers pays adequats :</strong> Les transferts vers des pays faisant l'objet
+          d'une decision d'adequation de la Commission europeenne sont autorises sans garantie
+          supplementaire.
         </li>
         <li>
-          <strong>EU to Other Countries:</strong> Appropriate safeguards must be implemented,
-          such as Standard Contractual Clauses (SCCs) or Binding Corporate Rules (BCRs).
+          <strong>UE vers pays tiers :</strong> Des garanties appropriees doivent etre mises en
+          place, telles que les Clauses Contractuelles Types (CCT) ou les Regles d'Entreprise
+          Contraignantes (BCR).
         </li>
       </ul>
       <p>
-        When OAuth providers are used (Google, GitHub), authentication data may be processed
-        in the United States. Both Google and GitHub have committed to compliance with
-        the EU-U.S. Data Privacy Framework.
+        Lorsque les fournisseurs OAuth sont utilises (Google, GitHub), les donnees d'authentification
+        peuvent etre traitees aux Etats-Unis. Google et GitHub se sont tous deux engages a respecter
+        le cadre de protection des donnees UE-Etats-Unis (EU-U.S. Data Privacy Framework).
       </p>
     </section>
 
     <!-- Section 11: Children's Privacy -->
     <section id="childrens-privacy">
-      <h2 id="childrens-privacy">11. Children's Privacy</h2>
+      <h2 id="childrens-privacy">11. Mineurs</h2>
       <p>
-        ClaudeNest is a professional software development tool and is not directed at individuals
-        under the age of 16 (or the applicable minimum age in your jurisdiction).
+        ClaudeNest est un outil professionnel de developpement logiciel et n'est pas destine
+        aux personnes agees de moins de 16 ans (ou de l'age minimum applicable dans votre
+        juridiction).
       </p>
       <p>
-        We do not knowingly collect personal data from children. If you become aware that a child
-        has provided personal data to a ClaudeNest instance, please contact the instance operator's
-        DPO immediately. The data will be deleted promptly.
+        Nous ne collectons pas sciemment de donnees personnelles de mineurs. Si vous apprenez
+        qu'un mineur a fourni des donnees personnelles a une instance ClaudeNest, veuillez
+        contacter le DPO immediatement. Les donnees seront supprimees sans delai.
       </p>
     </section>
 
     <!-- Section 12: Policy Changes -->
     <section id="policy-changes">
-      <h2 id="policy-changes">12. Changes to This Policy</h2>
+      <h2 id="policy-changes">12. Modifications de la politique</h2>
       <p>
-        We may update this Privacy Policy from time to time to reflect changes in our practices,
-        technology, legal requirements, or other factors. When we make material changes:
+        Nous pouvons mettre a jour la presente Politique de Confidentialite de temps a autre pour
+        refleter les changements dans nos pratiques, la technologie, les exigences legales ou d'autres
+        facteurs. En cas de modification substantielle :
       </p>
       <ul>
-        <li>The "Last updated" date at the top of this page will be revised.</li>
-        <li>A prominent notice will be displayed in the ClaudeNest dashboard for 30 days.</li>
-        <li>Registered users will be notified via email (if email notifications are enabled).</li>
+        <li>La date de mise a jour en haut de cette page sera revisee.</li>
+        <li>Une notification sera affichee dans le tableau de bord ClaudeNest pendant 30 jours.</li>
+        <li>Les utilisateurs inscrits seront notifies par email (si les notifications email sont activees).</li>
         <li>
-          For changes that affect the legal basis of processing or introduce new data categories,
-          we will seek renewed consent where required by GDPR.
+          Pour les modifications affectant la base legale du traitement ou introduisant de nouvelles
+          categories de donnees, nous solliciterons un nouveau consentement lorsque le RGPD l'exige.
         </li>
       </ul>
       <p>
-        We encourage you to review this Privacy Policy periodically. Your continued use of
-        ClaudeNest after changes are posted constitutes acceptance of the updated policy.
+        Nous vous encourageons a consulter regulierement cette Politique de Confidentialite. Votre
+        utilisation continue de ClaudeNest apres la publication des modifications constitue
+        l'acceptation de la politique mise a jour.
       </p>
     </section>
 
     <!-- Section 13: Contact DPO -->
     <section id="contact-dpo">
-      <h2 id="contact-dpo">13. Contact the Data Protection Officer</h2>
+      <h2 id="contact-dpo">13. Contact du Delegue a la Protection des Donnees</h2>
       <p>
-        If you have questions, concerns, or requests regarding this Privacy Policy or the
-        processing of your personal data, please contact the Data Protection Officer (DPO):
+        Pour toute question, preoccupation ou demande relative a la presente Politique de
+        Confidentialite ou au traitement de vos donnees personnelles, veuillez contacter le
+        Delegue a la Protection des Donnees (DPO) :
       </p>
 
       <div class="contact-card">
@@ -989,8 +1026,9 @@
       </div>
 
       <p>
-        We will acknowledge receipt of your request within <strong>48 hours</strong> and provide
-        a substantive response within <strong>30 days</strong>, as required by GDPR Article 12(3).
+        Nous accuserons reception de votre demande dans un delai de <strong>48 heures</strong>
+        et fournirons une reponse motivee dans un delai de <strong>30 jours</strong>,
+        conformement a l'article 12(3) du RGPD.
       </p>
     </section>
   </article>

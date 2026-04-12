@@ -82,7 +82,7 @@ docker compose version
       <ul>
         <li><strong>postgres</strong> -- PostgreSQL 16 with the pgvector extension pre-installed for RAG embeddings.</li>
         <li><strong>redis</strong> -- Redis 7 for caching, queues, and session storage.</li>
-        <li><strong>app</strong> -- The Laravel 11 backend serving the API and the Vue.js SPA.</li>
+        <li><strong>app</strong> -- The Laravel 13 backend serving the API and the Vue.js SPA.</li>
         <li><strong>reverb</strong> -- Laravel Reverb providing real-time WebSocket communication.</li>
         <li><strong>queue</strong> -- A dedicated worker for Laravel queued jobs.</li>
         <li><strong>ollama</strong> -- (Optional) Local AI model server for embedding generation and summarization.</li>

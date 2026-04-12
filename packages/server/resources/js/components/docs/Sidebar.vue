@@ -114,7 +114,7 @@ const emit = defineEmits<{
   showSearch: [];
 }>();
 
-// Track open sections
+// Track open sections (legal section closed by default — it's at the bottom)
 const openSections = ref<Set<string>>(new Set([
   'getting-started',
   'api-reference',

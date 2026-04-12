@@ -3,8 +3,9 @@
     <header class="doc-header">
       <h1>Authentication</h1>
       <p class="lead">
-        ClaudeNest supports multiple authentication methods including OAuth (Google, GitHub), 
-        email/password, and API tokens for machine-to-machine communication.
+        ClaudeNest supports multiple authentication methods including OAuth (Google, GitHub),
+        email/password, magic link, and API tokens for machine-to-machine communication.
+        Manage Claude API credentials with AES-256-CBC encryption.
       </p>
     </header>
 
@@ -167,6 +168,65 @@ GET /api/auth/google/callback?code=auth-code-from-google
       />
     </section>
 
+    <section id="magic-link">
+      <h2>Magic Link Authentication</h2>
+      <p>
+        ClaudeNest also supports passwordless authentication via magic links. A temporary
+        login link is sent to the user's email, valid for 15 minutes.
+      </p>
+
+      <h3>Request a Magic Link</h3>
+      <CodeBlock
+        :code="magicLinkCode"
+        language="bash"
+      />
+
+      <p>
+        The user receives an email with a link that authenticates them automatically. The
+        link contains a signed token that is verified server-side and exchanged for a Sanctum
+        API token.
+      </p>
+    </section>
+
+    <section id="credentials">
+      <h2>Claude Credentials Management</h2>
+      <p>
+        ClaudeNest provides encrypted storage for Claude API keys and OAuth tokens. Credentials
+        are encrypted at rest using AES-256-CBC via Laravel's <code>Crypt::encryptString()</code>.
+        Each user can store multiple credentials and designate one as the default.
+      </p>
+
+      <h3>Supported Auth Types</h3>
+      <ul>
+        <li><code>api_key</code> - Direct Anthropic API key (sk-ant-...)</li>
+        <li><code>oauth</code> - OAuth access token with refresh token and expiration</li>
+      </ul>
+
+      <h3>Create a Credential</h3>
+      <CodeBlock
+        :code="createCredentialCode"
+        language="bash"
+      />
+
+      <h3>Set Default Credential</h3>
+      <CodeBlock
+        :code="setDefaultCredentialCode"
+        language="bash"
+      />
+
+      <h3>Validate a Key</h3>
+      <p>Test whether an API key is still valid with the Claude API:</p>
+      <CodeBlock
+        :code="validateCredentialCode"
+        language="bash"
+      />
+
+      <p>
+        Sessions can optionally be bound to a specific credential by passing <code>credential_id</code>
+        when creating the session. If omitted, the user's default credential is used.
+      </p>
+    </section>
+
     <section id="security">
       <h2>Security Best Practices</h2>
       
@@ -243,6 +303,59 @@ const registerMachineCode = `curl -X POST https://claudenest.yourdomain.com/api/
 
 const regenerateTokenCode = `curl -X POST https://claudenest.yourdomain.com/api/machines/123/regenerate-token \\
   -H 'Authorization: Bearer your-user-token'`;
+
+const magicLinkCode = `# Request a magic link
+curl -X POST https://claudenest.yourdomain.com/api/auth/magic-link \\
+  -H 'Content-Type: application/json' \\
+  -d '{
+    "email": "user@example.com"
+  }'
+
+# Response
+{
+  "success": true,
+  "data": {
+    "message": "Magic link sent to user@example.com",
+    "expires_in": 900
+  }
+}`;
+
+const createCredentialCode = `curl -X POST https://claudenest.yourdomain.com/api/credentials \\
+  -H 'Authorization: Bearer your-user-token' \\
+  -H 'Content-Type: application/json' \\
+  -d '{
+    "name": "Production API Key",
+    "auth_type": "api_key",
+    "api_key": "sk-ant-api03-your-key-here",
+    "is_default": true
+  }'
+
+# Response
+{
+  "success": true,
+  "data": {
+    "id": "550e8400-...",
+    "name": "Production API Key",
+    "auth_type": "api_key",
+    "is_default": true,
+    "token_status": "active"
+  }
+}`;
+
+const setDefaultCredentialCode = `curl -X POST https://claudenest.yourdomain.com/api/credentials/550e8400-.../set-default \\
+  -H 'Authorization: Bearer your-user-token'`;
+
+const validateCredentialCode = `curl -X POST https://claudenest.yourdomain.com/api/credentials/550e8400-.../validate \\
+  -H 'Authorization: Bearer your-user-token'
+
+# Response
+{
+  "success": true,
+  "data": {
+    "valid": true,
+    "token_status": "active"
+  }
+}`;
 </script>
 
 <style scoped>

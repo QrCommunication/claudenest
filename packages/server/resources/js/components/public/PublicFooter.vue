@@ -34,9 +34,17 @@
 
       <div class="footer-col">
         <h4 class="footer-heading">{{ t('landing.footer.legal') }}</h4>
-        <router-link to="/docs/terms" class="footer-link">{{ t('auth.terms_of_service') }}</router-link>
+        <router-link to="/docs/mentions-legales" class="footer-link">{{ t('landing.footer.mentions_legales') }}</router-link>
         <router-link to="/docs/privacy" class="footer-link">{{ t('auth.privacy_policy') }}</router-link>
-        <a href="mailto:hello@claudenest.io" class="footer-link">hello@claudenest.io</a>
+        <router-link to="/docs/terms" class="footer-link">{{ t('auth.terms_of_service') }}</router-link>
+        <router-link to="/docs/cookies" class="footer-link">{{ t('landing.footer.cookies') }}</router-link>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-heading">{{ t('landing.footer.contact') }}</h4>
+        <a :href="`mailto:${t('landing.footer.contact_email')}`" class="footer-link">{{ t('landing.footer.contact_email') }}</a>
+        <span class="footer-text">{{ t('landing.footer.contact_phone') }}</span>
+        <span class="footer-text">{{ t('landing.footer.contact_address') }}</span>
       </div>
     </div>
 
@@ -47,10 +55,10 @@
       <div class="footer-actions">
         <span class="footer-stack">
           <span>{{ t('landing.footer.built_with') }}</span>
-          <span class="stack-item">Laravel 11</span>
-          <span class="stack-item">Vue 3</span>
+          <span class="stack-item">Laravel 13</span>
+          <span class="stack-item">Vue 3.5</span>
+          <span class="stack-item">Vite 8</span>
           <span class="stack-item">pgvector</span>
-          <span class="stack-item">Reverb</span>
         </span>
       </div>
     </div>
@@ -89,7 +97,14 @@ const githubUrl = 'https://github.com/QrCommunication/claudenest';
 
 @media (min-width: 720px) {
   .footer-grid {
-    grid-template-columns: 1.4fr 1fr 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .footer-grid {
+    grid-template-columns: 1.6fr 1fr 1fr 1fr 1fr;
     gap: 3rem;
   }
 }
@@ -175,6 +190,12 @@ const githubUrl = 'https://github.com/QrCommunication/claudenest';
   width: 12px;
   height: 12px;
   opacity: 0.8;
+}
+
+.footer-text {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
 }
 
 .footer-bottom {

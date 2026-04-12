@@ -105,6 +105,11 @@
     </main>
 
     <SearchModal v-model="showSearch" />
+
+    <!-- ============ FOOTER ============ -->
+    <div class="docs-footer-wrapper">
+      <PublicFooter />
+    </div>
   </div>
 </template>
 
@@ -115,6 +120,7 @@ import { useDocs } from '@/composables/useDocs';
 import Logo from '@/components/common/Logo.vue';
 import ThemeToggle from '@/components/common/ThemeToggle.vue';
 import GrainOverlay from '@/components/public/GrainOverlay.vue';
+import PublicFooter from '@/components/public/PublicFooter.vue';
 import DocsSidebar from '@/components/docs/Sidebar.vue';
 import TableOfContents from '@/components/docs/Toc.vue';
 import SearchModal from '@/components/docs/SearchModal.vue';
@@ -620,5 +626,16 @@ onBeforeUnmount(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* ============ DOCS FOOTER ============ */
+.docs-footer-wrapper {
+  margin-left: 272px;
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 1000px) {
+  .docs-footer-wrapper { margin-left: 0; }
 }
 </style>
