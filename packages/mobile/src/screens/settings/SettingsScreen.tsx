@@ -13,6 +13,7 @@ import {
   Alert,
   Linking,
 } from 'react-native';
+import Constants from 'expo-constants';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 type IconName = React.ComponentProps<typeof MaterialIcons>['name'];
 const Icon = MaterialIcons;
@@ -62,6 +63,9 @@ const SettingsItem: React.FC<SettingsItemProps> = ({
     <Icon name="chevron-right" size={22} color={colors.text.muted} />
   </TouchableOpacity>
 );
+
+const APP_VERSION = Constants.expoConfig?.version ?? '0.5.0';
+const BUILD_NUMBER = Constants.expoConfig?.android?.versionCode?.toString() ?? Constants.expoConfig?.ios?.buildNumber ?? '50';
 
 export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const { user, logout } = useAuthStore();
@@ -153,7 +157,7 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           <SettingsItem
             icon="info"
             title="About"
-            subtitle="Version 1.0.0"
+            subtitle={`Version ${APP_VERSION} (${BUILD_NUMBER})`}
             onPress={() => navigation.navigate('About')}
           />
         </Card>
@@ -173,9 +177,10 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
       </View>
 
       <View style={styles.footer}>
-        <Text style={styles.footerText}>ClaudeNest v1.0.0</Text>
+        <Text style={styles.footerText}>ClaudeNest v{APP_VERSION}</Text>
+        <Text style={styles.footerSubtext}>Build {BUILD_NUMBER}</Text>
         <Text style={styles.footerSubtext}>
-          © 2026 ClaudeNest. All rights reserved.
+          © 2026 QR Communication. All rights reserved.
         </Text>
       </View>
     </ScrollView>
