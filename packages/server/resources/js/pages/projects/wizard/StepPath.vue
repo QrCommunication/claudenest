@@ -137,7 +137,7 @@ async function handleScan(): Promise<void> {
 }
 
 .path-input {
-  @apply flex-1 px-4 py-2.5 bg-surface-2 border border-skin rounded-lg text-skin-primary text-sm font-mono placeholder-skin-secondary focus:outline-none focus:border-brand-purple;
+  @apply flex-1 px-4 py-2.5 bg-surface-2 border border-skin rounded-lg text-skin-primary text-sm font-mono placeholder:text-skin-secondary focus:outline-none focus:border-brand-purple;
 }
 
 .btn {
