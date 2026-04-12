@@ -131,12 +131,12 @@ install_node_linux() {
     # Debian/Ubuntu
     info "Detected Debian/Ubuntu"
     curl -fsSL https://deb.nodesource.com/setup_${MIN_NODE_VERSION}.x | sudo -E bash -
-    sudo apt-get install -y nodejs
+    sudo apt-get install -y nodejs libsecret-1-dev gnome-keyring
   elif command_exists dnf; then
     # Fedora/RHEL
     info "Detected Fedora/RHEL"
     curl -fsSL https://rpm.nodesource.com/setup_${MIN_NODE_VERSION}.x | sudo bash -
-    sudo dnf install -y nodejs
+    sudo dnf install -y nodejs libsecret-devel gnome-keyring
   elif command_exists pacman; then
     # Arch Linux
     info "Detected Arch Linux"
@@ -183,17 +183,17 @@ install_build_tools_linux() {
   step "Installing build tools for native modules..."
 
   if command_exists apt-get; then
-    sudo apt-get install -y build-essential python3
+    sudo apt-get install -y build-essential python3 libsecret-1-dev
   elif command_exists dnf; then
     sudo dnf groupinstall -y "Development Tools"
-    sudo dnf install -y python3
+    sudo dnf install -y python3 libsecret-devel
   elif command_exists pacman; then
-    sudo pacman -Sy --noconfirm base-devel python
+    sudo pacman -Sy --noconfirm base-devel python libsecret
   elif command_exists apk; then
-    sudo apk add --no-cache build-base python3
+    sudo apk add --no-cache build-base python3 libsecret-dev
   else
-    warn "Could not install build tools automatically. node-pty may fail to compile."
-    warn "Please install gcc, g++, make, and python3 manually."
+    warn "Could not install build tools automatically. node-pty/keytar may fail to compile."
+    warn "Please install gcc, g++, make, python3, and libsecret-dev manually."
   fi
 }
 
@@ -505,8 +505,27 @@ install_service() {
 install_systemd_service() {
   local agent_path="$1"
   local service_file="/etc/systemd/system/claudenest-agent.service"
+  local uid
+  uid="$(id -u)"
 
   info "Creating systemd service..."
+
+  # Ensure gnome-keyring and libsecret are available (required by keytar)
+  if [[ "$OS" == "linux" ]] && command_exists apt-get; then
+    if ! dpkg -s gnome-keyring >/dev/null 2>&1; then
+      info "Installing gnome-keyring (required for secure token storage)..."
+      sudo apt-get install -y gnome-keyring >/dev/null 2>&1 || true
+    fi
+    if ! dpkg -s libsecret-1-dev >/dev/null 2>&1; then
+      info "Installing libsecret-1-dev (build dependency for keytar)..."
+      sudo apt-get install -y libsecret-1-dev >/dev/null 2>&1 || true
+    fi
+  fi
+
+  # DBUS_SESSION_BUS_ADDRESS is required for keytar to access gnome-keyring.
+  # Without it, the agent cannot read the machine token from the OS keychain
+  # and exits with "No machine token provided".
+  local dbus_addr="unix:path=/run/user/${uid}/bus"
 
   sudo tee "$service_file" > /dev/null << EOF
 [Unit]
@@ -518,6 +537,7 @@ Wants=network-online.target
 Type=simple
 User=$USER
 Environment=HOME=$HOME
+Environment=DBUS_SESSION_BUS_ADDRESS=$dbus_addr
 Environment=PATH=$PATH
 ExecStart=$agent_path start
 Restart=on-failure
