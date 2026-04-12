@@ -1,181 +1,181 @@
 /**
  * Button Component
+ * Variantes : primary, secondary, ghost, danger
+ * Tailles : sm (32h), md (40h), lg (48h)
  */
 
-import React from 'react';
+import React, { memo, useCallback } from 'react';
 import {
-  TouchableOpacity,
   Text,
   StyleSheet,
   ActivityIndicator,
   View,
+  Pressable,
   type ViewStyle,
   type TextStyle,
-  type TouchableOpacityProps,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
 import { colors, borderRadius, typography } from '@/theme';
 
-interface ButtonProps extends TouchableOpacityProps {
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
+type ButtonSize = 'sm' | 'md' | 'lg';
+
+interface ButtonProps {
   title: string;
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
-  size?: 'small' | 'medium' | 'large';
+  onPress?: () => void;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
   loading?: boolean;
   disabled?: boolean;
-  leftIcon?: React.ReactNode;
-  rightIcon?: React.ReactNode;
+  style?: ViewStyle;
+  textStyle?: TextStyle;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }
 
-// Size styles declared outside StyleSheet.create to allow nested objects
-const sizeStyles: Record<'small' | 'medium' | 'large', { container: ViewStyle; text: TextStyle }> = {
-  small: {
-    container: { paddingVertical: 8, paddingHorizontal: 16 },
-    text: { fontSize: typography.size.sm },
-  },
-  medium: {
-    container: { paddingVertical: 12, paddingHorizontal: 24 },
-    text: { fontSize: typography.size.base },
-  },
-  large: {
-    container: { paddingVertical: 16, paddingHorizontal: 32 },
-    text: { fontSize: typography.size.md },
-  },
+const HEIGHT: Record<ButtonSize, number> = {
+  sm: 32,
+  md: 40,
+  lg: 48,
 };
 
-export const Button: React.FC<ButtonProps> = ({
+const FONT_SIZE: Record<ButtonSize, number> = {
+  sm: typography.size.sm,
+  md: typography.size.base,
+  lg: typography.size.md,
+};
+
+const PADDING_H: Record<ButtonSize, number> = {
+  sm: 12,
+  md: 16,
+  lg: 20,
+};
+
+export const Button = memo(function Button({
   title,
+  onPress,
   variant = 'primary',
-  size = 'medium',
+  size = 'md',
   loading = false,
   disabled = false,
-  leftIcon,
-  rightIcon,
   style,
-  ...props
-}) => {
+  textStyle,
+  accessibilityLabel,
+  accessibilityHint,
+}: ButtonProps) {
+  const scale = useSharedValue(1);
   const isDisabled = disabled || loading;
 
-  const getSizeStyles = () => sizeStyles[size];
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
 
-  const getVariantStyles = () => {
-    switch (variant) {
-      case 'secondary':
-        return styles.secondary;
-      case 'outline':
-        return styles.outline;
-      case 'ghost':
-        return styles.ghost;
-      case 'danger':
-        return styles.danger;
-      default:
-        return styles.primary;
+  const handlePressIn = useCallback(() => {
+    if (!isDisabled) {
+      scale.value = withSpring(0.97, { damping: 15, stiffness: 200 });
     }
+  }, [isDisabled, scale]);
+
+  const handlePressOut = useCallback(() => {
+    scale.value = withSpring(1, { damping: 15, stiffness: 200 });
+  }, [scale]);
+
+  const containerStyle: ViewStyle = {
+    height: HEIGHT[size],
+    paddingHorizontal: PADDING_H[size],
   };
 
-  const getTextColor = () => {
+  const textColor = (() => {
     if (isDisabled) return colors.text.disabled;
     switch (variant) {
-      case 'outline':
-      case 'ghost':
-        return colors.primary.purple;
-      default:
-        return colors.text.primary;
+      case 'secondary': return colors.accent.purple;
+      case 'ghost': return colors.accent.purple;
+      case 'danger': return colors.text.primary;
+      default: return colors.text.primary;
     }
-  };
+  })();
 
-  const buttonContent = (
-    <View style={styles.content}>
+  return (
+    <AnimatedPressable
+      onPress={onPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      disabled={isDisabled}
+      style={[
+        styles.base,
+        styles[variant],
+        containerStyle,
+        isDisabled && styles.disabled,
+        animatedStyle,
+        style,
+      ]}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? title}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={{ disabled: isDisabled }}
+    >
       {loading ? (
         <ActivityIndicator
-          color={variant === 'primary' ? colors.text.primary : colors.primary.purple}
+          color={variant === 'primary' || variant === 'danger' ? colors.text.primary : colors.accent.purple}
           size="small"
         />
       ) : (
-        <>
-          {leftIcon}
-          <Text style={[styles.text, { color: getTextColor() }, getSizeStyles().text]}>
+        <View style={styles.content}>
+          <Text
+            style={[
+              styles.text,
+              { color: textColor, fontSize: FONT_SIZE[size] },
+              textStyle,
+            ]}
+            numberOfLines={1}
+          >
             {title}
           </Text>
-          {rightIcon}
-        </>
+        </View>
       )}
-    </View>
+    </AnimatedPressable>
   );
-
-  if (variant === 'primary' && !isDisabled) {
-    return (
-      <TouchableOpacity
-        activeOpacity={0.8}
-        disabled={isDisabled}
-        style={[styles.container, getSizeStyles().container, style]}
-        {...props}
-      >
-        <LinearGradient
-          colors={colors.gradients.primary}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={[styles.gradient, getSizeStyles().container]}
-        >
-          {buttonContent}
-        </LinearGradient>
-      </TouchableOpacity>
-    );
-  }
-
-  return (
-    <TouchableOpacity
-      activeOpacity={0.7}
-      disabled={isDisabled}
-      style={[
-        styles.container,
-        getSizeStyles().container,
-        getVariantStyles(),
-        isDisabled && styles.disabled,
-        style,
-      ]}
-      {...props}
-    >
-      {buttonContent}
-    </TouchableOpacity>
-  );
-};
+});
 
 const styles = StyleSheet.create({
-  container: {
+  base: {
     borderRadius: borderRadius.md,
-    overflow: 'hidden',
-  },
-  gradient: {
-    width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   content: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    gap: 6,
   },
   text: {
     fontWeight: '600',
+    letterSpacing: 0.1,
   },
   // Variants
-  primary: {},
-  secondary: {
-    backgroundColor: colors.background.dark4,
+  primary: {
+    backgroundColor: colors.accent.purple,
   },
-  outline: {
+  secondary: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: colors.primary.purple,
+    borderColor: colors.accent.purple,
   },
   ghost: {
     backgroundColor: 'transparent',
   },
   danger: {
-    backgroundColor: colors.semantic.error,
+    backgroundColor: colors.status.error,
   },
   disabled: {
-    opacity: 0.5,
+    opacity: 0.4,
   },
 });

@@ -3,16 +3,25 @@
  */
 
 export const typography = {
+  // Styles composés (usage direct)
+  h1: { fontSize: 28, fontWeight: '700' as const, letterSpacing: -0.5 },
+  h2: { fontSize: 22, fontWeight: '600' as const, letterSpacing: -0.3 },
+  h3: { fontSize: 18, fontWeight: '600' as const },
+  body: { fontSize: 15, fontWeight: '400' as const, lineHeight: 22 },
+  bodySmall: { fontSize: 13, fontWeight: '400' as const, lineHeight: 18 },
+  caption: { fontSize: 11, fontWeight: '500' as const, letterSpacing: 0.3 },
+  mono: { fontSize: 13, fontFamily: 'monospace' as const },
+
   // Font families
   fontFamily: {
     regular: 'System',
     medium: 'System',
     semiBold: 'System',
     bold: 'System',
-    mono: 'Menlo', // iOS default monospace
+    mono: 'Menlo',
   },
 
-  // Font sizes
+  // Font sizes (legacy granular)
   size: {
     xs: 10,
     sm: 12,
@@ -39,15 +48,6 @@ export const typography = {
     semiBold: '600' as const,
     bold: '700' as const,
   },
-
-  // Shorthand aliases for backward compatibility
-  h1: 30,
-  h2: 24,
-  h3: 20,
-  h4: 18,
-  body: 16,
-  small: 14,
-  caption: 12,
 } as const;
 
 export type Typography = typeof typography;

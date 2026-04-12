@@ -1,10 +1,13 @@
 /**
  * EmptyState Component
+ * State vide avec icône MaterialIcons, titre, description et CTA optionnel
+ * Animation FadeIn + scale au montage via Reanimated
  */
 
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated';
 import { colors, spacing, typography } from '@/theme';
 import { Button } from './Button';
 
@@ -18,62 +21,76 @@ interface EmptyStateProps {
   onAction?: () => void;
 }
 
-export const EmptyState: React.FC<EmptyStateProps> = ({
+export const EmptyState = memo(function EmptyState({
   icon = 'inbox',
   title,
   description,
   actionLabel,
   onAction,
-}) => {
+}: EmptyStateProps) {
   return (
-    <View style={styles.container}>
-      <View style={styles.iconContainer}>
-        <MaterialIcons name={icon} size={48} color={colors.text.muted} />
-      </View>
+    <Animated.View
+      entering={FadeIn.duration(350).delay(80)}
+      style={styles.container}
+    >
+      <Animated.View
+        entering={ZoomIn.duration(400).delay(120).springify()}
+        style={styles.iconContainer}
+      >
+        <MaterialIcons name={icon} size={40} color={colors.text.muted} />
+      </Animated.View>
+
       <Text style={styles.title}>{title}</Text>
-      {description && <Text style={styles.description}>{description}</Text>}
-      {actionLabel && onAction && (
+
+      {description ? (
+        <Text style={styles.description}>{description}</Text>
+      ) : null}
+
+      {actionLabel && onAction ? (
         <Button
           title={actionLabel}
           onPress={onAction}
-          variant="outline"
+          variant="secondary"
+          size="md"
           style={styles.actionButton}
         />
-      )}
-    </View>
+      ) : null}
+    </Animated.View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: spacing.xl,
+    paddingHorizontal: spacing.xxl,
+    paddingVertical: spacing.xxxl,
   },
   iconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.background.dark3,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.bg.card,
+    borderWidth: 1,
+    borderColor: colors.border.subtle,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.xl,
   },
   title: {
-    fontSize: typography.size.xl,
-    fontWeight: '600',
+    ...typography.h3,
     color: colors.text.primary,
-    marginBottom: spacing.xs,
     textAlign: 'center',
+    marginBottom: spacing.sm,
   },
   description: {
-    fontSize: typography.size.base,
+    ...typography.body,
     color: colors.text.secondary,
     textAlign: 'center',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.xl,
   },
   actionButton: {
-    minWidth: 150,
+    minWidth: 140,
   },
 });

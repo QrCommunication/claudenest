@@ -1,49 +1,71 @@
 /**
  * ClaudeNest Brand Colors
- * ⚠️ UTILISER UNIQUEMENT CES COULEURS - NE PAS MODIFIER
+ * Cohérent avec le design system web
  */
 
 export const colors = {
-  // Primary Brand Colors
-  primary: {
+  // Backgrounds (dark theme)
+  bg: {
+    primary: '#0f0f1a',      // Deepest
+    secondary: '#1a1b26',    // Primary surfaces
+    card: '#24283b',         // Cards, elevated surfaces
+    hover: '#2a2d3e',        // Interactive hover
+    input: '#1e1f2e',        // Input backgrounds
+  },
+
+  // Brand accents
+  accent: {
     purple: '#a855f7',
     indigo: '#6366f1',
     cyan: '#22d3ee',
   },
 
-  // Backgrounds
-  background: {
-    dark1: '#0f0f1a',      // Deepest background
-    dark2: '#1a1b26',      // Primary background (Main bg)
-    dark3: '#24283b',      // Cards, surfaces (Surface)
-    dark4: '#3b4261',      // Borders, dividers
-    card: '#24283b',
-  },
-
-  // Text Colors
+  // Text
   text: {
-    primary: '#ffffff',
-    secondary: '#a9b1d6',
-    muted: '#64748b',
-    disabled: '#888888',
+    primary: 'rgba(255,255,255,0.92)',
+    secondary: 'rgba(255,255,255,0.55)',
+    muted: 'rgba(255,255,255,0.3)',
+    inverse: '#0f0f1a',
+    disabled: 'rgba(255,255,255,0.3)',
   },
 
-  // Semantic Colors
+  // Status
+  status: {
+    success: '#22c55e',
+    error: '#ef4444',
+    warning: '#fbbf24',
+    info: '#3b82f6',
+    online: '#22c55e',
+    offline: '#6b7280',
+    connecting: '#fbbf24',
+    busy: '#a855f7',
+    idle: '#6b7280',
+  },
+
+  // Semantic (aliases)
   semantic: {
     success: '#22c55e',
     error: '#ef4444',
     warning: '#fbbf24',
-    info: '#22d3ee',
+    info: '#3b82f6',
   },
 
-  // Gradients — typed as string[] for LinearGradient compatibility
+  // Borders
+  border: {
+    subtle: 'rgba(255,255,255,0.06)',
+    default: 'rgba(255,255,255,0.1)',
+    strong: 'rgba(255,255,255,0.18)',
+    focus: '#a855f7',
+  },
+
+  // Gradients
   gradients: {
     primary: ['#a855f7', '#6366f1'] as string[],
     accent: ['#22d3ee', '#a855f7'] as string[],
     background: ['#0f0f1a', '#1a1b26', '#24283b'] as string[],
   },
 
-  // Terminal-specific colors
+  // Terminal-specific colors (inchangé)
   terminal: {
     background: '#1a1b26',
     foreground: '#c0caf5',
@@ -68,30 +90,27 @@ export const colors = {
     brightWhite: '#c0caf5',
   },
 
-  // Status colors shorthand
-  status: {
-    online: '#22c55e',
-    offline: '#ef4444',
-    connecting: '#fbbf24',
-    busy: '#a855f7',
-    idle: '#64748b',
-  },
-
-  // Border opacity variants
-  border: {
-    default: 'rgba(59, 66, 97, 0.5)',   // dark4 at 50% - standard borders
-    subtle: 'rgba(59, 66, 97, 0.3)',     // dark4 at 30% - dividers, separators
-    strong: 'rgba(59, 66, 97, 0.8)',     // dark4 at 80% - emphasized borders
-  },
-
   // Shadow colors
   shadow: {
     default: 'rgba(0, 0, 0, 0.3)',
     strong: 'rgba(0, 0, 0, 0.5)',
   },
+
+  // Legacy — conservé pour la rétrocompatibilité
+  primary: {
+    purple: '#a855f7',
+    indigo: '#6366f1',
+    cyan: '#22d3ee',
+  },
+  background: {
+    dark1: '#0f0f1a',
+    dark2: '#1a1b26',
+    dark3: '#24283b',
+    dark4: '#3b4261',
+    card: '#24283b',
+  },
 } as const;
 
-// Type export
 export type Colors = typeof colors;
 
 // Legacy export for compatibility

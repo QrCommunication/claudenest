@@ -10,10 +10,15 @@ import { colors } from '@/theme';
 
 // Screens
 import { ProjectsListScreen } from '@/screens/multiagent/ProjectsListScreen';
+import { NewProjectScreen } from '@/screens/multiagent/NewProjectScreen';
 import { ProjectScreen } from '@/screens/multiagent/ProjectScreen';
 import { TasksScreen } from '@/screens/multiagent/TasksScreen';
 import { ContextScreen } from '@/screens/multiagent/ContextScreen';
 import { LocksScreen } from '@/screens/multiagent/LocksScreen';
+import { EpicsScreen } from '@/screens/multiagent/EpicsScreen';
+import { SprintsScreen } from '@/screens/multiagent/SprintsScreen';
+import { PlanningChatScreen } from '@/screens/multiagent/PlanningChatScreen';
+import { OrchestrationScreen } from '@/screens/multiagent/OrchestrationScreen';
 
 const Stack = createNativeStackNavigator<ProjectsStackParamList>();
 
@@ -39,6 +44,11 @@ export const ProjectsNavigator: React.FC = () => {
         options={{ title: 'Projects' }}
       />
       <Stack.Screen
+        name="NewProject"
+        component={NewProjectScreen}
+        options={{ title: 'New Project' }}
+      />
+      <Stack.Screen
         name="ProjectDetail"
         component={ProjectScreen}
         options={{ title: 'Project' }}
@@ -57,6 +67,26 @@ export const ProjectsNavigator: React.FC = () => {
         name="Locks"
         component={LocksScreen}
         options={{ title: 'File Locks' }}
+      />
+      <Stack.Screen
+        name="Epics"
+        component={EpicsScreen}
+        options={{ title: 'Epics' }}
+      />
+      <Stack.Screen
+        name="Sprints"
+        component={SprintsScreen}
+        options={{ title: 'Sprints' }}
+      />
+      <Stack.Screen
+        name="PlanningChat"
+        component={PlanningChatScreen}
+        options={{ title: 'Planning Assistant' }}
+      />
+      <Stack.Screen
+        name="Orchestration"
+        component={OrchestrationScreen}
+        options={{ title: 'Orchestration' }}
       />
     </Stack.Navigator>
   );

@@ -1,19 +1,30 @@
 /**
  * Card Component
+ * Surface élevée avec border subtile et feedback Reanimated
  */
 
-import React from 'react';
+import React, { memo, useCallback } from 'react';
 import {
   View,
-  Animated,
-  TouchableOpacity,
   Text,
+  Pressable,
   StyleSheet,
   type ViewStyle,
   type TextStyle,
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  FadeIn,
+} from 'react-native-reanimated';
 import { colors, spacing, borderRadius } from '@/theme';
-import { useFadeIn } from '@/utils/animations';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
+// ---------------------------------------------------------------------------
+// Card (conteneur principal)
+// ---------------------------------------------------------------------------
 
 interface CardProps {
   children: React.ReactNode;
@@ -21,37 +32,70 @@ interface CardProps {
   onPress?: () => void;
   onLongPress?: () => void;
   disabled?: boolean;
+  entering?: boolean;
 }
 
-export const Card: React.FC<CardProps> = ({
+export const Card = memo(function Card({
   children,
   style,
   onPress,
   onLongPress,
   disabled,
-}) => {
-  const fadeStyle = useFadeIn();
-  const content = (
-    <Animated.View style={[styles.container, style, fadeStyle]}>
+  entering = true,
+}: CardProps) {
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePressIn = useCallback(() => {
+    if (!disabled && (onPress || onLongPress)) {
+      scale.value = withSpring(0.985, { damping: 15, stiffness: 250 });
+    }
+  }, [disabled, onPress, onLongPress, scale]);
+
+  const handlePressOut = useCallback(() => {
+    scale.value = withSpring(1, { damping: 15, stiffness: 250 });
+  }, [scale]);
+
+  const inner = (
+    <Animated.View
+      entering={entering ? FadeIn.duration(250) : undefined}
+      style={[styles.container, style, animatedStyle]}
+    >
       {children}
     </Animated.View>
   );
 
   if (onPress || onLongPress) {
     return (
-      <TouchableOpacity
+      <AnimatedPressable
         onPress={onPress}
         onLongPress={onLongPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
         disabled={disabled}
-        activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityState={{ disabled }}
+        style={animatedStyle}
       >
-        {content}
-      </TouchableOpacity>
+        <Animated.View
+          entering={entering ? FadeIn.duration(250) : undefined}
+          style={[styles.container, style]}
+        >
+          {children}
+        </Animated.View>
+      </AnimatedPressable>
     );
   }
 
-  return content;
-};
+  return inner;
+});
+
+// ---------------------------------------------------------------------------
+// CardHeader
+// ---------------------------------------------------------------------------
 
 interface CardHeaderProps {
   title: string;
@@ -62,66 +106,79 @@ interface CardHeaderProps {
   subtitleStyle?: TextStyle;
 }
 
-export const CardHeader: React.FC<CardHeaderProps> = ({
+export const CardHeader = memo(function CardHeader({
   title,
   subtitle,
   rightContent,
   style,
   titleStyle,
   subtitleStyle,
-}) => {
+}: CardHeaderProps) {
   return (
     <View style={[styles.header, style]}>
       <View style={styles.headerText}>
         <Text style={[styles.title, titleStyle]} numberOfLines={1}>
           {title}
         </Text>
-        {subtitle && (
+        {subtitle ? (
           <Text style={[styles.subtitle, subtitleStyle]} numberOfLines={1}>
             {subtitle}
           </Text>
-        )}
+        ) : null}
       </View>
       {rightContent}
     </View>
   );
-};
+});
+
+// ---------------------------------------------------------------------------
+// CardContent
+// ---------------------------------------------------------------------------
 
 interface CardContentProps {
   children: React.ReactNode;
   style?: ViewStyle;
 }
 
-export const CardContent: React.FC<CardContentProps> = ({ children, style }) => {
+export const CardContent = memo(function CardContent({ children, style }: CardContentProps) {
   return <View style={[styles.content, style]}>{children}</View>;
-};
+});
+
+// ---------------------------------------------------------------------------
+// CardFooter
+// ---------------------------------------------------------------------------
 
 interface CardFooterProps {
   children: React.ReactNode;
   style?: ViewStyle;
 }
 
-export const CardFooter: React.FC<CardFooterProps> = ({ children, style }) => {
+export const CardFooter = memo(function CardFooter({ children, style }: CardFooterProps) {
   return <View style={[styles.footer, style]}>{children}</View>;
-};
+});
+
+// ---------------------------------------------------------------------------
+// Styles
+// ---------------------------------------------------------------------------
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.background.card,
+    backgroundColor: colors.bg.card,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.border.default,
+    borderColor: colors.border.subtle,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: spacing.md,
+    padding: spacing.lg,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.subtle,
   },
   headerText: {
     flex: 1,
+    marginRight: spacing.sm,
   },
   title: {
     fontSize: 16,
@@ -134,13 +191,13 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   content: {
-    padding: spacing.md,
+    padding: spacing.lg,
   },
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    padding: spacing.md,
+    padding: spacing.lg,
     borderTopWidth: 1,
     borderTopColor: colors.border.subtle,
     gap: spacing.sm,

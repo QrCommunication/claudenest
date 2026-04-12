@@ -1,73 +1,135 @@
 /**
  * StatusDot Component
- * Shows a colored dot indicating status with pulse animation
+ * Dot coloré avec pulse Reanimated pour le statut online
  */
 
-import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, Easing } from 'react-native';
+import React, { memo, useEffect } from 'react';
+import { StyleSheet } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withSequence,
+  withTiming,
+  cancelAnimation,
+  Easing,
+} from 'react-native-reanimated';
 import { colors } from '@/theme';
 
+type StatusValue =
+  | 'online'
+  | 'offline'
+  | 'connecting'
+  | 'busy'
+  | 'idle'
+  | 'error'
+  | 'success'
+  | 'warning'
+  | 'info'
+  | string;
+
+type DotSize = 'sm' | 'md' | 'lg';
+
 interface StatusDotProps {
-  status: 'online' | 'offline' | 'connecting' | 'busy' | 'idle' | 'error' | string;
-  size?: number;
+  status: StatusValue;
+  size?: DotSize | number;
   pulse?: boolean;
 }
 
-export const StatusDot: React.FC<StatusDotProps> = ({
+const SIZE_MAP: Record<DotSize, number> = {
+  sm: 8,
+  md: 10,
+  lg: 14,
+};
+
+const STATUS_COLOR: Record<string, string> = {
+  online: colors.status.online,
+  offline: colors.status.offline,
+  error: colors.status.error,
+  connecting: colors.status.connecting,
+  busy: colors.status.busy,
+  idle: colors.status.idle,
+  success: colors.status.success,
+  warning: colors.status.warning,
+  info: colors.status.info,
+};
+
+function resolveSize(size: DotSize | number): number {
+  if (typeof size === 'number') return size;
+  return SIZE_MAP[size] ?? SIZE_MAP.md;
+}
+
+function resolveColor(status: StatusValue): string {
+  return STATUS_COLOR[status] ?? colors.text.muted;
+}
+
+const PULSE_STATUSES = new Set(['online', 'connecting', 'busy']);
+
+export const StatusDot = memo(function StatusDot({
   status,
-  size = 12,
-  pulse = false,
-}) => {
-  const scale = useRef(new Animated.Value(1)).current;
+  size = 'md',
+  pulse,
+}: StatusDotProps) {
+  const dotSize = resolveSize(size);
+  const dotColor = resolveColor(status);
+  const shouldPulse = pulse !== undefined ? pulse : PULSE_STATUSES.has(status);
+
+  const scale = useSharedValue(1);
+  const opacity = useSharedValue(1);
 
   useEffect(() => {
-    if (pulse && (status === 'connecting' || status === 'busy')) {
-      const animation = Animated.loop(
-        Animated.sequence([
-          Animated.timing(scale, { toValue: 1.3, duration: 600, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-          Animated.timing(scale, { toValue: 1, duration: 600, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-        ])
+    if (shouldPulse) {
+      scale.value = withRepeat(
+        withSequence(
+          withTiming(1.35, { duration: 700, easing: Easing.inOut(Easing.ease) }),
+          withTiming(1, { duration: 700, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1,
+        false
       );
-      animation.start();
-      return () => animation.stop();
+      opacity.value = withRepeat(
+        withSequence(
+          withTiming(0.5, { duration: 700, easing: Easing.inOut(Easing.ease) }),
+          withTiming(1, { duration: 700, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1,
+        false
+      );
+    } else {
+      cancelAnimation(scale);
+      cancelAnimation(opacity);
+      scale.value = withTiming(1, { duration: 150 });
+      opacity.value = withTiming(1, { duration: 150 });
     }
-    scale.setValue(1);
-    return undefined;
-  }, [status, pulse, scale]);
+  }, [shouldPulse, scale, opacity]);
 
-  const getColor = () => {
-    switch (status) {
-      case 'online': return colors.status.online;
-      case 'offline':
-      case 'error': return colors.status.offline;
-      case 'connecting': return colors.status.connecting;
-      case 'busy': return colors.status.busy;
-      case 'idle': return colors.status.idle;
-      default: return colors.text.muted;
-    }
-  };
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
+  }));
 
   return (
     <Animated.View
       style={[
         styles.dot,
         {
-          width: size,
-          height: size,
-          borderRadius: size / 2,
-          backgroundColor: getColor(),
-          transform: [{ scale }],
+          width: dotSize,
+          height: dotSize,
+          borderRadius: dotSize / 2,
+          backgroundColor: dotColor,
         },
+        animatedStyle,
       ]}
+      accessibilityLabel={`Status: ${status}`}
     />
   );
-};
+});
 
 const styles = StyleSheet.create({
   dot: {
-    shadowColor: colors.shadow.default,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.25,
     shadowRadius: 2,
     elevation: 2,
   },

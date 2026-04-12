@@ -1,8 +1,9 @@
 /**
  * Input Component
+ * Label dessus, error dessous, focus border purple
  */
 
-import React, { forwardRef } from 'react';
+import React, { memo, forwardRef, useState, useCallback } from 'react';
 import {
   TextInput,
   View,
@@ -24,8 +25,8 @@ interface InputProps extends TextInputProps {
   inputStyle?: TextStyle;
 }
 
-export const Input = forwardRef<TextInput, InputProps>(
-  (
+export const Input = memo(
+  forwardRef<TextInput, InputProps>(function Input(
     {
       label,
       error,
@@ -34,22 +35,45 @@ export const Input = forwardRef<TextInput, InputProps>(
       rightIcon,
       containerStyle,
       inputStyle,
+      onFocus,
+      onBlur,
       secureTextEntry,
       ...props
     },
     ref
-  ) => {
+  ) {
+    const [focused, setFocused] = useState(false);
+
+    const handleFocus = useCallback(
+      (e: Parameters<NonNullable<TextInputProps['onFocus']>>[0]) => {
+        setFocused(true);
+        onFocus?.(e);
+      },
+      [onFocus]
+    );
+
+    const handleBlur = useCallback(
+      (e: Parameters<NonNullable<TextInputProps['onBlur']>>[0]) => {
+        setFocused(false);
+        onBlur?.(e);
+      },
+      [onBlur]
+    );
+
+    const isDisabled = props.editable === false;
+
     return (
       <View style={[styles.container, containerStyle]}>
-        {label && <Text style={styles.label}>{label}</Text>}
+        {label ? <Text style={styles.label}>{label}</Text> : null}
         <View
           style={[
             styles.inputContainer,
-            error && styles.inputContainerError,
-            props.editable === false && styles.inputContainerDisabled,
+            focused && styles.inputContainerFocused,
+            error ? styles.inputContainerError : undefined,
+            isDisabled ? styles.inputContainerDisabled : undefined,
           ]}
         >
-          {leftIcon && <View style={styles.leftIcon}>{leftIcon}</View>}
+          {leftIcon ? <View style={styles.leftIcon}>{leftIcon}</View> : null}
           <TextInput
             ref={ref}
             style={[
@@ -60,9 +84,12 @@ export const Input = forwardRef<TextInput, InputProps>(
             ]}
             placeholderTextColor={colors.text.muted}
             secureTextEntry={secureTextEntry}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            accessibilityLabel={label}
             {...props}
           />
-          {rightIcon && <View style={styles.rightIcon}>{rightIcon}</View>}
+          {rightIcon ? <View style={styles.rightIcon}>{rightIcon}</View> : null}
         </View>
         {error ? (
           <Text style={styles.errorText}>{error}</Text>
@@ -71,14 +98,14 @@ export const Input = forwardRef<TextInput, InputProps>(
         ) : null}
       </View>
     );
-  }
+  })
 );
 
 Input.displayName = 'Input';
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
   label: {
     fontSize: typography.size.sm,
@@ -89,16 +116,20 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.background.dark3,
+    backgroundColor: colors.bg.input,
     borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: colors.background.dark4,
+    borderColor: colors.border.default,
+  },
+  inputContainerFocused: {
+    borderColor: colors.border.focus,
+    borderWidth: 1.5,
   },
   inputContainerError: {
-    borderColor: colors.semantic.error,
+    borderColor: colors.status.error,
   },
   inputContainerDisabled: {
-    opacity: 0.6,
+    opacity: 0.5,
   },
   input: {
     flex: 1,
@@ -107,24 +138,23 @@ const styles = StyleSheet.create({
     fontSize: typography.size.base,
     color: colors.text.primary,
     fontFamily: typography.fontFamily.regular,
+    minHeight: 44,
   },
   inputWithLeftIcon: {
-    paddingLeft: 0,
+    paddingLeft: spacing.xs,
   },
   inputWithRightIcon: {
-    paddingRight: 0,
+    paddingRight: spacing.xs,
   },
   leftIcon: {
     paddingLeft: spacing.md,
-    marginRight: spacing.xs,
   },
   rightIcon: {
     paddingRight: spacing.md,
-    marginLeft: spacing.xs,
   },
   errorText: {
     fontSize: typography.size.xs,
-    color: colors.semantic.error,
+    color: colors.status.error,
     marginTop: spacing.xs,
   },
   helperText: {

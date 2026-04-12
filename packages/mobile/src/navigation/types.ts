@@ -41,16 +41,23 @@ export type SessionsStackParamList = {
 export type ProjectsStackParamList = {
   ProjectsList: undefined;
   ProjectDetail: { projectId: string };
+  NewProject: undefined;
   Tasks: { projectId: string };
   Context: { projectId: string };
   Locks: { projectId: string };
+  Epics: { projectId: string };
+  Sprints: { projectId: string };
+  PlanningChat: { projectId: string };
+  Orchestration: { projectId: string };
 };
 
 // Settings Stack
 export type SettingsStackParamList = {
   SettingsMain: undefined;
   Skills: { machineId: string };
+  SkillDetail: { machineId: string; skillPath: string };
   MCPServers: { machineId: string };
+  MCPTools: { machineId: string; serverName: string };
   Commands: { machineId: string };
   Credentials: undefined;
   About: undefined;

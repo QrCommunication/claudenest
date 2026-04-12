@@ -11,7 +11,9 @@ import { colors } from '@/theme';
 // Screens
 import { SettingsScreen } from '@/screens/settings/SettingsScreen';
 import { SkillsScreen } from '@/screens/config/SkillsScreen';
+import { SkillDetailScreen } from '@/screens/config/SkillDetailScreen';
 import { MCPServersScreen } from '@/screens/config/MCPServersScreen';
+import { MCPToolsScreen } from '@/screens/config/MCPToolsScreen';
 import { CommandsScreen } from '@/screens/config/CommandsScreen';
 import { AboutScreen } from '@/screens/settings/AboutScreen';
 import { CredentialsScreen } from '@/screens/settings/CredentialsScreen';
@@ -45,9 +47,19 @@ export const SettingsNavigator: React.FC = () => {
         options={{ title: 'Skills' }}
       />
       <Stack.Screen
+        name="SkillDetail"
+        component={SkillDetailScreen}
+        options={{ title: 'Skill' }}
+      />
+      <Stack.Screen
         name="MCPServers"
         component={MCPServersScreen}
         options={{ title: 'MCP Servers' }}
+      />
+      <Stack.Screen
+        name="MCPTools"
+        component={MCPToolsScreen}
+        options={({ route }) => ({ title: route.params.serverName })}
       />
       <Stack.Screen
         name="Commands"

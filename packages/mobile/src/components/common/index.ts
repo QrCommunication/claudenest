@@ -6,3 +6,4 @@ export { Badge } from './Badge';
 export { LoadingSpinner } from './LoadingSpinner';
 export { EmptyState } from './EmptyState';
 export { ErrorMessage } from './ErrorMessage';
+export { Skeleton, SkeletonCard, SkeletonText, SkeletonAvatar } from './SkeletonLoader';

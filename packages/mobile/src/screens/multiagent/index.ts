@@ -1,5 +1,10 @@
 export { ProjectsListScreen } from './ProjectsListScreen';
+export { NewProjectScreen } from './NewProjectScreen';
 export { ProjectScreen } from './ProjectScreen';
 export { TasksScreen } from './TasksScreen';
 export { ContextScreen } from './ContextScreen';
 export { LocksScreen } from './LocksScreen';
+export { EpicsScreen } from './EpicsScreen';
+export { SprintsScreen } from './SprintsScreen';
+export { PlanningChatScreen } from './PlanningChatScreen';
+export { OrchestrationScreen } from './OrchestrationScreen';
