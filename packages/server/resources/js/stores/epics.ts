@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { api } from '@/composables/useApi';
+import { useMultiAsyncAction } from '@/composables/useAsyncAction';
 import type {
   Epic,
   EpicStatus,
@@ -15,11 +16,19 @@ export const useEpicsStore = defineStore('epics', () => {
   // ==================== STATE ====================
   const epics = ref<Epic[]>([]);
   const selectedEpic = ref<Epic | null>(null);
-  const isLoading = ref(false);
-  const isCreating = ref(false);
-  const isUpdating = ref(false);
-  const isDeleting = ref(false);
-  const error = ref<string | null>(null);
+
+  const { states, error, run, clearError } = useMultiAsyncAction([
+    'loading',
+    'creating',
+    'updating',
+    'deleting',
+  ] as const);
+
+  // Aliases for backward compatibility
+  const isLoading = states.loading;
+  const isCreating = states.creating;
+  const isUpdating = states.updating;
+  const isDeleting = states.deleting;
 
   // ==================== GETTERS ====================
   const epicsByStatus = computed(() => {
@@ -85,22 +94,13 @@ export const useEpicsStore = defineStore('epics', () => {
    * @throws {Error} If the fetch operation fails
    */
   async function fetchEpics(projectId: string): Promise<Epic[]> {
-    isLoading.value = true;
-    error.value = null;
-
-    try {
+    return run('loading', async () => {
       const response = await api.get<PaginatedResponse<Epic>>(
         `/projects/${projectId}/epics`
       );
       epics.value = response.data.data;
       return response.data.data;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch epics';
-      error.value = message;
-      throw err;
-    } finally {
-      isLoading.value = false;
-    }
+    }, 'Failed to fetch epics');
   }
 
   /**
@@ -108,20 +108,11 @@ export const useEpicsStore = defineStore('epics', () => {
    * @throws {Error} If the fetch fails
    */
   async function fetchEpic(epicId: string): Promise<Epic> {
-    isLoading.value = true;
-    error.value = null;
-
-    try {
+    return run('loading', async () => {
       const response = await api.get<ApiResponse<Epic>>(`/epics/${epicId}`);
       selectedEpic.value = response.data.data;
       return response.data.data;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch epic';
-      error.value = message;
-      throw err;
-    } finally {
-      isLoading.value = false;
-    }
+    }, 'Failed to fetch epic');
   }
 
   /**
@@ -129,10 +120,7 @@ export const useEpicsStore = defineStore('epics', () => {
    * @throws {Error} If creation fails
    */
   async function createEpic(projectId: string, data: CreateEpicForm): Promise<Epic> {
-    isCreating.value = true;
-    error.value = null;
-
-    try {
+    return run('creating', async () => {
       const response = await api.post<ApiResponse<Epic>>(
         `/projects/${projectId}/epics`,
         data
@@ -140,13 +128,7 @@ export const useEpicsStore = defineStore('epics', () => {
       const epic = response.data.data;
       epics.value.push(epic);
       return epic;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to create epic';
-      error.value = message;
-      throw err;
-    } finally {
-      isCreating.value = false;
-    }
+    }, 'Failed to create epic');
   }
 
   /**
@@ -154,10 +136,7 @@ export const useEpicsStore = defineStore('epics', () => {
    * @throws {Error} If the update fails
    */
   async function updateEpic(epicId: string, data: UpdateEpicForm): Promise<Epic> {
-    isUpdating.value = true;
-    error.value = null;
-
-    try {
+    return run('updating', async () => {
       const response = await api.patch<ApiResponse<Epic>>(`/epics/${epicId}`, data);
       const updated = response.data.data;
 
@@ -173,13 +152,7 @@ export const useEpicsStore = defineStore('epics', () => {
       }
 
       return updated;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to update epic';
-      error.value = message;
-      throw err;
-    } finally {
-      isUpdating.value = false;
-    }
+    }, 'Failed to update epic');
   }
 
   /**
@@ -187,23 +160,14 @@ export const useEpicsStore = defineStore('epics', () => {
    * @throws {Error} If deletion fails
    */
   async function deleteEpic(epicId: string): Promise<void> {
-    isDeleting.value = true;
-    error.value = null;
-
-    try {
+    return run('deleting', async () => {
       await api.delete(`/epics/${epicId}`);
       epics.value = epics.value.filter(e => e.id !== epicId);
 
       if (selectedEpic.value?.id === epicId) {
         selectedEpic.value = null;
       }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to delete epic';
-      error.value = message;
-      throw err;
-    } finally {
-      isDeleting.value = false;
-    }
+    }, 'Failed to delete epic');
   }
 
   /**
@@ -211,9 +175,7 @@ export const useEpicsStore = defineStore('epics', () => {
    * @throws {Error} If the reorder operation fails
    */
   async function reorderEpic(epicId: string, position: number): Promise<Epic> {
-    error.value = null;
-
-    try {
+    return run('loading', async () => {
       const response = await api.post<ApiResponse<Epic>>(
         `/epics/${epicId}/reorder`,
         { position }
@@ -233,11 +195,7 @@ export const useEpicsStore = defineStore('epics', () => {
       }
 
       return updated;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to reorder epic';
-      error.value = message;
-      throw err;
-    }
+    }, 'Failed to reorder epic');
   }
 
   /**
@@ -283,13 +241,6 @@ export const useEpicsStore = defineStore('epics', () => {
     if (selectedEpic.value?.id === epicId) {
       selectedEpic.value = null;
     }
-  }
-
-  /**
-   * Clear error
-   */
-  function clearError(): void {
-    error.value = null;
   }
 
   return {

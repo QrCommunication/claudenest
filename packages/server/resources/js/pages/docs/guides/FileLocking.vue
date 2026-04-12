@@ -84,6 +84,72 @@
       <CodeBlock language="json" :code="extendResponse" filename="Response" />
     </section>
 
+    <section id="atomic-acquisition">
+      <h2>Atomic Lock Acquisition</h2>
+      <p>
+        Lock creation uses a database-level <code>lockForUpdate</code> to ensure true
+        atomicity. Even when two instances send a lock request at exactly the same
+        millisecond, only one succeeds. The losing request immediately receives a
+        <code>409 Conflict</code> without any risk of both believing they hold the lock.
+      </p>
+      <p>
+        This guarantee is stronger than application-level checks. You do not need to
+        implement your own mutex or retry loop beyond the standard 409 handling.
+      </p>
+    </section>
+
+    <section id="task-lock-integration">
+      <h2>Task-Lock Integration</h2>
+      <p>
+        When an instance claims a task via <code>POST /tasks/{id}/claim</code>, any
+        file paths listed in the task's <code>files</code> array are automatically
+        locked for that instance. This means you rarely need to call the lock endpoints
+        directly for normal task work.
+      </p>
+      <p>
+        Conversely, when a task is completed (<code>POST /tasks/{id}/complete</code>)
+        or released (<code>POST /tasks/{id}/release</code>), all locks held by the
+        instance for those files are automatically released. This keeps lock cleanup
+        inside the task lifecycle rather than requiring explicit teardown code.
+      </p>
+
+      <p class="tip">
+        <span class="tip-icon">&#128161;</span>
+        The auto-lock behaviour applies only to files declared in the task's
+        <code>files</code> field at claim time. Files opened ad hoc during the task
+        must still be locked manually via <code>POST /locks</code>.
+      </p>
+    </section>
+
+    <section id="heartbeat-extend">
+      <h2>Heartbeat Auto-Extend</h2>
+      <p>
+        The agent daemon sends a heartbeat to the server every 60 seconds for each
+        active session. If a session holds locks whose expiration is within 5 minutes
+        of the current time, the server automatically extends those locks by 15 minutes.
+        This prevents locks from expiring mid-task without requiring the agent to poll
+        the extend endpoint.
+      </p>
+      <p>
+        You can still call <code>POST /locks/extend</code> manually at any time if you
+        need a longer window or want to extend locks held outside an active session.
+      </p>
+    </section>
+
+    <section id="conflicts-batch">
+      <h2>Batch Conflict Check</h2>
+      <p>
+        Before starting a large task that touches many files, check all of them in a
+        single request using the conflicts endpoint. The server returns only the files
+        that are currently locked, so you can decide whether to wait, reassign the task,
+        or proceed with the unlocked subset.
+      </p>
+
+      <CodeTabs :tabs="conflictsTabs" />
+
+      <CodeBlock language="json" :code="conflictsResponse" filename="Response" />
+    </section>
+
     <section id="bulk-locking">
       <h2>Bulk Locking</h2>
       <p>
@@ -504,6 +570,87 @@ Http::withToken($token)
     ]);`,
   },
 ]);
+
+// -- Conflicts Batch Check ----------------------------------------------------
+
+const conflictsTabs = ref([
+  {
+    label: 'cURL',
+    language: 'bash',
+    code: `curl -X POST https://api.claudenest.io/api/projects/{project_id}/locks/conflicts \\
+  -H "Authorization: Bearer YOUR_TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "paths": [
+      "src/checkout.ts",
+      "src/stripe.ts",
+      "src/cart.ts",
+      "src/webhooks.ts"
+    ]
+  }'`,
+  },
+  {
+    label: 'JavaScript',
+    language: 'javascript',
+    code: `const response = await fetch(
+  'https://api.claudenest.io/api/projects/{project_id}/locks/conflicts',
+  {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer YOUR_TOKEN',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      paths: ['src/checkout.ts', 'src/stripe.ts', 'src/cart.ts', 'src/webhooks.ts'],
+    }),
+  }
+);
+
+const { data } = await response.json();
+const lockedPaths = data.filter(f => f.is_locked).map(f => f.path);
+const availablePaths = data.filter(f => !f.is_locked).map(f => f.path);
+console.log('Locked:', lockedPaths);
+console.log('Available:', availablePaths);`,
+  },
+  {
+    label: 'PHP',
+    language: 'php',
+    code: `<?php
+$results = Http::withToken($token)
+    ->post('https://api.claudenest.io/api/projects/{project_id}/locks/conflicts', [
+        'paths' => ['src/checkout.ts', 'src/stripe.ts', 'src/cart.ts', 'src/webhooks.ts'],
+    ])['data'];
+
+$locked = array_filter($results, fn($f) => $f['is_locked']);
+$available = array_filter($results, fn($f) => !$f['is_locked']);`,
+  },
+]);
+
+const conflictsResponse = ref(`{
+  "success": true,
+  "data": [
+    {
+      "path": "src/checkout.ts",
+      "is_locked": true,
+      "locked_by": "inst-002",
+      "expires_at": "2026-02-15T10:25:00Z"
+    },
+    {
+      "path": "src/stripe.ts",
+      "is_locked": false
+    },
+    {
+      "path": "src/cart.ts",
+      "is_locked": false
+    },
+    {
+      "path": "src/webhooks.ts",
+      "is_locked": true,
+      "locked_by": "inst-003",
+      "expires_at": "2026-02-15T10:40:00Z"
+    }
+  ]
+}`);
 
 // -- Force Release ------------------------------------------------------------
 

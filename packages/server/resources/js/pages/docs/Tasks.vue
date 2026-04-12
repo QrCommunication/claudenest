@@ -121,6 +121,66 @@
         :responses="nextResponses"
       />
 
+      <!-- Get Subtasks -->
+      <EndpointCard
+        method="GET"
+        path="/tasks/{id}/subtasks"
+        description="List all subtasks (children) of a given task."
+        :params="subtasksParams"
+        :curlExample="subtasksCurl"
+        :jsExample="subtasksJs"
+        :phpExample="subtasksPhp"
+        :responses="subtasksResponses"
+      />
+
+      <!-- Move Task -->
+      <EndpointCard
+        method="POST"
+        path="/tasks/{id}/move"
+        description="Move a task to a different epic, sprint, or parent task. Useful for re-planning."
+        :params="moveParams"
+        :curlExample="moveCurl"
+        :jsExample="moveJs"
+        :phpExample="movePhp"
+        :responses="moveResponses"
+      />
+
+      <div class="section">
+        <h2>Extended Task Fields</h2>
+        <p>
+          In addition to the base fields, every task response includes the following
+          planning and hierarchy fields:
+        </p>
+        <CodeBlock language="json" :code="extendedTaskObject" />
+        <ul>
+          <li><code>epic_id</code> &mdash; UUID of the parent epic, or <code>null</code></li>
+          <li><code>sprint_id</code> &mdash; Identifier of the sprint this task belongs to, or <code>null</code></li>
+          <li><code>parent_id</code> &mdash; UUID of the parent task when this is a subtask, or <code>null</code></li>
+          <li><code>story_points</code> &mdash; Relative effort estimate (integer, typically 1–13)</li>
+          <li><code>due_date</code> &mdash; ISO 8601 deadline, or <code>null</code></li>
+          <li><code>sort_order</code> &mdash; Integer used to order tasks within a list or sprint board</li>
+          <li><code>labels</code> &mdash; Array of free-form string tags (e.g. <code>["backend", "stripe"]</code>)</li>
+          <li><code>has_subtasks</code> &mdash; Boolean, <code>true</code> when at least one child task exists</li>
+          <li><code>subtasks_count</code> &mdash; Total number of child tasks</li>
+          <li><code>completed_subtasks_count</code> &mdash; Number of child tasks with status <code>done</code></li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <h2>Additional Filters</h2>
+        <p>
+          The <code>GET /projects/{project}/tasks</code> endpoint accepts the following
+          extra query parameters beyond <code>status</code>, <code>priority</code>, and
+          <code>assigned_to</code>:
+        </p>
+        <ul>
+          <li><code>?epic_id=</code> &mdash; Return only tasks that belong to this epic</li>
+          <li><code>?sprint_id=</code> &mdash; Return only tasks scheduled in this sprint</li>
+          <li><code>?parent_id=</code> &mdash; Return only direct children of this parent task</li>
+          <li><code>?root_only=true</code> &mdash; Exclude subtasks and return only top-level tasks</li>
+        </ul>
+      </div>
+
       <div class="section">
         <h2>Task Statuses</h2>
         <ul>
@@ -651,6 +711,114 @@ const dependenciesExample = ref(`{
     "550e8400-e29b-41d4-a716-446655440004"   // Database setup task
   ]
 }`);
+
+// Extended Task Object
+const extendedTaskObject = ref(`{
+  "id": "550e8400-e29b-41d4-a716-446655440003",
+  "project_id": "550e8400-e29b-41d4-a716-446655440002",
+  "title": "Integrate Stripe webhooks",
+  "priority": "high",
+  "status": "pending",
+  "epic_id": "epic-550e8400-payment",
+  "sprint_id": "sprint-2026-w15",
+  "parent_id": null,
+  "story_points": 5,
+  "due_date": "2026-04-18T18:00:00Z",
+  "sort_order": 2,
+  "labels": ["backend", "stripe", "webhooks"],
+  "has_subtasks": true,
+  "subtasks_count": 3,
+  "completed_subtasks_count": 1,
+  "dependencies": [],
+  "files": ["src/webhooks.ts"],
+  "estimated_tokens": 4000,
+  "created_at": "2026-04-10T10:00:00Z",
+  "updated_at": "2026-04-12T09:30:00Z"
+}`);
+
+// Subtasks
+const subtasksParams = [
+  { name: 'id', type: 'uuid', required: true, description: 'Parent task ID' },
+  { name: 'status', type: 'enum', required: false, description: 'Filter by status', enum: ['pending', 'in_progress', 'done'] },
+];
+
+const subtasksCurl = `curl https://api.claudenest.io/api/tasks/550e8400-e29b-41d4-a716-446655440003/subtasks \\
+  -H "Authorization: Bearer YOUR_TOKEN"`;
+
+const subtasksJs = `const response = await fetch(
+  'https://api.claudenest.io/api/tasks/550e8400-e29b-41d4-a716-446655440003/subtasks',
+  { headers: { 'Authorization': 'Bearer YOUR_TOKEN' } }
+);
+const subtasks = await response.json();
+console.log(subtasks.data);`;
+
+const subtasksPhp = `<?php
+$subtasks = Http::withToken($token)
+    ->get('https://api.claudenest.io/api/tasks/550e8400-e29b-41d4-a716-446655440003/subtasks')['data'];`;
+
+const subtasksResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: [
+        { id: 'sub-001', title: 'Parse Stripe event payload', status: 'done', story_points: 1 },
+        { id: 'sub-002', title: 'Persist payment intent updates', status: 'in_progress', story_points: 2 },
+        { id: 'sub-003', title: 'Write webhook integration tests', status: 'pending', story_points: 2 },
+      ],
+      meta: { timestamp: '2026-04-12T10:00:00Z', request_id: 'req_sub' },
+    }, null, 2),
+  },
+];
+
+// Move Task
+const moveParams = [
+  { name: 'id', type: 'uuid', required: true, description: 'Task ID to move' },
+  { name: 'epic_id', type: 'uuid', required: false, description: 'Target epic UUID (null to remove from epic)' },
+  { name: 'sprint_id', type: 'string', required: false, description: 'Target sprint identifier (null to unschedule)' },
+  { name: 'parent_id', type: 'uuid', required: false, description: 'New parent task UUID (null to make root-level)' },
+  { name: 'sort_order', type: 'integer', required: false, description: 'Position within the target list' },
+];
+
+const moveCurl = `curl -X POST https://api.claudenest.io/api/tasks/550e8400-e29b-41d4-a716-446655440003/move \\
+  -H "Authorization: Bearer YOUR_TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "sprint_id": "sprint-2026-w16",
+    "sort_order": 1
+  }'`;
+
+const moveJs = `await fetch('https://api.claudenest.io/api/tasks/550e8400-e29b-41d4-a716-446655440003/move', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer YOUR_TOKEN',
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({ sprint_id: 'sprint-2026-w16', sort_order: 1 }),
+});`;
+
+const movePhp = `<?php
+Http::withToken($token)
+    ->post('https://api.claudenest.io/api/tasks/550e8400-e29b-41d4-a716-446655440003/move', [
+        'sprint_id' => 'sprint-2026-w16',
+        'sort_order' => 1,
+    ]);`;
+
+const moveResponses = [
+  {
+    status: 200,
+    body: JSON.stringify({
+      success: true,
+      data: {
+        id: '550e8400-e29b-41d4-a716-446655440003',
+        sprint_id: 'sprint-2026-w16',
+        sort_order: 1,
+        updated_at: '2026-04-12T10:05:00Z',
+      },
+      meta: { timestamp: '2026-04-12T10:05:00Z', request_id: 'req_move' },
+    }, null, 2),
+  },
+];
 </script>
 
 <style scoped>

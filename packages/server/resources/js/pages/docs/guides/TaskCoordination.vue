@@ -193,6 +193,121 @@
       </p>
     </section>
 
+    <section id="epics-sprints">
+      <h2>Epics, Sprints &amp; Subtasks</h2>
+      <p>
+        For larger projects, ClaudeNest extends the basic task model with epics, sprints,
+        and subtasks. These concepts let you structure work at multiple granularity levels
+        and track delivery pace across iterations.
+      </p>
+
+      <h3>Epics</h3>
+      <p>
+        An <strong>epic</strong> is a named group of related tasks that together deliver
+        a single feature or capability. Attach a task to an epic by setting its
+        <code>epic_id</code> field at creation time or via PATCH:
+      </p>
+
+      <CodeBlock
+        :code="epicExample"
+        language="json"
+        filename="Task with epic"
+      />
+
+      <p>
+        Retrieve all tasks that belong to a given epic using the
+        <code>?epic_id=</code> filter on the task list endpoint. The Projects API
+        exposes a dedicated <code>GET /projects/{id}/epics</code> endpoint that returns
+        all epics with their aggregate progress (total tasks, completed tasks, percent
+        done).
+      </p>
+
+      <h3>Sprints</h3>
+      <p>
+        A <strong>sprint</strong> is a time-boxed iteration, typically one to two weeks,
+        that contains a selected set of tasks. Sprints help the team commit to a
+        deliverable scope and measure velocity via a burndown chart. Assign a task to
+        the current sprint with <code>sprint_id</code>:
+      </p>
+
+      <CodeBlock
+        :code="sprintExample"
+        language="json"
+        filename="Task with sprint"
+      />
+
+      <p>
+        Use <code>GET /projects/{id}/sprints</code> to list all sprints. Each sprint
+        object includes <code>starts_at</code>, <code>ends_at</code>, total story
+        points, and completed story points so you can render a burndown without
+        additional queries.
+      </p>
+
+      <h3>Subtasks</h3>
+      <p>
+        Any task can be broken down into subtasks by setting <code>parent_id</code> to
+        the parent task's UUID. Subtasks appear nested under their parent and follow the
+        same lifecycle (pending → in_progress → done). A parent task is considered
+        finished only when all its subtasks are done.
+      </p>
+
+      <CodeBlock
+        :code="subtaskExample"
+        language="json"
+        filename="Subtask"
+      />
+
+      <p>
+        Fetch all subtasks of a task with <code>GET /tasks/{id}/subtasks</code>.
+        To show only root-level tasks (no subtasks) in a list, pass
+        <code>?root_only=true</code>. The response includes convenience fields:
+        <code>has_subtasks</code>, <code>subtasks_count</code>, and
+        <code>completed_subtasks_count</code>.
+      </p>
+
+      <h3>Story Points</h3>
+      <p>
+        Attach a <code>story_points</code> integer to any task to express its relative
+        complexity. Story points are used by sprint burndown calculations and by the
+        Planning Agent to suggest realistic sprint scopes. Common scales are Fibonacci
+        (1, 2, 3, 5, 8, 13) or T-shirt sizes mapped to numbers (S=1, M=2, L=3, XL=5).
+      </p>
+
+      <CodeBlock
+        :code="storyPointsExample"
+        language="json"
+        filename="Task with story points"
+      />
+
+      <h3>Planning Agent &amp; Runner Agent</h3>
+      <p>
+        ClaudeNest ships two built-in automation agents that operate at the project level:
+      </p>
+      <ul>
+        <li>
+          <strong>Planning Agent</strong> &mdash; Analyses the current backlog and suggests
+          how to split work into epics, assign story points, and populate the next sprint.
+          Access its context snapshot at
+          <code>GET /projects/{id}/planning/context</code> and trigger a planning run with
+          <code>POST /projects/{id}/planning/execute</code>.
+        </li>
+        <li>
+          <strong>Runner Agent</strong> &mdash; Monitors sprint progress in real time and
+          auto-updates task statuses based on Claude instance activity. Check its health
+          at <code>GET /projects/{id}/runner/health</code>, force a status sweep with
+          <code>POST /projects/{id}/runner/auto-update</code>, and view live progress at
+          <code>GET /projects/{id}/runner/progress</code>.
+        </li>
+      </ul>
+
+      <p class="tip">
+        <span class="tip-icon">&#128161;</span>
+        Let the Planning Agent propose the sprint scope, then have each Claude instance
+        call <code>next-available</code> to claim tasks automatically. The Runner Agent
+        keeps the dashboard in sync without any manual status updates.
+      </p>
+    </section>
+
     <section id="next-steps">
       <h2>Next Steps</h2>
       <div class="next-steps">
@@ -508,6 +623,47 @@ const dependencyErrorResponse = ref(`{
     "timestamp": "2026-02-17T12:00:00Z",
     "request_id": "req_dep_err"
   }
+}`);
+
+// --- Epics, Sprints & Subtasks ---
+
+const epicExample = ref(`{
+  "title": "Implement checkout flow",
+  "description": "End-to-end checkout: cart, payment, confirmation",
+  "priority": "high",
+  "epic_id": "epic-550e8400-payment",
+  "story_points": 8
+}`);
+
+const sprintExample = ref(`{
+  "title": "Add shipping address validation",
+  "priority": "medium",
+  "epic_id": "epic-550e8400-payment",
+  "sprint_id": "sprint-2026-w15",
+  "story_points": 3,
+  "due_date": "2026-04-18T18:00:00Z"
+}`);
+
+const subtaskExample = ref(`{
+  "title": "Write unit tests for address validator",
+  "priority": "medium",
+  "parent_id": "550e8400-e29b-41d4-a716-446655440010",
+  "story_points": 1
+}
+
+// Parent task response includes:
+// "has_subtasks": true,
+// "subtasks_count": 3,
+// "completed_subtasks_count": 1`);
+
+const storyPointsExample = ref(`{
+  "title": "Integrate Stripe webhooks",
+  "priority": "high",
+  "epic_id": "epic-550e8400-payment",
+  "sprint_id": "sprint-2026-w15",
+  "story_points": 5,
+  "labels": ["backend", "stripe", "webhooks"],
+  "sort_order": 2
 }`);
 </script>
 

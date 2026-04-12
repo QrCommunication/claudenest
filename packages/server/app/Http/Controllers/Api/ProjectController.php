@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ProjectResource;
 use App\Models\Machine;
 use App\Models\SharedProject;
 use App\Services\AgentGateway;
@@ -54,12 +55,11 @@ class ProjectController extends Controller
                 'tasks as pending_tasks_count' => fn ($q) => $q->where('status', 'pending'),
             ])
             ->orderBy('updated_at', 'desc')
-            ->get()
-            ->map(fn ($project) => $this->formatProject($project));
+            ->get();
 
         return response()->json([
             'success' => true,
-            'data' => $projects,
+            'data' => ProjectResource::collection($projects),
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
@@ -133,7 +133,7 @@ class ProjectController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $this->formatProject($project),
+            'data' => new ProjectResource($project),
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
@@ -174,7 +174,7 @@ class ProjectController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $this->formatProject($project, true),
+            'data' => ProjectResource::detailed($project),
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
@@ -241,7 +241,7 @@ class ProjectController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $this->formatProject($project, true),
+            'data' => ProjectResource::detailed($project),
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
@@ -724,38 +724,6 @@ class ProjectController extends Controller
     private function getUserProject(Request $request, string $id): ?SharedProject
     {
         return SharedProject::forUser($request->user()->id)->find($id);
-    }
-
-    /**
-     * Helper: Format project data.
-     */
-    private function formatProject(SharedProject $project, bool $detailed = false): array
-    {
-        $data = [
-            'id' => $project->id,
-            'machine_id' => $project->machine_id,
-            'name' => $project->name,
-            'project_path' => $project->project_path,
-            'summary' => $project->summary,
-            'token_usage_percent' => $project->token_usage_percent,
-            'is_token_limit_reached' => $project->is_token_limit_reached,
-            'active_instances_count' => $project->active_instances_count ?? 0,
-            'pending_tasks_count' => $project->pending_tasks_count ?? 0,
-            'settings' => $project->settings,
-            'created_at' => $project->created_at,
-            'updated_at' => $project->updated_at,
-        ];
-
-        if ($detailed) {
-            $data['architecture'] = $project->architecture;
-            $data['conventions'] = $project->conventions;
-            $data['current_focus'] = $project->current_focus;
-            $data['recent_changes'] = $project->recent_changes;
-            $data['total_tokens'] = $project->total_tokens;
-            $data['max_tokens'] = $project->max_tokens;
-        }
-
-        return $data;
     }
 
 }

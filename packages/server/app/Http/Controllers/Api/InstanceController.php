@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\InstanceResource;
 use App\Models\ClaudeInstance;
 use App\Models\FileLock;
 use App\Models\SharedProject;
@@ -44,7 +45,7 @@ class InstanceController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $this->formatInstance($instance),
+            'data' => new InstanceResource($instance),
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
@@ -85,7 +86,7 @@ class InstanceController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => array_merge($this->formatInstance($instance->fresh()), [
+            'data' => array_merge((new InstanceResource($instance->fresh()))->resolve(), [
                 'locks_extended' => $locksExtended,
             ]),
             'meta' => [
@@ -121,7 +122,7 @@ class InstanceController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $this->formatInstance($instance),
+            'data' => new InstanceResource($instance),
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
             ],
@@ -181,22 +182,4 @@ class InstanceController extends Controller
             ->firstOrFail();
     }
 
-    private function formatInstance(ClaudeInstance $instance): array
-    {
-        return [
-            'id' => $instance->id,
-            'project_id' => $instance->project_id,
-            'machine_id' => $instance->machine_id,
-            'session_id' => $instance->session_id,
-            'status' => $instance->status,
-            'current_task_id' => $instance->current_task_id,
-            'context_tokens' => $instance->context_tokens,
-            'max_context_tokens' => $instance->max_context_tokens,
-            'context_usage_percent' => $instance->context_usage_percent,
-            'tasks_completed' => $instance->tasks_completed,
-            'is_connected' => $instance->is_connected,
-            'connected_at' => $instance->connected_at?->toIso8601String(),
-            'last_activity_at' => $instance->last_activity_at?->toIso8601String(),
-        ];
-    }
 }

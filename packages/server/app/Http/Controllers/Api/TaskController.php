@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\TaskResource;
 use App\Models\SharedProject;
 use App\Models\SharedTask;
 use Illuminate\Http\JsonResponse;
@@ -78,7 +79,7 @@ class TaskController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $tasks->map(fn ($task) => $this->formatTask($task)),
+            'data' => TaskResource::collection($tasks),
             'meta' => [
                 'pagination' => [
                     'current_page' => $tasks->currentPage(),
@@ -151,7 +152,7 @@ class TaskController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $this->formatTask($task),
+            'data' => new TaskResource($task),
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
@@ -179,7 +180,7 @@ class TaskController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $this->formatTask($task, true),
+            'data' => new TaskResource($task),
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
@@ -233,7 +234,7 @@ class TaskController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $this->formatTask($task),
+            'data' => new TaskResource($task),
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
@@ -322,7 +323,7 @@ class TaskController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $this->formatTask($task),
+            'data' => new TaskResource($task),
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
@@ -367,7 +368,7 @@ class TaskController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $this->formatTask($task),
+            'data' => new TaskResource($task),
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
@@ -432,7 +433,7 @@ class TaskController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $this->formatTask($task),
+            'data' => new TaskResource($task),
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
@@ -463,7 +464,7 @@ class TaskController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $this->formatTask($task),
+            'data' => new TaskResource($task),
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
@@ -504,7 +505,7 @@ class TaskController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $this->formatTask($task),
+            'data' => new TaskResource($task),
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
@@ -524,7 +525,7 @@ class TaskController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $subtasks->map(fn ($t) => $this->formatTask($t)),
+            'data' => TaskResource::collection($subtasks),
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
@@ -551,59 +552,12 @@ class TaskController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $this->formatTask($task),
+            'data' => new TaskResource($task),
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
             ],
         ]);
-    }
-
-    /**
-     * Helper: Format task data.
-     */
-    private function formatTask(SharedTask $task, bool $detailed = false): array
-    {
-        $data = [
-            'id' => $task->id,
-            'project_id' => $task->project_id,
-            'title' => $task->title,
-            'description' => $task->description,
-            'priority' => $task->priority,
-            'status' => $task->status,
-            'is_claimed' => $task->is_claimed,
-            'is_completed' => $task->is_completed,
-            'is_blocked' => $task->is_blocked,
-            'assigned_to' => $task->assigned_to,
-            'claimed_at' => $task->claimed_at,
-            'completed_at' => $task->completed_at,
-            'created_at' => $task->created_at,
-            'updated_at' => $task->updated_at,
-            'wave' => $task->wave,
-            'epic_id' => $task->epic_id,
-            'sprint_id' => $task->sprint_id,
-            'parent_id' => $task->parent_id,
-            'story_points' => $task->story_points,
-            'due_date' => $task->due_date?->format('Y-m-d'),
-            'sort_order' => $task->sort_order,
-            'labels' => $task->labels ?? [],
-            'has_subtasks' => $task->has_subtasks,
-            'subtasks_count' => $task->subtasks_count,
-            'completed_subtasks_count' => $task->completed_subtasks_count,
-        ];
-
-        if ($detailed) {
-            $data['files'] = $task->files;
-            $data['estimated_tokens'] = $task->estimated_tokens;
-            $data['dependencies'] = $task->dependencies;
-            $data['blocked_by'] = $task->blocked_by;
-            $data['completion_summary'] = $task->completion_summary;
-            $data['files_modified'] = $task->files_modified;
-            $data['created_by'] = $task->created_by;
-            $data['duration'] = $task->duration;
-        }
-
-        return $data;
     }
 
 }

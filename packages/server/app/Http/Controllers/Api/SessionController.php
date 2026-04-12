@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\SessionResource;
 use App\Models\Machine;
 use App\Models\Session;
 use App\Services\AgentGateway;
@@ -63,7 +64,7 @@ class SessionController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $sessions->map(fn ($session) => $this->formatSession($session)),
+            'data' => SessionResource::collection($sessions),
             'meta' => [
                 'pagination' => [
                     'current_page' => $sessions->currentPage(),
@@ -162,7 +163,7 @@ class SessionController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $this->formatSession($session),
+            'data' => new SessionResource($session),
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
@@ -203,7 +204,7 @@ class SessionController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $this->formatSession($session, true),
+            'data' => SessionResource::withLogs($session),
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
@@ -539,50 +540,6 @@ class SessionController extends Controller
                 'request_id' => $request->header('X-Request-ID', uniqid()),
             ],
         ]);
-    }
-
-    /**
-     * Helper: Format session data.
-     */
-    private function formatSession(Session $session, bool $includeLogs = false): array
-    {
-        $data = [
-            'id' => $session->id,
-            'machine_id' => $session->machine_id,
-            'mode' => $session->mode,
-            'project_path' => $session->project_path,
-            'initial_prompt' => $session->initial_prompt,
-            'status' => $session->status,
-            'is_running' => $session->is_running,
-            'is_completed' => $session->is_completed,
-            'pid' => $session->pid,
-            'exit_code' => $session->exit_code,
-            'pty_size' => $session->pty_size,
-            'total_tokens' => $session->total_tokens,
-            'total_cost' => $session->total_cost,
-            'duration' => $session->duration,
-            'formatted_duration' => $session->formatted_duration,
-            'started_at' => $session->started_at,
-            'completed_at' => $session->completed_at,
-            'created_at' => $session->created_at,
-            'updated_at' => $session->updated_at,
-        ];
-
-        if ($includeLogs) {
-            $data['recent_logs'] = $session->logs()
-                ->orderBy('created_at', 'desc')
-                ->limit(100)
-                ->get()
-                ->map(fn ($log) => [
-                    'type' => $log->type,
-                    'data' => $log->data,
-                    'created_at' => $log->created_at,
-                ])
-                ->reverse()
-                ->values();
-        }
-
-        return $data;
     }
 
 }

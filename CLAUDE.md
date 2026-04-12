@@ -2,8 +2,8 @@
 
 > **FOR AI AGENTS/LLMs**: This document is the single source of truth for understanding and working with the ClaudeNest codebase.
 > 
-> **Version**: 1.1.0
-> **Last Updated**: 2026-02-16
+> **Version**: 1.2.0
+> **Last Updated**: 2026-04-12
 
 ---
 
@@ -116,7 +116,11 @@ claudenest/
 │   │   │   │   ├── TaskClaimed.php
 │   │   │   │   ├── TaskCompleted.php
 │   │   │   │   ├── TaskCreated.php
-│   │   │   │   └── TaskReleased.php
+│   │   │   │   ├── TaskReleased.php
+│   │   │   │   ├── EpicUpdated.php
+│   │   │   │   ├── SprintUpdated.php
+│   │   │   │   ├── SprintStarted.php
+│   │   │   │   └── SprintCompleted.php
 │   │   │   ├── 📁 Http/
 │   │   │   │   ├── 📁 Controllers/
 │   │   │   │   │   ├── 📁 Api/             # API controllers
@@ -130,14 +134,24 @@ claudenest/
 │   │   │   │   │   │   ├── SessionController.php
 │   │   │   │   │   │   ├── CredentialController.php
 │   │   │   │   │   │   ├── SkillsController.php
-│   │   │   │   │   │   └── TaskController.php
+│   │   │   │   │   │   ├── TaskController.php
+│   │   │   │   │   │   ├── EpicController.php
+│   │   │   │   │   │   ├── SprintController.php
+│   │   │   │   │   │   ├── PlanningController.php
+│   │   │   │   │   │   └── RunnerController.php
 │   │   │   │   │   └── 📁 Web/             # Web controllers
 │   │   │   │   ├── 📁 Middleware/
 │   │   │   │   ├── 📁 Requests/            # Form requests
 │   │   │   │   │   ├── StoreCredentialRequest.php
 │   │   │   │   │   └── UpdateCredentialRequest.php
 │   │   │   │   └── 📁 Resources/           # API resources
-│   │   │   │       └── CredentialResource.php
+│   │   │   │       ├── CredentialResource.php
+│   │   │   │       ├── EpicResource.php
+│   │   │   │       ├── SprintResource.php
+│   │   │   │       ├── TaskResource.php
+│   │   │   │       ├── SessionResource.php
+│   │   │   │       ├── ProjectResource.php
+│   │   │   │       └── InstanceResource.php
 │   │   │   ├── 📁 Models/                  # Eloquent models
 │   │   │   │   ├── ActivityLog.php
 │   │   │   │   ├── ClaudeCredential.php
@@ -154,6 +168,8 @@ claudenest/
 │   │   │   │   ├── SharedProject.php
 │   │   │   │   ├── SharedTask.php
 │   │   │   │   ├── Skill.php
+│   │   │   │   ├── Epic.php
+│   │   │   │   ├── Sprint.php
 │   │   │   │   └── User.php
 │   │   │   ├── 📁 Policies/                # Authorization policies
 │   │   │   ├── 📁 Providers/               # Service providers
@@ -163,7 +179,9 @@ claudenest/
 │   │   │       ├── EmbeddingService.php
 │   │   │       ├── MCPManagerService.php
 │   │   │       ├── SkillDiscoveryService.php
-│   │   │       └── SummarizationService.php
+│   │   │       ├── SummarizationService.php
+│   │   │       ├── PlanningAgentService.php
+│   │   │       └── RunnerAgentService.php
 │   │   ├── 📁 bootstrap/
 │   │   ├── 📁 config/
 │   │   │   └── claudenest.php              # App config
@@ -180,6 +198,11 @@ claudenest/
 │   │   │   │   │   ├── 📁 machines/        # Machine components
 │   │   │   │   │   ├── 📁 mcp/             # MCP components
 │   │   │   │   │   ├── 📁 multiagent/      # Multi-agent components
+│   │   │   │   │   │   ├── ProjectTabs.vue
+│   │   │   │   │   │   ├── EpicBoard.vue
+│   │   │   │   │   │   ├── SprintBoard.vue
+│   │   │   │   │   │   ├── BurndownChart.vue
+│   │   │   │   │   │   └── PlanningChat.vue
 │   │   │   │   │   ├── 📁 projects/        # Project components
 │   │   │   │   │   ├── 📁 sessions/        # Session components
 │   │   │   │   │   ├── 📁 skills/          # Skills components
@@ -187,7 +210,8 @@ claudenest/
 │   │   │   │   ├── 📁 composables/         # Vue composables
 │   │   │   │   │   ├── useTabs.ts          # Multi-tab management
 │   │   │   │   │   ├── useTheme.ts         # Dark/light mode
-│   │   │   │   │   └── useToast.ts         # Toast notifications
+│   │   │   │   │   ├── useToast.ts         # Toast notifications
+│   │   │   │   │   └── useAsyncAction.ts   # Async state wrapper
 │   │   │   │   ├── 📁 layouts/             # Page layouts
 │   │   │   │   │   └── AppLayout.vue       # IDE-style layout
 │   │   │   │   ├── 📁 locales/             # i18n translations
@@ -200,7 +224,9 @@ claudenest/
 │   │   │   │   │   └── Changelog.vue       # Changelog page
 │   │   │   │   ├── 📁 services/            # API services
 │   │   │   │   ├── 📁 stores/              # Pinia stores
-│   │   │   │   │   └── credentials.ts      # Credentials store
+│   │   │   │   │   ├── credentials.ts      # Credentials store
+│   │   │   │   │   ├── epics.ts            # Epics store
+│   │   │   │   │   └── sprints.ts          # Sprints store
 │   │   │   │   ├── 📁 types/               # TypeScript types
 │   │   │   │   └── 📁 utils/               # Utilities
 │   │   │   └── 📁 views/                   # Blade templates
@@ -246,6 +272,8 @@ claudenest/
 │       │   │   ├── 📁 common/
 │       │   │   ├── 📁 machines/
 │       │   │   ├── 📁 multiagent/
+│       │   │   │   ├── EpicCard.tsx
+│       │   │   │   └── SprintCard.tsx
 │       │   │   └── 📁 sessions/
 │       │   ├── 📁 navigation/              # React Navigation
 │       │   ├── 📁 screens/
@@ -402,7 +430,25 @@ $credential = ClaudeCredential::create([
 $rawKey = Crypt::decryptString($credential->api_key);
 ```
 
-### 3.8 Internationalization (i18n)
+### 3.8 Project Management (Epics & Sprints)
+
+Epics and sprints add project planning capabilities on top of the task system:
+
+- **Epics**: Group related tasks into features or themes. Each epic has a color, icon, status (`open`/`in_progress`/`done`), and priority. Tasks link to an epic via `epic_id`.
+- **Sprints**: Time-boxed iterations with a goal, start/end dates, velocity, and capacity. Tasks are assigned to a sprint via `sprint_id`. Sprints expose a burndown endpoint for progress tracking.
+- **Subtasks**: Tasks support a `parent_id` for hierarchical decomposition.
+- **Story Points**: `story_points` on tasks enable velocity tracking across sprints.
+- **Reordering**: Both epics and sprints expose a `sort_order` column managed via dedicated reorder endpoints.
+
+### 3.9 Planning & Runner Agents
+
+Two server-side services orchestrate automated project intelligence:
+
+**PlanningAgentService**: Conversational project planning backed by full SQL context. Accepts natural-language input and executes up to 8 atomic action types (create task, assign epic, schedule sprint, set priority, add dependency, update status, add label, broadcast announcement) all within a single database transaction.
+
+**RunnerAgentService**: Background health monitor. Polls active projects, auto-updates stale task statuses, detects blockers and deadline risks, and surfaces recommendations. Exposed via lightweight REST endpoints so the frontend can display agent health and trigger on-demand scans.
+
+### 3.10 Internationalization (i18n)
 
 Full FR/EN support via `vue-i18n`:
 
@@ -411,7 +457,7 @@ Full FR/EN support via `vue-i18n`:
 - **Usage in scripts**: `const { t } = useI18n(); t('key')`
 - **Parameterized**: `$t('key', { param: value })`
 
-### 3.9 Theme System
+### 3.11 Theme System
 
 Dark/light mode with system-aware detection:
 
@@ -1094,10 +1140,17 @@ erDiagram
 |--------|------|-------------|
 | id | UUID (PK) | Task ID |
 | project_id | UUID (FK) | Parent project |
+| parent_id | UUID (FK, nullable) | Parent task (subtasks) |
+| epic_id | UUID (FK, nullable) | Linked epic |
+| sprint_id | UUID (FK, nullable) | Linked sprint |
 | title | VARCHAR(255) | Task title |
 | description | TEXT | Description |
 | priority | VARCHAR(20) | low/medium/high/critical |
 | status | VARCHAR(20) | pending/in_progress/blocked/review/done |
+| story_points | INTEGER (nullable) | Estimation in story points |
+| due_date | DATE (nullable) | Task deadline |
+| sort_order | INTEGER | Display order |
+| labels | TEXT[] | Free-form labels |
 | assigned_to | VARCHAR(255) | Instance ID |
 | claimed_at | TIMESTAMP | Claim time |
 | dependencies | UUID[] | Task dependencies |
@@ -1108,6 +1161,39 @@ erDiagram
 | completion_summary | TEXT | Completion notes |
 | files_modified | TEXT[] | Modified files |
 | created_by | VARCHAR(255) | Creator instance |
+
+#### epics
+| Column | Type | Description |
+|--------|------|-------------|
+| id | UUID (PK) | Epic ID |
+| project_id | UUID (FK) | Parent project |
+| title | VARCHAR(255) | Epic title |
+| description | TEXT | Description |
+| color | VARCHAR(7) | Hex color (e.g. `#a855f7`) |
+| icon | VARCHAR(50) | Icon identifier |
+| status | VARCHAR(20) | open/in_progress/done |
+| priority | VARCHAR(20) | low/medium/high/critical |
+| sort_order | INTEGER | Display order |
+| started_at | TIMESTAMP (nullable) | Start date |
+| completed_at | TIMESTAMP (nullable) | Completion date |
+| created_at | TIMESTAMP | Creation time |
+| updated_at | TIMESTAMP | Last update |
+
+#### sprints
+| Column | Type | Description |
+|--------|------|-------------|
+| id | UUID (PK) | Sprint ID |
+| project_id | UUID (FK) | Parent project |
+| name | VARCHAR(255) | Sprint name |
+| goal | TEXT | Sprint goal |
+| status | VARCHAR(20) | planning/active/completed/cancelled |
+| start_date | DATE | Sprint start |
+| end_date | DATE | Sprint end |
+| velocity | INTEGER | Actual completed story points |
+| capacity | INTEGER | Planned capacity in story points |
+| sort_order | INTEGER | Display order |
+| created_at | TIMESTAMP | Creation time |
+| updated_at | TIMESTAMP | Last update |
 
 #### file_locks
 | Column | Type | Description |
@@ -1244,6 +1330,30 @@ erDiagram
 | POST | `/api/tasks/{id}/release` | Release task |
 | POST | `/api/tasks/{id}/complete` | Complete task |
 
+### 6.6b Epics
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/projects/{id}/epics` | List epics |
+| POST | `/api/projects/{id}/epics` | Create epic |
+| GET | `/api/epics/{id}` | Get epic |
+| PATCH | `/api/epics/{id}` | Update epic |
+| DELETE | `/api/epics/{id}` | Delete epic |
+| POST | `/api/projects/{id}/epics/reorder` | Reorder epics (sort_order) |
+
+### 6.6c Sprints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/projects/{id}/sprints` | List sprints |
+| POST | `/api/projects/{id}/sprints` | Create sprint |
+| GET | `/api/sprints/{id}` | Get sprint |
+| PATCH | `/api/sprints/{id}` | Update sprint |
+| DELETE | `/api/sprints/{id}` | Delete sprint |
+| POST | `/api/sprints/{id}/start` | Start sprint (status → active) |
+| POST | `/api/sprints/{id}/complete` | Complete sprint (status → completed) |
+| GET | `/api/sprints/{id}/burndown` | Get burndown chart data |
+
 ### 6.7 File Locks
 
 | Method | Endpoint | Description |
@@ -1256,6 +1366,7 @@ erDiagram
 | POST | `/api/projects/{id}/locks/release` | Release lock |
 | POST | `/api/projects/{id}/locks/force-release` | Force unlock |
 | POST | `/api/projects/{id}/locks/release-by-instance` | Release all by instance |
+| POST | `/api/projects/{id}/locks/conflicts` | Detect lock conflicts between instances |
 
 ### 6.8 Skills
 
@@ -1310,6 +1421,21 @@ erDiagram
 | POST | `/api/credentials/{id}/validate` | Validate API key |
 | POST | `/api/credentials/{id}/refresh` | Refresh OAuth token |
 | POST | `/api/credentials/{id}/capture` | Capture OAuth flow |
+
+### 6.12 Planning Agent
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/projects/{id}/planning/context` | Get full planning context (tasks, epics, sprints, stats) |
+| POST | `/api/projects/{id}/planning/execute` | Execute a planning action (natural-language + action type, atomic transaction) |
+
+### 6.13 Runner Agent
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/projects/{id}/runner/health` | Get runner agent health and last scan timestamp |
+| POST | `/api/projects/{id}/runner/auto-update` | Trigger on-demand status update scan |
+| GET | `/api/projects/{id}/runner/progress` | Get current sprint progress and recommendations |
 
 ---
 

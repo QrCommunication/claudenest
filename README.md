@@ -50,6 +50,18 @@ Discover, register, and toggle Claude Code skills per machine. Manage MCP (Model
 ### Authentication
 Magic link login, plus OAuth via Google and GitHub. Token-based API access for agents and integrations.
 
+### Project Management
+Built-in Epics, Sprints, and Kanban boards with burndown charts. Organize tasks into features, plan time-boxed sprints, and track velocity across your multi-agent projects.
+
+### Planning Agent
+AI-powered conversational project planning. Describe what you need, and the Planning Agent decomposes it into structured tasks, assigns them to the right agents, and executes changes in atomic database transactions.
+
+### Runner Agent
+Automated project health monitoring and sprint tracking. The Runner Agent continuously checks task statuses, flags blockers, updates sprint progress, and surfaces insights so nothing falls through the cracks.
+
+### Smart File Locking
+Atomic lock acquisition with task-lock integration and heartbeat auto-extend. Locks are tied to active tasks and automatically renewed while work is in progress, then released on task completion.
+
 ### Mobile Apps
 Native iOS and Android apps built with React Native. Monitor machines, manage sessions, and coordinate agents on the go.
 
@@ -88,6 +100,14 @@ flowchart TB
     RAG --> PG
     RAG --> Ollama
 ```
+
+### Project Management System
+
+Epics group related tasks into named features with progress tracking visible across the board. Sprints add time-based planning: each sprint has a start and end date, a velocity target, and a live burndown chart generated from task completion events.
+
+The Planning Agent receives the full project context (summary, architecture, active tasks, current sprint) before each conversation turn. Every action it proposes — creating tasks, moving them between epics, starting a sprint — executes inside an atomic database transaction, so the project state is always consistent even when multiple agents are running simultaneously.
+
+The Runner Agent runs on a schedule and does not require user interaction. It scans open tasks for stale statuses, detects blocked items whose blockers have since resolved, recalculates sprint burndown, and posts structured health summaries back to the project activity log.
 
 ---
 
@@ -273,6 +293,42 @@ The most commonly used endpoints are listed below. For the full API reference, s
 | `POST` | `/api/projects/{id}/locks` | Lock a file |
 | `POST` | `/api/projects/{id}/locks/release` | Release file lock |
 
+### Epics
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/projects/{id}/epics` | List epics |
+| `POST` | `/api/projects/{id}/epics` | Create epic |
+| `PATCH` | `/api/epics/{id}` | Update epic |
+| `DELETE` | `/api/epics/{id}` | Delete epic |
+| `POST` | `/api/projects/{id}/epics/reorder` | Reorder epics |
+
+### Sprints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/projects/{id}/sprints` | List sprints |
+| `POST` | `/api/projects/{id}/sprints` | Create sprint |
+| `PATCH` | `/api/sprints/{id}` | Update sprint |
+| `POST` | `/api/sprints/{id}/start` | Start sprint |
+| `POST` | `/api/sprints/{id}/complete` | Complete sprint |
+| `GET` | `/api/sprints/{id}/burndown` | Burndown chart data |
+
+### Planning Agent
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/projects/{id}/planning/context` | Full project context for planning |
+| `POST` | `/api/projects/{id}/planning/execute` | Execute planning action (atomic) |
+
+### Runner Agent
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/projects/{id}/runner/health` | Project health report |
+| `POST` | `/api/projects/{id}/runner/auto-update` | Trigger status auto-update |
+| `GET` | `/api/projects/{id}/runner/progress` | Sprint progress and velocity |
+
 ---
 
 ## Configuration
@@ -404,4 +460,4 @@ Contributions are welcome. Please read [docs/CONTRIBUTING.md](docs/CONTRIBUTING.
 
 This project is licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE).
 
-Copyright 2025 Rony Licha / QR Communication.
+Copyright 2026 Rony Licha / QR Communication.
