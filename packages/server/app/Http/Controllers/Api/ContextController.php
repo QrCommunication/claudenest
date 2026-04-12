@@ -725,7 +725,4 @@ class ContextController extends Controller
         return SharedProject::forUser($request->user()->id)->find($id);
     }
 
-    /**
-     * Helper: Error response.
-     */
 }
