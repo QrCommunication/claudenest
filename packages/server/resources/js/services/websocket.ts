@@ -149,7 +149,6 @@ class WebSocketManager {
 
     this.terminalWs.onopen = () => {
       this.terminalReconnectAttempts = 0;
-      console.debug('[Terminal WS] Connected');
     };
 
     this.terminalWs.onmessage = (event) => {

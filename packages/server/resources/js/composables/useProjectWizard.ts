@@ -1,7 +1,9 @@
 import { ref, computed, reactive } from 'vue';
 import { useRouter } from 'vue-router';
+import { api } from '@/composables/useApi';
 import { useProjectsStore } from '@/stores/projects';
 import { useOrchestratorStore } from '@/stores/orchestrator';
+import type { ApiResponse } from '@/types';
 import type { TaskPriority } from '@/types/multiagent';
 import type { ScanResult, GeneratedContext } from './useProjectScan';
 import type { MasterPlan } from './useDecomposition';
@@ -46,6 +48,107 @@ export interface WizardState {
 
 const TOTAL_STEPS = 5;
 
+// ── Step validation helpers ───────────────────────────────────────────────────
+
+function isStep1Valid(state: WizardState): boolean {
+  return !!state.machineId;
+}
+
+function isStep2Valid(state: WizardState): boolean {
+  return !!state.path && !!state.scanResult;
+}
+
+function isStep3Valid(state: WizardState): boolean {
+  if (state.wizardMode === 'prd') return !!state.masterPlan;
+  return !!state.context.summary;
+}
+
+function isStep4Valid(state: WizardState): boolean {
+  if (state.wizardMode === 'prd') {
+    return !!state.masterPlan && state.masterPlan.waves.length > 0;
+  }
+  return state.tasks.length > 0;
+}
+
+function isStepValid(state: WizardState): boolean {
+  switch (state.currentStep) {
+    case 1: return isStep1Valid(state);
+    case 2: return isStep2Valid(state);
+    case 3: return isStep3Valid(state);
+    case 4: return isStep4Valid(state);
+    case 5: return true;
+    default: return false;
+  }
+}
+
+// ── API helpers ───────────────────────────────────────────────────────────────
+
+async function apiCreateTask(projectId: string, task: WizardTask): Promise<void> {
+  await api.post<ApiResponse<unknown>>(
+    `/projects/${projectId}/tasks`,
+    {
+      title: task.title,
+      description: task.description,
+      priority: task.priority,
+      files: task.files,
+    },
+  );
+}
+
+async function apiUpdateProjectWithPlan(
+  projectId: string,
+  state: WizardState,
+): Promise<void> {
+  await api.patch<ApiResponse<unknown>>(
+    `/projects/${projectId}`,
+    {
+      name: state.projectName,
+      summary: state.masterPlan!.prd_summary,
+      prd: state.prd,
+      master_plan: state.masterPlan,
+    },
+  );
+  await api.post<ApiResponse<{ created: number }>>(
+    `/projects/${projectId}/master-plan/apply`,
+  );
+}
+
+async function apiCreateProjectWithTasks(
+  machineId: string,
+  state: WizardState,
+  projectsStore: ReturnType<typeof useProjectsStore>,
+): Promise<string> {
+  const project = await projectsStore.createProject(machineId, {
+    name: state.projectName,
+    project_path: state.path,
+    summary: state.context.summary,
+    architecture: state.context.architecture,
+    conventions: state.context.conventions,
+  });
+
+  for (const task of state.tasks) {
+    await apiCreateTask(project.id, task);
+  }
+
+  return project.id;
+}
+
+async function apiMaybeStartOrchestrator(
+  projectId: string,
+  config: OrchestratorConfig,
+  orchestratorStore: ReturnType<typeof useOrchestratorStore>,
+): Promise<void> {
+  if (!config.autoStart) return;
+
+  await orchestratorStore.startOrchestrator(projectId, {
+    min_workers: config.minWorkers,
+    max_workers: config.maxWorkers,
+    poll_interval_ms: config.pollIntervalMs,
+  });
+}
+
+// ── Composable ────────────────────────────────────────────────────────────────
+
 export function useProjectWizard() {
   const router = useRouter();
   const projectsStore = useProjectsStore();
@@ -81,28 +184,12 @@ export function useProjectWizard() {
   const isSubmitting = ref(false);
   const submitError = ref<string | null>(null);
 
-  const canGoNext = computed(() => {
-    switch (state.currentStep) {
-      case 1: return !!state.machineId;
-      case 2: return !!state.path && !!state.scanResult;
-      case 3:
-        if (state.wizardMode === 'prd') {
-          return !!state.masterPlan;
-        }
-        return !!state.context.summary;
-      case 4:
-        if (state.wizardMode === 'prd') {
-          return !!state.masterPlan && state.masterPlan.waves.length > 0;
-        }
-        return state.tasks.length > 0;
-      case 5: return true;
-      default: return false;
-    }
-  });
-
+  const canGoNext = computed(() => isStepValid(state));
   const canGoPrev = computed(() => state.currentStep > 1);
   const isLastStep = computed(() => state.currentStep === TOTAL_STEPS);
   const progress = computed(() => (state.currentStep / TOTAL_STEPS) * 100);
+
+  // ── Navigation ────────────────────────────────────────────────────────────
 
   function nextStep(): void {
     if (state.currentStep < TOTAL_STEPS && canGoNext.value) {
@@ -122,6 +209,8 @@ export function useProjectWizard() {
     }
   }
 
+  // ── State mutators ────────────────────────────────────────────────────────
+
   function setScanResult(result: ScanResult): void {
     state.scanResult = result;
     state.projectName = result.project_name;
@@ -140,12 +229,7 @@ export function useProjectWizard() {
   }
 
   function addTask(): void {
-    state.tasks.push({
-      title: '',
-      description: '',
-      priority: 'medium',
-      files: [],
-    });
+    state.tasks.push({ title: '', description: '', priority: 'medium', files: [] });
   }
 
   function removeTask(index: number): void {
@@ -168,6 +252,8 @@ export function useProjectWizard() {
     state.tasks[newIndex] = temp;
   }
 
+  // ── Submit ────────────────────────────────────────────────────────────────
+
   async function submit(): Promise<void> {
     if (!state.machineId) return;
 
@@ -175,53 +261,8 @@ export function useProjectWizard() {
     submitError.value = null;
 
     try {
-      const isPrd = state.wizardMode === 'prd' && state.masterPlan;
-      let projectId: string;
-
-      if (isPrd && state._projectId) {
-        // Project already created during decomposition — update it
-        projectId = state._projectId;
-        await api.patch<ApiResponse<unknown>>(
-          `/projects/${projectId}`,
-          {
-            name: state.projectName,
-            summary: state.masterPlan!.prd_summary,
-            prd: state.prd,
-            master_plan: state.masterPlan,
-          },
-        );
-
-        // Apply master plan — creates tasks from waves server-side
-        await api.post<ApiResponse<{ created: number }>>(
-          `/projects/${projectId}/master-plan/apply`,
-        );
-      } else {
-        // Create project fresh (manual mode or no prior project)
-        const project = await projectsStore.createProject(state.machineId, {
-          name: state.projectName,
-          project_path: state.path,
-          summary: state.context.summary,
-          architecture: state.context.architecture,
-          conventions: state.context.conventions,
-        });
-        projectId = project.id;
-
-        // Create tasks manually
-        for (const task of state.tasks) {
-          await api_createTask(projectId, task);
-        }
-      }
-
-      // Start orchestrator if configured
-      if (state.orchestratorConfig.autoStart) {
-        await orchestratorStore.startOrchestrator(projectId, {
-          min_workers: state.orchestratorConfig.minWorkers,
-          max_workers: state.orchestratorConfig.maxWorkers,
-          poll_interval_ms: state.orchestratorConfig.pollIntervalMs,
-        });
-      }
-
-      // Navigate to project
+      const projectId = await resolveProjectId(state, projectsStore);
+      await apiMaybeStartOrchestrator(projectId, state.orchestratorConfig, orchestratorStore);
       router.push({ name: 'projects.show', params: { id: projectId } });
     } catch (err: unknown) {
       submitError.value = err instanceof Error ? err.message : 'Failed to create project';
@@ -254,21 +295,19 @@ export function useProjectWizard() {
   };
 }
 
-// Helper: create task via API
-import { api } from '@/composables/useApi';
-import type { ApiResponse } from '@/types';
+// ── Submit helper (project resolution) ───────────────────────────────────────
 
-async function api_createTask(
-  projectId: string,
-  task: WizardTask,
-): Promise<void> {
-  await api.post<ApiResponse<unknown>>(
-    `/projects/${projectId}/tasks`,
-    {
-      title: task.title,
-      description: task.description,
-      priority: task.priority,
-      files: task.files,
-    },
-  );
+async function resolveProjectId(
+  state: WizardState,
+  projectsStore: ReturnType<typeof useProjectsStore>,
+): Promise<string> {
+  const isPrdWithExistingProject =
+    state.wizardMode === 'prd' && state.masterPlan && state._projectId;
+
+  if (isPrdWithExistingProject) {
+    await apiUpdateProjectWithPlan(state._projectId!, state);
+    return state._projectId!;
+  }
+
+  return apiCreateProjectWithTasks(state.machineId!, state, projectsStore);
 }

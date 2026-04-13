@@ -18,22 +18,72 @@ const STORAGE_KEY = 'claudenest-tabs';
 const tabs = ref<Tab[]>([]);
 const activeTabId = ref<string | null>(null);
 
+// ── Persistence helpers ───────────────────────────────────────────────────────
+
+function persistTabs(): void {
+  sessionStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({ tabs: tabs.value, activeTabId: activeTabId.value }),
+  );
+}
+
+function restoreTabs(): void {
+  try {
+    const stored = sessionStorage.getItem(STORAGE_KEY);
+    if (!stored) return;
+    const data = JSON.parse(stored);
+    tabs.value = data.tabs ?? [];
+    activeTabId.value = data.activeTabId ?? null;
+  } catch {
+    tabs.value = [];
+    activeTabId.value = null;
+  }
+}
+
+// ── ID generator ──────────────────────────────────────────────────────────────
+
+function generateTabId(): string {
+  return `tab-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+// ── Composable ────────────────────────────────────────────────────────────────
+
 export function useTabs() {
   const router = useRouter();
   const route = useRoute();
 
-  const openTab = (tab: Omit<Tab, 'id'> | Tab) => {
-    // Check if tab already exists
-    const existingTab = tabs.value.find((t) => t.path === tab.path);
+  function setActiveTab(tabId: string): void {
+    const tab = tabs.value.find((t) => t.id === tabId);
+    if (!tab) return;
 
+    activeTabId.value = tabId;
+
+    if (route.path !== tab.path) {
+      router.push(tab.path);
+    }
+
+    persistTabs();
+  }
+
+  function navigateToFallback(): void {
+    if (tabs.value.length > 0) {
+      setActiveTab(tabs.value[0].id);
+      router.push(tabs.value[0].path);
+    } else {
+      activeTabId.value = null;
+      router.push('/dashboard');
+    }
+  }
+
+  function openTab(tab: Omit<Tab, 'id'> | Tab): Tab {
+    const existingTab = tabs.value.find((t) => t.path === tab.path);
     if (existingTab) {
       setActiveTab(existingTab.id);
       return existingTab;
     }
 
-    // Create new tab
     const newTab: Tab = {
-      id: 'id' in tab ? tab.id : `tab-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+      id: 'id' in tab ? tab.id : generateTabId(),
       type: tab.type,
       label: tab.label,
       icon: tab.icon,
@@ -44,125 +94,78 @@ export function useTabs() {
 
     tabs.value.push(newTab);
     setActiveTab(newTab.id);
-    saveTabs();
+    persistTabs();
 
     return newTab;
-  };
+  }
 
-  const closeTab = (tabId: string) => {
+  function closeTab(tabId: string): void {
     const index = tabs.value.findIndex((t) => t.id === tabId);
-
     if (index === -1) return;
 
     const wasActive = activeTabId.value === tabId;
     tabs.value.splice(index, 1);
 
-    // If closing active tab, switch to another tab
-    if (wasActive && tabs.value.length > 0) {
-      // Try to activate the tab to the right, or the one to the left
+    if (!wasActive) {
+      persistTabs();
+      return;
+    }
+
+    if (tabs.value.length === 0) {
+      activeTabId.value = null;
+      router.push('/dashboard');
+    } else {
       const newIndex = Math.min(index, tabs.value.length - 1);
       setActiveTab(tabs.value[newIndex].id);
       router.push(tabs.value[newIndex].path);
-    } else if (tabs.value.length === 0) {
-      activeTabId.value = null;
-      router.push('/dashboard');
     }
 
-    saveTabs();
-  };
+    persistTabs();
+  }
 
-  const setActiveTab = (tabId: string) => {
-    const tab = tabs.value.find((t) => t.id === tabId);
-
-    if (!tab) return;
-
-    activeTabId.value = tabId;
-
-    // Navigate to tab path if not already there
-    if (route.path !== tab.path) {
-      router.push(tab.path);
-    }
-
-    saveTabs();
-  };
-
-  const closeOtherTabs = (tabId: string) => {
+  function closeOtherTabs(tabId: string): void {
     tabs.value = tabs.value.filter((t) => t.id === tabId || !t.closable);
     setActiveTab(tabId);
-    saveTabs();
-  };
+    persistTabs();
+  }
 
-  const closeAllTabs = () => {
+  function closeAllTabs(): void {
     tabs.value = tabs.value.filter((t) => !t.closable);
+    navigateToFallback();
+    persistTabs();
+  }
 
-    if (tabs.value.length > 0) {
-      setActiveTab(tabs.value[0].id);
-      router.push(tabs.value[0].path);
-    } else {
-      activeTabId.value = null;
-      router.push('/dashboard');
-    }
-
-    saveTabs();
-  };
-
-  const closeTabsToRight = (tabId: string) => {
+  function closeTabsToRight(tabId: string): void {
     const index = tabs.value.findIndex((t) => t.id === tabId);
-
     if (index === -1) return;
 
     tabs.value = tabs.value.slice(0, index + 1);
 
-    if (activeTabId.value && !tabs.value.find((t) => t.id === activeTabId.value)) {
+    const activeStillExists = tabs.value.some((t) => t.id === activeTabId.value);
+    if (!activeStillExists) {
       setActiveTab(tabId);
     }
 
-    saveTabs();
-  };
+    persistTabs();
+  }
 
-  const saveTabs = () => {
-    const data = {
-      tabs: tabs.value,
-      activeTabId: activeTabId.value,
-    };
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  };
+  function getActiveTab(): Tab | null {
+    return tabs.value.find((t) => t.id === activeTabId.value) ?? null;
+  }
 
-  const loadTabs = () => {
-    try {
-      const stored = sessionStorage.getItem(STORAGE_KEY);
-
-      if (stored) {
-        const data = JSON.parse(stored);
-        tabs.value = data.tabs || [];
-        activeTabId.value = data.activeTabId || null;
-      }
-    } catch (error) {
-      console.error('Failed to load tabs:', error);
-      tabs.value = [];
-      activeTabId.value = null;
-    }
-  };
-
-  const getActiveTab = () => {
-    return tabs.value.find((t) => t.id === activeTabId.value) || null;
-  };
-
-  const hasTab = (path: string) => {
+  function hasTab(path: string): boolean {
     return tabs.value.some((t) => t.path === path);
-  };
+  }
 
-  // Watch route changes to sync active tab
+  // Sync active tab when route changes externally
   watch(
     () => route.path,
     (newPath) => {
       const tab = tabs.value.find((t) => t.path === newPath);
-
-      if (tab && activeTabId.value !== tab.id) {
-        activeTabId.value = tab.id;
-        saveTabs();
-      }
-    }
+      if (!tab || activeTabId.value === tab.id) return;
+      activeTabId.value = tab.id;
+      persistTabs();
+    },
   );
 
   return {
@@ -174,8 +177,8 @@ export function useTabs() {
     closeOtherTabs,
     closeAllTabs,
     closeTabsToRight,
-    saveTabs,
-    loadTabs,
+    saveTabs: persistTabs,
+    loadTabs: restoreTabs,
     getActiveTab,
     hasTab,
   };

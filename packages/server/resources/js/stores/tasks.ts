@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { api } from '@/composables/useApi';
-import type { 
+import { useMultiAsyncAction } from '@/composables/useAsyncAction';
+import type {
   SharedTask,
   TaskStatus,
   TaskPriority,
@@ -16,11 +17,19 @@ export const useTasksStore = defineStore('tasks', () => {
   // ==================== STATE ====================
   const tasks = ref<SharedTask[]>([]);
   const selectedTask = ref<SharedTask | null>(null);
-  const isLoading = ref(false);
-  const isCreating = ref(false);
-  const isUpdating = ref(false);
-  const isDeleting = ref(false);
-  const error = ref<string | null>(null);
+
+  const { states, error, run, clearError } = useMultiAsyncAction([
+    'loading',
+    'creating',
+    'updating',
+    'deleting',
+  ] as const);
+
+  // Aliases for backward compatibility
+  const isLoading = states.loading;
+  const isCreating = states.creating;
+  const isUpdating = states.updating;
+  const isDeleting = states.deleting;
 
   // ==================== GETTERS ====================
   const tasksByStatus = computed(() => {
@@ -40,19 +49,19 @@ export const useTasksStore = defineStore('tasks', () => {
     return grouped;
   });
 
-  const pendingTasks = computed(() => 
+  const pendingTasks = computed(() =>
     tasks.value.filter(t => t.status === 'pending')
   );
 
-  const inProgressTasks = computed(() => 
+  const inProgressTasks = computed(() =>
     tasks.value.filter(t => t.status === 'in_progress')
   );
 
-  const completedTasks = computed(() => 
+  const completedTasks = computed(() =>
     tasks.value.filter(t => t.status === 'done')
   );
 
-  const blockedTasks = computed(() => 
+  const blockedTasks = computed(() =>
     tasks.value.filter(t => t.status === 'blocked')
   );
 
@@ -116,29 +125,30 @@ export const useTasksStore = defineStore('tasks', () => {
   // ==================== ACTIONS ====================
 
   /**
-   * Fetch tasks for a project with optional filtering
+   * Fetch tasks for a project with optional filtering.
+   * Supports basic filters (status, priority, assigned_to) and extended filters
+   * (epic_id, sprint_id, parent_id, root_only).
    * @throws {Error} If the fetch operation fails
    */
   async function fetchTasks(
-    projectId: string, 
-    filters?: { status?: TaskStatus; priority?: TaskPriority; assigned_to?: string }
+    projectId: string,
+    filters?: {
+      status?: TaskStatus;
+      priority?: TaskPriority;
+      assigned_to?: string;
+      epic_id?: string;
+      sprint_id?: string;
+      parent_id?: string;
+      root_only?: boolean;
+    }
   ): Promise<SharedTask[]> {
-    isLoading.value = true;
-    error.value = null;
-
-    try {
+    return run('loading', async () => {
       const response = await api.get<PaginatedResponse<SharedTask>>(`/projects/${projectId}/tasks`, {
         params: filters,
       });
       tasks.value = response.data.data;
       return response.data.data;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch tasks';
-      error.value = message;
-      throw err;
-    } finally {
-      isLoading.value = false;
-    }
+    }, 'Failed to fetch tasks');
   }
 
   /**
@@ -146,20 +156,11 @@ export const useTasksStore = defineStore('tasks', () => {
    * @throws {Error} If the fetch fails
    */
   async function fetchTask(taskId: string): Promise<SharedTask> {
-    isLoading.value = true;
-    error.value = null;
-
-    try {
+    return run('loading', async () => {
       const response = await api.get<ApiResponse<SharedTask>>(`/tasks/${taskId}`);
       selectedTask.value = response.data.data;
       return response.data.data;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch task';
-      error.value = message;
-      throw err;
-    } finally {
-      isLoading.value = false;
-    }
+    }, 'Failed to fetch task');
   }
 
   /**
@@ -167,21 +168,12 @@ export const useTasksStore = defineStore('tasks', () => {
    * @throws {Error} If creation fails
    */
   async function createTask(projectId: string, data: CreateTaskForm): Promise<SharedTask> {
-    isCreating.value = true;
-    error.value = null;
-
-    try {
+    return run('creating', async () => {
       const response = await api.post<ApiResponse<SharedTask>>(`/projects/${projectId}/tasks`, data);
       const task = response.data.data;
       tasks.value.unshift(task);
       return task;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to create task';
-      error.value = message;
-      throw err;
-    } finally {
-      isCreating.value = false;
-    }
+    }, 'Failed to create task');
   }
 
   /**
@@ -189,10 +181,7 @@ export const useTasksStore = defineStore('tasks', () => {
    * @throws {Error} If the update fails
    */
   async function updateTask(taskId: string, data: UpdateTaskForm): Promise<SharedTask> {
-    isUpdating.value = true;
-    error.value = null;
-
-    try {
+    return run('updating', async () => {
       const response = await api.patch<ApiResponse<SharedTask>>(`/tasks/${taskId}`, data);
       const updated = response.data.data;
 
@@ -208,13 +197,7 @@ export const useTasksStore = defineStore('tasks', () => {
       }
 
       return updated;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to update task';
-      error.value = message;
-      throw err;
-    } finally {
-      isUpdating.value = false;
-    }
+    }, 'Failed to update task');
   }
 
   /**
@@ -222,23 +205,14 @@ export const useTasksStore = defineStore('tasks', () => {
    * @throws {Error} If deletion fails
    */
   async function deleteTask(taskId: string): Promise<void> {
-    isDeleting.value = true;
-    error.value = null;
-
-    try {
+    return run('deleting', async () => {
       await api.delete(`/tasks/${taskId}`);
       tasks.value = tasks.value.filter(t => t.id !== taskId);
 
       if (selectedTask.value?.id === taskId) {
         selectedTask.value = null;
       }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to delete task';
-      error.value = message;
-      throw err;
-    } finally {
-      isDeleting.value = false;
-    }
+    }, 'Failed to delete task');
   }
 
   /**
@@ -246,31 +220,23 @@ export const useTasksStore = defineStore('tasks', () => {
    * @throws {Error} If claiming fails
    */
   async function claimTask(taskId: string, instanceId: string): Promise<SharedTask> {
-    error.value = null;
-
-    try {
+    return run('updating', async () => {
       const response = await api.post<ApiResponse<SharedTask>>(`/tasks/${taskId}/claim`, {
         instance_id: instanceId,
       });
       const updated = response.data.data;
 
-      // Update in list
       const index = tasks.value.findIndex(t => t.id === taskId);
       if (index !== -1) {
         tasks.value[index] = updated;
       }
 
-      // Update selected if same
       if (selectedTask.value?.id === taskId) {
         selectedTask.value = updated;
       }
 
       return updated;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to claim task';
-      error.value = message;
-      throw err;
-    }
+    }, 'Failed to claim task');
   }
 
   /**
@@ -278,31 +244,23 @@ export const useTasksStore = defineStore('tasks', () => {
    * @throws {Error} If release fails
    */
   async function releaseTask(taskId: string, reason?: string): Promise<SharedTask> {
-    error.value = null;
-
-    try {
+    return run('updating', async () => {
       const response = await api.post<ApiResponse<SharedTask>>(`/tasks/${taskId}/release`, {
         reason,
       });
       const updated = response.data.data;
 
-      // Update in list
       const index = tasks.value.findIndex(t => t.id === taskId);
       if (index !== -1) {
         tasks.value[index] = updated;
       }
 
-      // Update selected if same
       if (selectedTask.value?.id === taskId) {
         selectedTask.value = updated;
       }
 
       return updated;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to release task';
-      error.value = message;
-      throw err;
-    }
+    }, 'Failed to release task');
   }
 
   /**
@@ -310,29 +268,21 @@ export const useTasksStore = defineStore('tasks', () => {
    * @throws {Error} If completion fails
    */
   async function completeTask(taskId: string, data: CompleteTaskForm): Promise<SharedTask> {
-    error.value = null;
-
-    try {
+    return run('updating', async () => {
       const response = await api.post<ApiResponse<SharedTask>>(`/tasks/${taskId}/complete`, data);
       const updated = response.data.data;
 
-      // Update in list
       const index = tasks.value.findIndex(t => t.id === taskId);
       if (index !== -1) {
         tasks.value[index] = updated;
       }
 
-      // Update selected if same
       if (selectedTask.value?.id === taskId) {
         selectedTask.value = updated;
       }
 
       return updated;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to complete task';
-      error.value = message;
-      throw err;
-    }
+    }, 'Failed to complete task');
   }
 
   /**
@@ -340,14 +290,10 @@ export const useTasksStore = defineStore('tasks', () => {
    * @throws {Error} If fetch fails
    */
   async function getNextAvailable(projectId: string): Promise<SharedTask | null> {
-    try {
+    return run('loading', async () => {
       const response = await api.get<ApiResponse<SharedTask | null>>(`/projects/${projectId}/tasks/next-available`);
       return response.data.data;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to get next task';
-      error.value = message;
-      throw err;
-    }
+    }, 'Failed to get next task');
   }
 
   /**
@@ -369,13 +315,6 @@ export const useTasksStore = defineStore('tasks', () => {
    */
   function clearSelectedTask(): void {
     selectedTask.value = null;
-  }
-
-  /**
-   * Clear error
-   */
-  function clearError(): void {
-    error.value = null;
   }
 
   /**
@@ -413,13 +352,10 @@ export const useTasksStore = defineStore('tasks', () => {
    * @throws {Error} If the fetch fails
    */
   async function fetchSubtasks(taskId: string): Promise<SharedTask[]> {
-    try {
+    return run('loading', async () => {
       const response = await api.get<ApiResponse<SharedTask[]>>(`/tasks/${taskId}/subtasks`);
       return response.data.data;
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to fetch subtasks';
-      throw err;
-    }
+    }, 'Failed to fetch subtasks');
   }
 
   /**
@@ -432,7 +368,7 @@ export const useTasksStore = defineStore('tasks', () => {
     status?: TaskStatus;
     sort_order?: number;
   }): Promise<SharedTask> {
-    try {
+    return run('updating', async () => {
       const response = await api.post<ApiResponse<SharedTask>>(`/tasks/${taskId}/move`, data);
       const updated = response.data.data;
       const index = tasks.value.findIndex(t => t.id === taskId);
@@ -443,39 +379,14 @@ export const useTasksStore = defineStore('tasks', () => {
         selectedTask.value = { ...selectedTask.value, ...updated };
       }
       return updated;
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to move task';
-      throw err;
-    }
+    }, 'Failed to move task');
   }
 
   /**
-   * Fetch tasks for a project with extended filter support (epic, sprint, parent, root)
-   * @throws {Error} If the fetch fails
+   * @deprecated Use fetchTasks with extended filters instead.
+   * Kept for backward compatibility.
    */
-  async function fetchTasksFiltered(projectId: string, filters: {
-    status?: TaskStatus;
-    priority?: TaskPriority;
-    epic_id?: string;
-    sprint_id?: string;
-    parent_id?: string;
-    root_only?: boolean;
-  }): Promise<SharedTask[]> {
-    isLoading.value = true;
-    error.value = null;
-    try {
-      const response = await api.get<PaginatedResponse<SharedTask>>(`/projects/${projectId}/tasks`, {
-        params: filters,
-      });
-      tasks.value = response.data.data;
-      return response.data.data;
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to fetch tasks';
-      throw err;
-    } finally {
-      isLoading.value = false;
-    }
-  }
+  const fetchTasksFiltered = fetchTasks;
 
   return {
     // State

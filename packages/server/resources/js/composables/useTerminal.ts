@@ -137,14 +137,13 @@ export function useTerminal(options: UseTerminalOptions): UseTerminalReturn {
       webglAddon = new WebglAddon();
       term.loadAddon(webglAddon);
       
-      // Handle WebGL context loss
+      // Handle WebGL context loss silently — canvas renderer takes over
       webglAddon.onContextLoss(() => {
-        console.warn('WebGL context lost, falling back to canvas');
         webglAddon?.dispose();
         webglAddon = null;
       });
-    } catch (e) {
-      console.warn('WebGL addon not available, using canvas renderer');
+    } catch {
+      // Canvas renderer used as fallback
     }
     
     // Open terminal in container
@@ -212,8 +211,8 @@ export function useTerminal(options: UseTerminalOptions): UseTerminalReturn {
     if (fitAddon.value) {
       try {
         fitAddon.value.fit();
-      } catch (e) {
-        console.warn('Failed to fit terminal:', e);
+      } catch {
+        // Non-critical: terminal not yet visible or dimensions unavailable
       }
     }
   }
@@ -221,8 +220,8 @@ export function useTerminal(options: UseTerminalOptions): UseTerminalReturn {
   async function handleResize(cols: number, rows: number): Promise<void> {
     try {
       await sessionsApi.resize(sessionId, cols, rows);
-    } catch (e) {
-      console.error('Failed to resize session:', e);
+    } catch {
+      // Resize failure is non-critical: session continues at previous dimensions
     }
   }
 
@@ -237,7 +236,6 @@ export function useTerminal(options: UseTerminalOptions): UseTerminalReturn {
 
   function sendInput(data: string): void {
     if (connectionStatus.value !== 'connected') {
-      console.warn('Cannot send input: not connected');
       return;
     }
 
@@ -324,9 +322,8 @@ export function useTerminal(options: UseTerminalOptions): UseTerminalReturn {
     }
   }
 
-  function handleInputEcho(event: SessionInputEvent): void {
-    // Optionally echo input locally (usually not needed as server echoes)
-    console.debug('Input echo:', event.data);
+  function handleInputEcho(_event: SessionInputEvent): void {
+    // Input echo handled server-side; no local action needed
   }
 
   function handleStatusChange(event: SessionStatusEvent): void {

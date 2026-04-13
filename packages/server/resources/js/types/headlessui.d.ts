@@ -6,8 +6,10 @@
 declare module '@headlessui/vue' {
   import type { DefineComponent } from 'vue';
 
-  export const Menu: DefineComponent<any>;
-  export const MenuButton: DefineComponent<any>;
-  export const MenuItems: DefineComponent<any>;
-  export const MenuItem: DefineComponent<any>;
+  type HeadlessProps = Record<string, unknown>;
+
+  export const Menu: DefineComponent<HeadlessProps>;
+  export const MenuButton: DefineComponent<HeadlessProps>;
+  export const MenuItems: DefineComponent<HeadlessProps>;
+  export const MenuItem: DefineComponent<HeadlessProps>;
 }

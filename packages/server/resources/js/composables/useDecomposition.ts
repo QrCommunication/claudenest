@@ -25,13 +25,79 @@ export interface MasterPlan {
   waves: MasterPlanWave[];
 }
 
+type BroadcastMessage = {
+  type: string;
+  data?: string;
+  success?: boolean;
+  plan?: MasterPlan;
+  error?: string;
+  errors?: string[];
+};
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function getEcho(): Echo<'reverb'> | undefined {
+  return (window as unknown as Record<string, unknown>).Echo as Echo<'reverb'> | undefined;
+}
+
+function resolveErrorMessage(err: unknown, fallback: string): string {
+  return err instanceof Error ? err.message : fallback;
+}
+
+// ── Composable ────────────────────────────────────────────────────────────────
+
 export function useDecomposition() {
   const masterPlan = ref<MasterPlan | null>(null);
   const isDecomposing = ref(false);
   const decompositionOutput = ref('');
   const decompositionError = ref<string | null>(null);
 
-  let echoChannel: ReturnType<Echo<"reverb">['private']> | null = null;
+  let echoChannel: ReturnType<Echo<'reverb'>['private']> | null = null;
+
+  // ── Event handler (extracted to reduce nesting in subscribeToProject) ──────
+
+  function handleBroadcastMessage(msg: BroadcastMessage): void {
+    if (msg.type === 'decompose:progress') {
+      decompositionOutput.value += msg.data ?? '';
+      return;
+    }
+
+    if (msg.type !== 'decompose:result') return;
+
+    isDecomposing.value = false;
+
+    if (msg.success && msg.plan) {
+      masterPlan.value = msg.plan;
+    } else {
+      decompositionError.value =
+        msg.error ?? msg.errors?.join('; ') ?? 'Decomposition failed';
+    }
+  }
+
+  function subscribeToProject(projectId: string): void {
+    const echo = getEcho();
+    if (!echo) return;
+
+    echoChannel = null;
+    echoChannel = echo.private(`projects.${projectId}`);
+    echoChannel.listen('.project.broadcast', (event: { message: BroadcastMessage }) => {
+      handleBroadcastMessage(event.message);
+    });
+  }
+
+  function resetDecompositionState(): void {
+    isDecomposing.value = true;
+    decompositionOutput.value = '';
+    decompositionError.value = null;
+  }
+
+  function handleDecompositionError(err: unknown, fallback: string): never {
+    isDecomposing.value = false;
+    decompositionError.value = resolveErrorMessage(err, fallback);
+    throw err;
+  }
+
+  // ── Public API ────────────────────────────────────────────────────────────
 
   /**
    * Start PRD decomposition for a project.
@@ -41,12 +107,8 @@ export function useDecomposition() {
     prd: string,
     credentialId: string,
   ): Promise<void> {
-    isDecomposing.value = true;
-    decompositionOutput.value = '';
-    decompositionError.value = null;
+    resetDecompositionState();
     masterPlan.value = null;
-
-    // Subscribe to project channel for real-time updates
     subscribeToProject(projectId);
 
     try {
@@ -55,9 +117,7 @@ export function useDecomposition() {
         { prd, credential_id: credentialId },
       );
     } catch (err: unknown) {
-      isDecomposing.value = false;
-      decompositionError.value = err instanceof Error ? err.message : 'Failed to start decomposition';
-      throw err;
+      handleDecompositionError(err, 'Failed to start decomposition');
     }
   }
 
@@ -110,10 +170,7 @@ export function useDecomposition() {
    * Regenerate decomposition with existing PRD.
    */
   async function regenerate(projectId: string, credentialId: string): Promise<void> {
-    isDecomposing.value = true;
-    decompositionOutput.value = '';
-    decompositionError.value = null;
-
+    resetDecompositionState();
     subscribeToProject(projectId);
 
     try {
@@ -122,56 +179,13 @@ export function useDecomposition() {
         { credential_id: credentialId },
       );
     } catch (err: unknown) {
-      isDecomposing.value = false;
-      decompositionError.value = err instanceof Error ? err.message : 'Failed to regenerate';
-      throw err;
+      handleDecompositionError(err, 'Failed to regenerate');
     }
-  }
-
-  function subscribeToProject(projectId: string): void {
-    // Use window.Echo if available (set up by Laravel Echo bootstrap)
-    const echo = (window as unknown as Record<string, unknown>).Echo as Echo<"reverb"> | undefined;
-    if (!echo) return;
-
-    // Leave previous channel
-    if (echoChannel) {
-      echoChannel = null;
-    }
-
-    echoChannel = echo.private(`projects.${projectId}`);
-
-    echoChannel.listen('.project.broadcast', (event: {
-      message: {
-        type: string;
-        data?: string;
-        success?: boolean;
-        plan?: MasterPlan;
-        error?: string;
-        errors?: string[];
-      };
-    }) => {
-      const msg = event.message;
-
-      if (msg.type === 'decompose:progress') {
-        decompositionOutput.value += msg.data || '';
-      }
-
-      if (msg.type === 'decompose:result') {
-        isDecomposing.value = false;
-
-        if (msg.success && msg.plan) {
-          masterPlan.value = msg.plan;
-        } else {
-          decompositionError.value = msg.error || msg.errors?.join('; ') || 'Decomposition failed';
-        }
-      }
-    });
   }
 
   function cleanup(): void {
-    const echo = (window as unknown as Record<string, unknown>).Echo as Echo<"reverb"> | undefined;
+    const echo = getEcho();
     if (echo && echoChannel) {
-      // Leave is handled by Echo internally when component unmounts
       echoChannel = null;
     }
   }
