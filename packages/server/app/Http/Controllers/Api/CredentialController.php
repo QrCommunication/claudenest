@@ -54,12 +54,25 @@ class CredentialController extends Controller
             ->orderBy('created_at')
             ->get();
 
+        // Auto-refresh expired OAuth credentials silently
+        $refreshed = [];
+        foreach ($credentials as $credential) {
+            try {
+                if ($credential->ensureFresh()) {
+                    $refreshed[] = $credential->id;
+                }
+            } catch (\Throwable) {
+                // Refresh failed — credential will show as expired
+            }
+        }
+
         return response()->json([
             'success' => true,
             'data' => CredentialResource::collection($credentials),
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
+                'auto_refreshed' => $refreshed,
             ],
         ]);
     }
@@ -184,12 +197,21 @@ class CredentialController extends Controller
     {
         $credential = $request->user()->credentials()->findOrFail($id);
 
+        // Auto-refresh if expired
+        $wasRefreshed = false;
+        try {
+            $wasRefreshed = $credential->ensureFresh();
+        } catch (\Throwable) {
+            // Refresh failed — show as expired
+        }
+
         return response()->json([
             'success' => true,
             'data' => new CredentialResource($credential->loadCount('sessions')),
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
+                'auto_refreshed' => $wasRefreshed,
             ],
         ]);
     }

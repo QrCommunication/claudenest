@@ -25,17 +25,14 @@ class CredentialService
             }
             $env['ANTHROPIC_API_KEY'] = $key;
         } else {
+            // Auto-refresh if expired (ensureFresh handles the check internally)
+            $credential->ensureFresh();
+
             $token = $credential->getAccessToken();
             if (!$token) {
                 throw new \RuntimeException(
                     "No OAuth token for credential '{$credential->name}'. Capture tokens first."
                 );
-            }
-
-            if ($credential->is_expired && $credential->has_refresh_token) {
-                $this->refreshOAuthToken($credential);
-                $credential->refresh();
-                $token = $credential->getAccessToken();
             }
 
             $env['CLAUDE_CODE_OAUTH_TOKEN'] = $token;
