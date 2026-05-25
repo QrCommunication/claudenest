@@ -21,7 +21,7 @@ jobs:
   # ============================================
   build:
     name: Build & Typecheck
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, hetzner, qrcom]
     defaults:
       run:
         working-directory: ${{ env.PACKAGE_PATH }}
@@ -60,7 +60,7 @@ jobs:
   # ============================================
   publish:
     name: Publish to NPM
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, hetzner, qrcom]
     needs: build
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
