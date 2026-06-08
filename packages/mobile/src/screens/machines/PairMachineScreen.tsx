@@ -8,7 +8,7 @@
  * 3. User enters the code here to complete pairing
  */
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -18,24 +18,27 @@ import {
   Alert,
   Platform,
   KeyboardAvoidingView,
-} from 'react-native';
-import { MaterialIcons as Icon } from '@expo/vector-icons';
-import Clipboard from '@react-native-clipboard/clipboard';
-import { colors, spacing, borderRadius, typography } from '@/theme';
-import { useMachinesStore } from '@/stores/machinesStore';
-import { api } from '@/services/api';
-import { Button, Input } from '@/components/common';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { MachinesStackParamList } from '@/navigation/types';
+} from "react-native";
+import { MaterialIcons as Icon } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
+import { colors, spacing, borderRadius, typography } from "@/theme";
+import { useMachinesStore } from "@/stores/machinesStore";
+import { api } from "@/services/api";
+import { Button, Input } from "@/components/common";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type { MachinesStackParamList } from "@/navigation/types";
 
-type Props = NativeStackScreenProps<MachinesStackParamList, 'PairMachine'>;
+type Props = NativeStackScreenProps<MachinesStackParamList, "PairMachine">;
 
 /**
  * Format a raw alphanumeric string into XXX-XXX pairing code format.
  * Strips non-alphanumeric characters, uppercases, and inserts dash after 3 chars.
  */
 function formatPairingCode(raw: string): string {
-  const cleaned = raw.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 6);
+  const cleaned = raw
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .toUpperCase()
+    .slice(0, 6);
   if (cleaned.length > 3) {
     return `${cleaned.slice(0, 3)}-${cleaned.slice(3)}`;
   }
@@ -46,12 +49,12 @@ function formatPairingCode(raw: string): string {
  * Extract the raw 6-character code from a formatted pairing code (strip dashes).
  */
 function extractRawCode(formatted: string): string {
-  return formatted.replace(/-/g, '');
+  return formatted.replace(/-/g, "");
 }
 
 export const PairMachineScreen: React.FC<Props> = ({ navigation }) => {
-  const [pairingCode, setPairingCode] = useState('');
-  const [machineName, setMachineName] = useState('');
+  const [pairingCode, setPairingCode] = useState("");
+  const [machineName, setMachineName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const codeInputRef = useRef<TextInput>(null);
 
@@ -64,20 +67,23 @@ export const PairMachineScreen: React.FC<Props> = ({ navigation }) => {
 
   const handlePasteCode = useCallback(async () => {
     try {
-      const clipboardContent = await Clipboard.getString();
+      const clipboardContent = await Clipboard.getStringAsync();
       if (clipboardContent) {
         const cleaned = clipboardContent.trim();
         const formatted = formatPairingCode(cleaned);
         setPairingCode(formatted);
       }
     } catch {
-      Alert.alert('Error', 'Unable to read clipboard content.');
+      Alert.alert("Error", "Unable to read clipboard content.");
     }
   }, []);
 
   const handlePair = useCallback(async () => {
     if (!isCodeComplete) {
-      Alert.alert('Invalid Code', 'Please enter a complete 6-character pairing code (e.g. ABC-123).');
+      Alert.alert(
+        "Invalid Code",
+        "Please enter a complete 6-character pairing code (e.g. ABC-123).",
+      );
       return;
     }
 
@@ -94,29 +100,29 @@ export const PairMachineScreen: React.FC<Props> = ({ navigation }) => {
       useMachinesStore.getState().fetchMachines();
 
       Alert.alert(
-        'Machine Paired',
+        "Machine Paired",
         machineName.trim()
           ? `"${machineName.trim()}" has been paired successfully. The agent will connect automatically.`
-          : 'Your machine has been paired successfully. The agent will connect automatically.',
-        [{ text: 'OK', onPress: () => navigation.goBack() }]
+          : "Your machine has been paired successfully. The agent will connect automatically.",
+        [{ text: "OK", onPress: () => navigation.goBack() }],
       );
     } catch (error: unknown) {
       const apiError = error as { status?: number; message?: string };
 
       if (apiError.status === 410) {
         Alert.alert(
-          'Code Expired',
-          'This pairing code has expired. Please run `claudenest-agent pair` again on your machine to generate a new code.'
+          "Code Expired",
+          "This pairing code has expired. Please run `claudenest-agent pair` again on your machine to generate a new code.",
         );
       } else if (apiError.status === 404) {
         Alert.alert(
-          'Code Not Found',
-          'This pairing code was not found or has already been used. Please check the code and try again.'
+          "Code Not Found",
+          "This pairing code was not found or has already been used. Please check the code and try again.",
         );
       } else {
         Alert.alert(
-          'Pairing Failed',
-          apiError.message || 'An unexpected error occurred. Please try again.'
+          "Pairing Failed",
+          apiError.message || "An unexpected error occurred. Please try again.",
         );
       }
     } finally {
@@ -127,7 +133,7 @@ export const PairMachineScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <KeyboardAvoidingView
       style={styles.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <ScrollView
         style={styles.container}
@@ -136,16 +142,14 @@ export const PairMachineScreen: React.FC<Props> = ({ navigation }) => {
       >
         {/* Instructions */}
         <View style={styles.instructions}>
-          <Text style={styles.instructionTitle}>
-            Pair your machine
-          </Text>
+          <Text style={styles.instructionTitle}>Pair your machine</Text>
 
           <View style={styles.step}>
             <View style={styles.stepNumber}>
               <Text style={styles.stepNumberText}>1</Text>
             </View>
             <Text style={styles.stepText}>
-              Install the ClaudeNest agent:{'\n'}
+              Install the ClaudeNest agent:{"\n"}
               <Text style={styles.code}>npm install -g @claudenest/agent</Text>
             </Text>
           </View>
@@ -155,7 +159,7 @@ export const PairMachineScreen: React.FC<Props> = ({ navigation }) => {
               <Text style={styles.stepNumberText}>2</Text>
             </View>
             <Text style={styles.stepText}>
-              Run the pairing command:{'\n'}
+              Run the pairing command:{"\n"}
               <Text style={styles.code}>claudenest-agent pair</Text>
             </Text>
           </View>
@@ -214,7 +218,11 @@ export const PairMachineScreen: React.FC<Props> = ({ navigation }) => {
               size="medium"
               onPress={handlePasteCode}
               leftIcon={
-                <Icon name="content-paste" size={18} color={colors.text.primary} />
+                <Icon
+                  name="content-paste"
+                  size={18}
+                  color={colors.text.primary}
+                />
               }
               style={styles.pasteButton}
             />
@@ -247,10 +255,9 @@ export const PairMachineScreen: React.FC<Props> = ({ navigation }) => {
 
         {/* Hint */}
         <Text style={styles.hint}>
-          The pairing code expires after 10 minutes.{'\n'}
-          If it has expired, run{' '}
-          <Text style={styles.codeHint}>claudenest-agent pair</Text>
-          {' '}again.
+          The pairing code expires after 10 minutes.{"\n"}
+          If it has expired, run{" "}
+          <Text style={styles.codeHint}>claudenest-agent pair</Text> again.
         </Text>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -267,7 +274,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: spacing.xl,
-    paddingBottom: spacing['2xl'],
+    paddingBottom: spacing["2xl"],
   },
   instructions: {
     marginBottom: spacing.xl,
@@ -279,8 +286,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   step: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     marginBottom: spacing.md,
   },
   stepNumber: {
@@ -288,8 +295,8 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     backgroundColor: colors.primary.purple,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: spacing.md,
     marginTop: 2,
   },
@@ -310,8 +317,8 @@ const styles = StyleSheet.create({
     fontSize: typography.size.sm,
   },
   codeFormatCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: colors.background.card,
     borderRadius: borderRadius.md,
     paddingVertical: spacing.md,
@@ -343,14 +350,14 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   codeInputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.sm,
   },
   codeInputContainer: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: colors.background.dark3,
     borderRadius: borderRadius.md,
     borderWidth: 1.5,
@@ -362,20 +369,20 @@ const styles = StyleSheet.create({
   },
   codeInput: {
     flex: 1,
-    fontSize: typography.size['2xl'],
+    fontSize: typography.size["2xl"],
     fontFamily: typography.fontFamily.mono,
     fontWeight: typography.weight.bold,
     color: colors.text.primary,
     letterSpacing: 4,
-    textAlign: 'center',
+    textAlign: "center",
     paddingVertical: spacing.md,
   },
   codeCheckIcon: {
     marginLeft: spacing.xs,
   },
   pasteButton: {
-    alignSelf: 'stretch',
-    justifyContent: 'center',
+    alignSelf: "stretch",
+    justifyContent: "center",
   },
   nameSection: {
     marginBottom: spacing.sm,
@@ -386,7 +393,7 @@ const styles = StyleSheet.create({
   hint: {
     fontSize: typography.size.sm,
     color: colors.text.muted,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: spacing.xl,
     lineHeight: 20,
   },

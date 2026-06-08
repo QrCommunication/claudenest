@@ -25,8 +25,8 @@ export interface LoginCredentials {
 
 // ==================== MACHINE TYPES ====================
 
-export type MachineStatus = 'online' | 'offline' | 'connecting';
-export type MachinePlatform = 'darwin' | 'win32' | 'linux';
+export type MachineStatus = "online" | "offline" | "connecting";
+export type MachinePlatform = "darwin" | "win32" | "linux";
 
 export interface Machine {
   id: string;
@@ -59,45 +59,45 @@ export interface MachineCapabilities {
 
 // ==================== SESSION TYPES ====================
 
-export type SessionMode = 'interactive' | 'headless' | 'oneshot';
-export type SessionStatus = 
-  | 'created' 
-  | 'starting' 
-  | 'running' 
-  | 'waiting_input' 
-  | 'completed' 
-  | 'error' 
-  | 'terminated';
+export type SessionMode = "interactive" | "headless" | "oneshot";
+export type SessionStatus =
+  | "created"
+  | "starting"
+  | "running"
+  | "waiting_input"
+  | "completed"
+  | "error"
+  | "terminated";
 
 export interface Session {
   id: string;
-  machineId: string;
-  userId: string;
+  machine_id: string;
+  user_id: string;
   mode: SessionMode;
-  projectPath: string | null;
-  initialPrompt: string | null;
+  project_path: string | null;
+  initial_prompt: string | null;
   status: SessionStatus;
   pid: number | null;
-  exitCode: number | null;
-  ptySize: {
+  exit_code: number | null;
+  pty_size: {
     cols: number;
     rows: number;
   };
-  totalTokens: number | null;
-  totalCost: number | null;
-  startedAt: string | null;
-  completedAt: string | null;
-  createdAt: string;
-  updatedAt: string;
+  total_tokens: number | null;
+  total_cost: number | null;
+  started_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface SessionLog {
   id: number;
-  sessionId: string;
-  type: 'output' | 'input' | 'status' | 'error';
+  session_id: string;
+  type: "output" | "input" | "status" | "error";
   data: string;
   metadata: Record<string, unknown>;
-  createdAt: string;
+  created_at: string;
 }
 
 export interface CreateSessionRequest {
@@ -136,13 +136,19 @@ export interface ProjectSettings {
   contextRetentionDays: number;
   taskTimeoutMinutes: number;
   lockTimeoutMinutes: number;
-  broadcastLevel: 'all' | 'team' | 'none';
+  broadcastLevel: "all" | "team" | "none";
 }
 
 // ==================== TASK TYPES ====================
 
-export type TaskPriority = 'low' | 'medium' | 'high' | 'critical';
-export type TaskStatus = 'backlog' | 'pending' | 'in_progress' | 'blocked' | 'review' | 'done';
+export type TaskPriority = "low" | "medium" | "high" | "critical";
+export type TaskStatus =
+  | "backlog"
+  | "pending"
+  | "in_progress"
+  | "blocked"
+  | "review"
+  | "done";
 
 export interface SharedTask {
   id: string;
@@ -176,7 +182,7 @@ export interface SharedTask {
 }
 
 // ==================== EPIC TYPES ====================
-export type EpicStatus = 'open' | 'in_progress' | 'done';
+export type EpicStatus = "open" | "in_progress" | "done";
 
 export interface Epic {
   id: string;
@@ -198,7 +204,7 @@ export interface Epic {
 }
 
 // ==================== SPRINT TYPES ====================
-export type SprintStatus = 'planning' | 'active' | 'completed' | 'cancelled';
+export type SprintStatus = "planning" | "active" | "completed" | "cancelled";
 
 export interface Sprint {
   id: string;
@@ -231,13 +237,13 @@ export interface BurndownDataPoint {
 
 // ==================== CONTEXT TYPES ====================
 
-export type ContextChunkType = 
-  | 'task_completion' 
-  | 'context_update' 
-  | 'file_change' 
-  | 'decision' 
-  | 'summary' 
-  | 'broadcast';
+export type ContextChunkType =
+  | "task_completion"
+  | "context_update"
+  | "file_change"
+  | "decision"
+  | "summary"
+  | "broadcast";
 
 export interface ContextChunk {
   id: string;
@@ -255,7 +261,7 @@ export interface ContextChunk {
 
 // ==================== INSTANCE TYPES ====================
 
-export type InstanceStatus = 'active' | 'idle' | 'busy' | 'disconnected';
+export type InstanceStatus = "active" | "idle" | "busy" | "disconnected";
 
 export interface ClaudeInstance {
   id: string;
@@ -286,16 +292,16 @@ export interface FileLock {
 
 // ==================== ACTIVITY TYPES ====================
 
-export type ActivityType = 
-  | 'task_claimed' 
-  | 'task_completed' 
-  | 'context_updated' 
-  | 'file_locked' 
-  | 'file_unlocked' 
-  | 'broadcast' 
-  | 'conflict' 
-  | 'instance_connected' 
-  | 'instance_disconnected';
+export type ActivityType =
+  | "task_claimed"
+  | "task_completed"
+  | "context_updated"
+  | "file_locked"
+  | "file_unlocked"
+  | "broadcast"
+  | "conflict"
+  | "instance_connected"
+  | "instance_disconnected";
 
 export interface ActivityLog {
   id: string;
@@ -371,19 +377,19 @@ export interface PaginatedResponse<T> extends ApiResponse<T[]> {
 
 // ==================== WEBSOCKET TYPES ====================
 
-export type WebSocketMessageType = 
-  | 'session:output'
-  | 'session:input'
-  | 'session:status'
-  | 'session:resize'
-  | 'machine:status'
-  | 'project:broadcast'
-  | 'task:updated'
-  | 'context:updated'
-  | 'file:locked'
-  | 'file:unlocked'
-  | 'instance:connected'
-  | 'instance:disconnected';
+export type WebSocketMessageType =
+  | "session:output"
+  | "session:input"
+  | "session:status"
+  | "session:resize"
+  | "machine:status"
+  | "project:broadcast"
+  | "task:updated"
+  | "context:updated"
+  | "file:locked"
+  | "file:unlocked"
+  | "instance:connected"
+  | "instance:disconnected";
 
 export interface WebSocketMessage {
   type: WebSocketMessageType;
@@ -401,11 +407,11 @@ export type {
   SessionsStackParamList,
   ProjectsStackParamList,
   SettingsStackParamList,
-} from '@/navigation/types';
+} from "@/navigation/types";
 
 // ==================== THEME TYPES ====================
 
-export type ColorScheme = 'light' | 'dark';
+export type ColorScheme = "light" | "dark";
 
 // ==================== UTIL TYPES ====================
 

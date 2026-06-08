@@ -3,7 +3,7 @@
  * App information and credits
  */
 
-import React from 'react';
+import React from "react";
 import {
   View,
   Text,
@@ -11,21 +11,33 @@ import {
   ScrollView,
   Linking,
   TouchableOpacity,
-} from 'react-native';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-type IconName = React.ComponentProps<typeof MaterialIcons>['name'];
+} from "react-native";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+type IconName = React.ComponentProps<typeof MaterialIcons>["name"];
 // Alias to preserve usage pattern
 const Icon = MaterialIcons;
-import LinearGradient from 'react-native-linear-gradient';
-import { colors, spacing, borderRadius, typography } from '@/theme';
-import { Card } from '@/components/common';
+import { LinearGradient } from "expo-linear-gradient";
+import { colors, spacing, borderRadius, typography } from "@/theme";
+import { Card } from "@/components/common";
 
 const LINKS: Array<{ icon: IconName; label: string; url: string }> = [
-  { icon: 'public', label: 'Website', url: 'https://claudenest.app' },
-  { icon: 'code', label: 'GitHub', url: 'https://github.com/claudenest' },
-  { icon: 'description', label: 'Documentation', url: 'https://docs.claudenest.app' },
-  { icon: 'gavel', label: 'Privacy Policy', url: 'https://claudenest.app/privacy' },
-  { icon: 'article', label: 'Terms of Service', url: 'https://claudenest.app/terms' },
+  { icon: "public", label: "Website", url: "https://claudenest.app" },
+  { icon: "code", label: "GitHub", url: "https://github.com/claudenest" },
+  {
+    icon: "description",
+    label: "Documentation",
+    url: "https://docs.claudenest.app",
+  },
+  {
+    icon: "gavel",
+    label: "Privacy Policy",
+    url: "https://claudenest.app/privacy",
+  },
+  {
+    icon: "article",
+    label: "Terms of Service",
+    url: "https://claudenest.app/terms",
+  },
 ];
 
 export const AboutScreen: React.FC = () => {
@@ -38,12 +50,22 @@ export const AboutScreen: React.FC = () => {
       {/* Logo */}
       <View style={styles.logoSection}>
         <LinearGradient
-          colors={colors.gradients.primary}
+          colors={
+            colors.gradients.primary as unknown as readonly [
+              string,
+              string,
+              ...string[],
+            ]
+          }
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.logoContainer}
         >
-          <Icon name={'router' as IconName} size={60} color={colors.text.primary} />
+          <Icon
+            name={"router" as IconName}
+            size={60}
+            color={colors.text.primary}
+          />
         </LinearGradient>
         <Text style={styles.appName}>ClaudeNest</Text>
         <Text style={styles.version}>Version 1.0.0</Text>
@@ -53,9 +75,10 @@ export const AboutScreen: React.FC = () => {
       {/* Description */}
       <Card style={styles.descriptionCard}>
         <Text style={styles.description}>
-          ClaudeNest is a comprehensive platform for remotely orchestrating Claude Code 
-          instances across multiple machines. Control your AI coding sessions from anywhere, 
-          manage multi-agent projects, and keep your workflow synchronized.
+          ClaudeNest is a comprehensive platform for remotely orchestrating
+          Claude Code instances across multiple machines. Control your AI coding
+          sessions from anywhere, manage multi-agent projects, and keep your
+          workflow synchronized.
         </Text>
       </Card>
 
@@ -80,7 +103,8 @@ export const AboutScreen: React.FC = () => {
       {/* Credits */}
       <View style={styles.credits}>
         <Text style={styles.creditsText}>
-          Made with <Text style={styles.heart}>❤</Text> for the Claude community
+          Made with <Text style={styles.heart}>❤</Text> for the Claude
+          community
         </Text>
         <Text style={styles.copyright}>
           © 2026 ClaudeNest. All rights reserved.
@@ -96,15 +120,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.dark2,
   },
   logoSection: {
-    alignItems: 'center',
+    alignItems: "center",
     padding: spacing.xl,
   },
   logoContainer: {
     width: 100,
     height: 100,
     borderRadius: borderRadius.xl,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     shadowColor: colors.primary.purple,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -112,8 +136,8 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   appName: {
-    fontSize: typography.size['2xl'],
-    fontWeight: '700',
+    fontSize: typography.size["2xl"],
+    fontWeight: "700",
     color: colors.text.primary,
     marginTop: spacing.lg,
   },
@@ -134,15 +158,15 @@ const styles = StyleSheet.create({
     fontSize: typography.size.base,
     color: colors.text.secondary,
     lineHeight: 24,
-    textAlign: 'center',
+    textAlign: "center",
   },
   linksCard: {
     marginHorizontal: spacing.md,
     marginTop: spacing.lg,
   },
   linkItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: spacing.md,
   },
   linkItemBorder: {
@@ -157,7 +181,7 @@ const styles = StyleSheet.create({
   },
   credits: {
     padding: spacing.xl,
-    alignItems: 'center',
+    alignItems: "center",
   },
   creditsText: {
     fontSize: typography.size.base,

@@ -7,33 +7,50 @@
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "scheme": "claudenest",
+    "icon": "./assets/icon.png",
     "splash": {
       "backgroundColor": "#0f0f1a"
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "app.qrcommunication.claudenest"
+      "bundleIdentifier": "app.qrcommunication.claudenest",
+      "icon": "./assets/icon.png"
     },
     "android": {
       "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0f0f1a"
       },
       "package": "app.qrcommunication.claudenest",
       "versionCode": 50,
       "softwareKeyboardLayoutMode": "pan"
     },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
     "plugins": [
       "expo-font",
       [
         "expo-splash-screen",
         {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
           "backgroundColor": "#0f0f1a",
           "dark": {
+            "image": "./assets/splash-icon.png",
             "backgroundColor": "#0f0f1a"
           }
         }
       ],
-      "expo-web-browser"
-    ]
+      "expo-web-browser",
+      "expo-status-bar"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "de976ea5-cb00-4eb7-88d1-7c9c1d98e71e"
+      }
+    },
+    "owner": "ronylicha"
   }
 }

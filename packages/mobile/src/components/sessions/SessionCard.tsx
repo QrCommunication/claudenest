@@ -82,11 +82,11 @@ export const SessionCard = memo(function SessionCard({
           />
         </View>
 
-        {session.projectPath && (
+        {session.project_path && (
           <View style={styles.detailRow}>
             <Icon name="folder" size={14} color={colors.text.muted} />
             <Text style={styles.detailText} numberOfLines={1}>
-              {session.projectPath.split('/').pop()}
+              {session.project_path.split('/').pop()}
             </Text>
           </View>
         )}
@@ -98,7 +98,7 @@ export const SessionCard = memo(function SessionCard({
             size="small"
           />
           <Text style={styles.timestamp}>
-            {formatDistanceToNow(session.createdAt)}
+            {formatDistanceToNow(session.created_at)}
           </Text>
         </View>
       </View>

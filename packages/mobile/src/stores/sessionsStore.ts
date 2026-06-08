@@ -3,12 +3,17 @@
  * Manages session state and real-time output
  */
 
-import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { Session, SessionLog, SessionStatus, CreateSessionRequest } from '@/types';
-import { sessionsApi } from '@/services/api';
-import { websocket } from '@/services/websocket';
+import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import type {
+  Session,
+  SessionLog,
+  SessionStatus,
+  CreateSessionRequest,
+} from "@/types";
+import { sessionsApi } from "@/services/api";
+import { websocket } from "@/services/websocket";
 
 interface SessionOutput {
   sessionId: string;
@@ -34,7 +39,10 @@ interface SessionsState {
   // Actions
   fetchSessions: (machineId: string) => Promise<void>;
   fetchSession: (id: string) => Promise<Session>;
-  createSession: (machineId: string, data: CreateSessionRequest) => Promise<Session>;
+  createSession: (
+    machineId: string,
+    data: CreateSessionRequest,
+  ) => Promise<Session>;
   terminateSession: (id: string) => Promise<void>;
   selectSession: (id: string | null) => void;
   appendOutput: (sessionId: string, data: string) => void;
@@ -64,9 +72,9 @@ export const useSessionsStore = create<SessionsState>()(
         get().sessions.find((s) => s.id === get().selectedSessionId),
       getSessionById: (id: string) => get().sessions.find((s) => s.id === id),
       getSessionOutput: (sessionId: string) =>
-        get().sessionOutputs.get(sessionId) || '',
+        get().sessionOutputs.get(sessionId) || "",
       getMachineSessions: (machineId: string) =>
-        get().sessions.filter((s) => s.machineId === machineId),
+        get().sessions.filter((s) => s.machine_id === machineId),
 
       // Actions
       fetchSessions: async (machineId: string) => {
@@ -74,16 +82,22 @@ export const useSessionsStore = create<SessionsState>()(
 
         try {
           const response = await sessionsApi.list(machineId);
+          const fresh = response.data!;
+          // Dedup by id: drop this machine's stale rows AND any leftover copy
+          // sharing an id (guards against persisted/legacy-shaped duplicates).
+          const freshIds = new Set(fresh.map((s) => s.id));
           set((state) => ({
             sessions: [
-              ...state.sessions.filter((s) => s.machineId !== machineId),
-              ...response.data!,
+              ...state.sessions.filter(
+                (s) => s.machine_id !== machineId && !freshIds.has(s.id),
+              ),
+              ...fresh,
             ],
             isLoading: false,
           }));
         } catch (err) {
           const message =
-            err instanceof Error ? err.message : 'Failed to fetch sessions';
+            err instanceof Error ? err.message : "Failed to fetch sessions";
           set({ isLoading: false, error: message });
           throw err;
         }
@@ -94,9 +108,7 @@ export const useSessionsStore = create<SessionsState>()(
         const session = response.data!;
 
         set((state) => ({
-          sessions: state.sessions.map((s) =>
-            s.id === id ? session : s
-          ),
+          sessions: state.sessions.map((s) => (s.id === id ? session : s)),
         }));
 
         return session;
@@ -121,7 +133,7 @@ export const useSessionsStore = create<SessionsState>()(
           return session;
         } catch (err) {
           const message =
-            err instanceof Error ? err.message : 'Failed to create session';
+            err instanceof Error ? err.message : "Failed to create session";
           set({ isLoading: false, error: message });
           throw err;
         }
@@ -139,7 +151,9 @@ export const useSessionsStore = create<SessionsState>()(
 
             return {
               sessions: state.sessions.map((s) =>
-                s.id === id ? { ...s, status: 'terminated' as SessionStatus } : s
+                s.id === id
+                  ? { ...s, status: "terminated" as SessionStatus }
+                  : s,
               ),
               activeSessionIds: newActiveIds,
               isLoading: false,
@@ -150,7 +164,7 @@ export const useSessionsStore = create<SessionsState>()(
           websocket.unsubscribeFromSession(id);
         } catch (err) {
           const message =
-            err instanceof Error ? err.message : 'Failed to terminate session';
+            err instanceof Error ? err.message : "Failed to terminate session";
           set({ isLoading: false, error: message });
           throw err;
         }
@@ -162,7 +176,7 @@ export const useSessionsStore = create<SessionsState>()(
 
       appendOutput: (sessionId: string, data: string) => {
         set((state) => {
-          const currentOutput = state.sessionOutputs.get(sessionId) || '';
+          const currentOutput = state.sessionOutputs.get(sessionId) || "";
           let newOutput = currentOutput + data;
 
           // Trim if exceeds max length
@@ -188,7 +202,7 @@ export const useSessionsStore = create<SessionsState>()(
       updateSessionStatus: (id: string, status: SessionStatus) => {
         set((state) => ({
           sessions: state.sessions.map((s) =>
-            s.id === id ? { ...s, status } : s
+            s.id === id ? { ...s, status } : s,
           ),
         }));
       },
@@ -198,38 +212,38 @@ export const useSessionsStore = create<SessionsState>()(
         websocket.subscribeToSession(sessionId);
 
         const unsubscribeOutput = websocket.on(
-          'session:output',
+          "session:output",
           (raw: unknown) => {
             const payload = raw as { sessionId: string; data: string };
             if (payload.sessionId === sessionId) {
               get().appendOutput(sessionId, payload.data);
             }
-          }
+          },
         );
 
         const unsubscribeStatus = websocket.on(
-          'session:status',
+          "session:status",
           (raw: unknown) => {
             const payload = raw as { sessionId: string; status: SessionStatus };
             if (payload.sessionId === sessionId) {
               get().updateSessionStatus(sessionId, payload.status);
             }
-          }
+          },
         );
 
         const unsubscribeEnded = websocket.on(
-          'session:ended',
+          "session:ended",
           (raw: unknown) => {
             const payload = raw as { sessionId: string; exitCode: number };
             if (payload.sessionId === sessionId) {
-              get().updateSessionStatus(sessionId, 'completed');
+              get().updateSessionStatus(sessionId, "completed");
               set((state) => {
                 const newActiveIds = new Set(state.activeSessionIds);
                 newActiveIds.delete(sessionId);
                 return { activeSessionIds: newActiveIds };
               });
             }
-          }
+          },
         );
 
         // Return cleanup function
@@ -252,12 +266,25 @@ export const useSessionsStore = create<SessionsState>()(
       clearError: () => set({ error: null }),
     }),
     {
-      name: 'sessions-storage',
+      name: "sessions-storage",
       storage: createJSONStorage(() => AsyncStorage),
+      version: 1,
+      // v0 persisted `sessions` (server state) which produced stale duplicates
+      // after the camelCase→snake_case fix. Drop any persisted sessions.
+      migrate: (persisted) => {
+        if (
+          persisted &&
+          typeof persisted === "object" &&
+          "sessions" in persisted
+        ) {
+          delete (persisted as { sessions?: unknown }).sessions;
+        }
+        return persisted as unknown;
+      },
+      // Sessions are fetched fresh from the API; never persist them.
       partialize: (state) => ({
-        sessions: state.sessions,
         selectedSessionId: state.selectedSessionId,
       }),
-    }
-  )
+    },
+  ),
 );

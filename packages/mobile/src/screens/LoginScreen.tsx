@@ -3,7 +3,7 @@
  * Inscription et gestion de compte = web uniquement
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,23 +11,43 @@ import {
   Pressable,
   ActivityIndicator,
   KeyboardAvoidingView,
+  Keyboard,
   Platform,
   ScrollView,
   Linking,
-} from 'react-native';
-import { StatusBar } from 'expo-status-bar';
-import { MaterialIcons } from '@expo/vector-icons';
-import { useAuthStore } from '@/stores/authStore';
+} from "react-native";
+import { StatusBar } from "expo-status-bar";
+import { MaterialIcons } from "@expo/vector-icons";
+import { useAuthStore } from "@/stores/authStore";
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://claudenest.io';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || "https://claudenest.io";
 
 export function LoginScreen() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const passwordRef = useRef<TextInput>(null);
 
   const { loginWithPassword, isLoading, error, clearError } = useAuthStore();
+
+  // Track keyboard height so the submit button stays reachable even when the
+  // OS uses "pan" softwareKeyboardLayoutMode (KeyboardAvoidingView alone is
+  // unreliable on Android in pan mode — we reserve scrollable space instead).
+  useEffect(() => {
+    const showEvt =
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvt =
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+    const onShow = Keyboard.addListener(showEvt, (e) =>
+      setKeyboardHeight(e.endCoordinates?.height ?? 0),
+    );
+    const onHide = Keyboard.addListener(hideEvt, () => setKeyboardHeight(0));
+    return () => {
+      onShow.remove();
+      onHide.remove();
+    };
+  }, []);
 
   const handleLogin = async () => {
     if (!email.trim() || !password) return;
@@ -45,7 +65,7 @@ export function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       className="flex-1 bg-bg1"
     >
       <StatusBar style="light" />
@@ -53,6 +73,9 @@ export function LoginScreen() {
       <ScrollView
         className="flex-1"
         contentContainerClassName="flex-grow justify-center px-6 py-16"
+        contentContainerStyle={{
+          paddingBottom: keyboardHeight > 0 ? keyboardHeight + 24 : 0,
+        }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
@@ -61,7 +84,9 @@ export function LoginScreen() {
           <View className="w-20 h-20 rounded-2xl bg-primary items-center justify-center mb-5">
             <MaterialIcons name="terminal" size={40} color="white" />
           </View>
-          <Text className="text-white text-3xl font-bold tracking-tight">ClaudeNest</Text>
+          <Text className="text-white text-3xl font-bold tracking-tight">
+            ClaudeNest
+          </Text>
           <Text className="text-text-secondary text-sm mt-2">
             Remote Claude Code Control
           </Text>
@@ -78,7 +103,9 @@ export function LoginScreen() {
         <View className="gap-y-4">
           {/* Email */}
           <View>
-            <Text className="text-text-secondary text-sm font-medium mb-2">Email</Text>
+            <Text className="text-text-secondary text-sm font-medium mb-2">
+              Email
+            </Text>
             <View className="flex-row items-center bg-bg2 border border-bg4 rounded-xl">
               <View className="pl-4">
                 <MaterialIcons name="email" size={20} color="#64748b" />
@@ -125,12 +152,12 @@ export function LoginScreen() {
                 editable={!isLoading}
               />
               <Pressable
-                onPress={() => setShowPassword(v => !v)}
+                onPress={() => setShowPassword((v) => !v)}
                 className="px-4 py-3.5"
                 hitSlop={8}
               >
                 <MaterialIcons
-                  name={showPassword ? 'visibility-off' : 'visibility'}
+                  name={showPassword ? "visibility-off" : "visibility"}
                   size={22}
                   color="#64748b"
                 />
@@ -150,7 +177,9 @@ export function LoginScreen() {
             {isLoading ? (
               <ActivityIndicator color="white" />
             ) : (
-              <Text className="text-white font-semibold text-base">Se connecter</Text>
+              <Text className="text-white font-semibold text-base">
+                Se connecter
+              </Text>
             )}
           </Pressable>
         </View>

@@ -182,10 +182,10 @@ export const SessionsListScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const baseSessions = useMemo(() => {
     const base = machineId
-      ? sessions.filter((s) => s.machineId === machineId)
+      ? sessions.filter((s) => s.machine_id === machineId)
       : sessions;
     return [...base].sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
   }, [sessions, machineId]);
 
@@ -256,7 +256,7 @@ export const SessionsListScreen: React.FC<Props> = ({ route, navigation }) => {
       <AnimatedSessionCard
         session={item}
         onPress={handlePressSession}
-        machineName={!machineId ? getMachineName(item.machineId) : undefined}
+        machineName={!machineId ? getMachineName(item.machine_id) : undefined}
         index={index}
       />
     ),

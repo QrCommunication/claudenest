@@ -115,7 +115,7 @@ const SessionItem = memo(function SessionItem({ session }: SessionItemProps) {
       />
       <View style={styles.sessionItemContent}>
         <Text style={styles.sessionItemPath} numberOfLines={1}>
-          {formatPath(session.projectPath)}
+          {formatPath(session.project_path)}
         </Text>
         <Text style={[styles.sessionItemStatus, { color: statusColor }]}>
           {session.status.replace('_', ' ')}

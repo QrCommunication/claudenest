@@ -5,13 +5,21 @@
 /**
  * Format a date to relative time (e.g., "2 hours ago")
  */
-export function formatDistanceToNow(date: string | Date): string {
+export function formatDistanceToNow(
+  date: string | Date | null | undefined,
+): string {
+  if (!date) {
+    return "unknown";
+  }
   const now = new Date();
   const then = new Date(date);
+  if (Number.isNaN(then.getTime())) {
+    return "unknown";
+  }
   const diffInSeconds = Math.floor((now.getTime() - then.getTime()) / 1000);
 
   if (diffInSeconds < 60) {
-    return 'just now';
+    return "just now";
   }
 
   const diffInMinutes = Math.floor(diffInSeconds / 60);
@@ -43,10 +51,10 @@ export function formatDistanceToNow(date: string | Date): string {
  */
 export function formatDate(date: string | Date): string {
   const d = new Date(date);
-  return d.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
+  return d.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
   });
 }
 
@@ -55,9 +63,9 @@ export function formatDate(date: string | Date): string {
  */
 export function formatTime(date: string | Date): string {
   const d = new Date(date);
-  return d.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
+  return d.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 
@@ -66,11 +74,11 @@ export function formatTime(date: string | Date): string {
  */
 export function formatDateTime(date: string | Date): string {
   const d = new Date(date);
-  return d.toLocaleString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+  return d.toLocaleString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
