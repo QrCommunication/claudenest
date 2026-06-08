@@ -213,7 +213,7 @@ class ContextController extends Controller
 
         $validated = $request->validate([
             'query' => 'required|string|min:1',
-            'limit' => 'integer|min:1|max:50|default:10',
+            'limit' => 'sometimes|integer|min:1|max:50',
             'type' => 'string|in:task_completion,context_update,file_change,decision,summary,broadcast',
             'min_similarity' => 'numeric|min:0|max:1',
         ]);
@@ -532,7 +532,7 @@ class ContextController extends Controller
         $validated = $request->validate([
             'chunk_ids' => 'array',
             'chunk_ids.*' => 'uuid|exists:context_chunks,id',
-            'max_length' => 'integer|min:100|max:4000|default:1000',
+            'max_length' => 'sometimes|integer|min:100|max:4000',
         ]);
 
         $chunkIds = $validated['chunk_ids'] ?? [];

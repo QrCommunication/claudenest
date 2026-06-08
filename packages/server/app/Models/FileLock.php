@@ -31,6 +31,13 @@ class FileLock extends Model
     protected $table = 'file_locks';
 
     /**
+     * The file_locks table has no created_at/updated_at columns (it tracks its
+     * own locked_at via the DB), so disable Eloquent timestamp management to
+     * avoid "column updated_at does not exist" on insert/update.
+     */
+    public $timestamps = false;
+
+    /**
      * The attributes that are mass assignable.
      */
     protected $fillable = [

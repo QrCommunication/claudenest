@@ -283,7 +283,7 @@ class FileLockController extends Controller
         $validated = $request->validate([
             'path' => 'required|string|max:1024',
             'instance_id' => 'required|string',
-            'minutes' => 'integer|min:1|max:1440|default:30',
+            'minutes' => 'sometimes|integer|min:1|max:1440',
         ]);
 
         $lock = FileLock::forProject($projectId)
@@ -296,7 +296,7 @@ class FileLockController extends Controller
             return $this->errorResponse('LCK_002', 'Lock not found or already expired', 404);
         }
 
-        $lock->extend($validated['minutes']);
+        $lock->extend($validated['minutes'] ?? 30);
 
         return response()->json([
             'success' => true,

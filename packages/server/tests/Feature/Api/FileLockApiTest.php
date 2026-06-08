@@ -19,7 +19,7 @@ class FileLockApiTest extends TestCase
         $user = User::factory()->create();
         $machine = Machine::factory()->for($user)->create();
         $project = SharedProject::factory()->for($user)->for($machine)->create();
-        $locks = FileLock::factory()->count(3)->for($project)->create();
+        $locks = FileLock::factory()->count(3)->for($project, 'project')->create();
 
         // Other project's locks
         FileLock::factory()->count(2)->create();
@@ -34,8 +34,8 @@ class FileLockApiTest extends TestCase
                 'success',
                 'data' => [
                     '*' => [
-                        'id', 'path', 'locked_by', 'reason',
-                        'locked_at', 'expires_at',
+                        'path', 'lockedBy', 'reason',
+                        'lockedAt', 'expiresAt', 'remainingSeconds',
                     ],
                 ],
                 'meta',
@@ -61,9 +61,7 @@ class FileLockApiTest extends TestCase
             ->assertJson(['success' => true])
             ->assertJsonStructure([
                 'success',
-                'data' => [
-                    'lock' => ['id', 'path', 'locked_by'],
-                ],
+                'data' => ['id', 'path', 'locked_by'],
                 'meta',
             ]);
 
@@ -81,7 +79,7 @@ class FileLockApiTest extends TestCase
         $machine = Machine::factory()->for($user)->create();
         $project = SharedProject::factory()->for($user)->for($machine)->create();
         
-        FileLock::factory()->for($project)->create([
+        FileLock::factory()->for($project, 'project')->create([
             'path' => 'src/auth.ts',
             'locked_by' => 'instance-abc123',
         ]);
@@ -103,7 +101,7 @@ class FileLockApiTest extends TestCase
         $machine = Machine::factory()->for($user)->create();
         $project = SharedProject::factory()->for($user)->for($machine)->create();
         
-        FileLock::factory()->for($project)->expired()->create([
+        FileLock::factory()->for($project, 'project')->expired()->create([
             'path' => 'src/auth.ts',
             'locked_by' => 'instance-abc123',
         ]);
@@ -125,7 +123,7 @@ class FileLockApiTest extends TestCase
         $machine = Machine::factory()->for($user)->create();
         $project = SharedProject::factory()->for($user)->for($machine)->create();
         
-        FileLock::factory()->for($project)->create([
+        FileLock::factory()->for($project, 'project')->create([
             'path' => 'src/auth.ts',
             'locked_by' => 'instance-abc123',
         ]);
@@ -152,7 +150,7 @@ class FileLockApiTest extends TestCase
         $machine = Machine::factory()->for($user)->create();
         $project = SharedProject::factory()->for($user)->create();
         
-        $lock = FileLock::factory()->for($project)->create([
+        $lock = FileLock::factory()->for($project, 'project')->create([
             'path' => 'src/auth.ts',
             'locked_by' => 'instance-abc123',
             'expires_at' => now()->addMinutes(10),
@@ -181,7 +179,7 @@ class FileLockApiTest extends TestCase
         $machine = Machine::factory()->for($user)->create();
         $project = SharedProject::factory()->for($user)->for($machine)->create();
         
-        $lock = FileLock::factory()->for($project)->create([
+        $lock = FileLock::factory()->for($project, 'project')->create([
             'path' => 'src/auth.ts',
             'locked_by' => 'instance-abc123',
         ]);
@@ -207,7 +205,7 @@ class FileLockApiTest extends TestCase
         $machine = Machine::factory()->for($user)->create();
         $project = SharedProject::factory()->for($user)->for($machine)->create();
         
-        FileLock::factory()->for($project)->create([
+        FileLock::factory()->for($project, 'project')->create([
             'path' => 'src/auth.ts',
             'locked_by' => 'instance-abc123',
         ]);
@@ -218,7 +216,9 @@ class FileLockApiTest extends TestCase
                 'instance_id' => 'instance-xyz789',
             ]);
 
-        $response->assertStatus(403);
+        // releaseLock() only releases a lock held by the requesting instance;
+        // trying to release another instance's lock finds nothing -> 404.
+        $response->assertStatus(404);
     }
 
     /** @test */
@@ -228,7 +228,7 @@ class FileLockApiTest extends TestCase
         $machine = Machine::factory()->for($user)->create();
         $project = SharedProject::factory()->for($user)->for($machine)->create();
         
-        $lock = FileLock::factory()->for($project)->create([
+        $lock = FileLock::factory()->for($project, 'project')->create([
             'path' => 'src/auth.ts',
             'locked_by' => 'instance-abc123',
         ]);
@@ -280,12 +280,12 @@ class FileLockApiTest extends TestCase
         $machine = Machine::factory()->for($user)->create();
         $project = SharedProject::factory()->for($user)->for($machine)->create();
         
-        FileLock::factory()->count(3)->for($project)->create([
+        FileLock::factory()->count(3)->for($project, 'project')->create([
             'locked_by' => 'instance-abc123',
         ]);
 
         // Another instance's lock
-        FileLock::factory()->for($project)->create([
+        FileLock::factory()->for($project, 'project')->create([
             'locked_by' => 'instance-xyz789',
         ]);
 
