@@ -20,38 +20,44 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password as PasswordRule;
 use Illuminate\Validation\ValidationException;
 use Laravel\Socialite\Facades\Socialite;
+use OpenApi\Attributes as OA;
 
 class AuthController extends Controller
 {
-    /**
-     * @OA\Get(
-     *     path="/api/auth/{provider}/redirect",
-     *     tags={"Auth"},
-     *     summary="Redirect to OAuth provider",
-     *     @OA\Parameter(
-     *         name="provider",
-     *         in="path",
-     *         required=true,
-     *         description="OAuth provider",
-     *         @OA\Schema(type="string", enum={"google", "github"})
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Redirect URL",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="redirect_url", type="string", example="https://accounts.google.com/o/oauth2/auth?...")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
-     * )
-     *
-     * Redirect to OAuth provider.
-     */
+    /** Redirect to OAuth provider. */
+    #[OA\Get(
+        path: '/api/auth/{provider}/redirect',
+        summary: 'Redirect to OAuth provider',
+        tags: ['Auth'],
+        parameters: [
+            new OA\Parameter(
+                name: 'provider',
+                in: 'path',
+                required: true,
+                description: 'OAuth provider',
+                schema: new OA\Schema(type: 'string', enum: ['google', 'github']),
+            ),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Redirect URL',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'redirect_url', type: 'string', example: 'https://accounts.google.com/o/oauth2/auth?...'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(response: 422, description: 'Validation error', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+        ],
+    )]
     public function redirect(string $provider): JsonResponse
     {
         if (!in_array($provider, ['google', 'github'])) {
@@ -75,37 +81,42 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Get(
-     *     path="/api/auth/{provider}/callback",
-     *     tags={"Auth"},
-     *     summary="Handle OAuth callback",
-     *     @OA\Parameter(
-     *         name="provider",
-     *         in="path",
-     *         required=true,
-     *         description="OAuth provider",
-     *         @OA\Schema(type="string", enum={"google", "github"})
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Authentication successful",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="user", ref="#/components/schemas/User"),
-     *                 @OA\Property(property="token", type="string"),
-     *                 @OA\Property(property="expires_at", type="string", format="date-time")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(response=401, description="Authentication failed", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
-     * )
-     *
-     * Handle OAuth callback.
-     */
+    /** Handle OAuth callback. */
+    #[OA\Get(
+        path: '/api/auth/{provider}/callback',
+        summary: 'Handle OAuth callback',
+        tags: ['Auth'],
+        parameters: [
+            new OA\Parameter(
+                name: 'provider',
+                in: 'path',
+                required: true,
+                description: 'OAuth provider',
+                schema: new OA\Schema(type: 'string', enum: ['google', 'github']),
+            ),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Authentication successful',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'user', ref: '#/components/schemas/User'),
+                                new OA\Property(property: 'token', type: 'string'),
+                                new OA\Property(property: 'expires_at', type: 'string', format: 'date-time'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(response: 401, description: 'Authentication failed', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+        ],
+    )]
     public function callback(string $provider): JsonResponse
     {
         if (!in_array($provider, ['google', 'github'])) {
@@ -164,29 +175,32 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Get(
-     *     path="/api/auth/me",
-     *     tags={"Auth"},
-     *     summary="Get current user",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Current user data",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="user", ref="#/components/schemas/User")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(response=401, description="Unauthorized", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
-     * )
-     *
-     * Get current user info.
-     */
+    /** Get current user info. */
+    #[OA\Get(
+        path: '/api/auth/me',
+        summary: 'Get current user',
+        security: [['bearerAuth' => []]],
+        tags: ['Auth'],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Current user data',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'user', ref: '#/components/schemas/User'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(response: 401, description: 'Unauthorized', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+        ],
+    )]
     public function me(Request $request): JsonResponse
     {
         return response()->json([
@@ -201,22 +215,17 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/auth/logout",
-     *     tags={"Auth"},
-     *     summary="Logout current user",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successfully logged out",
-     *         @OA\JsonContent(ref="#/components/schemas/DeletedResponse")
-     *     ),
-     *     @OA\Response(response=401, description="Unauthorized", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
-     * )
-     *
-     * Logout user.
-     */
+    /** Logout user. */
+    #[OA\Post(
+        path: '/api/auth/logout',
+        summary: 'Logout current user',
+        security: [['bearerAuth' => []]],
+        tags: ['Auth'],
+        responses: [
+            new OA\Response(response: 200, description: 'Successfully logged out', content: new OA\JsonContent(ref: '#/components/schemas/DeletedResponse')),
+            new OA\Response(response: 401, description: 'Unauthorized', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+        ],
+    )]
     public function logout(Request $request): JsonResponse
     {
         // Revoke current token. currentAccessToken() returns a TransientToken
@@ -237,42 +246,47 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/auth/tokens",
-     *     tags={"Auth"},
-     *     summary="Create personal access token",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"name"},
-     *             @OA\Property(property="name", type="string", example="My Token"),
-     *             @OA\Property(property="abilities", type="array", @OA\Items(type="string"), example={"*"}),
-     *             @OA\Property(property="expires_in_days", type="integer", example=30)
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=201,
-     *         description="Token created",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="token", type="string"),
-     *                 @OA\Property(property="name", type="string"),
-     *                 @OA\Property(property="abilities", type="array", @OA\Items(type="string")),
-     *                 @OA\Property(property="expires_at", type="string", format="date-time")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(response=401, description="Unauthorized", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
-     *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
-     * )
-     *
-     * Create a new personal access token.
-     */
+    /** Create a new personal access token. */
+    #[OA\Post(
+        path: '/api/auth/tokens',
+        summary: 'Create personal access token',
+        security: [['bearerAuth' => []]],
+        tags: ['Auth'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['name'],
+                properties: [
+                    new OA\Property(property: 'name', type: 'string', example: 'My Token'),
+                    new OA\Property(property: 'abilities', type: 'array', items: new OA\Items(type: 'string'), example: ['*']),
+                    new OA\Property(property: 'expires_in_days', type: 'integer', example: 30),
+                ],
+            ),
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'Token created',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'token', type: 'string'),
+                                new OA\Property(property: 'name', type: 'string'),
+                                new OA\Property(property: 'abilities', type: 'array', items: new OA\Items(type: 'string')),
+                                new OA\Property(property: 'expires_at', type: 'string', format: 'date-time'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(response: 401, description: 'Unauthorized', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+            new OA\Response(response: 422, description: 'Validation error', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+        ],
+    )]
     public function createToken(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -303,30 +317,27 @@ class AuthController extends Controller
         ], 201);
     }
 
-    /**
-     * @OA\Delete(
-     *     path="/api/auth/tokens/{id}",
-     *     tags={"Auth"},
-     *     summary="Revoke a personal access token",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         description="Token ID",
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Token revoked",
-     *         @OA\JsonContent(ref="#/components/schemas/DeletedResponse")
-     *     ),
-     *     @OA\Response(response=401, description="Unauthorized", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
-     *     @OA\Response(response=404, description="Token not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
-     * )
-     *
-     * Revoke a personal access token.
-     */
+    /** Revoke a personal access token. */
+    #[OA\Delete(
+        path: '/api/auth/tokens/{id}',
+        summary: 'Revoke a personal access token',
+        security: [['bearerAuth' => []]],
+        tags: ['Auth'],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                in: 'path',
+                required: true,
+                description: 'Token ID',
+                schema: new OA\Schema(type: 'string'),
+            ),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Token revoked', content: new OA\JsonContent(ref: '#/components/schemas/DeletedResponse')),
+            new OA\Response(response: 401, description: 'Unauthorized', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+            new OA\Response(response: 404, description: 'Token not found', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+        ],
+    )]
     public function revokeToken(Request $request, string $id): JsonResponse
     {
         $token = PersonalAccessToken::where('id', $id)
@@ -349,38 +360,41 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Get(
-     *     path="/api/auth/tokens",
-     *     tags={"Auth"},
-     *     summary="List personal access tokens",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Response(
-     *         response=200,
-     *         description="List of tokens",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="array",
-     *                 @OA\Items(
-     *                     type="object",
-     *                     @OA\Property(property="id", type="string"),
-     *                     @OA\Property(property="name", type="string"),
-     *                     @OA\Property(property="abilities", type="array", @OA\Items(type="string")),
-     *                     @OA\Property(property="last_used_at", type="string", format="date-time", nullable=true),
-     *                     @OA\Property(property="expires_at", type="string", format="date-time", nullable=true),
-     *                     @OA\Property(property="is_active", type="boolean"),
-     *                     @OA\Property(property="created_at", type="string", format="date-time")
-     *                 )
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(response=401, description="Unauthorized", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
-     * )
-     *
-     * List user's tokens.
-     */
+    /** List user's tokens. */
+    #[OA\Get(
+        path: '/api/auth/tokens',
+        summary: 'List personal access tokens',
+        security: [['bearerAuth' => []]],
+        tags: ['Auth'],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'List of tokens',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'array',
+                            items: new OA\Items(
+                                type: 'object',
+                                properties: [
+                                    new OA\Property(property: 'id', type: 'string'),
+                                    new OA\Property(property: 'name', type: 'string'),
+                                    new OA\Property(property: 'abilities', type: 'array', items: new OA\Items(type: 'string')),
+                                    new OA\Property(property: 'last_used_at', type: 'string', format: 'date-time', nullable: true),
+                                    new OA\Property(property: 'expires_at', type: 'string', format: 'date-time', nullable: true),
+                                    new OA\Property(property: 'is_active', type: 'boolean'),
+                                    new OA\Property(property: 'created_at', type: 'string', format: 'date-time'),
+                                ],
+                            ),
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(response: 401, description: 'Unauthorized', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+        ],
+    )]
     public function listTokens(Request $request): JsonResponse
     {
         $tokens = PersonalAccessToken::forUser($request->user()->id)
@@ -474,35 +488,38 @@ class AuthController extends Controller
         ];
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/auth/login",
-     *     tags={"Auth"},
-     *     summary="Login with email and password",
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(ref="#/components/schemas/LoginRequest")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Login successful",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="user", ref="#/components/schemas/User"),
-     *                 @OA\Property(property="token", type="string"),
-     *                 @OA\Property(property="expires_at", type="string", format="date-time")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(response=401, description="Invalid credentials", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
-     *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
-     * )
-     *
-     * Login user with email and password.
-     */
+    /** Login user with email and password. */
+    #[OA\Post(
+        path: '/api/auth/login',
+        summary: 'Login with email and password',
+        tags: ['Auth'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(ref: '#/components/schemas/LoginRequest'),
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Login successful',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'user', ref: '#/components/schemas/User'),
+                                new OA\Property(property: 'token', type: 'string'),
+                                new OA\Property(property: 'expires_at', type: 'string', format: 'date-time'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(response: 401, description: 'Invalid credentials', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+            new OA\Response(response: 422, description: 'Validation error', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+        ],
+    )]
     public function login(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -543,34 +560,37 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/auth/register",
-     *     tags={"Auth"},
-     *     summary="Register new user",
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(ref="#/components/schemas/RegisterRequest")
-     *     ),
-     *     @OA\Response(
-     *         response=201,
-     *         description="User registered successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="user", ref="#/components/schemas/User"),
-     *                 @OA\Property(property="token", type="string"),
-     *                 @OA\Property(property="expires_at", type="string", format="date-time")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
-     * )
-     *
-     * Register a new user.
-     */
+    /** Register a new user. */
+    #[OA\Post(
+        path: '/api/auth/register',
+        summary: 'Register new user',
+        tags: ['Auth'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(ref: '#/components/schemas/RegisterRequest'),
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'User registered successfully',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'user', ref: '#/components/schemas/User'),
+                                new OA\Property(property: 'token', type: 'string'),
+                                new OA\Property(property: 'expires_at', type: 'string', format: 'date-time'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(response: 422, description: 'Validation error', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+        ],
+    )]
     public function register(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -609,35 +629,40 @@ class AuthController extends Controller
         ], 201);
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/auth/forgot-password",
-     *     tags={"Auth"},
-     *     summary="Send password reset link",
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"email"},
-     *             @OA\Property(property="email", type="string", format="email", example="user@example.com")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Reset link sent",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="message", type="string", example="Password reset link sent to your email.")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
-     * )
-     *
-     * Send password reset link.
-     */
+    /** Send password reset link. */
+    #[OA\Post(
+        path: '/api/auth/forgot-password',
+        summary: 'Send password reset link',
+        tags: ['Auth'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['email'],
+                properties: [
+                    new OA\Property(property: 'email', type: 'string', format: 'email', example: 'user@example.com'),
+                ],
+            ),
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Reset link sent',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'message', type: 'string', example: 'Password reset link sent to your email.'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(response: 422, description: 'Validation error', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+        ],
+    )]
     public function forgotPassword(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -662,38 +687,43 @@ class AuthController extends Controller
         return $this->errorResponse('AUTH_003', 'Unable to send reset link', 400);
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/auth/reset-password",
-     *     tags={"Auth"},
-     *     summary="Reset password",
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"token", "email", "password", "password_confirmation"},
-     *             @OA\Property(property="token", type="string"),
-     *             @OA\Property(property="email", type="string", format="email"),
-     *             @OA\Property(property="password", type="string", format="password"),
-     *             @OA\Property(property="password_confirmation", type="string", format="password")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Password reset successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="message", type="string", example="Password has been reset successfully.")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
-     * )
-     *
-     * Reset password with token.
-     */
+    /** Reset password with token. */
+    #[OA\Post(
+        path: '/api/auth/reset-password',
+        summary: 'Reset password',
+        tags: ['Auth'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['token', 'email', 'password', 'password_confirmation'],
+                properties: [
+                    new OA\Property(property: 'token', type: 'string'),
+                    new OA\Property(property: 'email', type: 'string', format: 'email'),
+                    new OA\Property(property: 'password', type: 'string', format: 'password'),
+                    new OA\Property(property: 'password_confirmation', type: 'string', format: 'password'),
+                ],
+            ),
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Password reset successfully',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'message', type: 'string', example: 'Password has been reset successfully.'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(response: 422, description: 'Validation error', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+        ],
+    )]
     public function resetPassword(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -729,30 +759,33 @@ class AuthController extends Controller
         return $this->errorResponse('AUTH_004', 'Invalid or expired reset token', 400);
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/auth/refresh",
-     *     tags={"Auth"},
-     *     summary="Refresh current token",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Token refreshed",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="token", type="string"),
-     *                 @OA\Property(property="expires_at", type="string", format="date-time")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(response=401, description="Unauthorized", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
-     * )
-     *
-     * Refresh the current token.
-     */
+    /** Refresh the current token. */
+    #[OA\Post(
+        path: '/api/auth/refresh',
+        summary: 'Refresh current token',
+        security: [['bearerAuth' => []]],
+        tags: ['Auth'],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Token refreshed',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'token', type: 'string'),
+                                new OA\Property(property: 'expires_at', type: 'string', format: 'date-time'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(response: 401, description: 'Unauthorized', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+        ],
+    )]
     public function refresh(Request $request): JsonResponse
     {
         $user = $request->user();
@@ -786,35 +819,40 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/auth/magic-link",
-     *     tags={"Auth"},
-     *     summary="Send magic link",
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"email"},
-     *             @OA\Property(property="email", type="string", format="email", example="user@example.com")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Magic link sent (or silently ignored if email not found)",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="message", type="string")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
-     * )
-     *
-     * Send a magic link to the given email address.
-     */
+    /** Send a magic link to the given email address. */
+    #[OA\Post(
+        path: '/api/auth/magic-link',
+        summary: 'Send magic link',
+        tags: ['Auth'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['email'],
+                properties: [
+                    new OA\Property(property: 'email', type: 'string', format: 'email', example: 'user@example.com'),
+                ],
+            ),
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Magic link sent (or silently ignored if email not found)',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'message', type: 'string'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(response: 422, description: 'Validation error', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+        ],
+    )]
     public function magicLink(Request $request): JsonResponse
     {
         $request->validate([
@@ -874,38 +912,43 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/auth/magic-link/verify",
-     *     tags={"Auth"},
-     *     summary="Verify magic link",
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"token"},
-     *             @OA\Property(property="token", type="string", example="abc123...")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Authentication successful",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="user", ref="#/components/schemas/User"),
-     *                 @OA\Property(property="token", type="string"),
-     *                 @OA\Property(property="expires_at", type="string", format="date-time")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(response=401, description="Invalid or expired magic link", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
-     *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
-     * )
-     *
-     * Verify a magic link token and authenticate the user.
-     */
+    /** Verify a magic link token and authenticate the user. */
+    #[OA\Post(
+        path: '/api/auth/magic-link/verify',
+        summary: 'Verify magic link',
+        tags: ['Auth'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['token'],
+                properties: [
+                    new OA\Property(property: 'token', type: 'string', example: 'abc123...'),
+                ],
+            ),
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Authentication successful',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'user', ref: '#/components/schemas/User'),
+                                new OA\Property(property: 'token', type: 'string'),
+                                new OA\Property(property: 'expires_at', type: 'string', format: 'date-time'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(response: 401, description: 'Invalid or expired magic link', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+            new OA\Response(response: 422, description: 'Validation error', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+        ],
+    )]
     public function magicLinkVerify(Request $request): JsonResponse
     {
         $request->validate([

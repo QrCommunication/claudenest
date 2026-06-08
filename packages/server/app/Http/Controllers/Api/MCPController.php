@@ -10,13 +10,12 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Events\MachineCommand;
 use Illuminate\Support\Facades\Log;
+use OpenApi\Attributes as OA;
 
-/**
- * @OA\Tag(
- *     name="MCP Servers",
- *     description="Manage Model Context Protocol servers on machines"
- * )
- */
+#[OA\Tag(
+    name: 'MCP Servers',
+    description: 'Manage Model Context Protocol servers on machines',
+)]
 class MCPController extends Controller
 {
     /**
@@ -25,77 +24,68 @@ class MCPController extends Controller
      * Returns all MCP servers registered on the given machine, with optional
      * filtering by status and transport type. Includes aggregate statistics
      * (total, running, stopped, error counts, total tools).
-     *
-     * @OA\Get(
-     *     path="/api/machines/{machineId}/mcp",
-     *     operationId="listMCPServers",
-     *     tags={"MCP Servers"},
-     *     summary="List MCP servers for a machine",
-     *     description="Retrieve all MCP servers registered on the specified machine with optional status/transport filters and aggregate stats.",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="machineId",
-     *         in="path",
-     *         required=true,
-     *         description="UUID of the machine",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\Parameter(
-     *         name="status",
-     *         in="query",
-     *         required=false,
-     *         description="Filter by server status",
-     *         @OA\Schema(type="string", enum={"running","stopped","starting","stopping","error"})
-     *     ),
-     *     @OA\Parameter(
-     *         name="transport",
-     *         in="query",
-     *         required=false,
-     *         description="Filter by transport type",
-     *         @OA\Schema(type="string", enum={"stdio","sse","http","websocket"})
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="List of MCP servers with aggregate stats",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="array",
-     *                 @OA\Items(ref="#/components/schemas/MCPServer")
-     *             ),
-     *             @OA\Property(
-     *                 property="meta",
-     *                 type="object",
-     *                 @OA\Property(property="timestamp", type="string", format="date-time"),
-     *                 @OA\Property(property="request_id", type="string"),
-     *                 @OA\Property(
-     *                     property="stats",
-     *                     type="object",
-     *                     @OA\Property(property="total", type="integer", example=5),
-     *                     @OA\Property(property="running", type="integer", example=2),
-     *                     @OA\Property(property="stopped", type="integer", example=2),
-     *                     @OA\Property(property="error", type="integer", example=1),
-     *                     @OA\Property(property="total_tools", type="integer", example=14)
-     *                 )
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Machine not found",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(
-     *                 property="error",
-     *                 type="object",
-     *                 @OA\Property(property="code", type="string", example="MCP_001"),
-     *                 @OA\Property(property="message", type="string", example="Machine not found")
-     *             )
-     *         )
-     *     )
-     * )
      */
+    #[OA\Get(
+        path: '/api/machines/{machineId}/mcp',
+        operationId: 'listMCPServers',
+        summary: 'List MCP servers for a machine',
+        description: 'Retrieve all MCP servers registered on the specified machine with optional status/transport filters and aggregate stats.',
+        security: [['bearerAuth' => []]],
+        tags: ['MCP Servers'],
+        parameters: [
+            new OA\Parameter(name: 'machineId', in: 'path', required: true, description: 'UUID of the machine', schema: new OA\Schema(type: 'string', format: 'uuid')),
+            new OA\Parameter(name: 'status', in: 'query', required: false, description: 'Filter by server status', schema: new OA\Schema(type: 'string', enum: ['running', 'stopped', 'starting', 'stopping', 'error'])),
+            new OA\Parameter(name: 'transport', in: 'query', required: false, description: 'Filter by transport type', schema: new OA\Schema(type: 'string', enum: ['stdio', 'sse', 'http', 'websocket'])),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'List of MCP servers with aggregate stats',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(property: 'data', type: 'array', items: new OA\Items(ref: '#/components/schemas/MCPServer')),
+                        new OA\Property(
+                            property: 'meta',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'timestamp', type: 'string', format: 'date-time'),
+                                new OA\Property(property: 'request_id', type: 'string'),
+                                new OA\Property(
+                                    property: 'stats',
+                                    type: 'object',
+                                    properties: [
+                                        new OA\Property(property: 'total', type: 'integer', example: 5),
+                                        new OA\Property(property: 'running', type: 'integer', example: 2),
+                                        new OA\Property(property: 'stopped', type: 'integer', example: 2),
+                                        new OA\Property(property: 'error', type: 'integer', example: 1),
+                                        new OA\Property(property: 'total_tools', type: 'integer', example: 14),
+                                    ],
+                                ),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'Machine not found',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: false),
+                        new OA\Property(
+                            property: 'error',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'MCP_001'),
+                                new OA\Property(property: 'message', type: 'string', example: 'Machine not found'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+        ],
+    )]
     public function index(Request $request, string $machine): JsonResponse
     {
         $machineModel = Machine::findOrFail($machine);
@@ -143,57 +133,56 @@ class MCPController extends Controller
      *
      * Returns the full configuration, status, tools, and metadata for a single
      * MCP server identified by its unique name on the machine.
-     *
-     * @OA\Get(
-     *     path="/api/machines/{machineId}/mcp/{name}",
-     *     operationId="getMCPServer",
-     *     tags={"MCP Servers"},
-     *     summary="Get MCP server details",
-     *     description="Retrieve full details for a specific MCP server by name, including configuration, status, tools, and timestamps.",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="machineId",
-     *         in="path",
-     *         required=true,
-     *         description="UUID of the machine",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\Parameter(
-     *         name="name",
-     *         in="path",
-     *         required=true,
-     *         description="Unique name of the MCP server on this machine",
-     *         @OA\Schema(type="string", example="filesystem-server")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="MCP server details",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="data", ref="#/components/schemas/MCPServer"),
-     *             @OA\Property(
-     *                 property="meta",
-     *                 type="object",
-     *                 @OA\Property(property="timestamp", type="string", format="date-time"),
-     *                 @OA\Property(property="request_id", type="string")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Machine or MCP server not found",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(
-     *                 property="error",
-     *                 type="object",
-     *                 @OA\Property(property="code", type="string", example="MCP_002"),
-     *                 @OA\Property(property="message", type="string", example="MCP server not found")
-     *             )
-     *         )
-     *     )
-     * )
      */
+    #[OA\Get(
+        path: '/api/machines/{machineId}/mcp/{name}',
+        operationId: 'getMCPServer',
+        summary: 'Get MCP server details',
+        description: 'Retrieve full details for a specific MCP server by name, including configuration, status, tools, and timestamps.',
+        security: [['bearerAuth' => []]],
+        tags: ['MCP Servers'],
+        parameters: [
+            new OA\Parameter(name: 'machineId', in: 'path', required: true, description: 'UUID of the machine', schema: new OA\Schema(type: 'string', format: 'uuid')),
+            new OA\Parameter(name: 'name', in: 'path', required: true, description: 'Unique name of the MCP server on this machine', schema: new OA\Schema(type: 'string', example: 'filesystem-server')),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'MCP server details',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(property: 'data', ref: '#/components/schemas/MCPServer'),
+                        new OA\Property(
+                            property: 'meta',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'timestamp', type: 'string', format: 'date-time'),
+                                new OA\Property(property: 'request_id', type: 'string'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'Machine or MCP server not found',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: false),
+                        new OA\Property(
+                            property: 'error',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'MCP_002'),
+                                new OA\Property(property: 'message', type: 'string', example: 'MCP server not found'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+        ],
+    )]
     public function show(Request $request, string $machine, string $name): JsonResponse
     {
         $machineModel = Machine::findOrFail($machine);
@@ -223,85 +212,98 @@ class MCPController extends Controller
      * Creates a new MCP server registration with the given configuration.
      * The server starts in "stopped" status and must be explicitly started
      * via the start endpoint. Server names must be unique per machine.
-     *
-     * @OA\Post(
-     *     path="/api/machines/{machineId}/mcp",
-     *     operationId="registerMCPServer",
-     *     tags={"MCP Servers"},
-     *     summary="Register an MCP server",
-     *     description="Register a new MCP server on the machine. The server is created in 'stopped' status. Names must be unique per machine.",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="machineId",
-     *         in="path",
-     *         required=true,
-     *         description="UUID of the machine",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"name", "transport"},
-     *             @OA\Property(property="name", type="string", maxLength=255, example="filesystem-server", description="Unique server name on this machine"),
-     *             @OA\Property(property="display_name", type="string", maxLength=255, nullable=true, example="Filesystem MCP", description="Human-readable display name"),
-     *             @OA\Property(property="description", type="string", nullable=true, example="Provides file read/write tools", description="Server description"),
-     *             @OA\Property(property="transport", type="string", enum={"stdio","sse","http","websocket"}, example="stdio", description="Transport protocol"),
-     *             @OA\Property(property="command", type="string", nullable=true, example="npx -y @modelcontextprotocol/server-filesystem /tmp", description="Command to start the server (required for stdio transport)"),
-     *             @OA\Property(property="url", type="string", format="url", nullable=true, example="http://localhost:3001/sse", description="Server URL (required for sse/http/websocket transports)"),
-     *             @OA\Property(property="env_vars", type="object", nullable=true, example={"NODE_ENV": "production"}, description="Environment variables passed to the server process"),
-     *             @OA\Property(property="config", type="object", nullable=true, example={"timeout": 30}, description="Additional configuration")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=201,
-     *         description="MCP server registered successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="data", ref="#/components/schemas/MCPServer"),
-     *             @OA\Property(
-     *                 property="meta",
-     *                 type="object",
-     *                 @OA\Property(property="timestamp", type="string", format="date-time"),
-     *                 @OA\Property(property="request_id", type="string")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Machine not found",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(
-     *                 property="error",
-     *                 type="object",
-     *                 @OA\Property(property="code", type="string", example="MCP_001"),
-     *                 @OA\Property(property="message", type="string", example="Machine not found")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=409,
-     *         description="Server name already exists on this machine",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(
-     *                 property="error",
-     *                 type="object",
-     *                 @OA\Property(property="code", type="string", example="MCP_003"),
-     *                 @OA\Property(property="message", type="string", example="MCP server with this name already exists")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="The name field is required."),
-     *             @OA\Property(property="errors", type="object")
-     *         )
-     *     )
-     * )
      */
+    #[OA\Post(
+        path: '/api/machines/{machineId}/mcp',
+        operationId: 'registerMCPServer',
+        summary: 'Register an MCP server',
+        description: "Register a new MCP server on the machine. The server is created in 'stopped' status. Names must be unique per machine.",
+        security: [['bearerAuth' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['name', 'transport'],
+                properties: [
+                    new OA\Property(property: 'name', type: 'string', maxLength: 255, example: 'filesystem-server', description: 'Unique server name on this machine'),
+                    new OA\Property(property: 'display_name', type: 'string', maxLength: 255, nullable: true, example: 'Filesystem MCP', description: 'Human-readable display name'),
+                    new OA\Property(property: 'description', type: 'string', nullable: true, example: 'Provides file read/write tools', description: 'Server description'),
+                    new OA\Property(property: 'transport', type: 'string', enum: ['stdio', 'sse', 'http', 'websocket'], example: 'stdio', description: 'Transport protocol'),
+                    new OA\Property(property: 'command', type: 'string', nullable: true, example: 'npx -y @modelcontextprotocol/server-filesystem /tmp', description: 'Command to start the server (required for stdio transport)'),
+                    new OA\Property(property: 'url', type: 'string', format: 'url', nullable: true, example: 'http://localhost:3001/sse', description: 'Server URL (required for sse/http/websocket transports)'),
+                    new OA\Property(property: 'env_vars', type: 'object', nullable: true, example: ['NODE_ENV' => 'production'], description: 'Environment variables passed to the server process'),
+                    new OA\Property(property: 'config', type: 'object', nullable: true, example: ['timeout' => 30], description: 'Additional configuration'),
+                ],
+            ),
+        ),
+        tags: ['MCP Servers'],
+        parameters: [
+            new OA\Parameter(name: 'machineId', in: 'path', required: true, description: 'UUID of the machine', schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'MCP server registered successfully',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(property: 'data', ref: '#/components/schemas/MCPServer'),
+                        new OA\Property(
+                            property: 'meta',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'timestamp', type: 'string', format: 'date-time'),
+                                new OA\Property(property: 'request_id', type: 'string'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'Machine not found',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: false),
+                        new OA\Property(
+                            property: 'error',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'MCP_001'),
+                                new OA\Property(property: 'message', type: 'string', example: 'Machine not found'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(
+                response: 409,
+                description: 'Server name already exists on this machine',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: false),
+                        new OA\Property(
+                            property: 'error',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'MCP_003'),
+                                new OA\Property(property: 'message', type: 'string', example: 'MCP server with this name already exists'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(
+                response: 422,
+                description: 'Validation error',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'message', type: 'string', example: 'The name field is required.'),
+                        new OA\Property(property: 'errors', type: 'object'),
+                    ],
+                ),
+            ),
+        ],
+    )]
     public function store(Request $request, string $machine): JsonResponse
     {
         $machineModel = Machine::findOrFail($machine);
@@ -359,76 +361,81 @@ class MCPController extends Controller
      * The server is immediately marked as "starting"; the agent will update
      * the status to "running" (or "error") asynchronously once the process
      * has actually started.
-     *
-     * @OA\Post(
-     *     path="/api/machines/{machineId}/mcp/{name}/start",
-     *     operationId="startMCPServer",
-     *     tags={"MCP Servers"},
-     *     summary="Start an MCP server",
-     *     description="Dispatch a start command to the agent. The server transitions to 'starting' immediately; the agent updates to 'running' or 'error' asynchronously.",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="machineId",
-     *         in="path",
-     *         required=true,
-     *         description="UUID of the machine",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\Parameter(
-     *         name="name",
-     *         in="path",
-     *         required=true,
-     *         description="Unique name of the MCP server",
-     *         @OA\Schema(type="string", example="filesystem-server")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Start command dispatched successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="message", type="string", example="MCP server start initiated"),
-     *                 @OA\Property(property="status", type="string", example="starting"),
-     *                 @OA\Property(property="server", ref="#/components/schemas/MCPServer")
-     *             ),
-     *             @OA\Property(
-     *                 property="meta",
-     *                 type="object",
-     *                 @OA\Property(property="timestamp", type="string", format="date-time"),
-     *                 @OA\Property(property="request_id", type="string")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=400,
-     *         description="Server is already running",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(
-     *                 property="error",
-     *                 type="object",
-     *                 @OA\Property(property="code", type="string", example="MCP_004"),
-     *                 @OA\Property(property="message", type="string", example="MCP server is already running")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Machine or MCP server not found",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(
-     *                 property="error",
-     *                 type="object",
-     *                 @OA\Property(property="code", type="string", example="MCP_002"),
-     *                 @OA\Property(property="message", type="string", example="MCP server not found")
-     *             )
-     *         )
-     *     )
-     * )
      */
+    #[OA\Post(
+        path: '/api/machines/{machineId}/mcp/{name}/start',
+        operationId: 'startMCPServer',
+        summary: 'Start an MCP server',
+        description: "Dispatch a start command to the agent. The server transitions to 'starting' immediately; the agent updates to 'running' or 'error' asynchronously.",
+        security: [['bearerAuth' => []]],
+        tags: ['MCP Servers'],
+        parameters: [
+            new OA\Parameter(name: 'machineId', in: 'path', required: true, description: 'UUID of the machine', schema: new OA\Schema(type: 'string', format: 'uuid')),
+            new OA\Parameter(name: 'name', in: 'path', required: true, description: 'Unique name of the MCP server', schema: new OA\Schema(type: 'string', example: 'filesystem-server')),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Start command dispatched successfully',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'message', type: 'string', example: 'MCP server start initiated'),
+                                new OA\Property(property: 'status', type: 'string', example: 'starting'),
+                                new OA\Property(property: 'server', ref: '#/components/schemas/MCPServer'),
+                            ],
+                        ),
+                        new OA\Property(
+                            property: 'meta',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'timestamp', type: 'string', format: 'date-time'),
+                                new OA\Property(property: 'request_id', type: 'string'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(
+                response: 400,
+                description: 'Server is already running',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: false),
+                        new OA\Property(
+                            property: 'error',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'MCP_004'),
+                                new OA\Property(property: 'message', type: 'string', example: 'MCP server is already running'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'Machine or MCP server not found',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: false),
+                        new OA\Property(
+                            property: 'error',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'MCP_002'),
+                                new OA\Property(property: 'message', type: 'string', example: 'MCP server not found'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+        ],
+    )]
     public function start(Request $request, string $machine, string $name): JsonResponse
     {
         $machineModel = Machine::findOrFail($machine);
@@ -437,7 +444,7 @@ class MCPController extends Controller
         $server = MCPServer::forMachine($machineModel->id)
             ->where('name', $name)
             ->firstOrFail();
-        
+
         $this->authorize('start', $server);
 
         // Check if already running
@@ -480,76 +487,81 @@ class MCPController extends Controller
      * "mcp:stop" command to the machine's agent via WebSocket broadcast.
      * The server is immediately marked as "stopping"; the agent will update
      * the status to "stopped" asynchronously once the process has terminated.
-     *
-     * @OA\Post(
-     *     path="/api/machines/{machineId}/mcp/{name}/stop",
-     *     operationId="stopMCPServer",
-     *     tags={"MCP Servers"},
-     *     summary="Stop an MCP server",
-     *     description="Dispatch a stop command to the agent. The server transitions to 'stopping' immediately; the agent updates to 'stopped' asynchronously.",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="machineId",
-     *         in="path",
-     *         required=true,
-     *         description="UUID of the machine",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\Parameter(
-     *         name="name",
-     *         in="path",
-     *         required=true,
-     *         description="Unique name of the MCP server",
-     *         @OA\Schema(type="string", example="filesystem-server")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Stop command dispatched successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="message", type="string", example="MCP server stop initiated"),
-     *                 @OA\Property(property="status", type="string", example="stopping"),
-     *                 @OA\Property(property="server", ref="#/components/schemas/MCPServer")
-     *             ),
-     *             @OA\Property(
-     *                 property="meta",
-     *                 type="object",
-     *                 @OA\Property(property="timestamp", type="string", format="date-time"),
-     *                 @OA\Property(property="request_id", type="string")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=400,
-     *         description="Server is already stopped",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(
-     *                 property="error",
-     *                 type="object",
-     *                 @OA\Property(property="code", type="string", example="MCP_005"),
-     *                 @OA\Property(property="message", type="string", example="MCP server is already stopped")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Machine or MCP server not found",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(
-     *                 property="error",
-     *                 type="object",
-     *                 @OA\Property(property="code", type="string", example="MCP_002"),
-     *                 @OA\Property(property="message", type="string", example="MCP server not found")
-     *             )
-     *         )
-     *     )
-     * )
      */
+    #[OA\Post(
+        path: '/api/machines/{machineId}/mcp/{name}/stop',
+        operationId: 'stopMCPServer',
+        summary: 'Stop an MCP server',
+        description: "Dispatch a stop command to the agent. The server transitions to 'stopping' immediately; the agent updates to 'stopped' asynchronously.",
+        security: [['bearerAuth' => []]],
+        tags: ['MCP Servers'],
+        parameters: [
+            new OA\Parameter(name: 'machineId', in: 'path', required: true, description: 'UUID of the machine', schema: new OA\Schema(type: 'string', format: 'uuid')),
+            new OA\Parameter(name: 'name', in: 'path', required: true, description: 'Unique name of the MCP server', schema: new OA\Schema(type: 'string', example: 'filesystem-server')),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Stop command dispatched successfully',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'message', type: 'string', example: 'MCP server stop initiated'),
+                                new OA\Property(property: 'status', type: 'string', example: 'stopping'),
+                                new OA\Property(property: 'server', ref: '#/components/schemas/MCPServer'),
+                            ],
+                        ),
+                        new OA\Property(
+                            property: 'meta',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'timestamp', type: 'string', format: 'date-time'),
+                                new OA\Property(property: 'request_id', type: 'string'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(
+                response: 400,
+                description: 'Server is already stopped',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: false),
+                        new OA\Property(
+                            property: 'error',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'MCP_005'),
+                                new OA\Property(property: 'message', type: 'string', example: 'MCP server is already stopped'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'Machine or MCP server not found',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: false),
+                        new OA\Property(
+                            property: 'error',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'MCP_002'),
+                                new OA\Property(property: 'message', type: 'string', example: 'MCP server not found'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+        ],
+    )]
     public function stop(Request $request, string $machine, string $name): JsonResponse
     {
         $machineModel = Machine::findOrFail($machine);
@@ -558,7 +570,7 @@ class MCPController extends Controller
         $server = MCPServer::forMachine($machineModel->id)
             ->where('name', $name)
             ->firstOrFail();
-        
+
         $this->authorize('stop', $server);
 
         // Check if already stopped
@@ -599,73 +611,76 @@ class MCPController extends Controller
      * Returns the cached tool list for the server. If the server is running,
      * a fresh "mcp:list_tools" discovery command is also dispatched to the
      * agent; the agent will update the tool list asynchronously via WebSocket.
-     *
-     * @OA\Get(
-     *     path="/api/machines/{machineId}/mcp/{name}/tools",
-     *     operationId="listMCPServerTools",
-     *     tags={"MCP Servers"},
-     *     summary="List tools for an MCP server",
-     *     description="Return cached tools for the server. If the server is running, a fresh discovery request is dispatched to the agent asynchronously.",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="machineId",
-     *         in="path",
-     *         required=true,
-     *         description="UUID of the machine",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\Parameter(
-     *         name="name",
-     *         in="path",
-     *         required=true,
-     *         description="Unique name of the MCP server",
-     *         @OA\Schema(type="string", example="filesystem-server")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Tool list (possibly cached)",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="server", ref="#/components/schemas/MCPServer"),
-     *                 @OA\Property(
-     *                     property="tools",
-     *                     type="array",
-     *                     @OA\Items(
-     *                         type="object",
-     *                         @OA\Property(property="name", type="string", example="read_file"),
-     *                         @OA\Property(property="description", type="string", example="Read a file from disk"),
-     *                         @OA\Property(property="parameters", type="object")
-     *                     )
-     *                 ),
-     *                 @OA\Property(property="count", type="integer", example=5),
-     *                 @OA\Property(property="fresh_data_requested", type="boolean", example=true, description="Whether an async tool refresh was dispatched to the agent")
-     *             ),
-     *             @OA\Property(
-     *                 property="meta",
-     *                 type="object",
-     *                 @OA\Property(property="timestamp", type="string", format="date-time"),
-     *                 @OA\Property(property="request_id", type="string")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Machine or MCP server not found",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(
-     *                 property="error",
-     *                 type="object",
-     *                 @OA\Property(property="code", type="string", example="MCP_002"),
-     *                 @OA\Property(property="message", type="string", example="MCP server not found")
-     *             )
-     *         )
-     *     )
-     * )
      */
+    #[OA\Get(
+        path: '/api/machines/{machineId}/mcp/{name}/tools',
+        operationId: 'listMCPServerTools',
+        summary: 'List tools for an MCP server',
+        description: 'Return cached tools for the server. If the server is running, a fresh discovery request is dispatched to the agent asynchronously.',
+        security: [['bearerAuth' => []]],
+        tags: ['MCP Servers'],
+        parameters: [
+            new OA\Parameter(name: 'machineId', in: 'path', required: true, description: 'UUID of the machine', schema: new OA\Schema(type: 'string', format: 'uuid')),
+            new OA\Parameter(name: 'name', in: 'path', required: true, description: 'Unique name of the MCP server', schema: new OA\Schema(type: 'string', example: 'filesystem-server')),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Tool list (possibly cached)',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'server', ref: '#/components/schemas/MCPServer'),
+                                new OA\Property(
+                                    property: 'tools',
+                                    type: 'array',
+                                    items: new OA\Items(
+                                        type: 'object',
+                                        properties: [
+                                            new OA\Property(property: 'name', type: 'string', example: 'read_file'),
+                                            new OA\Property(property: 'description', type: 'string', example: 'Read a file from disk'),
+                                            new OA\Property(property: 'parameters', type: 'object'),
+                                        ],
+                                    ),
+                                ),
+                                new OA\Property(property: 'count', type: 'integer', example: 5),
+                                new OA\Property(property: 'fresh_data_requested', type: 'boolean', example: true, description: 'Whether an async tool refresh was dispatched to the agent'),
+                            ],
+                        ),
+                        new OA\Property(
+                            property: 'meta',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'timestamp', type: 'string', format: 'date-time'),
+                                new OA\Property(property: 'request_id', type: 'string'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'Machine or MCP server not found',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: false),
+                        new OA\Property(
+                            property: 'error',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'MCP_002'),
+                                new OA\Property(property: 'message', type: 'string', example: 'MCP server not found'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+        ],
+    )]
     public function tools(Request $request, string $machine, string $name): JsonResponse
     {
         $machineModel = Machine::findOrFail($machine);
@@ -710,76 +725,79 @@ class MCPController extends Controller
      * command, url, env_vars, config) for the specified MCP server.
      * The transport type cannot be changed after creation — the server
      * must be deleted and re-created with the new transport.
-     *
-     * @OA\Patch(
-     *     path="/api/machines/{machineId}/mcp/{name}",
-     *     operationId="updateMCPServer",
-     *     tags={"MCP Servers"},
-     *     summary="Update MCP server configuration",
-     *     description="Update mutable fields of an MCP server. Transport type cannot be changed (delete and recreate instead).",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="machineId",
-     *         in="path",
-     *         required=true,
-     *         description="UUID of the machine",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\Parameter(
-     *         name="name",
-     *         in="path",
-     *         required=true,
-     *         description="Unique name of the MCP server",
-     *         @OA\Schema(type="string", example="filesystem-server")
-     *     ),
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             @OA\Property(property="display_name", type="string", maxLength=255, nullable=true, example="Filesystem MCP v2"),
-     *             @OA\Property(property="description", type="string", nullable=true, example="Updated description"),
-     *             @OA\Property(property="command", type="string", nullable=true, example="npx -y @modelcontextprotocol/server-filesystem /home"),
-     *             @OA\Property(property="url", type="string", format="url", nullable=true, example="http://localhost:3002/sse"),
-     *             @OA\Property(property="env_vars", type="object", nullable=true, example={"NODE_ENV": "development"}),
-     *             @OA\Property(property="config", type="object", nullable=true, example={"timeout": 60})
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="MCP server updated successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="data", ref="#/components/schemas/MCPServer"),
-     *             @OA\Property(
-     *                 property="meta",
-     *                 type="object",
-     *                 @OA\Property(property="timestamp", type="string", format="date-time"),
-     *                 @OA\Property(property="request_id", type="string")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Machine or MCP server not found",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(
-     *                 property="error",
-     *                 type="object",
-     *                 @OA\Property(property="code", type="string", example="MCP_002"),
-     *                 @OA\Property(property="message", type="string", example="MCP server not found")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string"),
-     *             @OA\Property(property="errors", type="object")
-     *         )
-     *     )
-     * )
      */
+    #[OA\Patch(
+        path: '/api/machines/{machineId}/mcp/{name}',
+        operationId: 'updateMCPServer',
+        summary: 'Update MCP server configuration',
+        description: 'Update mutable fields of an MCP server. Transport type cannot be changed (delete and recreate instead).',
+        security: [['bearerAuth' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'display_name', type: 'string', maxLength: 255, nullable: true, example: 'Filesystem MCP v2'),
+                    new OA\Property(property: 'description', type: 'string', nullable: true, example: 'Updated description'),
+                    new OA\Property(property: 'command', type: 'string', nullable: true, example: 'npx -y @modelcontextprotocol/server-filesystem /home'),
+                    new OA\Property(property: 'url', type: 'string', format: 'url', nullable: true, example: 'http://localhost:3002/sse'),
+                    new OA\Property(property: 'env_vars', type: 'object', nullable: true, example: ['NODE_ENV' => 'development']),
+                    new OA\Property(property: 'config', type: 'object', nullable: true, example: ['timeout' => 60]),
+                ],
+            ),
+        ),
+        tags: ['MCP Servers'],
+        parameters: [
+            new OA\Parameter(name: 'machineId', in: 'path', required: true, description: 'UUID of the machine', schema: new OA\Schema(type: 'string', format: 'uuid')),
+            new OA\Parameter(name: 'name', in: 'path', required: true, description: 'Unique name of the MCP server', schema: new OA\Schema(type: 'string', example: 'filesystem-server')),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'MCP server updated successfully',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(property: 'data', ref: '#/components/schemas/MCPServer'),
+                        new OA\Property(
+                            property: 'meta',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'timestamp', type: 'string', format: 'date-time'),
+                                new OA\Property(property: 'request_id', type: 'string'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'Machine or MCP server not found',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: false),
+                        new OA\Property(
+                            property: 'error',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'MCP_002'),
+                                new OA\Property(property: 'message', type: 'string', example: 'MCP server not found'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(
+                response: 422,
+                description: 'Validation error',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'message', type: 'string'),
+                        new OA\Property(property: 'errors', type: 'object'),
+                    ],
+                ),
+            ),
+        ],
+    )]
     public function update(Request $request, string $machine, string $name): JsonResponse
     {
         $machineModel = Machine::findOrFail($machine);
@@ -788,7 +806,7 @@ class MCPController extends Controller
         $server = MCPServer::forMachine($machineModel->id)
             ->where('name', $name)
             ->firstOrFail();
-        
+
         $this->authorize('update', $server);
 
         $validated = $request->validate([
@@ -822,57 +840,56 @@ class MCPController extends Controller
      * is currently running, it is marked as stopped before deletion.
      * This does not send a stop command to the agent — the agent should
      * detect the removal on the next sync.
-     *
-     * @OA\Delete(
-     *     path="/api/machines/{machineId}/mcp/{name}",
-     *     operationId="deleteMCPServer",
-     *     tags={"MCP Servers"},
-     *     summary="Delete an MCP server",
-     *     description="Remove the MCP server registration. If running, it is marked as stopped before deletion. The agent detects removal on next sync.",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="machineId",
-     *         in="path",
-     *         required=true,
-     *         description="UUID of the machine",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\Parameter(
-     *         name="name",
-     *         in="path",
-     *         required=true,
-     *         description="Unique name of the MCP server",
-     *         @OA\Schema(type="string", example="filesystem-server")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="MCP server deleted successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="data", type="null", example=null),
-     *             @OA\Property(
-     *                 property="meta",
-     *                 type="object",
-     *                 @OA\Property(property="timestamp", type="string", format="date-time"),
-     *                 @OA\Property(property="request_id", type="string")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Machine or MCP server not found",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(
-     *                 property="error",
-     *                 type="object",
-     *                 @OA\Property(property="code", type="string", example="MCP_002"),
-     *                 @OA\Property(property="message", type="string", example="MCP server not found")
-     *             )
-     *         )
-     *     )
-     * )
      */
+    #[OA\Delete(
+        path: '/api/machines/{machineId}/mcp/{name}',
+        operationId: 'deleteMCPServer',
+        summary: 'Delete an MCP server',
+        description: 'Remove the MCP server registration. If running, it is marked as stopped before deletion. The agent detects removal on next sync.',
+        security: [['bearerAuth' => []]],
+        tags: ['MCP Servers'],
+        parameters: [
+            new OA\Parameter(name: 'machineId', in: 'path', required: true, description: 'UUID of the machine', schema: new OA\Schema(type: 'string', format: 'uuid')),
+            new OA\Parameter(name: 'name', in: 'path', required: true, description: 'Unique name of the MCP server', schema: new OA\Schema(type: 'string', example: 'filesystem-server')),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'MCP server deleted successfully',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(property: 'data', type: 'null', example: null),
+                        new OA\Property(
+                            property: 'meta',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'timestamp', type: 'string', format: 'date-time'),
+                                new OA\Property(property: 'request_id', type: 'string'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'Machine or MCP server not found',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: false),
+                        new OA\Property(
+                            property: 'error',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'MCP_002'),
+                                new OA\Property(property: 'message', type: 'string', example: 'MCP server not found'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+        ],
+    )]
     public function destroy(Request $request, string $machine, string $name): JsonResponse
     {
         $machineModel = Machine::findOrFail($machine);
@@ -881,7 +898,7 @@ class MCPController extends Controller
         $server = MCPServer::forMachine($machineModel->id)
             ->where('name', $name)
             ->firstOrFail();
-        
+
         $this->authorize('delete', $server);
 
         // Stop if running before deletion
@@ -907,72 +924,83 @@ class MCPController extends Controller
      * Aggregates tools from every MCP server that is currently in "running"
      * status on the machine. Each tool entry includes a reference to its
      * parent server (id, name, display_name) for disambiguation.
-     *
-     * @OA\Get(
-     *     path="/api/machines/{machineId}/mcp/all-tools",
-     *     operationId="listAllMCPTools",
-     *     tags={"MCP Servers"},
-     *     summary="List all tools across running MCP servers",
-     *     description="Aggregate tools from all running MCP servers on the machine. Each tool includes a server reference for disambiguation.",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="machineId",
-     *         in="path",
-     *         required=true,
-     *         description="UUID of the machine",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Aggregated tool list from all running servers",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(
-     *                     property="tools",
-     *                     type="array",
-     *                     @OA\Items(
-     *                         type="object",
-     *                         @OA\Property(property="name", type="string", example="read_file"),
-     *                         @OA\Property(property="description", type="string", example="Read a file from disk"),
-     *                         @OA\Property(property="parameters", type="object"),
-     *                         @OA\Property(
-     *                             property="server",
-     *                             type="object",
-     *                             @OA\Property(property="id", type="string", format="uuid"),
-     *                             @OA\Property(property="name", type="string", example="filesystem-server"),
-     *                             @OA\Property(property="display_name", type="string", example="Filesystem MCP")
-     *                         )
-     *                     )
-     *                 ),
-     *                 @OA\Property(property="count", type="integer", example=14),
-     *                 @OA\Property(property="servers_count", type="integer", example=3)
-     *             ),
-     *             @OA\Property(
-     *                 property="meta",
-     *                 type="object",
-     *                 @OA\Property(property="timestamp", type="string", format="date-time"),
-     *                 @OA\Property(property="request_id", type="string")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Machine not found",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(
-     *                 property="error",
-     *                 type="object",
-     *                 @OA\Property(property="code", type="string", example="MCP_001"),
-     *                 @OA\Property(property="message", type="string", example="Machine not found")
-     *             )
-     *         )
-     *     )
-     * )
      */
+    #[OA\Get(
+        path: '/api/machines/{machineId}/mcp/all-tools',
+        operationId: 'listAllMCPTools',
+        summary: 'List all tools across running MCP servers',
+        description: 'Aggregate tools from all running MCP servers on the machine. Each tool includes a server reference for disambiguation.',
+        security: [['bearerAuth' => []]],
+        tags: ['MCP Servers'],
+        parameters: [
+            new OA\Parameter(name: 'machineId', in: 'path', required: true, description: 'UUID of the machine', schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Aggregated tool list from all running servers',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(
+                                    property: 'tools',
+                                    type: 'array',
+                                    items: new OA\Items(
+                                        type: 'object',
+                                        properties: [
+                                            new OA\Property(property: 'name', type: 'string', example: 'read_file'),
+                                            new OA\Property(property: 'description', type: 'string', example: 'Read a file from disk'),
+                                            new OA\Property(property: 'parameters', type: 'object'),
+                                            new OA\Property(
+                                                property: 'server',
+                                                type: 'object',
+                                                properties: [
+                                                    new OA\Property(property: 'id', type: 'string', format: 'uuid'),
+                                                    new OA\Property(property: 'name', type: 'string', example: 'filesystem-server'),
+                                                    new OA\Property(property: 'display_name', type: 'string', example: 'Filesystem MCP'),
+                                                ],
+                                            ),
+                                        ],
+                                    ),
+                                ),
+                                new OA\Property(property: 'count', type: 'integer', example: 14),
+                                new OA\Property(property: 'servers_count', type: 'integer', example: 3),
+                            ],
+                        ),
+                        new OA\Property(
+                            property: 'meta',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'timestamp', type: 'string', format: 'date-time'),
+                                new OA\Property(property: 'request_id', type: 'string'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'Machine not found',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: false),
+                        new OA\Property(
+                            property: 'error',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'MCP_001'),
+                                new OA\Property(property: 'message', type: 'string', example: 'Machine not found'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+        ],
+    )]
     public function allTools(Request $request, string $machine): JsonResponse
     {
         $machineModel = Machine::findOrFail($machine);
@@ -1021,94 +1049,103 @@ class MCPController extends Controller
      * server must be running. Execution is asynchronous — the response
      * includes a request_id that can be used to correlate the result
      * when it arrives via WebSocket.
-     *
-     * @OA\Post(
-     *     path="/api/machines/{machineId}/mcp/{name}/execute",
-     *     operationId="executeMCPTool",
-     *     tags={"MCP Servers"},
-     *     summary="Execute a tool on an MCP server",
-     *     description="Dispatch a tool execution command to the agent. The tool must exist on the server and the server must be running. Results arrive asynchronously via WebSocket.",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="machineId",
-     *         in="path",
-     *         required=true,
-     *         description="UUID of the machine",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\Parameter(
-     *         name="name",
-     *         in="path",
-     *         required=true,
-     *         description="Unique name of the MCP server",
-     *         @OA\Schema(type="string", example="filesystem-server")
-     *     ),
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"tool"},
-     *             @OA\Property(property="tool", type="string", example="read_file", description="Name of the tool to execute"),
-     *             @OA\Property(property="params", type="object", nullable=true, example={"path": "/tmp/example.txt"}, description="Arguments to pass to the tool")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Tool execution dispatched",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="message", type="string", example="Tool execution initiated"),
-     *                 @OA\Property(property="tool", type="string", example="read_file"),
-     *                 @OA\Property(property="params", type="object", example={"path": "/tmp/example.txt"}),
-     *                 @OA\Property(property="status", type="string", example="executing"),
-     *                 @OA\Property(property="request_id", type="string", example="mcp_tool_679a1b2c3d4e5", description="Correlation ID for matching async results")
-     *             ),
-     *             @OA\Property(
-     *                 property="meta",
-     *                 type="object",
-     *                 @OA\Property(property="timestamp", type="string", format="date-time"),
-     *                 @OA\Property(property="request_id", type="string")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=400,
-     *         description="Server is not running",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(
-     *                 property="error",
-     *                 type="object",
-     *                 @OA\Property(property="code", type="string", example="MCP_006"),
-     *                 @OA\Property(property="message", type="string", example="MCP server is not running")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Machine, server, or tool not found",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(
-     *                 property="error",
-     *                 type="object",
-     *                 @OA\Property(property="code", type="string", example="MCP_007"),
-     *                 @OA\Property(property="message", type="string", example="Tool 'unknown_tool' not found on this server")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string"),
-     *             @OA\Property(property="errors", type="object")
-     *         )
-     *     )
-     * )
      */
+    #[OA\Post(
+        path: '/api/machines/{machineId}/mcp/{name}/execute',
+        operationId: 'executeMCPTool',
+        summary: 'Execute a tool on an MCP server',
+        description: 'Dispatch a tool execution command to the agent. The tool must exist on the server and the server must be running. Results arrive asynchronously via WebSocket.',
+        security: [['bearerAuth' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['tool'],
+                properties: [
+                    new OA\Property(property: 'tool', type: 'string', example: 'read_file', description: 'Name of the tool to execute'),
+                    new OA\Property(property: 'params', type: 'object', nullable: true, example: ['path' => '/tmp/example.txt'], description: 'Arguments to pass to the tool'),
+                ],
+            ),
+        ),
+        tags: ['MCP Servers'],
+        parameters: [
+            new OA\Parameter(name: 'machineId', in: 'path', required: true, description: 'UUID of the machine', schema: new OA\Schema(type: 'string', format: 'uuid')),
+            new OA\Parameter(name: 'name', in: 'path', required: true, description: 'Unique name of the MCP server', schema: new OA\Schema(type: 'string', example: 'filesystem-server')),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Tool execution dispatched',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'message', type: 'string', example: 'Tool execution initiated'),
+                                new OA\Property(property: 'tool', type: 'string', example: 'read_file'),
+                                new OA\Property(property: 'params', type: 'object', example: ['path' => '/tmp/example.txt']),
+                                new OA\Property(property: 'status', type: 'string', example: 'executing'),
+                                new OA\Property(property: 'request_id', type: 'string', example: 'mcp_tool_679a1b2c3d4e5', description: 'Correlation ID for matching async results'),
+                            ],
+                        ),
+                        new OA\Property(
+                            property: 'meta',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'timestamp', type: 'string', format: 'date-time'),
+                                new OA\Property(property: 'request_id', type: 'string'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(
+                response: 400,
+                description: 'Server is not running',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: false),
+                        new OA\Property(
+                            property: 'error',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'MCP_006'),
+                                new OA\Property(property: 'message', type: 'string', example: 'MCP server is not running'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'Machine, server, or tool not found',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: false),
+                        new OA\Property(
+                            property: 'error',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'MCP_007'),
+                                new OA\Property(property: 'message', type: 'string', example: "Tool 'unknown_tool' not found on this server"),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(
+                response: 422,
+                description: 'Validation error',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'message', type: 'string'),
+                        new OA\Property(property: 'errors', type: 'object'),
+                    ],
+                ),
+            ),
+        ],
+    )]
     public function executeTool(Request $request, string $machine, string $name): JsonResponse
     {
         $machineModel = Machine::findOrFail($machine);
@@ -1117,7 +1154,7 @@ class MCPController extends Controller
         $server = MCPServer::forMachine($machineModel->id)
             ->where('name', $name)
             ->firstOrFail();
-        
+
         $this->authorize('execute', $server);
 
         if (!$server->is_running) {
@@ -1261,4 +1298,18 @@ class MCPController extends Controller
      * @param  int     $status   HTTP status code
      * @return JsonResponse
      */
+    protected function errorResponse(string $code, string $message, int $status): JsonResponse
+    {
+        return response()->json([
+            'success' => false,
+            'error' => [
+                'code' => $code,
+                'message' => $message,
+            ],
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => request()->header('X-Request-ID', uniqid()),
+            ],
+        ], $status);
+    }
 }

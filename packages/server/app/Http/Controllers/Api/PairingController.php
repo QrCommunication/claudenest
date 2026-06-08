@@ -9,6 +9,7 @@ use App\Http\Resources\MachineResource;
 use App\Models\PairingCode;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Str;
+use OpenApi\Attributes as OA;
 
 /**
  * PairingController handles the 3-step agent-to-dashboard pairing flow:
@@ -36,61 +37,63 @@ class PairingController extends Controller
      *
      * PUBLIC route — agent is not authenticated yet.
      *
-     * @OA\Post(
-     *     path="/api/pairing/initiate",
-     *     operationId="pairingInitiate",
-     *     tags={"Pairing"},
-     *     summary="Register a pairing code from the agent CLI (public, rate-limited)",
-     *     description="The agent generates a 6-character code locally and sends it here along with its system information. The code is valid for 5 minutes.",
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"code", "agent_info"},
-     *             @OA\Property(property="code", type="string", example="A3K-9FZ", description="6-char pairing code in XXX-XXX format (uppercase alphanum, no ambiguous chars)"),
-     *             @OA\Property(property="agent_info", type="object", required={"platform", "hostname"},
-     *                 @OA\Property(property="hostname", type="string", example="rony-desktop", description="System hostname"),
-     *                 @OA\Property(property="platform", type="string", enum={"darwin", "win32", "linux"}, example="linux", description="Operating system identifier"),
-     *                 @OA\Property(property="arch", type="string", example="x64", description="CPU architecture"),
-     *                 @OA\Property(property="node_version", type="string", example="v20.11.0", description="Node.js version running the agent"),
-     *                 @OA\Property(property="agent_version", type="string", example="1.1.0", description="@claude-remote/agent version"),
-     *                 @OA\Property(property="claude_version", type="string", example="1.0.12", description="Claude Code CLI version"),
-     *                 @OA\Property(property="claude_path", type="string", example="/usr/local/bin/claude", description="Absolute path to the claude binary")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=201,
-     *         description="Pairing code registered successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="data", type="object",
-     *                 @OA\Property(property="code", type="string", example="A3K-9FZ"),
-     *                 @OA\Property(property="expires_at", type="string", format="date-time", example="2026-02-17T14:05:00+00:00"),
-     *                 @OA\Property(property="expires_in_seconds", type="integer", example=300)
-     *             ),
-     *             @OA\Property(property="meta", ref="#/components/schemas/Meta")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=409,
-     *         description="Pairing code already active",
-     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error (invalid code format or missing agent_info)",
-     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
-     *     ),
-     *     @OA\Response(
-     *         response=429,
-     *         description="Rate limit exceeded (max 10 requests per minute)",
-     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
-     *     )
-     * )
-     *
      * @param  InitiatePairingRequest  $request  Validated request with code + agent_info
      * @return JsonResponse  201 on success, 409 if code already active
      */
+    #[OA\Post(
+        path: '/api/pairing/initiate',
+        operationId: 'pairingInitiate',
+        summary: 'Register a pairing code from the agent CLI (public, rate-limited)',
+        description: 'The agent generates a 6-character code locally and sends it here along with its system information. The code is valid for 5 minutes.',
+        tags: ['Pairing'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['code', 'agent_info'],
+                properties: [
+                    new OA\Property(property: 'code', type: 'string', description: '6-char pairing code in XXX-XXX format (uppercase alphanum, no ambiguous chars)', example: 'A3K-9FZ'),
+                    new OA\Property(
+                        property: 'agent_info',
+                        type: 'object',
+                        required: ['platform', 'hostname'],
+                        properties: [
+                            new OA\Property(property: 'hostname', type: 'string', description: 'System hostname', example: 'rony-desktop'),
+                            new OA\Property(property: 'platform', type: 'string', description: 'Operating system identifier', enum: ['darwin', 'win32', 'linux'], example: 'linux'),
+                            new OA\Property(property: 'arch', type: 'string', description: 'CPU architecture', example: 'x64'),
+                            new OA\Property(property: 'node_version', type: 'string', description: 'Node.js version running the agent', example: 'v20.11.0'),
+                            new OA\Property(property: 'agent_version', type: 'string', description: '@claude-remote/agent version', example: '1.1.0'),
+                            new OA\Property(property: 'claude_version', type: 'string', description: 'Claude Code CLI version', example: '1.0.12'),
+                            new OA\Property(property: 'claude_path', type: 'string', description: 'Absolute path to the claude binary', example: '/usr/local/bin/claude'),
+                        ]
+                    ),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'Pairing code registered successfully',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'A3K-9FZ'),
+                                new OA\Property(property: 'expires_at', type: 'string', format: 'date-time', example: '2026-02-17T14:05:00+00:00'),
+                                new OA\Property(property: 'expires_in_seconds', type: 'integer', example: 300),
+                            ]
+                        ),
+                        new OA\Property(property: 'meta', ref: '#/components/schemas/MetaObject'),
+                    ]
+                )
+            ),
+            new OA\Response(response: 409, description: 'Pairing code already active', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+            new OA\Response(response: 422, description: 'Validation error (invalid code format or missing agent_info)', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+            new OA\Response(response: 429, description: 'Rate limit exceeded (max 10 requests per minute)', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+        ],
+    )]
     public function initiate(InitiatePairingRequest $request): JsonResponse
     {
         $validated = $request->validated();
@@ -151,65 +154,62 @@ class PairingController extends Controller
      *
      * PUBLIC route — agent is not authenticated yet.
      *
-     * @OA\Get(
-     *     path="/api/pairing/{code}",
-     *     operationId="pairingPoll",
-     *     tags={"Pairing"},
-     *     summary="Poll pairing status from the agent CLI (public, rate-limited)",
-     *     description="Returns the current pairing status. The agent should poll every 2-3 seconds until it receives 'completed' (200) or 'expired' (410).",
-     *     @OA\Parameter(
-     *         name="code",
-     *         in="path",
-     *         required=true,
-     *         description="The 6-char pairing code in XXX-XXX format",
-     *         @OA\Schema(type="string", example="A3K-9FZ")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Pairing completed — token and machine ID returned",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="data", type="object",
-     *                 @OA\Property(property="status", type="string", example="completed"),
-     *                 @OA\Property(property="token", type="string", example="mn_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6", description="Plain-text machine auth token (store securely, shown only once)"),
-     *                 @OA\Property(property="machine_id", type="string", format="uuid", example="550e8400-e29b-41d4-a716-446655440000")
-     *             ),
-     *             @OA\Property(property="meta", ref="#/components/schemas/Meta")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=202,
-     *         description="Pairing still pending — agent should keep polling",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="data", type="object",
-     *                 @OA\Property(property="status", type="string", example="pending"),
-     *                 @OA\Property(property="expires_at", type="string", format="date-time", example="2026-02-17T14:05:00+00:00"),
-     *                 @OA\Property(property="seconds_remaining", type="integer", example=187)
-     *             ),
-     *             @OA\Property(property="meta", ref="#/components/schemas/Meta")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Pairing code not found",
-     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
-     *     ),
-     *     @OA\Response(
-     *         response=410,
-     *         description="Pairing code expired",
-     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
-     *     ),
-     *     @OA\Response(
-     *         response=429,
-     *         description="Rate limit exceeded",
-     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
-     *     )
-     * )
-     *
      * @param  string  $code  The XXX-XXX pairing code from the URL segment
      * @return JsonResponse  200 if completed, 202 if pending, 404/410 on error
      */
+    #[OA\Get(
+        path: '/api/pairing/{code}',
+        operationId: 'pairingPoll',
+        summary: 'Poll pairing status from the agent CLI (public, rate-limited)',
+        description: "Returns the current pairing status. The agent should poll every 2-3 seconds until it receives 'completed' (200) or 'expired' (410).",
+        tags: ['Pairing'],
+        parameters: [
+            new OA\Parameter(name: 'code', in: 'path', required: true, description: 'The 6-char pairing code in XXX-XXX format', schema: new OA\Schema(type: 'string', example: 'A3K-9FZ')),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Pairing completed — token and machine ID returned',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'status', type: 'string', example: 'completed'),
+                                new OA\Property(property: 'token', type: 'string', example: 'mn_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6', description: 'Plain-text machine auth token (store securely, shown only once)'),
+                                new OA\Property(property: 'machine_id', type: 'string', format: 'uuid', example: '550e8400-e29b-41d4-a716-446655440000'),
+                            ]
+                        ),
+                        new OA\Property(property: 'meta', ref: '#/components/schemas/MetaObject'),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 202,
+                description: 'Pairing still pending — agent should keep polling',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'status', type: 'string', example: 'pending'),
+                                new OA\Property(property: 'expires_at', type: 'string', format: 'date-time', example: '2026-02-17T14:05:00+00:00'),
+                                new OA\Property(property: 'seconds_remaining', type: 'integer', example: 187),
+                            ]
+                        ),
+                        new OA\Property(property: 'meta', ref: '#/components/schemas/MetaObject'),
+                    ]
+                )
+            ),
+            new OA\Response(response: 404, description: 'Pairing code not found', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+            new OA\Response(response: 410, description: 'Pairing code expired', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+            new OA\Response(response: 429, description: 'Rate limit exceeded', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+        ],
+    )]
     public function poll(string $code): JsonResponse
     {
         $pairingCode = PairingCode::where('code', $code)->first();
@@ -286,67 +286,60 @@ class PairingController extends Controller
      *
      * AUTHENTICATED route — requires auth:sanctum middleware.
      *
-     * @OA\Post(
-     *     path="/api/pairing/{code}/complete",
-     *     operationId="pairingComplete",
-     *     tags={"Pairing"},
-     *     summary="Complete pairing from the web dashboard (authenticated)",
-     *     description="The authenticated user confirms the pairing code. A Machine record and auth token are created. The agent retrieves the token on its next poll.",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="code",
-     *         in="path",
-     *         required=true,
-     *         description="The 6-char pairing code in XXX-XXX format",
-     *         @OA\Schema(type="string", example="A3K-9FZ")
-     *     ),
-     *     @OA\RequestBody(
-     *         required=false,
-     *         @OA\JsonContent(
-     *             @OA\Property(property="name", type="string", example="My Workstation", description="Optional machine display name. Defaults to agent hostname if omitted.")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=201,
-     *         description="Pairing completed — Machine created",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="data", type="object",
-     *                 @OA\Property(property="machine", ref="#/components/schemas/MachineResource"),
-     *                 @OA\Property(property="pairing", type="object",
-     *                     @OA\Property(property="code", type="string", example="A3K-9FZ"),
-     *                     @OA\Property(property="completed_at", type="string", format="date-time", example="2026-02-17T14:02:30+00:00")
-     *                 )
-     *             ),
-     *             @OA\Property(property="meta", ref="#/components/schemas/Meta")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthenticated",
-     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Pairing code not found or already used",
-     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
-     *     ),
-     *     @OA\Response(
-     *         response=410,
-     *         description="Pairing code expired",
-     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error",
-     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
-     *     )
-     * )
-     *
      * @param  CompletePairingRequest  $request  Validated request (optional name field)
      * @param  string                  $code     The XXX-XXX pairing code from the URL segment
      * @return JsonResponse  201 on success, 404/410 on error
      */
+    #[OA\Post(
+        path: '/api/pairing/{code}/complete',
+        operationId: 'pairingComplete',
+        summary: 'Complete pairing from the web dashboard (authenticated)',
+        description: 'The authenticated user confirms the pairing code. A Machine record and auth token are created. The agent retrieves the token on its next poll.',
+        security: [['bearerAuth' => []]],
+        tags: ['Pairing'],
+        parameters: [
+            new OA\Parameter(name: 'code', in: 'path', required: true, description: 'The 6-char pairing code in XXX-XXX format', schema: new OA\Schema(type: 'string', example: 'A3K-9FZ')),
+        ],
+        requestBody: new OA\RequestBody(
+            required: false,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'name', type: 'string', example: 'My Workstation', description: 'Optional machine display name. Defaults to agent hostname if omitted.'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'Pairing completed — Machine created',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'machine', ref: '#/components/schemas/Machine'),
+                                new OA\Property(
+                                    property: 'pairing',
+                                    type: 'object',
+                                    properties: [
+                                        new OA\Property(property: 'code', type: 'string', example: 'A3K-9FZ'),
+                                        new OA\Property(property: 'completed_at', type: 'string', format: 'date-time', example: '2026-02-17T14:02:30+00:00'),
+                                    ]
+                                ),
+                            ]
+                        ),
+                        new OA\Property(property: 'meta', ref: '#/components/schemas/MetaObject'),
+                    ]
+                )
+            ),
+            new OA\Response(response: 401, description: 'Unauthenticated', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+            new OA\Response(response: 404, description: 'Pairing code not found or already used', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+            new OA\Response(response: 410, description: 'Pairing code expired', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+            new OA\Response(response: 422, description: 'Validation error', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+        ],
+    )]
     public function complete(CompletePairingRequest $request, string $code): JsonResponse
     {
         // ── Find the pending pairing code ──

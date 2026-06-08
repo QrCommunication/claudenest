@@ -9,6 +9,7 @@ use App\Services\EmbeddingService;
 use App\Services\ContextRAGService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use OpenApi\Attributes as OA;
 
 class ContextController extends Controller
 {
@@ -17,41 +18,48 @@ class ContextController extends Controller
         private ContextRAGService $ragService,
     ) {}
 
-    /**
-     * @OA\Get(
-     *     path="/api/projects/{projectId}/context",
-     *     tags={"Context"},
-     *     summary="Get project context",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="projectId",
-     *         in="path",
-     *         required=true,
-     *         description="Project UUID",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Project context",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="summary", type="string", nullable=true),
-     *                 @OA\Property(property="architecture", type="string", nullable=true),
-     *                 @OA\Property(property="conventions", type="string", nullable=true),
-     *                 @OA\Property(property="current_focus", type="string", nullable=true),
-     *                 @OA\Property(property="recent_changes", type="string", nullable=true),
-     *                 @OA\Property(property="total_tokens", type="integer"),
-     *                 @OA\Property(property="max_tokens", type="integer"),
-     *                 @OA\Property(property="token_usage_percent", type="number", format="float")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(response=404, ref="#/components/responses/NotFound")
-     * )
-     */
+    /** Get project context. */
+    #[OA\Get(
+        path: '/api/projects/{projectId}/context',
+        summary: 'Get project context',
+        security: [['bearerAuth' => []]],
+        tags: ['Context'],
+        parameters: [
+            new OA\Parameter(
+                name: 'projectId',
+                in: 'path',
+                required: true,
+                description: 'Project UUID',
+                schema: new OA\Schema(type: 'string', format: 'uuid'),
+            ),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Project context',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'summary', type: 'string', nullable: true),
+                                new OA\Property(property: 'architecture', type: 'string', nullable: true),
+                                new OA\Property(property: 'conventions', type: 'string', nullable: true),
+                                new OA\Property(property: 'current_focus', type: 'string', nullable: true),
+                                new OA\Property(property: 'recent_changes', type: 'string', nullable: true),
+                                new OA\Property(property: 'total_tokens', type: 'integer'),
+                                new OA\Property(property: 'max_tokens', type: 'integer'),
+                                new OA\Property(property: 'token_usage_percent', type: 'number', format: 'float'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(response: 404, ref: '#/components/responses/NotFound'),
+        ],
+    )]
     public function show(Request $request, string $projectId): JsonResponse
     {
         $project = $this->getUserProject($request, $projectId);
@@ -79,48 +87,57 @@ class ContextController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Patch(
-     *     path="/api/projects/{projectId}/context",
-     *     tags={"Context"},
-     *     summary="Update project context",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="projectId",
-     *         in="path",
-     *         required=true,
-     *         description="Project UUID",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             @OA\Property(property="summary", type="string", nullable=true),
-     *             @OA\Property(property="architecture", type="string", nullable=true),
-     *             @OA\Property(property="conventions", type="string", nullable=true),
-     *             @OA\Property(property="current_focus", type="string", nullable=true),
-     *             @OA\Property(property="recent_changes", type="string", nullable=true)
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Updated context",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="summary", type="string", nullable=true),
-     *                 @OA\Property(property="architecture", type="string", nullable=true),
-     *                 @OA\Property(property="conventions", type="string", nullable=true),
-     *                 @OA\Property(property="current_focus", type="string", nullable=true),
-     *                 @OA\Property(property="recent_changes", type="string", nullable=true)
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(response=404, ref="#/components/responses/NotFound")
-     * )
-     */
+    /** Update project context. */
+    #[OA\Patch(
+        path: '/api/projects/{projectId}/context',
+        summary: 'Update project context',
+        security: [['bearerAuth' => []]],
+        tags: ['Context'],
+        parameters: [
+            new OA\Parameter(
+                name: 'projectId',
+                in: 'path',
+                required: true,
+                description: 'Project UUID',
+                schema: new OA\Schema(type: 'string', format: 'uuid'),
+            ),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'summary', type: 'string', nullable: true),
+                    new OA\Property(property: 'architecture', type: 'string', nullable: true),
+                    new OA\Property(property: 'conventions', type: 'string', nullable: true),
+                    new OA\Property(property: 'current_focus', type: 'string', nullable: true),
+                    new OA\Property(property: 'recent_changes', type: 'string', nullable: true),
+                ],
+            ),
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Updated context',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'summary', type: 'string', nullable: true),
+                                new OA\Property(property: 'architecture', type: 'string', nullable: true),
+                                new OA\Property(property: 'conventions', type: 'string', nullable: true),
+                                new OA\Property(property: 'current_focus', type: 'string', nullable: true),
+                                new OA\Property(property: 'recent_changes', type: 'string', nullable: true),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(response: 404, ref: '#/components/responses/NotFound'),
+        ],
+    )]
     public function update(Request $request, string $projectId): JsonResponse
     {
         $project = $this->getUserProject($request, $projectId);
@@ -160,49 +177,56 @@ class ContextController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/projects/{projectId}/context/query",
-     *     tags={"Context"},
-     *     summary="Query context chunks (RAG search)",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="projectId",
-     *         in="path",
-     *         required=true,
-     *         description="Project UUID",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(ref="#/components/schemas/ContextQueryRequest")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Matching context chunks with similarity scores",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="array",
-     *                 @OA\Items(
-     *                     type="object",
-     *                     @OA\Property(property="id", type="string", format="uuid"),
-     *                     @OA\Property(property="content", type="string"),
-     *                     @OA\Property(property="type", type="string"),
-     *                     @OA\Property(property="instance_id", type="string", nullable=true),
-     *                     @OA\Property(property="task_id", type="string", format="uuid", nullable=true),
-     *                     @OA\Property(property="files", type="array", @OA\Items(type="string")),
-     *                     @OA\Property(property="importance_score", type="number", format="float"),
-     *                     @OA\Property(property="similarity", type="number", format="float", nullable=true),
-     *                     @OA\Property(property="created_at", type="string", format="date-time")
-     *                 )
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(response=404, ref="#/components/responses/NotFound")
-     * )
-     */
+    /** Query context chunks (RAG search). */
+    #[OA\Post(
+        path: '/api/projects/{projectId}/context/query',
+        summary: 'Query context chunks (RAG search)',
+        security: [['bearerAuth' => []]],
+        tags: ['Context'],
+        parameters: [
+            new OA\Parameter(
+                name: 'projectId',
+                in: 'path',
+                required: true,
+                description: 'Project UUID',
+                schema: new OA\Schema(type: 'string', format: 'uuid'),
+            ),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(ref: '#/components/schemas/ContextQueryRequest'),
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Matching context chunks with similarity scores',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'array',
+                            items: new OA\Items(
+                                type: 'object',
+                                properties: [
+                                    new OA\Property(property: 'id', type: 'string', format: 'uuid'),
+                                    new OA\Property(property: 'content', type: 'string'),
+                                    new OA\Property(property: 'type', type: 'string'),
+                                    new OA\Property(property: 'instance_id', type: 'string', nullable: true),
+                                    new OA\Property(property: 'task_id', type: 'string', format: 'uuid', nullable: true),
+                                    new OA\Property(property: 'files', type: 'array', items: new OA\Items(type: 'string')),
+                                    new OA\Property(property: 'importance_score', type: 'number', format: 'float'),
+                                    new OA\Property(property: 'similarity', type: 'number', format: 'float', nullable: true),
+                                    new OA\Property(property: 'created_at', type: 'string', format: 'date-time'),
+                                ],
+                            ),
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(response: 404, ref: '#/components/responses/NotFound'),
+        ],
+    )]
     public function query(Request $request, string $projectId): JsonResponse
     {
         $project = $this->getUserProject($request, $projectId);
@@ -283,55 +307,60 @@ class ContextController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Get(
-     *     path="/api/projects/{projectId}/context/chunks",
-     *     tags={"Context"},
-     *     summary="List context chunks",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="projectId",
-     *         in="path",
-     *         required=true,
-     *         description="Project UUID",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\Parameter(
-     *         name="type",
-     *         in="query",
-     *         required=false,
-     *         description="Filter by chunk type",
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Parameter(
-     *         name="instance_id",
-     *         in="query",
-     *         required=false,
-     *         description="Filter by instance ID",
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Parameter(
-     *         name="limit",
-     *         in="query",
-     *         required=false,
-     *         description="Number of results per page",
-     *         @OA\Schema(type="integer", default=50)
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Paginated list of context chunks",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="array",
-     *                 @OA\Items(ref="#/components/schemas/ContextChunk")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(response=404, ref="#/components/responses/NotFound")
-     * )
-     */
+    /** List context chunks. */
+    #[OA\Get(
+        path: '/api/projects/{projectId}/context/chunks',
+        summary: 'List context chunks',
+        security: [['bearerAuth' => []]],
+        tags: ['Context'],
+        parameters: [
+            new OA\Parameter(
+                name: 'projectId',
+                in: 'path',
+                required: true,
+                description: 'Project UUID',
+                schema: new OA\Schema(type: 'string', format: 'uuid'),
+            ),
+            new OA\Parameter(
+                name: 'type',
+                in: 'query',
+                required: false,
+                description: 'Filter by chunk type',
+                schema: new OA\Schema(type: 'string'),
+            ),
+            new OA\Parameter(
+                name: 'instance_id',
+                in: 'query',
+                required: false,
+                description: 'Filter by instance ID',
+                schema: new OA\Schema(type: 'string'),
+            ),
+            new OA\Parameter(
+                name: 'limit',
+                in: 'query',
+                required: false,
+                description: 'Number of results per page',
+                schema: new OA\Schema(type: 'integer', default: 50),
+            ),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Paginated list of context chunks',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'array',
+                            items: new OA\Items(ref: '#/components/schemas/ContextChunk'),
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(response: 404, ref: '#/components/responses/NotFound'),
+        ],
+    )]
     public function chunks(Request $request, string $projectId): JsonResponse
     {
         $project = $this->getUserProject($request, $projectId);
@@ -388,41 +417,48 @@ class ContextController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/projects/{projectId}/context/chunks",
-     *     tags={"Context"},
-     *     summary="Create context chunk",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="projectId",
-     *         in="path",
-     *         required=true,
-     *         description="Project UUID",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(ref="#/components/schemas/CreateChunkRequest")
-     *     ),
-     *     @OA\Response(
-     *         response=201,
-     *         description="Context chunk created",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="id", type="string", format="uuid"),
-     *                 @OA\Property(property="type", type="string"),
-     *                 @OA\Property(property="has_embedding", type="boolean"),
-     *                 @OA\Property(property="created_at", type="string", format="date-time")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(response=404, ref="#/components/responses/NotFound")
-     * )
-     */
+    /** Create context chunk. */
+    #[OA\Post(
+        path: '/api/projects/{projectId}/context/chunks',
+        summary: 'Create context chunk',
+        security: [['bearerAuth' => []]],
+        tags: ['Context'],
+        parameters: [
+            new OA\Parameter(
+                name: 'projectId',
+                in: 'path',
+                required: true,
+                description: 'Project UUID',
+                schema: new OA\Schema(type: 'string', format: 'uuid'),
+            ),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(ref: '#/components/schemas/CreateChunkRequest'),
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'Context chunk created',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'id', type: 'string', format: 'uuid'),
+                                new OA\Property(property: 'type', type: 'string'),
+                                new OA\Property(property: 'has_embedding', type: 'boolean'),
+                                new OA\Property(property: 'created_at', type: 'string', format: 'date-time'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(response: 404, ref: '#/components/responses/NotFound'),
+        ],
+    )]
     public function storeChunk(Request $request, string $projectId): JsonResponse
     {
         $project = $this->getUserProject($request, $projectId);
@@ -478,49 +514,58 @@ class ContextController extends Controller
         ], 201);
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/projects/{projectId}/context/summarize",
-     *     tags={"Context"},
-     *     summary="Summarize context chunks",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="projectId",
-     *         in="path",
-     *         required=true,
-     *         description="Project UUID",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\RequestBody(
-     *         required=false,
-     *         @OA\JsonContent(
-     *             @OA\Property(
-     *                 property="chunk_ids",
-     *                 type="array",
-     *                 description="UUIDs of chunks to summarize; omit to use recent high-importance chunks",
-     *                 @OA\Items(type="string", format="uuid")
-     *             ),
-     *             @OA\Property(property="max_length", type="integer", default=1000, description="Maximum summary length in characters")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Generated summary",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="summary", type="string"),
-     *                 @OA\Property(property="chunks_used", type="integer"),
-     *                 @OA\Property(property="total_chars", type="integer"),
-     *                 @OA\Property(property="ai_generated", type="boolean")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(response=404, ref="#/components/responses/NotFound")
-     * )
-     */
+    /** Summarize context chunks. */
+    #[OA\Post(
+        path: '/api/projects/{projectId}/context/summarize',
+        summary: 'Summarize context chunks',
+        security: [['bearerAuth' => []]],
+        tags: ['Context'],
+        parameters: [
+            new OA\Parameter(
+                name: 'projectId',
+                in: 'path',
+                required: true,
+                description: 'Project UUID',
+                schema: new OA\Schema(type: 'string', format: 'uuid'),
+            ),
+        ],
+        requestBody: new OA\RequestBody(
+            required: false,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(
+                        property: 'chunk_ids',
+                        type: 'array',
+                        description: 'UUIDs of chunks to summarize; omit to use recent high-importance chunks',
+                        items: new OA\Items(type: 'string', format: 'uuid'),
+                    ),
+                    new OA\Property(property: 'max_length', type: 'integer', default: 1000, description: 'Maximum summary length in characters'),
+                ],
+            ),
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Generated summary',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'summary', type: 'string'),
+                                new OA\Property(property: 'chunks_used', type: 'integer'),
+                                new OA\Property(property: 'total_chars', type: 'integer'),
+                                new OA\Property(property: 'ai_generated', type: 'boolean'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(response: 404, ref: '#/components/responses/NotFound'),
+        ],
+    )]
     public function summarize(Request $request, string $projectId): JsonResponse
     {
         $project = $this->getUserProject($request, $projectId);
@@ -667,30 +712,33 @@ class ContextController extends Controller
         ], 201);
     }
 
-    /**
-     * @OA\Delete(
-     *     path="/api/projects/{projectId}/context/chunks/{chunkId}",
-     *     tags={"Context"},
-     *     summary="Delete context chunk",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="projectId",
-     *         in="path",
-     *         required=true,
-     *         description="Project UUID",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\Parameter(
-     *         name="chunkId",
-     *         in="path",
-     *         required=true,
-     *         description="Context chunk UUID",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\Response(response=200, ref="#/components/responses/DeletedResponse"),
-     *     @OA\Response(response=404, ref="#/components/responses/NotFound")
-     * )
-     */
+    /** Delete context chunk. */
+    #[OA\Delete(
+        path: '/api/projects/{projectId}/context/chunks/{chunkId}',
+        summary: 'Delete context chunk',
+        security: [['bearerAuth' => []]],
+        tags: ['Context'],
+        parameters: [
+            new OA\Parameter(
+                name: 'projectId',
+                in: 'path',
+                required: true,
+                description: 'Project UUID',
+                schema: new OA\Schema(type: 'string', format: 'uuid'),
+            ),
+            new OA\Parameter(
+                name: 'chunkId',
+                in: 'path',
+                required: true,
+                description: 'Context chunk UUID',
+                schema: new OA\Schema(type: 'string', format: 'uuid'),
+            ),
+        ],
+        responses: [
+            new OA\Response(response: 200, ref: '#/components/responses/DeletedResponse'),
+            new OA\Response(response: 404, ref: '#/components/responses/NotFound'),
+        ],
+    )]
     public function destroyChunk(Request $request, string $projectId, string $chunkId): JsonResponse
     {
         $project = $this->getUserProject($request, $projectId);

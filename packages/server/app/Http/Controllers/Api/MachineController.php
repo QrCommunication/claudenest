@@ -13,27 +13,31 @@ use App\Models\Machine;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use OpenApi\Attributes as OA;
 
 class MachineController extends Controller
 {
     /**
      * List user's machines with pagination.
-     *
-     * @OA\Get(
-     *     path="/api/machines",
-     *     tags={"Machines"},
-     *     summary="List user's machines",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(name="search", in="query", required=false, @OA\Schema(type="string")),
-     *     @OA\Parameter(name="status", in="query", required=false, @OA\Schema(type="string", enum={"online","offline","connecting"})),
-     *     @OA\Parameter(name="per_page", in="query", required=false, @OA\Schema(type="integer", default=15)),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Paginated list of machines",
-     *         @OA\JsonContent(ref="#/components/schemas/PaginatedResponse")
-     *     )
-     * )
      */
+    #[OA\Get(
+        path: '/api/machines',
+        summary: "List user's machines",
+        security: [['bearerAuth' => []]],
+        tags: ['Machines'],
+        parameters: [
+            new OA\Parameter(name: 'search', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'status', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['online', 'offline', 'connecting'])),
+            new OA\Parameter(name: 'per_page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 15)),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Paginated list of machines',
+                content: new OA\JsonContent(ref: '#/components/schemas/PaginatedResponse')
+            ),
+        ]
+    )]
     public function index(Request $request): JsonResponse
     {
         $this->authorize('viewAny', Machine::class);
@@ -82,28 +86,36 @@ class MachineController extends Controller
 
     /**
      * Register a new machine.
-     *
-     * @OA\Post(
-     *     path="/api/machines",
-     *     tags={"Machines"},
-     *     summary="Register a new machine",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\RequestBody(required=true, @OA\JsonContent(ref="#/components/schemas/StoreMachineRequest")),
-     *     @OA\Response(
-     *         response=201,
-     *         description="Machine registered successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="machine", ref="#/components/schemas/Machine"),
-     *                 @OA\Property(property="token", type="string", example="mn_...")
-     *             )
-     *         )
-     *     )
-     * )
      */
+    #[OA\Post(
+        path: '/api/machines',
+        summary: 'Register a new machine',
+        security: [['bearerAuth' => []]],
+        tags: ['Machines'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(ref: '#/components/schemas/StoreMachineRequest')
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'Machine registered successfully',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'machine', ref: '#/components/schemas/Machine'),
+                                new OA\Property(property: 'token', type: 'string', example: 'mn_...'),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+        ]
+    )]
     public function store(StoreMachineRequest $request): JsonResponse
     {
         $validated = $request->validated();
@@ -174,21 +186,20 @@ class MachineController extends Controller
 
     /**
      * Show machine details.
-     *
-     * @OA\Get(
-     *     path="/api/machines/{id}",
-     *     tags={"Machines"},
-     *     summary="Get machine details",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string", format="uuid")),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Machine details",
-     *         @OA\JsonContent(ref="#/components/schemas/Machine")
-     *     ),
-     *     @OA\Response(response=404, description="Machine not found")
-     * )
      */
+    #[OA\Get(
+        path: '/api/machines/{id}',
+        summary: 'Get machine details',
+        security: [['bearerAuth' => []]],
+        tags: ['Machines'],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Machine details', content: new OA\JsonContent(ref: '#/components/schemas/Machine')),
+            new OA\Response(response: 404, description: 'Machine not found'),
+        ]
+    )]
     public function show(Request $request, string $id): JsonResponse
     {
         $machine = Machine::withCount(['sessions as active_sessions_count' => function ($q) {
@@ -209,22 +220,24 @@ class MachineController extends Controller
 
     /**
      * Update machine.
-     *
-     * @OA\Patch(
-     *     path="/api/machines/{id}",
-     *     tags={"Machines"},
-     *     summary="Update machine",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string", format="uuid")),
-     *     @OA\RequestBody(required=true, @OA\JsonContent(ref="#/components/schemas/UpdateMachineRequest")),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Machine updated",
-     *         @OA\JsonContent(ref="#/components/schemas/Machine")
-     *     ),
-     *     @OA\Response(response=404, description="Machine not found")
-     * )
      */
+    #[OA\Patch(
+        path: '/api/machines/{id}',
+        summary: 'Update machine',
+        security: [['bearerAuth' => []]],
+        tags: ['Machines'],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(ref: '#/components/schemas/UpdateMachineRequest')
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Machine updated', content: new OA\JsonContent(ref: '#/components/schemas/Machine')),
+            new OA\Response(response: 404, description: 'Machine not found'),
+        ]
+    )]
     public function update(UpdateMachineRequest $request, string $id): JsonResponse
     {
         $machine = Machine::findOrFail($id);
@@ -250,20 +263,21 @@ class MachineController extends Controller
     /**
      * Delete machine.
      *
-     * @OA\Delete(
-     *     path="/api/machines/{id}",
-     *     tags={"Machines"},
-     *     summary="Delete machine",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string", format="uuid")),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Machine deleted",
-     *         @OA\JsonContent(ref="#/components/schemas/DeletedResponse")
-     *     ),
-     *     @OA\Response(response=404, description="Machine not found")
-     * )
+     * Terminates all active sessions before removing the machine record.
      */
+    #[OA\Delete(
+        path: '/api/machines/{id}',
+        summary: 'Delete machine',
+        security: [['bearerAuth' => []]],
+        tags: ['Machines'],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Machine deleted', content: new OA\JsonContent(ref: '#/components/schemas/DeletedResponse')),
+            new OA\Response(response: 404, description: 'Machine not found'),
+        ]
+    )]
     public function destroy(Request $request, string $id): JsonResponse
     {
         $machine = Machine::findOrFail($id);
@@ -288,18 +302,21 @@ class MachineController extends Controller
 
     /**
      * Wake-on-LAN for machine.
-     *
-     * @OA\Post(
-     *     path="/api/machines/{id}/wake",
-     *     tags={"Machines"},
-     *     summary="Wake machine via Wake-on-LAN",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string", format="uuid")),
-     *     @OA\Response(response=200, description="Wake-on-LAN command dispatched"),
-     *     @OA\Response(response=400, description="Machine is already online or does not support Wake-on-LAN"),
-     *     @OA\Response(response=404, description="Machine not found")
-     * )
      */
+    #[OA\Post(
+        path: '/api/machines/{id}/wake',
+        summary: 'Wake machine via Wake-on-LAN',
+        security: [['bearerAuth' => []]],
+        tags: ['Machines'],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Wake-on-LAN command dispatched'),
+            new OA\Response(response: 400, description: 'Machine is already online or does not support Wake-on-LAN'),
+            new OA\Response(response: 404, description: 'Machine not found'),
+        ]
+    )]
     public function wake(Request $request, string $id): JsonResponse
     {
         $machine = Machine::findOrFail($id);
@@ -338,37 +355,47 @@ class MachineController extends Controller
     /**
      * Get machine environment info.
      *
-     * @OA\Get(
-     *     path="/api/machines/{id}/environment",
-     *     tags={"Machines"},
-     *     summary="Get machine environment info",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string", format="uuid")),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Machine environment data",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="platform", type="string", example="linux"),
-     *                 @OA\Property(property="hostname", type="string", example="my-machine"),
-     *                 @OA\Property(property="arch", type="string", example="x64"),
-     *                 @OA\Property(property="node_version", type="string", example="20.0.0"),
-     *                 @OA\Property(property="agent_version", type="string", example="1.0.0"),
-     *                 @OA\Property(property="claude_version", type="string", example="1.0.0"),
-     *                 @OA\Property(property="claude_path", type="string", example="/usr/local/bin/claude"),
-     *                 @OA\Property(property="capabilities", type="object"),
-     *                 @OA\Property(property="max_sessions", type="integer", example=10),
-     *                 @OA\Property(property="fresh_data_requested", type="boolean", example=true)
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(response=400, description="Machine is offline"),
-     *     @OA\Response(response=404, description="Machine not found")
-     * )
+     * Returns currently stored environment data and requests a fresh update
+     * from the agent asynchronously via WebSocket broadcast.
      */
+    #[OA\Get(
+        path: '/api/machines/{id}/environment',
+        summary: 'Get machine environment info',
+        security: [['bearerAuth' => []]],
+        tags: ['Machines'],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Machine environment data',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'platform', type: 'string', example: 'linux'),
+                                new OA\Property(property: 'hostname', type: 'string', example: 'my-machine'),
+                                new OA\Property(property: 'arch', type: 'string', example: 'x64'),
+                                new OA\Property(property: 'node_version', type: 'string', example: '20.0.0'),
+                                new OA\Property(property: 'agent_version', type: 'string', example: '1.0.0'),
+                                new OA\Property(property: 'claude_version', type: 'string', example: '1.0.0'),
+                                new OA\Property(property: 'claude_path', type: 'string', example: '/usr/local/bin/claude'),
+                                new OA\Property(property: 'capabilities', type: 'object'),
+                                new OA\Property(property: 'max_sessions', type: 'integer', example: 10),
+                                new OA\Property(property: 'fresh_data_requested', type: 'boolean', example: true),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+            new OA\Response(response: 400, description: 'Machine is offline'),
+            new OA\Response(response: 404, description: 'Machine not found'),
+        ]
+    )]
     public function environment(Request $request, string $id): JsonResponse
     {
         $machine = Machine::findOrFail($id);
@@ -407,27 +434,37 @@ class MachineController extends Controller
     /**
      * Generate new machine token.
      *
-     * @OA\Post(
-     *     path="/api/machines/{id}/regenerate-token",
-     *     tags={"Machines"},
-     *     summary="Generate new machine token",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string", format="uuid")),
-     *     @OA\Response(
-     *         response=200,
-     *         description="New token generated",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="token", type="string", example="mn_...")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(response=404, description="Machine not found")
-     * )
+     * Invalidates the previous token and issues a fresh one. The agent must
+     * reconnect using the new token.
      */
+    #[OA\Post(
+        path: '/api/machines/{id}/regenerate-token',
+        summary: 'Generate new machine token',
+        security: [['bearerAuth' => []]],
+        tags: ['Machines'],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'New token generated',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'token', type: 'string', example: 'mn_...'),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+            new OA\Response(response: 404, description: 'Machine not found'),
+        ]
+    )]
     public function regenerateToken(Request $request, string $id): JsonResponse
     {
         $machine = Machine::findOrFail($id);

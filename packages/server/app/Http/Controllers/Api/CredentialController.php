@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use OpenApi\Attributes as OA;
 
 class CredentialController extends Controller
 {
@@ -26,26 +27,25 @@ class CredentialController extends Controller
         private CredentialService $credentialService
     ) {}
 
-    /**
-     * @OA\Get(
-     *     path="/api/credentials",
-     *     tags={"Credentials"},
-     *     summary="List user credentials",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Paginated list of credentials",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="array",
-     *                 @OA\Items(ref="#/components/schemas/ClaudeCredential")
-     *             )
-     *         )
-     *     )
-     * )
-     */
+    /** List user credentials. */
+    #[OA\Get(
+        path: '/api/credentials',
+        summary: 'List user credentials',
+        security: [['bearerAuth' => []]],
+        tags: ['Credentials'],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Paginated list of credentials',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(property: 'data', type: 'array', items: new OA\Items(ref: '#/components/schemas/ClaudeCredential')),
+                    ]
+                )
+            ),
+        ]
+    )]
     public function index(Request $request): JsonResponse
     {
         $credentials = $request->user()
@@ -77,39 +77,46 @@ class CredentialController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/credentials",
-     *     tags={"Credentials"},
-     *     summary="Create credential",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(ref="#/components/schemas/StoreCredentialRequest")
-     *     ),
-     *     @OA\Response(
-     *         response=201,
-     *         description="Credential created",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="data", ref="#/components/schemas/ClaudeCredential")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=409,
-     *         description="Duplicate credential name",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(
-     *                 property="error",
-     *                 type="object",
-     *                 @OA\Property(property="code", type="string", example="DUPLICATE_NAME"),
-     *                 @OA\Property(property="message", type="string")
-     *             )
-     *         )
-     *     )
-     * )
-     */
+    /** Create credential. */
+    #[OA\Post(
+        path: '/api/credentials',
+        summary: 'Create credential',
+        security: [['bearerAuth' => []]],
+        tags: ['Credentials'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(ref: '#/components/schemas/StoreCredentialRequest')
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'Credential created',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(property: 'data', ref: '#/components/schemas/ClaudeCredential'),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 409,
+                description: 'Duplicate credential name',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: false),
+                        new OA\Property(
+                            property: 'error',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'DUPLICATE_NAME'),
+                                new OA\Property(property: 'message', type: 'string'),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+        ]
+    )]
     public function store(StoreCredentialRequest $request): JsonResponse
     {
         $data = $request->validated();
@@ -169,30 +176,29 @@ class CredentialController extends Controller
         ], 201);
     }
 
-    /**
-     * @OA\Get(
-     *     path="/api/credentials/{id}",
-     *     tags={"Credentials"},
-     *     summary="Get credential details",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         description="Credential UUID",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Credential details",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="data", ref="#/components/schemas/ClaudeCredential")
-     *         )
-     *     ),
-     *     @OA\Response(response=404, description="Credential not found")
-     * )
-     */
+    /** Get credential details. */
+    #[OA\Get(
+        path: '/api/credentials/{id}',
+        summary: 'Get credential details',
+        security: [['bearerAuth' => []]],
+        tags: ['Credentials'],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Credential UUID', schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Credential details',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(property: 'data', ref: '#/components/schemas/ClaudeCredential'),
+                    ]
+                )
+            ),
+            new OA\Response(response: 404, description: 'Credential not found'),
+        ]
+    )]
     public function show(Request $request, string $id): JsonResponse
     {
         $credential = $request->user()->credentials()->findOrFail($id);
@@ -216,34 +222,33 @@ class CredentialController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Put(
-     *     path="/api/credentials/{id}",
-     *     tags={"Credentials"},
-     *     summary="Update credential",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         description="Credential UUID",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(ref="#/components/schemas/UpdateCredentialRequest")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Credential updated",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="data", ref="#/components/schemas/ClaudeCredential")
-     *         )
-     *     ),
-     *     @OA\Response(response=404, description="Credential not found")
-     * )
-     */
+    /** Update credential. */
+    #[OA\Put(
+        path: '/api/credentials/{id}',
+        summary: 'Update credential',
+        security: [['bearerAuth' => []]],
+        tags: ['Credentials'],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Credential UUID', schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(ref: '#/components/schemas/UpdateCredentialRequest')
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Credential updated',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(property: 'data', ref: '#/components/schemas/ClaudeCredential'),
+                    ]
+                )
+            ),
+            new OA\Response(response: 404, description: 'Credential not found'),
+        ]
+    )]
     public function update(UpdateCredentialRequest $request, string $id): JsonResponse
     {
         $credential = $request->user()->credentials()->findOrFail($id);
@@ -284,34 +289,35 @@ class CredentialController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Delete(
-     *     path="/api/credentials/{id}",
-     *     tags={"Credentials"},
-     *     summary="Delete credential",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         description="Credential UUID",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Credential deleted",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="deleted", type="boolean", example=true)
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(response=404, description="Credential not found")
-     * )
-     */
+    /** Delete credential. */
+    #[OA\Delete(
+        path: '/api/credentials/{id}',
+        summary: 'Delete credential',
+        security: [['bearerAuth' => []]],
+        tags: ['Credentials'],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Credential UUID', schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Credential deleted',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'deleted', type: 'boolean', example: true),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+            new OA\Response(response: 404, description: 'Credential not found'),
+        ]
+    )]
     public function destroy(Request $request, string $id): JsonResponse
     {
         $credential = $request->user()->credentials()->findOrFail($id);
@@ -335,48 +341,53 @@ class CredentialController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/credentials/{id}/test",
-     *     tags={"Credentials"},
-     *     summary="Validate/test API key",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         description="Credential UUID",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Test result",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="valid", type="boolean"),
-     *                 @OA\Property(property="message", type="string")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=400,
-     *         description="Test failed",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(
-     *                 property="error",
-     *                 type="object",
-     *                 @OA\Property(property="code", type="string", example="TEST_FAILED"),
-     *                 @OA\Property(property="message", type="string")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(response=404, description="Credential not found")
-     * )
-     */
+    /** Validate/test API key. */
+    #[OA\Post(
+        path: '/api/credentials/{id}/test',
+        summary: 'Validate/test API key',
+        security: [['bearerAuth' => []]],
+        tags: ['Credentials'],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Credential UUID', schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Test result',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'valid', type: 'boolean'),
+                                new OA\Property(property: 'message', type: 'string'),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 400,
+                description: 'Test failed',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: false),
+                        new OA\Property(
+                            property: 'error',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'TEST_FAILED'),
+                                new OA\Property(property: 'message', type: 'string'),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+            new OA\Response(response: 404, description: 'Credential not found'),
+        ]
+    )]
     public function test(Request $request, string $id): JsonResponse
     {
         $credential = $request->user()->credentials()->findOrFail($id);
@@ -393,43 +404,46 @@ class CredentialController extends Controller
         }
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/credentials/{id}/refresh",
-     *     tags={"Credentials"},
-     *     summary="Refresh OAuth token",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         description="Credential UUID",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Token refreshed successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="data", type="object")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=400,
-     *         description="Refresh failed",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(
-     *                 property="error",
-     *                 type="object",
-     *                 @OA\Property(property="code", type="string", example="REFRESH_FAILED"),
-     *                 @OA\Property(property="message", type="string")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(response=404, description="Credential not found")
-     * )
-     */
+    /** Refresh OAuth token. */
+    #[OA\Post(
+        path: '/api/credentials/{id}/refresh',
+        summary: 'Refresh OAuth token',
+        security: [['bearerAuth' => []]],
+        tags: ['Credentials'],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Credential UUID', schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Token refreshed successfully',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(property: 'data', type: 'object'),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 400,
+                description: 'Refresh failed',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: false),
+                        new OA\Property(
+                            property: 'error',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'REFRESH_FAILED'),
+                                new OA\Property(property: 'message', type: 'string'),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+            new OA\Response(response: 404, description: 'Credential not found'),
+        ]
+    )]
     public function refresh(Request $request, string $id): JsonResponse
     {
         $credential = $request->user()->credentials()->findOrFail($id);
@@ -449,54 +463,54 @@ class CredentialController extends Controller
         }
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/credentials/{id}/capture",
-     *     tags={"Credentials"},
-     *     summary="Capture OAuth flow from credentials file",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         description="Credential UUID",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             @OA\Property(
-     *                 property="credentials_path",
-     *                 type="string",
-     *                 description="Path to the Claude credentials file",
-     *                 example="/home/user/.claude/.credentials.json"
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Credentials captured successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="data", type="object")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=400,
-     *         description="Capture failed",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(
-     *                 property="error",
-     *                 type="object",
-     *                 @OA\Property(property="code", type="string", example="CAPTURE_FAILED"),
-     *                 @OA\Property(property="message", type="string")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(response=404, description="Credential not found")
-     * )
-     */
+    /** Capture OAuth flow from credentials file. */
+    #[OA\Post(
+        path: '/api/credentials/{id}/capture',
+        summary: 'Capture OAuth flow from credentials file',
+        security: [['bearerAuth' => []]],
+        tags: ['Credentials'],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Credential UUID', schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'credentials_path', type: 'string', description: 'Path to the Claude credentials file', example: '/home/user/.claude/.credentials.json'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Credentials captured successfully',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(property: 'data', type: 'object'),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 400,
+                description: 'Capture failed',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: false),
+                        new OA\Property(
+                            property: 'error',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'CAPTURE_FAILED'),
+                                new OA\Property(property: 'message', type: 'string'),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+            new OA\Response(response: 404, description: 'Credential not found'),
+        ]
+    )]
     public function capture(Request $request, string $id): JsonResponse
     {
         $credential = $request->user()->credentials()->findOrFail($id);
@@ -514,30 +528,29 @@ class CredentialController extends Controller
         }
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/credentials/{id}/set-default",
-     *     tags={"Credentials"},
-     *     summary="Set credential as default",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         description="Credential UUID",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Default credential updated",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="data", ref="#/components/schemas/ClaudeCredential")
-     *         )
-     *     ),
-     *     @OA\Response(response=404, description="Credential not found")
-     * )
-     */
+    /** Set credential as default. */
+    #[OA\Post(
+        path: '/api/credentials/{id}/set-default',
+        summary: 'Set credential as default',
+        security: [['bearerAuth' => []]],
+        tags: ['Credentials'],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Credential UUID', schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Default credential updated',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(property: 'data', ref: '#/components/schemas/ClaudeCredential'),
+                    ]
+                )
+            ),
+            new OA\Response(response: 404, description: 'Credential not found'),
+        ]
+    )]
     public function setDefault(Request $request, string $id): JsonResponse
     {
         $credential = $request->user()->credentials()->findOrFail($id);

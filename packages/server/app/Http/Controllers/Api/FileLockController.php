@@ -10,22 +10,24 @@ use App\Models\SharedProject;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use OpenApi\Attributes as OA;
 
 class FileLockController extends Controller
 {
-    /**
-     * List file locks for a project.
-     *
-     * @OA\Get(
-     *     path="/api/projects/{projectId}/locks",
-     *     tags={"File Locks"},
-     *     summary="List active file locks",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(name="projectId", in="path", required=true, @OA\Schema(type="string", format="uuid")),
-     *     @OA\Response(response=200, description="List of active locks", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-     *     @OA\Response(response=404, description="Project not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
-     * )
-     */
+    /** List active file locks for a project. */
+    #[OA\Get(
+        path: '/api/projects/{projectId}/locks',
+        summary: 'List active file locks',
+        security: [['bearerAuth' => []]],
+        tags: ['File Locks'],
+        parameters: [
+            new OA\Parameter(name: 'projectId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'List of active locks', content: new OA\JsonContent(ref: '#/components/schemas/SuccessResponse')),
+            new OA\Response(response: 404, description: 'Project not found', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+        ],
+    )]
     public function index(Request $request, string $projectId): JsonResponse
     {
         $project = SharedProject::findOrFail($projectId);
@@ -44,21 +46,25 @@ class FileLockController extends Controller
         ]);
     }
 
-    /**
-     * Acquire a file lock.
-     *
-     * @OA\Post(
-     *     path="/api/projects/{projectId}/locks",
-     *     tags={"File Locks"},
-     *     summary="Acquire a file lock",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(name="projectId", in="path", required=true, @OA\Schema(type="string", format="uuid")),
-     *     @OA\RequestBody(required=true, @OA\JsonContent(ref="#/components/schemas/CreateFileLockRequest")),
-     *     @OA\Response(response=201, description="Lock acquired", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-     *     @OA\Response(response=404, description="Project not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
-     *     @OA\Response(response=409, description="File already locked", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
-     * )
-     */
+    /** Acquire a file lock. */
+    #[OA\Post(
+        path: '/api/projects/{projectId}/locks',
+        summary: 'Acquire a file lock',
+        security: [['bearerAuth' => []]],
+        tags: ['File Locks'],
+        parameters: [
+            new OA\Parameter(name: 'projectId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(ref: '#/components/schemas/CreateFileLockRequest')
+        ),
+        responses: [
+            new OA\Response(response: 201, description: 'Lock acquired', content: new OA\JsonContent(ref: '#/components/schemas/SuccessResponse')),
+            new OA\Response(response: 404, description: 'Project not found', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+            new OA\Response(response: 409, description: 'File already locked', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+        ],
+    )]
     public function store(Request $request, string $projectId): JsonResponse
     {
         $project = SharedProject::findOrFail($projectId);
@@ -115,24 +121,30 @@ class FileLockController extends Controller
         ], 201);
     }
 
-    /**
-     * Release a file lock.
-     *
-     * @OA\Post(
-     *     path="/api/projects/{projectId}/locks/release",
-     *     tags={"File Locks"},
-     *     summary="Release a file lock",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(name="projectId", in="path", required=true, @OA\Schema(type="string", format="uuid")),
-     *     @OA\RequestBody(required=true, @OA\JsonContent(
-     *         required={"path", "instance_id"},
-     *         @OA\Property(property="path", type="string"),
-     *         @OA\Property(property="instance_id", type="string")
-     *     )),
-     *     @OA\Response(response=200, description="Lock released", @OA\JsonContent(ref="#/components/schemas/DeletedResponse")),
-     *     @OA\Response(response=404, description="Lock not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
-     * )
-     */
+    /** Release a file lock. */
+    #[OA\Post(
+        path: '/api/projects/{projectId}/locks/release',
+        summary: 'Release a file lock',
+        security: [['bearerAuth' => []]],
+        tags: ['File Locks'],
+        parameters: [
+            new OA\Parameter(name: 'projectId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['path', 'instance_id'],
+                properties: [
+                    new OA\Property(property: 'path', type: 'string'),
+                    new OA\Property(property: 'instance_id', type: 'string'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Lock released', content: new OA\JsonContent(ref: '#/components/schemas/DeletedResponse')),
+            new OA\Response(response: 404, description: 'Lock not found', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+        ],
+    )]
     public function destroy(Request $request, string $projectId): JsonResponse
     {
         $project = SharedProject::findOrFail($projectId);
@@ -165,23 +177,29 @@ class FileLockController extends Controller
         ]);
     }
 
-    /**
-     * Force release a file lock (admin only).
-     *
-     * @OA\Post(
-     *     path="/api/projects/{projectId}/locks/force-release",
-     *     tags={"File Locks"},
-     *     summary="Force release a file lock",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(name="projectId", in="path", required=true, @OA\Schema(type="string", format="uuid")),
-     *     @OA\RequestBody(required=true, @OA\JsonContent(
-     *         required={"path"},
-     *         @OA\Property(property="path", type="string")
-     *     )),
-     *     @OA\Response(response=200, description="Lock force released", @OA\JsonContent(ref="#/components/schemas/DeletedResponse")),
-     *     @OA\Response(response=404, description="Lock not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
-     * )
-     */
+    /** Force release a file lock (admin only). */
+    #[OA\Post(
+        path: '/api/projects/{projectId}/locks/force-release',
+        summary: 'Force release a file lock',
+        security: [['bearerAuth' => []]],
+        tags: ['File Locks'],
+        parameters: [
+            new OA\Parameter(name: 'projectId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['path'],
+                properties: [
+                    new OA\Property(property: 'path', type: 'string'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Lock force released', content: new OA\JsonContent(ref: '#/components/schemas/DeletedResponse')),
+            new OA\Response(response: 404, description: 'Lock not found', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+        ],
+    )]
     public function forceDestroy(Request $request, string $projectId): JsonResponse
     {
         $project = SharedProject::findOrFail($projectId);
@@ -209,28 +227,44 @@ class FileLockController extends Controller
         ]);
     }
 
-    /**
-     * Check if a file is locked.
-     *
-     * @OA\Post(
-     *     path="/api/projects/{projectId}/locks/check",
-     *     tags={"File Locks"},
-     *     summary="Check file lock status",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(name="projectId", in="path", required=true, @OA\Schema(type="string", format="uuid")),
-     *     @OA\RequestBody(required=true, @OA\JsonContent(
-     *         required={"path"},
-     *         @OA\Property(property="path", type="string")
-     *     )),
-     *     @OA\Response(response=200, description="Lock status", @OA\JsonContent(
-     *         @OA\Property(property="success", type="boolean"),
-     *         @OA\Property(property="data", type="object",
-     *             @OA\Property(property="is_locked", type="boolean"),
-     *             @OA\Property(property="locked_by", type="string", nullable=true)
-     *         )
-     *     ))
-     * )
-     */
+    /** Check if a file is locked. */
+    #[OA\Post(
+        path: '/api/projects/{projectId}/locks/check',
+        summary: 'Check file lock status',
+        security: [['bearerAuth' => []]],
+        tags: ['File Locks'],
+        parameters: [
+            new OA\Parameter(name: 'projectId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['path'],
+                properties: [
+                    new OA\Property(property: 'path', type: 'string'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Lock status',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean'),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'is_locked', type: 'boolean'),
+                                new OA\Property(property: 'locked_by', type: 'string', nullable: true),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+        ],
+    )]
     public function check(Request $request, string $projectId): JsonResponse
     {
         $project = SharedProject::findOrFail($projectId);
@@ -256,25 +290,31 @@ class FileLockController extends Controller
         ]);
     }
 
-    /**
-     * Extend a file lock.
-     *
-     * @OA\Post(
-     *     path="/api/projects/{projectId}/locks/extend",
-     *     tags={"File Locks"},
-     *     summary="Extend a file lock duration",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(name="projectId", in="path", required=true, @OA\Schema(type="string", format="uuid")),
-     *     @OA\RequestBody(required=true, @OA\JsonContent(
-     *         required={"path", "instance_id"},
-     *         @OA\Property(property="path", type="string"),
-     *         @OA\Property(property="instance_id", type="string"),
-     *         @OA\Property(property="minutes", type="integer", default=30)
-     *     )),
-     *     @OA\Response(response=200, description="Lock extended", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-     *     @OA\Response(response=404, description="Lock not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
-     * )
-     */
+    /** Extend a file lock duration. */
+    #[OA\Post(
+        path: '/api/projects/{projectId}/locks/extend',
+        summary: 'Extend a file lock duration',
+        security: [['bearerAuth' => []]],
+        tags: ['File Locks'],
+        parameters: [
+            new OA\Parameter(name: 'projectId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['path', 'instance_id'],
+                properties: [
+                    new OA\Property(property: 'path', type: 'string'),
+                    new OA\Property(property: 'instance_id', type: 'string'),
+                    new OA\Property(property: 'minutes', type: 'integer', default: 30),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Lock extended', content: new OA\JsonContent(ref: '#/components/schemas/SuccessResponse')),
+            new OA\Response(response: 404, description: 'Lock not found', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+        ],
+    )]
     public function extend(Request $request, string $projectId): JsonResponse
     {
         $project = SharedProject::findOrFail($projectId);
@@ -313,27 +353,43 @@ class FileLockController extends Controller
         ]);
     }
 
-    /**
-     * Release all locks by an instance.
-     *
-     * @OA\Post(
-     *     path="/api/projects/{projectId}/locks/release-by-instance",
-     *     tags={"File Locks"},
-     *     summary="Release all locks held by an instance",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(name="projectId", in="path", required=true, @OA\Schema(type="string", format="uuid")),
-     *     @OA\RequestBody(required=true, @OA\JsonContent(
-     *         required={"instance_id"},
-     *         @OA\Property(property="instance_id", type="string")
-     *     )),
-     *     @OA\Response(response=200, description="Locks released", @OA\JsonContent(
-     *         @OA\Property(property="success", type="boolean"),
-     *         @OA\Property(property="data", type="object",
-     *             @OA\Property(property="released_count", type="integer")
-     *         )
-     *     ))
-     * )
-     */
+    /** Release all locks held by an instance. */
+    #[OA\Post(
+        path: '/api/projects/{projectId}/locks/release-by-instance',
+        summary: 'Release all locks held by an instance',
+        security: [['bearerAuth' => []]],
+        tags: ['File Locks'],
+        parameters: [
+            new OA\Parameter(name: 'projectId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['instance_id'],
+                properties: [
+                    new OA\Property(property: 'instance_id', type: 'string'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Locks released',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean'),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'released_count', type: 'integer'),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+        ],
+    )]
     public function releaseByInstance(Request $request, string $projectId): JsonResponse
     {
         $project = SharedProject::findOrFail($projectId);
@@ -357,25 +413,39 @@ class FileLockController extends Controller
         ]);
     }
 
-    /**
-     * Bulk lock multiple files.
-     *
-     * @OA\Post(
-     *     path="/api/projects/{projectId}/locks/bulk",
-     *     tags={"File Locks"},
-     *     summary="Lock multiple files at once",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(name="projectId", in="path", required=true, @OA\Schema(type="string", format="uuid")),
-     *     @OA\RequestBody(required=true, @OA\JsonContent(ref="#/components/schemas/BulkFileLockRequest")),
-     *     @OA\Response(response=200, description="Bulk lock results", @OA\JsonContent(
-     *         @OA\Property(property="success", type="boolean"),
-     *         @OA\Property(property="data", type="object",
-     *             @OA\Property(property="locked", type="array", @OA\Items(type="object")),
-     *             @OA\Property(property="failed", type="array", @OA\Items(type="object"))
-     *         )
-     *     ))
-     * )
-     */
+    /** Lock multiple files at once. */
+    #[OA\Post(
+        path: '/api/projects/{projectId}/locks/bulk',
+        summary: 'Lock multiple files at once',
+        security: [['bearerAuth' => []]],
+        tags: ['File Locks'],
+        parameters: [
+            new OA\Parameter(name: 'projectId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(ref: '#/components/schemas/BulkFileLockRequest')
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Bulk lock results',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean'),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'locked', type: 'array', items: new OA\Items(type: 'object')),
+                                new OA\Property(property: 'failed', type: 'array', items: new OA\Items(type: 'object')),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+        ],
+    )]
     public function bulkLock(Request $request, string $projectId): JsonResponse
     {
         $project = SharedProject::findOrFail($projectId);
@@ -448,23 +518,29 @@ class FileLockController extends Controller
         }
     }
 
-    /**
-     * Check for lock conflicts on multiple files.
-     *
-     * @OA\Post(
-     *     path="/api/projects/{projectId}/locks/conflicts",
-     *     tags={"File Locks"},
-     *     summary="Check lock conflicts for multiple files",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(name="projectId", in="path", required=true, @OA\Schema(type="string", format="uuid")),
-     *     @OA\RequestBody(required=true, @OA\JsonContent(
-     *         required={"paths", "instance_id"},
-     *         @OA\Property(property="paths", type="array", @OA\Items(type="string")),
-     *         @OA\Property(property="instance_id", type="string")
-     *     )),
-     *     @OA\Response(response=200, description="Conflict check results")
-     * )
-     */
+    /** Check lock conflicts for multiple files. */
+    #[OA\Post(
+        path: '/api/projects/{projectId}/locks/conflicts',
+        summary: 'Check lock conflicts for multiple files',
+        security: [['bearerAuth' => []]],
+        tags: ['File Locks'],
+        parameters: [
+            new OA\Parameter(name: 'projectId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['paths', 'instance_id'],
+                properties: [
+                    new OA\Property(property: 'paths', type: 'array', items: new OA\Items(type: 'string')),
+                    new OA\Property(property: 'instance_id', type: 'string'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Conflict check results'),
+        ],
+    )]
     public function conflicts(Request $request, string $projectId): JsonResponse
     {
         $project = SharedProject::findOrFail($projectId);

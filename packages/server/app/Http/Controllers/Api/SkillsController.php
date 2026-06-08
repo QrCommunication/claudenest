@@ -9,6 +9,7 @@ use App\Models\Skill;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use OpenApi\Attributes as OA;
 
 class SkillsController extends Controller
 {
@@ -18,95 +19,68 @@ class SkillsController extends Controller
      * Returns a paginated, filterable list of skills registered on the given machine.
      * Supports text search, category filtering, and enabled/disabled filtering.
      * Category counts are included in the meta for sidebar/filter UIs.
-     *
-     * @OA\Get(
-     *     path="/api/machines/{machineId}/skills",
-     *     tags={"Skills"},
-     *     summary="List machine skills",
-     *     description="Returns a paginated list of skills for the specified machine, with optional filtering by search term, category, and enabled state. Category counts are included in the response meta.",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="machineId",
-     *         in="path",
-     *         required=true,
-     *         description="UUID of the machine",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\Parameter(
-     *         name="search",
-     *         in="query",
-     *         required=false,
-     *         description="Search term to filter skills by name, display_name, or description",
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Parameter(
-     *         name="category",
-     *         in="query",
-     *         required=false,
-     *         description="Filter by skill category",
-     *         @OA\Schema(type="string", enum={"auth","browser","command","mcp","search","file","git","general","api","database"})
-     *     ),
-     *     @OA\Parameter(
-     *         name="enabled",
-     *         in="query",
-     *         required=false,
-     *         description="Filter by enabled state (true or false)",
-     *         @OA\Schema(type="boolean")
-     *     ),
-     *     @OA\Parameter(
-     *         name="per_page",
-     *         in="query",
-     *         required=false,
-     *         description="Number of results per page",
-     *         @OA\Schema(type="integer", default=15, minimum=1, maximum=100)
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Paginated skill list with category counts",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="array",
-     *                 @OA\Items(ref="#/components/schemas/Skill")
-     *             ),
-     *             @OA\Property(
-     *                 property="meta",
-     *                 type="object",
-     *                 @OA\Property(property="timestamp", type="string", format="date-time"),
-     *                 @OA\Property(property="request_id", type="string"),
-     *                 @OA\Property(
-     *                     property="categories",
-     *                     type="object",
-     *                     description="Map of category name to skill count",
-     *                     @OA\AdditionalProperties(type="integer")
-     *                 ),
-     *                 @OA\Property(
-     *                     property="pagination",
-     *                     type="object",
-     *                     @OA\Property(property="current_page", type="integer"),
-     *                     @OA\Property(property="last_page", type="integer"),
-     *                     @OA\Property(property="per_page", type="integer"),
-     *                     @OA\Property(property="total", type="integer")
-     *                 )
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Machine not found",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(
-     *                 property="error",
-     *                 type="object",
-     *                 @OA\Property(property="code", type="string", example="SKL_001"),
-     *                 @OA\Property(property="message", type="string", example="Machine not found")
-     *             )
-     *         )
-     *     )
-     * )
      */
+    #[OA\Get(
+        path: '/api/machines/{machineId}/skills',
+        summary: 'List machine skills',
+        security: [['bearerAuth' => []]],
+        tags: ['Skills'],
+        parameters: [
+            new OA\Parameter(name: 'machineId', in: 'path', required: true, description: 'UUID of the machine', schema: new OA\Schema(type: 'string', format: 'uuid')),
+            new OA\Parameter(name: 'search', in: 'query', required: false, description: 'Search term to filter skills by name, display_name, or description', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'category', in: 'query', required: false, description: 'Filter by skill category', schema: new OA\Schema(type: 'string', enum: ['auth', 'browser', 'command', 'mcp', 'search', 'file', 'git', 'general', 'api', 'database'])),
+            new OA\Parameter(name: 'enabled', in: 'query', required: false, description: 'Filter by enabled state (true or false)', schema: new OA\Schema(type: 'boolean')),
+            new OA\Parameter(name: 'per_page', in: 'query', required: false, description: 'Number of results per page', schema: new OA\Schema(type: 'integer', default: 15, minimum: 1, maximum: 100)),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Paginated skill list with category counts',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(property: 'data', type: 'array', items: new OA\Items(ref: '#/components/schemas/Skill')),
+                        new OA\Property(
+                            property: 'meta',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'timestamp', type: 'string', format: 'date-time'),
+                                new OA\Property(property: 'request_id', type: 'string'),
+                                new OA\Property(property: 'categories', type: 'object', description: 'Map of category name to skill count', additionalProperties: new OA\AdditionalProperties(type: 'integer')),
+                                new OA\Property(
+                                    property: 'pagination',
+                                    type: 'object',
+                                    properties: [
+                                        new OA\Property(property: 'current_page', type: 'integer'),
+                                        new OA\Property(property: 'last_page', type: 'integer'),
+                                        new OA\Property(property: 'per_page', type: 'integer'),
+                                        new OA\Property(property: 'total', type: 'integer'),
+                                    ]
+                                ),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'Machine not found',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: false),
+                        new OA\Property(
+                            property: 'error',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'SKL_001'),
+                                new OA\Property(property: 'message', type: 'string', example: 'Machine not found'),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+        ]
+    )]
     public function index(Request $request, string $machine): JsonResponse
     {
         $machineModel = Machine::findOrFail($machine);
@@ -167,66 +141,61 @@ class SkillsController extends Controller
      *
      * Returns the full details of a single skill identified by its path,
      * along with up to 5 related enabled skills in the same category.
-     *
-     * @OA\Get(
-     *     path="/api/machines/{machineId}/skills/{path}",
-     *     tags={"Skills"},
-     *     summary="Get skill details",
-     *     description="Returns full details of a skill identified by its path, along with up to 5 related enabled skills in the same category.",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="machineId",
-     *         in="path",
-     *         required=true,
-     *         description="UUID of the machine",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\Parameter(
-     *         name="path",
-     *         in="path",
-     *         required=true,
-     *         description="Unique skill path identifier (e.g. 'git/commit', 'browser/screenshot')",
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Skill details with related skills",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="skill", ref="#/components/schemas/Skill"),
-     *                 @OA\Property(
-     *                     property="related",
-     *                     type="array",
-     *                     description="Up to 5 related enabled skills in the same category",
-     *                     @OA\Items(ref="#/components/schemas/Skill")
-     *                 )
-     *             ),
-     *             @OA\Property(
-     *                 property="meta",
-     *                 type="object",
-     *                 @OA\Property(property="timestamp", type="string", format="date-time"),
-     *                 @OA\Property(property="request_id", type="string")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Machine or skill not found",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(
-     *                 property="error",
-     *                 type="object",
-     *                 @OA\Property(property="code", type="string", example="SKL_002"),
-     *                 @OA\Property(property="message", type="string", example="Skill not found")
-     *             )
-     *         )
-     *     )
-     * )
      */
+    #[OA\Get(
+        path: '/api/machines/{machineId}/skills/{path}',
+        summary: 'Get skill details',
+        security: [['bearerAuth' => []]],
+        tags: ['Skills'],
+        parameters: [
+            new OA\Parameter(name: 'machineId', in: 'path', required: true, description: 'UUID of the machine', schema: new OA\Schema(type: 'string', format: 'uuid')),
+            new OA\Parameter(name: 'path', in: 'path', required: true, description: "Unique skill path identifier (e.g. 'git/commit', 'browser/screenshot')", schema: new OA\Schema(type: 'string')),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Skill details with related skills',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'skill', ref: '#/components/schemas/Skill'),
+                                new OA\Property(property: 'related', type: 'array', description: 'Up to 5 related enabled skills in the same category', items: new OA\Items(ref: '#/components/schemas/Skill')),
+                            ]
+                        ),
+                        new OA\Property(
+                            property: 'meta',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'timestamp', type: 'string', format: 'date-time'),
+                                new OA\Property(property: 'request_id', type: 'string'),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'Machine or skill not found',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: false),
+                        new OA\Property(
+                            property: 'error',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'SKL_002'),
+                                new OA\Property(property: 'message', type: 'string', example: 'Skill not found'),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+        ]
+    )]
     public function show(Request $request, string $machine, string $path): JsonResponse
     {
         $machineModel = Machine::findOrFail($machine);
@@ -266,73 +235,81 @@ class SkillsController extends Controller
      *
      * Called by the agent after skill discovery to register a new skill
      * on the server. The path must be globally unique across all skills.
-     *
-     * @OA\Post(
-     *     path="/api/machines/{machineId}/skills",
-     *     tags={"Skills"},
-     *     summary="Register a skill",
-     *     description="Registers a new skill discovered by the agent on the given machine. The skill path must be globally unique.",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="machineId",
-     *         in="path",
-     *         required=true,
-     *         description="UUID of the machine",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"name", "category", "path"},
-     *             @OA\Property(property="name", type="string", maxLength=255, example="Git Commit", description="Internal skill name"),
-     *             @OA\Property(property="display_name", type="string", maxLength=255, nullable=true, example="Git Commit Helper", description="Human-readable display name"),
-     *             @OA\Property(property="description", type="string", nullable=true, example="Commits staged changes with a generated message", description="Full description of what the skill does"),
-     *             @OA\Property(property="category", type="string", enum={"auth","browser","command","mcp","search","file","git","general","api","database"}, example="git", description="Skill category"),
-     *             @OA\Property(property="path", type="string", example="git/commit", description="Unique path identifier for the skill"),
-     *             @OA\Property(property="version", type="string", maxLength=50, nullable=true, example="1.2.0", description="Semantic version of the skill"),
-     *             @OA\Property(property="enabled", type="boolean", example=true, description="Whether the skill is enabled (defaults to true)"),
-     *             @OA\Property(property="config", type="object", nullable=true, description="Key-value configuration for the skill"),
-     *             @OA\Property(property="tags", type="array", nullable=true, @OA\Items(type="string"), example={"vcs","automation"}, description="Searchable tags"),
-     *             @OA\Property(property="examples", type="array", nullable=true, @OA\Items(type="string"), example={"git commit -m 'fix: typo'"}, description="Usage examples")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=201,
-     *         description="Skill registered successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="data", ref="#/components/schemas/Skill"),
-     *             @OA\Property(
-     *                 property="meta",
-     *                 type="object",
-     *                 @OA\Property(property="timestamp", type="string", format="date-time"),
-     *                 @OA\Property(property="request_id", type="string")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Machine not found",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(
-     *                 property="error",
-     *                 type="object",
-     *                 @OA\Property(property="code", type="string", example="SKL_001"),
-     *                 @OA\Property(property="message", type="string", example="Machine not found")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error (e.g. duplicate path, invalid category)",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string"),
-     *             @OA\Property(property="errors", type="object")
-     *         )
-     *     )
-     * )
      */
+    #[OA\Post(
+        path: '/api/machines/{machineId}/skills',
+        summary: 'Register a skill',
+        security: [['bearerAuth' => []]],
+        tags: ['Skills'],
+        parameters: [
+            new OA\Parameter(name: 'machineId', in: 'path', required: true, description: 'UUID of the machine', schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['name', 'category', 'path'],
+                properties: [
+                    new OA\Property(property: 'name', type: 'string', maxLength: 255, description: 'Internal skill name', example: 'Git Commit'),
+                    new OA\Property(property: 'display_name', type: 'string', maxLength: 255, nullable: true, description: 'Human-readable display name', example: 'Git Commit Helper'),
+                    new OA\Property(property: 'description', type: 'string', nullable: true, description: 'Full description of what the skill does', example: 'Commits staged changes with a generated message'),
+                    new OA\Property(property: 'category', type: 'string', enum: ['auth', 'browser', 'command', 'mcp', 'search', 'file', 'git', 'general', 'api', 'database'], description: 'Skill category', example: 'git'),
+                    new OA\Property(property: 'path', type: 'string', description: 'Unique path identifier for the skill', example: 'git/commit'),
+                    new OA\Property(property: 'version', type: 'string', maxLength: 50, nullable: true, description: 'Semantic version of the skill', example: '1.2.0'),
+                    new OA\Property(property: 'enabled', type: 'boolean', description: 'Whether the skill is enabled (defaults to true)', example: true),
+                    new OA\Property(property: 'config', type: 'object', nullable: true, description: 'Key-value configuration for the skill'),
+                    new OA\Property(property: 'tags', type: 'array', nullable: true, description: 'Searchable tags', items: new OA\Items(type: 'string'), example: ['vcs', 'automation']),
+                    new OA\Property(property: 'examples', type: 'array', nullable: true, description: 'Usage examples', items: new OA\Items(type: 'string'), example: ["git commit -m 'fix: typo'"]),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'Skill registered successfully',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(property: 'data', ref: '#/components/schemas/Skill'),
+                        new OA\Property(
+                            property: 'meta',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'timestamp', type: 'string', format: 'date-time'),
+                                new OA\Property(property: 'request_id', type: 'string'),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'Machine not found',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: false),
+                        new OA\Property(
+                            property: 'error',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'SKL_001'),
+                                new OA\Property(property: 'message', type: 'string', example: 'Machine not found'),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 422,
+                description: 'Validation error (e.g. duplicate path, invalid category)',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'message', type: 'string'),
+                        new OA\Property(property: 'errors', type: 'object'),
+                    ]
+                )
+            ),
+        ]
+    )]
     public function store(Request $request, string $machine): JsonResponse
     {
         $machineModel = Machine::findOrFail($machine);
@@ -433,73 +410,75 @@ class SkillsController extends Controller
      *
      * Partially updates a skill identified by its path. Only provided fields
      * are updated; omitted fields remain unchanged.
-     *
-     * @OA\Patch(
-     *     path="/api/machines/{machineId}/skills/{path}",
-     *     tags={"Skills"},
-     *     summary="Update a skill",
-     *     description="Partially updates a skill's enabled state, config, display name, or description. Only provided fields are modified.",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="machineId",
-     *         in="path",
-     *         required=true,
-     *         description="UUID of the machine",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\Parameter(
-     *         name="path",
-     *         in="path",
-     *         required=true,
-     *         description="Unique skill path identifier",
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             @OA\Property(property="enabled", type="boolean", example=false, description="Toggle the skill on or off"),
-     *             @OA\Property(property="config", type="object", nullable=true, description="Replace the skill's entire config object"),
-     *             @OA\Property(property="display_name", type="string", maxLength=255, nullable=true, example="Renamed Skill", description="Human-readable display name"),
-     *             @OA\Property(property="description", type="string", nullable=true, example="Updated description", description="Full description of the skill")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Skill updated successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="data", ref="#/components/schemas/Skill"),
-     *             @OA\Property(
-     *                 property="meta",
-     *                 type="object",
-     *                 @OA\Property(property="timestamp", type="string", format="date-time"),
-     *                 @OA\Property(property="request_id", type="string")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Machine or skill not found",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(
-     *                 property="error",
-     *                 type="object",
-     *                 @OA\Property(property="code", type="string", example="SKL_002"),
-     *                 @OA\Property(property="message", type="string", example="Skill not found")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string"),
-     *             @OA\Property(property="errors", type="object")
-     *         )
-     *     )
-     * )
      */
+    #[OA\Patch(
+        path: '/api/machines/{machineId}/skills/{path}',
+        summary: 'Update a skill',
+        security: [['bearerAuth' => []]],
+        tags: ['Skills'],
+        parameters: [
+            new OA\Parameter(name: 'machineId', in: 'path', required: true, description: 'UUID of the machine', schema: new OA\Schema(type: 'string', format: 'uuid')),
+            new OA\Parameter(name: 'path', in: 'path', required: true, description: 'Unique skill path identifier', schema: new OA\Schema(type: 'string')),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'enabled', type: 'boolean', description: 'Toggle the skill on or off', example: false),
+                    new OA\Property(property: 'config', type: 'object', nullable: true, description: "Replace the skill's entire config object"),
+                    new OA\Property(property: 'display_name', type: 'string', maxLength: 255, nullable: true, description: 'Human-readable display name', example: 'Renamed Skill'),
+                    new OA\Property(property: 'description', type: 'string', nullable: true, description: 'Full description of the skill', example: 'Updated description'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Skill updated successfully',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(property: 'data', ref: '#/components/schemas/Skill'),
+                        new OA\Property(
+                            property: 'meta',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'timestamp', type: 'string', format: 'date-time'),
+                                new OA\Property(property: 'request_id', type: 'string'),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'Machine or skill not found',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: false),
+                        new OA\Property(
+                            property: 'error',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'SKL_002'),
+                                new OA\Property(property: 'message', type: 'string', example: 'Skill not found'),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 422,
+                description: 'Validation error',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'message', type: 'string'),
+                        new OA\Property(property: 'errors', type: 'object'),
+                    ]
+                )
+            ),
+        ]
+    )]
     public function update(Request $request, string $machine, string $path): JsonResponse
     {
         $machineModel = Machine::findOrFail($machine);
@@ -554,56 +533,54 @@ class SkillsController extends Controller
      *
      * Flips the enabled state of the skill: if enabled, it becomes disabled,
      * and vice versa. Returns the updated skill with its new state.
-     *
-     * @OA\Post(
-     *     path="/api/machines/{machineId}/skills/{path}/toggle",
-     *     tags={"Skills"},
-     *     summary="Toggle skill enabled state",
-     *     description="Flips the enabled state of the skill (enabled becomes disabled, and vice versa). Returns the updated skill.",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="machineId",
-     *         in="path",
-     *         required=true,
-     *         description="UUID of the machine",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\Parameter(
-     *         name="path",
-     *         in="path",
-     *         required=true,
-     *         description="Unique skill path identifier",
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Skill toggled successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="data", ref="#/components/schemas/Skill"),
-     *             @OA\Property(
-     *                 property="meta",
-     *                 type="object",
-     *                 @OA\Property(property="timestamp", type="string", format="date-time"),
-     *                 @OA\Property(property="request_id", type="string")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Machine or skill not found",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(
-     *                 property="error",
-     *                 type="object",
-     *                 @OA\Property(property="code", type="string", example="SKL_002"),
-     *                 @OA\Property(property="message", type="string", example="Skill not found")
-     *             )
-     *         )
-     *     )
-     * )
      */
+    #[OA\Post(
+        path: '/api/machines/{machineId}/skills/{path}/toggle',
+        summary: 'Toggle skill enabled state',
+        security: [['bearerAuth' => []]],
+        tags: ['Skills'],
+        parameters: [
+            new OA\Parameter(name: 'machineId', in: 'path', required: true, description: 'UUID of the machine', schema: new OA\Schema(type: 'string', format: 'uuid')),
+            new OA\Parameter(name: 'path', in: 'path', required: true, description: 'Unique skill path identifier', schema: new OA\Schema(type: 'string')),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Skill toggled successfully',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(property: 'data', ref: '#/components/schemas/Skill'),
+                        new OA\Property(
+                            property: 'meta',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'timestamp', type: 'string', format: 'date-time'),
+                                new OA\Property(property: 'request_id', type: 'string'),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'Machine or skill not found',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: false),
+                        new OA\Property(
+                            property: 'error',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'SKL_002'),
+                                new OA\Property(property: 'message', type: 'string', example: 'Skill not found'),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+        ]
+    )]
     public function toggle(Request $request, string $machine, string $path): JsonResponse
     {
         $machineModel = Machine::findOrFail($machine);
@@ -633,56 +610,54 @@ class SkillsController extends Controller
      *
      * Permanently deletes the skill record. This cannot be undone;
      * the agent will need to re-discover and re-register the skill.
-     *
-     * @OA\Delete(
-     *     path="/api/machines/{machineId}/skills/{path}",
-     *     tags={"Skills"},
-     *     summary="Delete a skill",
-     *     description="Permanently removes a skill from the machine. The agent will need to re-discover and re-register the skill to restore it.",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="machineId",
-     *         in="path",
-     *         required=true,
-     *         description="UUID of the machine",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\Parameter(
-     *         name="path",
-     *         in="path",
-     *         required=true,
-     *         description="Unique skill path identifier",
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Skill deleted successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="data", type="null", nullable=true),
-     *             @OA\Property(
-     *                 property="meta",
-     *                 type="object",
-     *                 @OA\Property(property="timestamp", type="string", format="date-time"),
-     *                 @OA\Property(property="request_id", type="string")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Machine or skill not found",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(
-     *                 property="error",
-     *                 type="object",
-     *                 @OA\Property(property="code", type="string", example="SKL_002"),
-     *                 @OA\Property(property="message", type="string", example="Skill not found")
-     *             )
-     *         )
-     *     )
-     * )
      */
+    #[OA\Delete(
+        path: '/api/machines/{machineId}/skills/{path}',
+        summary: 'Delete a skill',
+        security: [['bearerAuth' => []]],
+        tags: ['Skills'],
+        parameters: [
+            new OA\Parameter(name: 'machineId', in: 'path', required: true, description: 'UUID of the machine', schema: new OA\Schema(type: 'string', format: 'uuid')),
+            new OA\Parameter(name: 'path', in: 'path', required: true, description: 'Unique skill path identifier', schema: new OA\Schema(type: 'string')),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Skill deleted successfully',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(property: 'data', type: 'null', nullable: true),
+                        new OA\Property(
+                            property: 'meta',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'timestamp', type: 'string', format: 'date-time'),
+                                new OA\Property(property: 'request_id', type: 'string'),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'Machine or skill not found',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: false),
+                        new OA\Property(
+                            property: 'error',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'SKL_002'),
+                                new OA\Property(property: 'message', type: 'string', example: 'Skill not found'),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+        ]
+    )]
     public function destroy(Request $request, string $machine, string $path): JsonResponse
     {
         $machineModel = Machine::findOrFail($machine);
@@ -712,81 +687,80 @@ class SkillsController extends Controller
      * Accepts an array of skill paths and a target enabled state.
      * All matching skills on the machine are updated in a single query.
      * Returns the count of actually updated rows.
-     *
-     * @OA\Post(
-     *     path="/api/machines/{machineId}/skills/bulk",
-     *     tags={"Skills"},
-     *     summary="Bulk update skills",
-     *     description="Enables or disables multiple skills at once by their paths. Returns the number of skills actually updated.",
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="machineId",
-     *         in="path",
-     *         required=true,
-     *         description="UUID of the machine",
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"paths", "enabled"},
-     *             @OA\Property(
-     *                 property="paths",
-     *                 type="array",
-     *                 description="List of skill paths to update",
-     *                 @OA\Items(type="string"),
-     *                 example={"git/commit", "git/push", "browser/screenshot"}
-     *             ),
-     *             @OA\Property(
-     *                 property="enabled",
-     *                 type="boolean",
-     *                 description="Target enabled state for all listed skills",
-     *                 example=true
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Bulk update result",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="updated_count", type="integer", example=3, description="Number of skills actually updated"),
-     *                 @OA\Property(property="enabled", type="boolean", example=true, description="The applied enabled state")
-     *             ),
-     *             @OA\Property(
-     *                 property="meta",
-     *                 type="object",
-     *                 @OA\Property(property="timestamp", type="string", format="date-time"),
-     *                 @OA\Property(property="request_id", type="string")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Machine not found",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(
-     *                 property="error",
-     *                 type="object",
-     *                 @OA\Property(property="code", type="string", example="SKL_001"),
-     *                 @OA\Property(property="message", type="string", example="Machine not found")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error (e.g. missing paths or enabled field)",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string"),
-     *             @OA\Property(property="errors", type="object")
-     *         )
-     *     )
-     * )
      */
+    #[OA\Post(
+        path: '/api/machines/{machineId}/skills/bulk',
+        summary: 'Bulk update skills',
+        security: [['bearerAuth' => []]],
+        tags: ['Skills'],
+        parameters: [
+            new OA\Parameter(name: 'machineId', in: 'path', required: true, description: 'UUID of the machine', schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['paths', 'enabled'],
+                properties: [
+                    new OA\Property(property: 'paths', type: 'array', description: 'List of skill paths to update', items: new OA\Items(type: 'string'), example: ['git/commit', 'git/push', 'browser/screenshot']),
+                    new OA\Property(property: 'enabled', type: 'boolean', description: 'Target enabled state for all listed skills', example: true),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Bulk update result',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'updated_count', type: 'integer', example: 3, description: 'Number of skills actually updated'),
+                                new OA\Property(property: 'enabled', type: 'boolean', example: true, description: 'The applied enabled state'),
+                            ]
+                        ),
+                        new OA\Property(
+                            property: 'meta',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'timestamp', type: 'string', format: 'date-time'),
+                                new OA\Property(property: 'request_id', type: 'string'),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'Machine not found',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: false),
+                        new OA\Property(
+                            property: 'error',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'code', type: 'string', example: 'SKL_001'),
+                                new OA\Property(property: 'message', type: 'string', example: 'Machine not found'),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 422,
+                description: 'Validation error (e.g. missing paths or enabled field)',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'message', type: 'string'),
+                        new OA\Property(property: 'errors', type: 'object'),
+                    ]
+                )
+            ),
+        ]
+    )]
     public function bulkUpdate(Request $request, string $machine): JsonResponse
     {
         $machineModel = Machine::findOrFail($machine);
