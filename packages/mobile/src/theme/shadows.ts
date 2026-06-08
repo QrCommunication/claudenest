@@ -2,35 +2,43 @@
  * Shadow Configuration
  */
 
-import { colors } from './colors';
+import { colors } from "./colors";
 
 export const shadows = {
   sm: {
-    shadowColor: colors.primary.purple,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 3,
   },
   md: {
-    shadowColor: colors.primary.purple,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 4,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.45,
+    shadowRadius: 16,
+    elevation: 6,
   },
   lg: {
-    shadowColor: colors.primary.purple,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.55,
+    shadowRadius: 28,
+    elevation: 12,
   },
+  // Neon glow for primary / active elements
   glow: {
-    shadowColor: colors.primary.purple,
+    shadowColor: colors.accent.purple,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
+    shadowOpacity: 0.7,
+    shadowRadius: 18,
+    elevation: 12,
+  },
+  glowCyan: {
+    shadowColor: colors.accent.cyan,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 16,
     elevation: 10,
   },
 } as const;

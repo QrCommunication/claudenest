@@ -3,7 +3,7 @@
  * Surface élevée avec border subtile et feedback Reanimated
  */
 
-import React, { memo, useCallback } from 'react';
+import React, { memo, useCallback } from "react";
 import {
   View,
   Text,
@@ -11,14 +11,14 @@ import {
   StyleSheet,
   type ViewStyle,
   type TextStyle,
-} from 'react-native';
+} from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
   FadeIn,
-} from 'react-native-reanimated';
-import { colors, spacing, borderRadius } from '@/theme';
+} from "react-native-reanimated";
+import { colors, spacing, borderRadius, shadows } from "@/theme";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -140,7 +140,10 @@ interface CardContentProps {
   style?: ViewStyle;
 }
 
-export const CardContent = memo(function CardContent({ children, style }: CardContentProps) {
+export const CardContent = memo(function CardContent({
+  children,
+  style,
+}: CardContentProps) {
   return <View style={[styles.content, style]}>{children}</View>;
 });
 
@@ -153,7 +156,10 @@ interface CardFooterProps {
   style?: ViewStyle;
 }
 
-export const CardFooter = memo(function CardFooter({ children, style }: CardFooterProps) {
+export const CardFooter = memo(function CardFooter({
+  children,
+  style,
+}: CardFooterProps) {
   return <View style={[styles.footer, style]}>{children}</View>;
 });
 
@@ -164,14 +170,15 @@ export const CardFooter = memo(function CardFooter({ children, style }: CardFoot
 const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.bg.card,
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.xl,
     borderWidth: 1,
-    borderColor: colors.border.subtle,
+    borderColor: colors.border.default,
+    ...shadows.md,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     padding: spacing.lg,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.subtle,
@@ -182,7 +189,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.text.primary,
   },
   subtitle: {
@@ -194,9 +201,9 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   footer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
     padding: spacing.lg,
     borderTopWidth: 1,
     borderTopColor: colors.border.subtle,

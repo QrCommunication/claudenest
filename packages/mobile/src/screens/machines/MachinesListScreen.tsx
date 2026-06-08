@@ -3,7 +3,14 @@
  * Displays list of connected machines with stats, filters, and stagger animations.
  */
 
-import React, { useEffect, useCallback, useState, useMemo, useRef, memo } from 'react';
+import React, {
+  useEffect,
+  useCallback,
+  useState,
+  useMemo,
+  useRef,
+  memo,
+} from "react";
 import {
   View,
   Text,
@@ -14,33 +21,29 @@ import {
   Alert,
   ScrollView,
   Animated,
-} from 'react-native';
-import { MaterialIcons as Icon } from '@expo/vector-icons';
-import { colors, spacing, borderRadius, typography } from '@/theme';
-import { useMachinesStore } from '@/stores/machinesStore';
-import type { Machine } from '@/types';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { MachinesStackParamList } from '@/navigation/types';
+} from "react-native";
+import { MaterialIcons as Icon } from "@expo/vector-icons";
+import { colors, spacing, borderRadius, typography } from "@/theme";
+import { useMachinesStore } from "@/stores/machinesStore";
+import type { Machine } from "@/types";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type { MachinesStackParamList } from "@/navigation/types";
 
-import {
-  LoadingSpinner,
-  EmptyState,
-  ErrorMessage,
-} from '@/components/common';
-import { MachineCard } from '@/components/machines';
+import { LoadingSpinner, EmptyState, ErrorMessage } from "@/components/common";
+import { MachineCard } from "@/components/machines";
 
-type Props = NativeStackScreenProps<MachinesStackParamList, 'MachinesList'>;
+type Props = NativeStackScreenProps<MachinesStackParamList, "MachinesList">;
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-type FilterType = 'all' | 'online' | 'offline';
+type FilterType = "all" | "online" | "offline";
 
 const FILTERS: Array<{ key: FilterType; label: string }> = [
-  { key: 'all', label: 'All' },
-  { key: 'online', label: 'Online' },
-  { key: 'offline', label: 'Offline' },
+  { key: "all", label: "All" },
+  { key: "online", label: "Online" },
+  { key: "offline", label: "Offline" },
 ];
 
 // ---------------------------------------------------------------------------
@@ -66,21 +69,31 @@ const FilterChip = memo(function FilterChip({
     <TouchableOpacity
       style={[
         styles.filterChip,
-        isActive && { borderColor: accentColor, backgroundColor: accentColor + '18' },
+        isActive && {
+          borderColor: accentColor,
+          backgroundColor: accentColor + "18",
+        },
       ]}
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <Text style={[styles.filterChipText, isActive && { color: accentColor, fontWeight: '600' }]}>
+      <Text
+        style={[
+          styles.filterChipText,
+          isActive && { color: accentColor, fontWeight: "600" },
+        ]}
+      >
         {label}
       </Text>
       <View
         style={[
           styles.filterBadge,
-          isActive && { backgroundColor: accentColor + '30' },
+          isActive && { backgroundColor: accentColor + "30" },
         ]}
       >
-        <Text style={[styles.filterBadgeText, isActive && { color: accentColor }]}>
+        <Text
+          style={[styles.filterBadgeText, isActive && { color: accentColor }]}
+        >
           {count}
         </Text>
       </View>
@@ -152,7 +165,7 @@ export const MachinesListScreen: React.FC<Props> = ({ navigation }) => {
     clearError,
   } = useMachinesStore();
 
-  const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+  const [activeFilter, setActiveFilter] = useState<FilterType>("all");
   const headerOpacity = useRef(new Animated.Value(0)).current;
 
   // ---------------------------------------------------------------------------
@@ -179,7 +192,7 @@ export const MachinesListScreen: React.FC<Props> = ({ navigation }) => {
     navigation.setOptions({
       headerRight: () => (
         <TouchableOpacity
-          onPress={() => navigation.navigate('PairMachine')}
+          onPress={() => navigation.navigate("PairMachine")}
           style={styles.headerButton}
         >
           <Icon name="add" size={28} color={colors.primary.purple} />
@@ -193,19 +206,19 @@ export const MachinesListScreen: React.FC<Props> = ({ navigation }) => {
   // ---------------------------------------------------------------------------
 
   const onlineMachines = useMemo(
-    () => machines.filter((m) => m.status === 'online'),
-    [machines]
+    () => machines.filter((m) => m.status === "online"),
+    [machines],
   );
   const offlineMachines = useMemo(
-    () => machines.filter((m) => m.status !== 'online'),
-    [machines]
+    () => machines.filter((m) => m.status !== "online"),
+    [machines],
   );
 
   const filteredMachines = useMemo(() => {
     switch (activeFilter) {
-      case 'online':
+      case "online":
         return onlineMachines;
-      case 'offline':
+      case "offline":
         return offlineMachines;
       default:
         return machines;
@@ -218,7 +231,7 @@ export const MachinesListScreen: React.FC<Props> = ({ navigation }) => {
       online: onlineMachines.length,
       offline: offlineMachines.length,
     }),
-    [machines, onlineMachines, offlineMachines]
+    [machines, onlineMachines, offlineMachines],
   );
 
   // ---------------------------------------------------------------------------
@@ -231,36 +244,36 @@ export const MachinesListScreen: React.FC<Props> = ({ navigation }) => {
 
   const handlePressMachine = useCallback(
     (machine: Machine) => {
-      navigation.navigate('MachineDetail', { machineId: machine.id });
+      navigation.navigate("MachineDetail", { machineId: machine.id });
     },
-    [navigation]
+    [navigation],
   );
 
   const handleLongPressMachine = useCallback(
     (machine: Machine) => {
-      Alert.alert(machine.name, 'What would you like to do?', [
-        { text: 'Cancel', style: 'cancel' },
+      Alert.alert(machine.name, "What would you like to do?", [
+        { text: "Cancel", style: "cancel" },
         {
-          text: 'Delete',
-          style: 'destructive',
+          text: "Delete",
+          style: "destructive",
           onPress: () => {
             Alert.alert(
-              'Delete Machine?',
+              "Delete Machine?",
               `Are you sure you want to remove "${machine.name}"?`,
               [
-                { text: 'Cancel', style: 'cancel' },
+                { text: "Cancel", style: "cancel" },
                 {
-                  text: 'Delete',
-                  style: 'destructive',
+                  text: "Delete",
+                  style: "destructive",
                   onPress: () => deleteMachine(machine.id),
                 },
-              ]
+              ],
             );
           },
         },
       ]);
     },
-    [deleteMachine]
+    [deleteMachine],
   );
 
   // ---------------------------------------------------------------------------
@@ -276,7 +289,7 @@ export const MachinesListScreen: React.FC<Props> = ({ navigation }) => {
         index={index}
       />
     ),
-    [handlePressMachine, handleLongPressMachine]
+    [handlePressMachine, handleLongPressMachine],
   );
 
   const keyExtractor = useCallback((item: Machine) => item.id, []);
@@ -288,14 +301,23 @@ export const MachinesListScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <View style={styles.container}>
       {error && (
-        <ErrorMessage message={error} onRetry={fetchMachines} onDismiss={clearError} />
+        <ErrorMessage
+          message={error}
+          onRetry={fetchMachines}
+          onDismiss={clearError}
+        />
       )}
 
       {/* Stats Header */}
       <Animated.View style={[styles.statsHeader, { opacity: headerOpacity }]}>
         {/* Online indicator */}
         <View style={styles.statRow}>
-          <View style={[styles.statusDot, { backgroundColor: colors.status.online }]} />
+          <View
+            style={[
+              styles.statusDot,
+              { backgroundColor: colors.status.online },
+            ]}
+          />
           <Text style={styles.statOnline}>{onlineMachines.length} online</Text>
           <Text style={styles.statSeparator}>/</Text>
           <Text style={styles.statTotal}>{machines.length} total</Text>
@@ -307,7 +329,9 @@ export const MachinesListScreen: React.FC<Props> = ({ navigation }) => {
             <View
               style={[
                 styles.progressFill,
-                { width: `${(onlineMachines.length / machines.length) * 100}%` },
+                {
+                  width: `${(onlineMachines.length / machines.length) * 100}%`,
+                },
               ]}
             />
           </View>
@@ -328,11 +352,11 @@ export const MachinesListScreen: React.FC<Props> = ({ navigation }) => {
             isActive={activeFilter === f.key}
             count={counts[f.key]}
             accentColor={
-              f.key === 'online'
+              f.key === "online"
                 ? colors.status.online
-                : f.key === 'offline'
-                ? colors.status.offline
-                : colors.primary.purple
+                : f.key === "offline"
+                  ? colors.status.offline
+                  : colors.primary.purple
             }
             onPress={() => setActiveFilter(f.key)}
           />
@@ -357,19 +381,19 @@ export const MachinesListScreen: React.FC<Props> = ({ navigation }) => {
           <EmptyState
             icon="computer"
             title={
-              activeFilter === 'all'
-                ? 'No machines connected'
+              activeFilter === "all"
+                ? "No machines connected"
                 : `No ${activeFilter} machines`
             }
             description={
-              activeFilter === 'all'
-                ? 'Add a machine to start controlling Claude remotely'
+              activeFilter === "all"
+                ? "Add a machine to start controlling Claude remotely"
                 : `Switch filter to see other machines`
             }
-            actionLabel={activeFilter === 'all' ? 'Add Machine' : undefined}
+            actionLabel={activeFilter === "all" ? "Add Machine" : undefined}
             onAction={
-              activeFilter === 'all'
-                ? () => navigation.navigate('PairMachine')
+              activeFilter === "all"
+                ? () => navigation.navigate("PairMachine")
                 : undefined
             }
           />
@@ -406,8 +430,8 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   statRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.xs,
   },
   statusDot: {
@@ -417,7 +441,7 @@ const styles = StyleSheet.create({
   },
   statOnline: {
     fontSize: typography.size.base,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.status.online,
   },
   statSeparator: {
@@ -433,11 +457,11 @@ const styles = StyleSheet.create({
     height: 3,
     backgroundColor: colors.background.dark4,
     borderRadius: borderRadius.full,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginTop: spacing.xs,
   },
   progressFill: {
-    height: '100%',
+    height: "100%",
     backgroundColor: colors.status.online,
     borderRadius: borderRadius.full,
   },
@@ -445,15 +469,18 @@ const styles = StyleSheet.create({
   // Filters
   filtersContainer: {
     marginTop: spacing.sm,
+    flexGrow: 0,
+    flexShrink: 0,
   },
   filtersContent: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     gap: spacing.sm,
+    alignItems: "center",
   },
   filterChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.xs,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
@@ -464,7 +491,7 @@ const styles = StyleSheet.create({
   },
   filterChipText: {
     fontSize: typography.size.sm,
-    fontWeight: '500',
+    fontWeight: "500",
     color: colors.text.secondary,
   },
   filterBadge: {
@@ -472,13 +499,13 @@ const styles = StyleSheet.create({
     height: 18,
     borderRadius: borderRadius.full,
     backgroundColor: colors.background.dark4,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 4,
   },
   filterBadgeText: {
     fontSize: typography.size.xs,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.text.muted,
   },
 

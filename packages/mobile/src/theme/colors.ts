@@ -1,113 +1,116 @@
 /**
- * ClaudeNest Brand Colors
- * Cohérent avec le design system web
+ * ClaudeNest Brand Colors — "Terminal Premium" radical redesign.
+ * Near-black canvas, electric purple→cyan accents with neon glow, glassy
+ * elevated surfaces. Token KEYS are preserved for backward compatibility;
+ * only values changed so the new look propagates across every screen.
  */
 
 export const colors = {
-  // Backgrounds (dark theme)
+  // Backgrounds — deep near-black with a faint violet tint
   bg: {
-    primary: '#0f0f1a',      // Deepest
-    secondary: '#1a1b26',    // Primary surfaces
-    card: '#24283b',         // Cards, elevated surfaces
-    hover: '#2a2d3e',        // Interactive hover
-    input: '#1e1f2e',        // Input backgrounds
+    primary: "#06060e", // Deepest canvas
+    secondary: "#0b0b16", // Primary surfaces
+    card: "#121121", // Cards, elevated glass surfaces
+    hover: "#1b1a2e", // Interactive hover
+    input: "#0e0d1a", // Input backgrounds
   },
 
-  // Brand accents
+  // Brand accents — electric
   accent: {
-    purple: '#a855f7',
-    indigo: '#6366f1',
-    cyan: '#22d3ee',
+    purple: "#b073ff",
+    indigo: "#7c6bff",
+    cyan: "#2ce6ff",
   },
 
   // Text
   text: {
-    primary: 'rgba(255,255,255,0.92)',
-    secondary: 'rgba(255,255,255,0.55)',
-    muted: 'rgba(255,255,255,0.3)',
-    inverse: '#0f0f1a',
-    disabled: 'rgba(255,255,255,0.3)',
+    primary: "rgba(255,255,255,0.96)",
+    secondary: "rgba(232,230,255,0.60)",
+    muted: "rgba(232,230,255,0.36)",
+    inverse: "#06060e",
+    disabled: "rgba(232,230,255,0.28)",
   },
 
   // Status
   status: {
-    success: '#22c55e',
-    error: '#ef4444',
-    warning: '#fbbf24',
-    info: '#3b82f6',
-    online: '#22c55e',
-    offline: '#6b7280',
-    connecting: '#fbbf24',
-    busy: '#a855f7',
-    idle: '#6b7280',
+    success: "#34e5a0",
+    error: "#ff5c7c",
+    warning: "#ffc24b",
+    info: "#5b9dff",
+    online: "#34e5a0",
+    offline: "#5b6079",
+    connecting: "#ffc24b",
+    busy: "#b073ff",
+    idle: "#5b6079",
   },
 
   // Semantic (aliases)
   semantic: {
-    success: '#22c55e',
-    error: '#ef4444',
-    warning: '#fbbf24',
-    info: '#3b82f6',
+    success: "#34e5a0",
+    error: "#ff5c7c",
+    warning: "#ffc24b",
+    info: "#5b9dff",
   },
 
-  // Borders
+  // Borders — hairline, with an accent-tinted strong variant for glow edges
   border: {
-    subtle: 'rgba(255,255,255,0.06)',
-    default: 'rgba(255,255,255,0.1)',
-    strong: 'rgba(255,255,255,0.18)',
-    focus: '#a855f7',
+    subtle: "rgba(176,115,255,0.08)",
+    default: "rgba(255,255,255,0.10)",
+    strong: "rgba(176,115,255,0.40)",
+    focus: "#b073ff",
   },
 
   // Gradients
   gradients: {
-    primary: ['#a855f7', '#6366f1'] as string[],
-    accent: ['#22d3ee', '#a855f7'] as string[],
-    background: ['#0f0f1a', '#1a1b26', '#24283b'] as string[],
+    primary: ["#b073ff", "#7c6bff"] as string[],
+    accent: ["#2ce6ff", "#b073ff"] as string[],
+    glow: ["#b073ff", "#2ce6ff"] as string[],
+    background: ["#06060e", "#0b0b16", "#121121"] as string[],
   },
 
-  // Terminal-specific colors (inchangé)
+  // Terminal-specific colors (Tokyo-night-ish, kept for the PTY view)
   terminal: {
-    background: '#1a1b26',
-    foreground: '#c0caf5',
-    cursor: '#22d3ee',
-    cursorAccent: '#1a1b26',
-    selectionBackground: 'rgba(168, 85, 247, 0.3)',
-    black: '#15161e',
-    red: '#f7768e',
-    green: '#9ece6a',
-    yellow: '#e0af68',
-    blue: '#7aa2f7',
-    magenta: '#bb9af7',
-    cyan: '#7dcfff',
-    white: '#a9b1d6',
-    brightBlack: '#414868',
-    brightRed: '#ff899d',
-    brightGreen: '#9fe044',
-    brightYellow: '#faba4a',
-    brightBlue: '#8db0ff',
-    brightMagenta: '#c7a9ff',
-    brightCyan: '#7ee1ff',
-    brightWhite: '#c0caf5',
+    background: "#0b0b16",
+    foreground: "#c0caf5",
+    cursor: "#2ce6ff",
+    cursorAccent: "#0b0b16",
+    selectionBackground: "rgba(176, 115, 255, 0.3)",
+    black: "#15161e",
+    red: "#f7768e",
+    green: "#9ece6a",
+    yellow: "#e0af68",
+    blue: "#7aa2f7",
+    magenta: "#bb9af7",
+    cyan: "#7dcfff",
+    white: "#a9b1d6",
+    brightBlack: "#414868",
+    brightRed: "#ff899d",
+    brightGreen: "#9fe044",
+    brightYellow: "#faba4a",
+    brightBlue: "#8db0ff",
+    brightMagenta: "#c7a9ff",
+    brightCyan: "#7ee1ff",
+    brightWhite: "#c0caf5",
   },
 
   // Shadow colors
   shadow: {
-    default: 'rgba(0, 0, 0, 0.3)',
-    strong: 'rgba(0, 0, 0, 0.5)',
+    default: "rgba(0, 0, 0, 0.45)",
+    strong: "rgba(0, 0, 0, 0.6)",
   },
 
   // Legacy — conservé pour la rétrocompatibilité
   primary: {
-    purple: '#a855f7',
-    indigo: '#6366f1',
-    cyan: '#22d3ee',
+    purple: "#b073ff",
+    indigo: "#7c6bff",
+    cyan: "#2ce6ff",
   },
   background: {
-    dark1: '#0f0f1a',
-    dark2: '#1a1b26',
-    dark3: '#24283b',
-    dark4: '#3b4261',
-    card: '#24283b',
+    dark1: "#06060e",
+    dark2: "#0b0b16",
+    dark3: "#121121",
+    dark4: "#211f38",
+    card: "#121121",
   },
 } as const;
 
@@ -115,9 +118,9 @@ export type Colors = typeof colors;
 
 // Legacy export for compatibility
 export const brandColors = {
-  primary: '#a855f7',
-  background: '#1a1b26',
-  surface: '#24283b',
-  success: '#22c55e',
-  error: '#ef4444',
+  primary: "#b073ff",
+  background: "#0b0b16",
+  surface: "#121121",
+  success: "#34e5a0",
+  error: "#ff5c7c",
 } as const;

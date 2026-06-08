@@ -3,17 +3,17 @@
  * Bottom tab navigation for authenticated users
  */
 
-import React from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { MaterialIcons as Icon } from '@expo/vector-icons';
-import type { MainTabParamList } from './types';
-import { colors } from '@/theme';
+import React from "react";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { MaterialIcons as Icon } from "@expo/vector-icons";
+import type { MainTabParamList } from "./types";
+import { colors } from "@/theme";
 
 // Navigators
-import { MachinesNavigator } from './MachinesNavigator';
-import { SessionsNavigator } from './SessionsNavigator';
-import { ProjectsNavigator } from './ProjectsNavigator';
-import { SettingsNavigator } from './SettingsNavigator';
+import { MachinesNavigator } from "./MachinesNavigator";
+import { SessionsNavigator } from "./SessionsNavigator";
+import { ProjectsNavigator } from "./ProjectsNavigator";
+import { SettingsNavigator } from "./SettingsNavigator";
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -23,18 +23,23 @@ export const MainNavigator: React.FC = () => {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: colors.background.dark3,
-          borderTopColor: colors.background.dark4,
+          backgroundColor: colors.bg.secondary,
+          borderTopColor: colors.border.strong,
           borderTopWidth: 1,
-          paddingBottom: 8,
-          paddingTop: 8,
-          height: 60,
+          paddingBottom: 10,
+          paddingTop: 10,
+          height: 66,
+          elevation: 0,
         },
-        tabBarActiveTintColor: colors.primary.purple,
+        tabBarActiveTintColor: colors.accent.purple,
         tabBarInactiveTintColor: colors.text.muted,
         tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '500',
+          fontSize: 11,
+          fontWeight: "600",
+          letterSpacing: 0.3,
+        },
+        tabBarItemStyle: {
+          paddingTop: 2,
         },
       }}
     >
@@ -42,7 +47,7 @@ export const MainNavigator: React.FC = () => {
         name="MachinesTab"
         component={MachinesNavigator}
         options={{
-          tabBarLabel: 'Machines',
+          tabBarLabel: "Machines",
           tabBarIcon: ({ color, size }) => (
             <Icon name="computer" color={color} size={size} />
           ),
@@ -52,7 +57,7 @@ export const MainNavigator: React.FC = () => {
         name="SessionsTab"
         component={SessionsNavigator}
         options={{
-          tabBarLabel: 'Sessions',
+          tabBarLabel: "Sessions",
           tabBarIcon: ({ color, size }) => (
             <Icon name="terminal" color={color} size={size} />
           ),
@@ -62,7 +67,7 @@ export const MainNavigator: React.FC = () => {
         name="ProjectsTab"
         component={ProjectsNavigator}
         options={{
-          tabBarLabel: 'Projects',
+          tabBarLabel: "Projects",
           tabBarIcon: ({ color, size }) => (
             <Icon name="folder-shared" color={color} size={size} />
           ),
@@ -72,7 +77,7 @@ export const MainNavigator: React.FC = () => {
         name="SettingsTab"
         component={SettingsNavigator}
         options={{
-          tabBarLabel: 'Settings',
+          tabBarLabel: "Settings",
           tabBarIcon: ({ color, size }) => (
             <Icon name="settings" color={color} size={size} />
           ),
