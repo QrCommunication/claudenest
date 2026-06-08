@@ -11,6 +11,11 @@ sudo cp infrastructure/supervisor/claudenest-worker.conf /etc/supervisor/conf.d/
 sudo cp infrastructure/supervisor/claudenest-agent-ws.conf /etc/supervisor/conf.d/claudenest-agent-ws.conf
 sudo cp infrastructure/caddy/Caddyfile /etc/caddy/Caddyfile
 
+echo "Ensuring Laravel scheduler cron..."
+sudo cp infrastructure/cron/claudenest-scheduler /etc/cron.d/claudenest-scheduler
+sudo chown root:root /etc/cron.d/claudenest-scheduler
+sudo chmod 644 /etc/cron.d/claudenest-scheduler
+
 echo "Installing backend dependencies..."
 cd packages/server
 composer install --no-dev --optimize-autoloader --no-interaction

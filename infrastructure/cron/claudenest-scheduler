@@ -1,0 +1,5 @@
+# ClaudeNest Laravel scheduler — runs every minute (managed by deploy.sh).
+# Without this, NO scheduled task runs: daily cleanup, machine offline marking,
+# and hourly OAuth credential refresh (claudenest:refresh-credentials).
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+* * * * * ubuntu cd /var/www/claudenest/packages/server && /usr/bin/php artisan schedule:run >> /var/www/claudenest/packages/server/storage/logs/scheduler.log 2>&1
