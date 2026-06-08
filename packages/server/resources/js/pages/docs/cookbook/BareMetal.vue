@@ -1,79 +1,78 @@
 <template>
   <article class="doc-content">
     <header class="doc-header">
-      <h1>Bare Metal Installation</h1>
+      <h1>{{ t('docDocsCookbookBaremetal.title') }}</h1>
       <p class="lead">
-        Install ClaudeNest directly on a server for maximum control and performance.
-        This guide targets Ubuntu 22.04+ with production-ready configuration.
+        {{ t('docDocsCookbookBaremetal.lead') }}
       </p>
     </header>
 
     <section id="requirements">
-      <h2>System Requirements</h2>
+      <h2>{{ t('docDocsCookbookBaremetal.systemRequirements') }}</h2>
       <div class="prereq-grid">
         <div class="prereq-item">
           <span class="check">&#10003;</span>
           <div>
             <strong>Ubuntu 22.04+ / Debian 12+</strong>
-            <span>64-bit server edition</span>
+            <span>{{ t('docDocsCookbookBaremetal.prereqOsDesc') }}</span>
           </div>
         </div>
         <div class="prereq-item">
           <span class="check">&#10003;</span>
           <div>
             <strong>PHP 8.4+</strong>
-            <span>With required extensions</span>
+            <span>{{ t('docDocsCookbookBaremetal.prereqPhpDesc') }}</span>
           </div>
         </div>
         <div class="prereq-item">
           <span class="check">&#10003;</span>
           <div>
             <strong>PostgreSQL 16+</strong>
-            <span>With pgvector extension</span>
+            <span>{{ t('docDocsCookbookBaremetal.prereqPostgresDesc') }}</span>
           </div>
         </div>
         <div class="prereq-item">
           <span class="check">&#10003;</span>
           <div>
             <strong>Redis 7+</strong>
-            <span>Cache, queues, broadcasting</span>
+            <span>{{ t('docDocsCookbookBaremetal.prereqRedisDesc') }}</span>
           </div>
         </div>
         <div class="prereq-item">
           <span class="check">&#10003;</span>
           <div>
             <strong>Node.js 24 LTS</strong>
-            <span>Frontend build tooling</span>
+            <span>{{ t('docDocsCookbookBaremetal.prereqNodeDesc') }}</span>
           </div>
         </div>
         <div class="prereq-item">
           <span class="check">&#10003;</span>
           <div>
             <strong>Nginx</strong>
-            <span>Reverse proxy with WebSocket support</span>
+            <span>{{ t('docDocsCookbookBaremetal.prereqNginxDesc') }}</span>
           </div>
         </div>
         <div class="prereq-item">
           <span class="check">&#10003;</span>
           <div>
             <strong>Composer 2</strong>
-            <span>PHP package manager</span>
+            <span>{{ t('docDocsCookbookBaremetal.prereqComposerDesc') }}</span>
           </div>
         </div>
         <div class="prereq-item">
           <span class="check">&#10003;</span>
           <div>
             <strong>2 vCPU / 4 GB RAM</strong>
-            <span>Minimum recommended hardware</span>
+            <span>{{ t('docDocsCookbookBaremetal.prereqHardwareDesc') }}</span>
           </div>
         </div>
       </div>
     </section>
 
     <section id="install-dependencies">
-      <h2>Install Dependencies</h2>
+      <h2>{{ t('docDocsCookbookBaremetal.installDependencies') }}</h2>
       <p>
-        Add required repositories and install all system packages in one go.
+        {{ t('docDocsCookbookBaremetal.installDependenciesPara') }}
       </p>
 
       <CodeTabs
@@ -93,14 +92,14 @@
         ]"
       />
 
-      <h3>Install Composer</h3>
+      <h3>{{ t('docDocsCookbookBaremetal.installComposer') }}</h3>
       <CodeBlock
         :code="composerInstallCode"
         language="bash"
         filename="Terminal"
       />
 
-      <h3>Install Node.js 24</h3>
+      <h3>{{ t('docDocsCookbookBaremetal.installNode') }}</h3>
       <CodeBlock
         code="curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
 sudo apt-get install -y nodejs
@@ -112,9 +111,9 @@ npm --version"
     </section>
 
     <section id="setup-database">
-      <h2>Set Up the Database</h2>
+      <h2>{{ t('docDocsCookbookBaremetal.setupDatabase') }}</h2>
       <p>
-        Create the PostgreSQL database, user, and install the pgvector extension for RAG embeddings.
+        {{ t('docDocsCookbookBaremetal.setupDatabasePara') }}
       </p>
 
       <CodeBlock
@@ -126,16 +125,16 @@ npm --version"
       <div class="tip">
         <span class="tip-icon">i</span>
         <div>
-          <strong>pgvector installation</strong>
-          <p>On Ubuntu 22.04+, pgvector is available via <code>apt install postgresql-16-pgvector</code>. On older systems you may need to compile from source.</p>
+          <strong>{{ t('docDocsCookbookBaremetal.pgvectorTipTitle') }}</strong>
+          <p>{{ t('docDocsCookbookBaremetal.pgvectorTipBefore') }} <code>apt install postgresql-16-pgvector</code>. {{ t('docDocsCookbookBaremetal.pgvectorTipAfter') }}</p>
         </div>
       </div>
     </section>
 
     <section id="configure-server">
-      <h2>Configure the Server</h2>
+      <h2>{{ t('docDocsCookbookBaremetal.configureServer') }}</h2>
       <p>
-        Clone the repository, install dependencies, and configure the Laravel application.
+        {{ t('docDocsCookbookBaremetal.configureServerPara') }}
       </p>
 
       <CodeBlock
@@ -144,9 +143,9 @@ npm --version"
         filename="Terminal"
       />
 
-      <h3>Environment file</h3>
+      <h3>{{ t('docDocsCookbookBaremetal.environmentFile') }}</h3>
       <p>
-        Edit <code>/opt/claudenest/packages/server/.env</code> with your production values.
+        {{ t('docDocsCookbookBaremetal.environmentFileBefore') }} <code>/opt/claudenest/packages/server/.env</code> {{ t('docDocsCookbookBaremetal.environmentFileAfter') }}
       </p>
 
       <CodeBlock
@@ -155,7 +154,7 @@ npm --version"
         filename=".env"
       />
 
-      <h3>Run migrations and optimize</h3>
+      <h3>{{ t('docDocsCookbookBaremetal.runMigrations') }}</h3>
       <CodeBlock
         :code="migrateCode"
         language="bash"
@@ -164,10 +163,9 @@ npm --version"
     </section>
 
     <section id="systemd-services">
-      <h2>Systemd Services</h2>
+      <h2>{{ t('docDocsCookbookBaremetal.systemdServices') }}</h2>
       <p>
-        Create systemd unit files so that the application server, WebSocket relay, and queue worker
-        start automatically on boot and restart on failure.
+        {{ t('docDocsCookbookBaremetal.systemdServicesPara') }}
       </p>
 
       <CodeTabs
@@ -193,7 +191,7 @@ npm --version"
         ]"
       />
 
-      <h3>Enable and start services</h3>
+      <h3>{{ t('docDocsCookbookBaremetal.enableServices') }}</h3>
       <CodeBlock
         :code="systemdEnableCode"
         language="bash"
@@ -202,10 +200,9 @@ npm --version"
     </section>
 
     <section id="nginx">
-      <h2>Nginx Reverse Proxy</h2>
+      <h2>{{ t('docDocsCookbookBaremetal.nginxReverseProxy') }}</h2>
       <p>
-        Configure Nginx to serve the application over HTTPS, proxy WebSocket connections
-        to Reverb, and handle static assets.
+        {{ t('docDocsCookbookBaremetal.nginxReverseProxyPara') }}
       </p>
 
       <CodeBlock
@@ -214,7 +211,7 @@ npm --version"
         filename="/etc/nginx/sites-available/claudenest"
       />
 
-      <h3>Enable the site</h3>
+      <h3>{{ t('docDocsCookbookBaremetal.enableSite') }}</h3>
       <CodeBlock
         code="sudo ln -s /etc/nginx/sites-available/claudenest /etc/nginx/sites-enabled/
 sudo nginx -t
@@ -226,8 +223,8 @@ sudo systemctl reload nginx"
       <div class="tip">
         <span class="tip-icon">i</span>
         <div>
-          <strong>SSL with Certbot</strong>
-          <p>Install Certbot and obtain a free Let's Encrypt certificate: <code>sudo certbot --nginx -d claudenest.yourdomain.com</code></p>
+          <strong>{{ t('docDocsCookbookBaremetal.sslTipTitle') }}</strong>
+          <p>{{ t('docDocsCookbookBaremetal.sslTipBefore') }} <code>sudo certbot --nginx -d claudenest.yourdomain.com</code></p>
         </div>
       </div>
     </section>
@@ -236,8 +233,11 @@ sudo systemctl reload nginx"
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import CodeBlock from '@/components/docs/CodeBlock.vue';
 import CodeTabs from '@/components/docs/CodeTabs.vue';
+
+const { t } = useI18n();
 
 const ubuntuDepsCode = ref(`# Add PHP 8.4 PPA
 sudo add-apt-repository ppa:ondrej/php -y

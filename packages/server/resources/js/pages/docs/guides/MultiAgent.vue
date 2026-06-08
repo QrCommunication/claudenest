@@ -1,211 +1,181 @@
 <template>
   <article class="doc-content">
     <header class="doc-header">
-      <h1>Multi-Agent Coordination</h1>
+      <h1>{{ t('docDocsGuidesMultiagent.title') }}</h1>
       <p class="lead">
-        Run multiple Claude instances on the same project with shared context,
-        task distribution, file locking, a conversational Planning Agent, and
-        an automated Runner Agent for sprint monitoring.
+        {{ t('docDocsGuidesMultiagent.lead') }}
       </p>
     </header>
 
     <section id="overview">
-      <h2>Overview</h2>
+      <h2>{{ t('docDocsGuidesMultiagent.overviewHeading') }}</h2>
       <p>
-        ClaudeNest's multi-agent system lets you run several Claude Code instances
-        that collaborate on a single codebase. Each instance can claim tasks, share
-        context, and lock files to avoid conflicting edits. The coordination happens
-        through a central shared project that acts as the source of truth.
+        {{ t('docDocsGuidesMultiagent.overviewPara1') }}
       </p>
       <p>
-        A typical multi-agent workflow looks like this:
+        {{ t('docDocsGuidesMultiagent.overviewPara2') }}
       </p>
       <ol>
-        <li>Create a <strong>shared project</strong> on a machine</li>
-        <li>Define <strong>epics</strong> grouping related features and create a <strong>sprint</strong></li>
-        <li>Use the <strong>Planning Agent</strong> to decompose epics into tasks with story points</li>
-        <li>Register Claude <strong>instances</strong> against the project</li>
-        <li>Each instance <strong>claims</strong> a task (files are auto-locked), and works</li>
-        <li>The <strong>Runner Agent</strong> monitors progress and auto-updates task statuses</li>
-        <li>On completion, context is stored for other instances to query via RAG</li>
+        <li><span v-html="t('docDocsGuidesMultiagent.overviewStep1')"></span></li>
+        <li><span v-html="t('docDocsGuidesMultiagent.overviewStep2')"></span></li>
+        <li><span v-html="t('docDocsGuidesMultiagent.overviewStep3')"></span></li>
+        <li><span v-html="t('docDocsGuidesMultiagent.overviewStep4')"></span></li>
+        <li><span v-html="t('docDocsGuidesMultiagent.overviewStep5')"></span></li>
+        <li><span v-html="t('docDocsGuidesMultiagent.overviewStep6')"></span></li>
+        <li>{{ t('docDocsGuidesMultiagent.overviewStep7') }}</li>
       </ol>
       <p class="tip">
         <span class="tip-icon">&#128161;</span>
-        Multi-agent coordination is entirely optional. You can use ClaudeNest with a
-        single session and no shared project at all.
+        {{ t('docDocsGuidesMultiagent.overviewTip') }}
       </p>
     </section>
 
     <section id="shared-projects">
-      <h2>Shared Projects</h2>
+      <h2>{{ t('docDocsGuidesMultiagent.sharedProjectsHeading') }}</h2>
       <p>
-        A shared project is the central hub that links instances, tasks, context
-        chunks, and file locks together. It stores high-level metadata such as a
-        project summary, architecture notes, coding conventions, and the current
-        development focus.
+        {{ t('docDocsGuidesMultiagent.sharedProjectsPara1') }}
       </p>
 
-      <h3>Creating a Shared Project</h3>
+      <h3>{{ t('docDocsGuidesMultiagent.creatingSharedProjectHeading') }}</h3>
       <CodeTabs :tabs="createProjectTabs" />
 
       <p>
-        The response includes the new project ID that you will use for all
-        subsequent multi-agent operations.
+        {{ t('docDocsGuidesMultiagent.creatingSharedProjectPara') }}
       </p>
 
-      <CodeBlock language="json" :code="createProjectResponse" filename="Response" />
+      <CodeBlock language="json" :code="createProjectResponse" :filename="t('docDocsGuidesMultiagent.responseFilename')" />
 
-      <h3>Updating Project Context</h3>
+      <h3>{{ t('docDocsGuidesMultiagent.updatingProjectContextHeading') }}</h3>
       <p>
-        Keep the shared context up to date so every instance has the latest
-        information about conventions, focus areas, and recent changes.
+        {{ t('docDocsGuidesMultiagent.updatingProjectContextPara') }}
       </p>
 
       <CodeTabs :tabs="updateProjectTabs" />
     </section>
 
     <section id="instances">
-      <h2>Claude Instances</h2>
+      <h2>{{ t('docDocsGuidesMultiagent.instancesHeading') }}</h2>
       <p>
-        A Claude instance represents one running Claude Code process that is
-        connected to a shared project. Instances are registered automatically when
-        an agent connects, but you can also list and inspect them via the API.
+        {{ t('docDocsGuidesMultiagent.instancesPara1') }}
       </p>
 
-      <h3>Listing Active Instances</h3>
+      <h3>{{ t('docDocsGuidesMultiagent.listingInstancesHeading') }}</h3>
       <CodeTabs :tabs="listInstancesTabs" />
 
-      <CodeBlock language="json" :code="listInstancesResponse" filename="Response" />
+      <CodeBlock language="json" :code="listInstancesResponse" :filename="t('docDocsGuidesMultiagent.responseFilename')" />
 
       <p>
-        Each instance exposes its current status (<code>active</code>,
-        <code>idle</code>, <code>busy</code>, or <code>disconnected</code>),
-        the task it is working on, and its token usage.
+        <span v-html="t('docDocsGuidesMultiagent.instancesStatusPara')"></span>
       </p>
     </section>
 
     <section id="coordination">
-      <h2>Task Coordination</h2>
+      <h2>{{ t('docDocsGuidesMultiagent.coordinationHeading') }}</h2>
       <p>
-        The task system is the primary mechanism for distributing work across
-        instances. Tasks support priorities, dependencies, and atomic claiming to
-        guarantee that no two instances work on the same task simultaneously.
+        {{ t('docDocsGuidesMultiagent.coordinationPara1') }}
       </p>
 
-      <h3>Creating a Task</h3>
+      <h3>{{ t('docDocsGuidesMultiagent.creatingTaskHeading') }}</h3>
       <CodeTabs :tabs="createTaskTabs" />
 
-      <h3>Claiming a Task</h3>
+      <h3>{{ t('docDocsGuidesMultiagent.claimingTaskHeading') }}</h3>
       <p>
-        An instance claims a task atomically. If the task is already claimed or its
-        dependencies are not met, the server returns an error.
+        {{ t('docDocsGuidesMultiagent.claimingTaskPara') }}
       </p>
       <CodeTabs :tabs="claimTaskTabs" />
 
-      <h3>Completing a Task</h3>
+      <h3>{{ t('docDocsGuidesMultiagent.completingTaskHeading') }}</h3>
       <p>
-        When the work is done, the instance marks the task as completed. A context
-        chunk is automatically created from the completion summary so other
-        instances can learn from it.
+        {{ t('docDocsGuidesMultiagent.completingTaskPara') }}
       </p>
       <CodeTabs :tabs="completeTaskTabs" />
 
       <p class="tip">
         <span class="tip-icon">&#128161;</span>
-        Use <code>GET /projects/{id}/tasks/next-available</code> to let the server
-        pick the highest-priority task whose dependencies are all satisfied.
+        <span v-html="t('docDocsGuidesMultiagent.coordinationTip')"></span>
       </p>
     </section>
 
     <section id="planning-agent">
-      <h2>Planning Agent</h2>
+      <h2>{{ t('docDocsGuidesMultiagent.planningAgentHeading') }}</h2>
       <p>
-        The Planning Agent is a conversational AI interface that helps you decompose
-        work, assign story points, and populate sprints. Access it via a chat-style API
-        or from the web dashboard's Planning tab.
+        {{ t('docDocsGuidesMultiagent.planningAgentPara1') }}
       </p>
 
-      <h3>How It Works</h3>
+      <h3>{{ t('docDocsGuidesMultiagent.howItWorksHeading') }}</h3>
       <ol>
-        <li>The agent analyses your current backlog, velocity history, and epic structure</li>
-        <li>You ask it to break down features, estimate work, or suggest sprint scope</li>
-        <li>It returns structured suggestions (create tasks, assign points, group into epics)</li>
-        <li>You approve or modify the suggestions before they are applied</li>
+        <li>{{ t('docDocsGuidesMultiagent.howItWorksStep1') }}</li>
+        <li>{{ t('docDocsGuidesMultiagent.howItWorksStep2') }}</li>
+        <li>{{ t('docDocsGuidesMultiagent.howItWorksStep3') }}</li>
+        <li>{{ t('docDocsGuidesMultiagent.howItWorksStep4') }}</li>
       </ol>
 
-      <h3>Example: Sprint Planning</h3>
+      <h3>{{ t('docDocsGuidesMultiagent.exampleSprintPlanningHeading') }}</h3>
       <CodeTabs :tabs="planningAgentTabs" />
 
       <p class="tip">
         <span class="tip-icon">&#128161;</span>
-        The Planning Agent considers the team's average velocity when suggesting sprint
-        scope. If the last 3 sprints averaged 18 story points, it will not suggest 30
-        points for the next sprint.
+        {{ t('docDocsGuidesMultiagent.planningAgentTip') }}
       </p>
     </section>
 
     <section id="runner-agent">
-      <h2>Runner Agent</h2>
+      <h2>{{ t('docDocsGuidesMultiagent.runnerAgentHeading') }}</h2>
       <p>
-        The Runner Agent is an automated monitoring service that runs in the background
-        and keeps your project dashboard in sync. It watches Claude instance activity
-        and automatically updates task statuses.
+        {{ t('docDocsGuidesMultiagent.runnerAgentPara1') }}
       </p>
 
-      <h3>Capabilities</h3>
+      <h3>{{ t('docDocsGuidesMultiagent.capabilitiesHeading') }}</h3>
       <ul>
-        <li><strong>Auto-status updates</strong> &mdash; Detects when an instance finishes a task and marks it as done</li>
-        <li><strong>Stale task alerts</strong> &mdash; Flags tasks that have been in-progress for too long without activity</li>
-        <li><strong>Sprint progress tracking</strong> &mdash; Provides live burndown data and on-track/off-track indicators</li>
-        <li><strong>Blocked task detection</strong> &mdash; Identifies tasks whose dependencies are stuck</li>
+        <li><span v-html="t('docDocsGuidesMultiagent.capability1')"></span></li>
+        <li><span v-html="t('docDocsGuidesMultiagent.capability2')"></span></li>
+        <li><span v-html="t('docDocsGuidesMultiagent.capability3')"></span></li>
+        <li><span v-html="t('docDocsGuidesMultiagent.capability4')"></span></li>
       </ul>
 
-      <h3>Checking Progress</h3>
+      <h3>{{ t('docDocsGuidesMultiagent.checkingProgressHeading') }}</h3>
       <CodeTabs :tabs="runnerAgentTabs" />
     </section>
 
     <section id="enhanced-file-locking">
-      <h2>Enhanced File Locking</h2>
+      <h2>{{ t('docDocsGuidesMultiagent.enhancedFileLockingHeading') }}</h2>
       <p>
-        File locking in ClaudeNest v1.2 includes several improvements over basic locks:
+        {{ t('docDocsGuidesMultiagent.enhancedFileLockingPara1') }}
       </p>
       <ul>
-        <li><strong>Atomic acquisition</strong> via database-level <code>lockForUpdate</code></li>
-        <li><strong>Task-lock integration</strong> &mdash; Files listed in a task's <code>files</code> array
-        are automatically locked when the task is claimed and released when completed</li>
-        <li><strong>Heartbeat auto-extend</strong> &mdash; Locks are automatically extended as long as the
-        agent session is alive, preventing mid-task expiration</li>
-        <li><strong>Batch conflict check</strong> via <code>POST /locks/conflicts</code> &mdash; Check
-        multiple files in a single request before starting a large task</li>
+        <li><span v-html="t('docDocsGuidesMultiagent.lockingFeature1')"></span></li>
+        <li><span v-html="t('docDocsGuidesMultiagent.lockingFeature2')"></span></li>
+        <li><span v-html="t('docDocsGuidesMultiagent.lockingFeature3')"></span></li>
+        <li><span v-html="t('docDocsGuidesMultiagent.lockingFeature4')"></span></li>
       </ul>
       <p>
-        For full details, see the
-        <router-link to="/docs/guides/file-locking">File Locking guide</router-link>.
+        {{ t('docDocsGuidesMultiagent.enhancedFileLockingSeeAlso') }}
+        <router-link to="/docs/guides/file-locking">{{ t('docDocsGuidesMultiagent.fileLockingGuideLink') }}</router-link>
       </p>
     </section>
 
     <section id="next-steps">
-      <h2>Next Steps</h2>
+      <h2>{{ t('docDocsGuidesMultiagent.nextStepsHeading') }}</h2>
       <div class="next-steps">
         <router-link to="/docs/guides/task-coordination" class="next-step">
-          <strong>Task Coordination</strong>
-          <span>Epics, sprints, subtasks, and Kanban boards &#8594;</span>
+          <strong>{{ t('docDocsGuidesMultiagent.nextStepTaskCoordinationTitle') }}</strong>
+          <span>{{ t('docDocsGuidesMultiagent.nextStepTaskCoordinationDesc') }} &#8594;</span>
         </router-link>
         <router-link to="/docs/guides/rag-pipeline" class="next-step">
-          <strong>RAG Pipeline</strong>
-          <span>Learn how context is embedded and queried across instances &#8594;</span>
+          <strong>{{ t('docDocsGuidesMultiagent.nextStepRagPipelineTitle') }}</strong>
+          <span>{{ t('docDocsGuidesMultiagent.nextStepRagPipelineDesc') }} &#8594;</span>
         </router-link>
         <router-link to="/docs/guides/file-locking" class="next-step">
-          <strong>File Locking</strong>
-          <span>Atomic locks, task integration, and heartbeat auto-extend &#8594;</span>
+          <strong>{{ t('docDocsGuidesMultiagent.nextStepFileLockingTitle') }}</strong>
+          <span>{{ t('docDocsGuidesMultiagent.nextStepFileLockingDesc') }} &#8594;</span>
         </router-link>
         <router-link to="/docs/api/planning-agent" class="next-step">
-          <strong>Planning Agent API</strong>
-          <span>Conversational planning and task decomposition endpoints &#8594;</span>
+          <strong>{{ t('docDocsGuidesMultiagent.nextStepPlanningAgentApiTitle') }}</strong>
+          <span>{{ t('docDocsGuidesMultiagent.nextStepPlanningAgentApiDesc') }} &#8594;</span>
         </router-link>
         <router-link to="/docs/api/runner-agent" class="next-step">
-          <strong>Runner Agent API</strong>
-          <span>Automated monitoring and auto-update endpoints &#8594;</span>
+          <strong>{{ t('docDocsGuidesMultiagent.nextStepRunnerAgentApiTitle') }}</strong>
+          <span>{{ t('docDocsGuidesMultiagent.nextStepRunnerAgentApiDesc') }} &#8594;</span>
         </router-link>
       </div>
     </section>
@@ -214,8 +184,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import CodeBlock from '@/components/docs/CodeBlock.vue';
 import CodeTabs from '@/components/docs/CodeTabs.vue';
+
+const { t } = useI18n();
 
 // -- Shared Projects ----------------------------------------------------------
 

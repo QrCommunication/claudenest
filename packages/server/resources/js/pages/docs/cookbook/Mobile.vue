@@ -1,15 +1,15 @@
 <template>
   <article class="doc-content">
     <header class="doc-header">
-      <span class="badge">Cookbook</span>
-      <h1>Mobile App Setup</h1>
-      <p class="lead">Configure and build the ClaudeNest mobile app with Expo 55, React Native 0.83, and React 19 for iOS and Android.</p>
+      <span class="badge">{{ t('docDocsCookbookMobile.badge') }}</span>
+      <h1>{{ t('docDocsCookbookMobile.title') }}</h1>
+      <p class="lead">{{ t('docDocsCookbookMobile.lead') }}</p>
     </header>
 
     <section id="prerequisites">
-      <h2>Prerequisites</h2>
+      <h2>{{ t('docDocsCookbookMobile.prereqHeading') }}</h2>
       <p>
-        Before building the mobile app, ensure the following tools are installed on your development machine.
+        {{ t('docDocsCookbookMobile.prereqIntro') }}
       </p>
 
       <div class="prereq-grid">
@@ -17,7 +17,7 @@
           <span class="check">&#10003;</span>
           <div>
             <strong>Node.js 24 LTS</strong>
-            <span>Required for the Metro bundler and build scripts</span>
+            <span>{{ t('docDocsCookbookMobile.prereqNodeDesc') }}</span>
           </div>
         </div>
         <div class="prereq-item">
@@ -30,29 +30,29 @@
         <div class="prereq-item">
           <span class="check">&#10003;</span>
           <div>
-            <strong>Xcode 16+ (iOS)</strong>
-            <span>macOS only -- available from the Mac App Store</span>
+            <strong>{{ t('docDocsCookbookMobile.prereqXcodeTitle') }}</strong>
+            <span>{{ t('docDocsCookbookMobile.prereqXcodeDesc') }}</span>
           </div>
         </div>
         <div class="prereq-item">
           <span class="check">&#10003;</span>
           <div>
-            <strong>Android Studio (Android)</strong>
-            <span>With Android SDK, NDK, and an emulator configured</span>
+            <strong>{{ t('docDocsCookbookMobile.prereqAndroidStudioTitle') }}</strong>
+            <span>{{ t('docDocsCookbookMobile.prereqAndroidStudioDesc') }}</span>
           </div>
         </div>
         <div class="prereq-item">
           <span class="check">&#10003;</span>
           <div>
-            <strong>CocoaPods (iOS)</strong>
+            <strong>{{ t('docDocsCookbookMobile.prereqCocoaPodsTitle') }}</strong>
             <span><code>sudo gem install cocoapods</code></span>
           </div>
         </div>
         <div class="prereq-item">
           <span class="check">&#10003;</span>
           <div>
-            <strong>Java 17 (Android)</strong>
-            <span>Required by the Gradle build system</span>
+            <strong>{{ t('docDocsCookbookMobile.prereqJavaTitle') }}</strong>
+            <span>{{ t('docDocsCookbookMobile.prereqJavaDesc') }}</span>
           </div>
         </div>
       </div>
@@ -60,66 +60,62 @@
       <CodeBlock
         :code="prereqCheckCode"
         language="bash"
-        filename="Terminal — verify environment"
+        :filename="t('docDocsCookbookMobile.prereqVerifyFilename')"
       />
 
       <div class="callout tip">
         <span class="callout-icon">i</span>
         <div>
-          <strong>Use the Expo doctor</strong>
-          <p>Run <code>npx expo doctor</code> inside <code>packages/mobile</code> to get a checklist of missing or misconfigured dependencies.</p>
+          <strong>{{ t('docDocsCookbookMobile.prereqDoctorTitle') }}</strong>
+          <p>{{ t('docDocsCookbookMobile.prereqDoctorBody1') }} <code>npx expo doctor</code> {{ t('docDocsCookbookMobile.prereqDoctorBody2') }} <code>packages/mobile</code> {{ t('docDocsCookbookMobile.prereqDoctorBody3') }}</p>
         </div>
       </div>
     </section>
 
     <section id="installation">
-      <h2>Installation</h2>
+      <h2>{{ t('docDocsCookbookMobile.installHeading') }}</h2>
       <p>
-        Install all JavaScript dependencies from the monorepo root, then install the platform-specific
-        native dependencies for whichever platform you are targeting.
+        {{ t('docDocsCookbookMobile.installIntro') }}
       </p>
 
-      <h3>Install JS dependencies</h3>
+      <h3>{{ t('docDocsCookbookMobile.installJsHeading') }}</h3>
       <CodeBlock
         :code="installCode"
         language="bash"
         filename="Terminal"
       />
 
-      <h3>iOS and Android native setup</h3>
+      <h3>{{ t('docDocsCookbookMobile.installNativeHeading') }}</h3>
       <CodeTabs :tabs="nativeSetupTabs" />
 
       <div class="callout warning">
         <span class="callout-icon">!</span>
         <div>
-          <strong>Pod install must be re-run after native dependency changes</strong>
+          <strong>{{ t('docDocsCookbookMobile.installPodTitle') }}</strong>
           <p>
-            Whenever you add or upgrade a package that contains native iOS code, run
-            <code>pod install</code> inside <code>packages/mobile/ios</code> again before
-            building. Failing to do so results in linker errors.
+            {{ t('docDocsCookbookMobile.installPodBody1') }}
+            <code>pod install</code> {{ t('docDocsCookbookMobile.installPodBody2') }} <code>packages/mobile/ios</code> {{ t('docDocsCookbookMobile.installPodBody3') }}
           </p>
         </div>
       </div>
     </section>
 
     <section id="configuration">
-      <h2>Configuration</h2>
+      <h2>{{ t('docDocsCookbookMobile.configHeading') }}</h2>
       <p>
-        The mobile app reads its server connection details from a <code>.env</code> file located
-        at the root of the <code>packages/mobile</code> directory.
+        {{ t('docDocsCookbookMobile.configIntro1') }} <code>.env</code> {{ t('docDocsCookbookMobile.configIntro2') }} <code>packages/mobile</code> {{ t('docDocsCookbookMobile.configIntro3') }}
       </p>
 
-      <h3>Environment file</h3>
+      <h3>{{ t('docDocsCookbookMobile.configEnvHeading') }}</h3>
       <CodeBlock
         :code="envConfig"
         language="bash"
         filename="packages/mobile/.env"
       />
 
-      <h3>Runtime configuration</h3>
+      <h3>{{ t('docDocsCookbookMobile.configRuntimeHeading') }}</h3>
       <p>
-        Users can also update the server URL from within the app's Settings screen after installation.
-        The config is persisted in <code>AsyncStorage</code> and overrides the build-time defaults.
+        {{ t('docDocsCookbookMobile.configRuntimeBody1') }} <code>AsyncStorage</code> {{ t('docDocsCookbookMobile.configRuntimeBody2') }}
       </p>
       <CodeBlock
         :code="runtimeConfig"
@@ -130,33 +126,31 @@
       <div class="callout tip">
         <span class="callout-icon">i</span>
         <div>
-          <strong>Local development</strong>
+          <strong>{{ t('docDocsCookbookMobile.configLocalTitle') }}</strong>
           <p>
-            When testing against a locally running server, use your machine's LAN IP address
-            (e.g. <code>http://192.168.1.42:8000</code>) instead of <code>localhost</code>.
-            The emulator / physical device cannot resolve <code>localhost</code> to the host machine.
+            {{ t('docDocsCookbookMobile.configLocalBody1') }}
+            (e.g. <code>http://192.168.1.42:8000</code>) {{ t('docDocsCookbookMobile.configLocalBody2') }} <code>localhost</code>{{ t('docDocsCookbookMobile.configLocalBody3') }} <code>localhost</code> {{ t('docDocsCookbookMobile.configLocalBody4') }}
           </p>
         </div>
       </div>
     </section>
 
     <section id="ios-setup">
-      <h2>iOS Setup</h2>
+      <h2>{{ t('docDocsCookbookMobile.iosHeading') }}</h2>
       <p>
-        Building for iOS requires a Mac with Xcode installed. Before running on a device or
-        submitting to the App Store, you must configure code signing.
+        {{ t('docDocsCookbookMobile.iosIntro') }}
       </p>
 
-      <h3>Install CocoaPods dependencies</h3>
+      <h3>{{ t('docDocsCookbookMobile.iosPodHeading') }}</h3>
       <CodeBlock
         :code="iosPodInstall"
         language="bash"
         filename="Terminal"
       />
 
-      <h3>Code signing</h3>
+      <h3>{{ t('docDocsCookbookMobile.iosSigningHeading') }}</h3>
       <p>
-        Open the Xcode workspace to configure signing and capabilities:
+        {{ t('docDocsCookbookMobile.iosSigningIntro') }}
       </p>
       <CodeBlock
         :code="iosXcodeOpen"
@@ -164,13 +158,13 @@
         filename="Terminal"
       />
       <ol>
-        <li>Select the <strong>ClaudeNest</strong> target in the project navigator.</li>
-        <li>Open the <strong>Signing &amp; Capabilities</strong> tab.</li>
-        <li>Set your <strong>Team</strong> and confirm the bundle identifier is <code>com.claudenest.app</code>.</li>
-        <li>Enable the <strong>Push Notifications</strong> capability for APNs support.</li>
+        <li>{{ t('docDocsCookbookMobile.iosStep1a') }} <strong>ClaudeNest</strong> {{ t('docDocsCookbookMobile.iosStep1b') }}</li>
+        <li>{{ t('docDocsCookbookMobile.iosStep2a') }} <strong>{{ t('docDocsCookbookMobile.iosStep2Tab') }}</strong> {{ t('docDocsCookbookMobile.iosStep2b') }}</li>
+        <li>{{ t('docDocsCookbookMobile.iosStep3a') }} <strong>{{ t('docDocsCookbookMobile.iosStep3Team') }}</strong> {{ t('docDocsCookbookMobile.iosStep3b') }} <code>com.claudenest.app</code>.</li>
+        <li>{{ t('docDocsCookbookMobile.iosStep4a') }} <strong>{{ t('docDocsCookbookMobile.iosStep4Cap') }}</strong> {{ t('docDocsCookbookMobile.iosStep4b') }}</li>
       </ol>
 
-      <h3>Run on simulator</h3>
+      <h3>{{ t('docDocsCookbookMobile.iosRunHeading') }}</h3>
       <CodeBlock
         :code="iosRunCode"
         language="bash"
@@ -180,30 +174,29 @@
       <div class="callout tip">
         <span class="callout-icon">i</span>
         <div>
-          <strong>List available simulators</strong>
-          <p>Run <code>xcrun simctl list devices available</code> to see all installed simulators and their exact names for the <code>--simulator</code> flag.</p>
+          <strong>{{ t('docDocsCookbookMobile.iosListSimTitle') }}</strong>
+          <p>{{ t('docDocsCookbookMobile.iosListSimBody1') }} <code>xcrun simctl list devices available</code> {{ t('docDocsCookbookMobile.iosListSimBody2') }} <code>--simulator</code> {{ t('docDocsCookbookMobile.iosListSimBody3') }}</p>
         </div>
       </div>
     </section>
 
     <section id="android-setup">
-      <h2>Android Setup</h2>
+      <h2>{{ t('docDocsCookbookMobile.androidHeading') }}</h2>
       <p>
-        Android builds require the Android SDK and a properly configured <code>ANDROID_HOME</code>
-        environment variable. Make sure an emulator or physical device is available before running.
+        {{ t('docDocsCookbookMobile.androidIntro1') }} <code>ANDROID_HOME</code>
+        {{ t('docDocsCookbookMobile.androidIntro2') }}
       </p>
 
-      <h3>Environment variables</h3>
+      <h3>{{ t('docDocsCookbookMobile.androidEnvHeading') }}</h3>
       <CodeBlock
         :code="androidEnvCode"
         language="bash"
         filename="~/.zshrc or ~/.bashrc"
       />
 
-      <h3>Gradle configuration</h3>
+      <h3>{{ t('docDocsCookbookMobile.androidGradleHeading') }}</h3>
       <p>
-        Local signing credentials and SDK paths go in the Gradle properties file which is
-        intentionally excluded from version control.
+        {{ t('docDocsCookbookMobile.androidGradleIntro') }}
       </p>
       <CodeBlock
         :code="gradlePropertiesCode"
@@ -211,7 +204,7 @@
         filename="packages/mobile/android/gradle.properties"
       />
 
-      <h3>Run on emulator or device</h3>
+      <h3>{{ t('docDocsCookbookMobile.androidRunHeading') }}</h3>
       <CodeBlock
         :code="androidRunCode"
         language="bash"
@@ -221,29 +214,27 @@
       <div class="callout warning">
         <span class="callout-icon">!</span>
         <div>
-          <strong>USB debugging required for physical devices</strong>
+          <strong>{{ t('docDocsCookbookMobile.androidUsbTitle') }}</strong>
           <p>
-            On Android, enable <strong>Developer Options</strong> and turn on
-            <strong>USB Debugging</strong> before connecting a physical device.
-            Run <code>adb devices</code> to verify the device is detected.
+            {{ t('docDocsCookbookMobile.androidUsbBody1') }} <strong>{{ t('docDocsCookbookMobile.androidUsbDevOptions') }}</strong> {{ t('docDocsCookbookMobile.androidUsbBody2') }}
+            <strong>{{ t('docDocsCookbookMobile.androidUsbDebugging') }}</strong> {{ t('docDocsCookbookMobile.androidUsbBody3') }}
+            {{ t('docDocsCookbookMobile.androidUsbBody4') }} <code>adb devices</code> {{ t('docDocsCookbookMobile.androidUsbBody5') }}
           </p>
         </div>
       </div>
     </section>
 
     <section id="running">
-      <h2>Running the App</h2>
+      <h2>{{ t('docDocsCookbookMobile.runningHeading') }}</h2>
       <p>
-        Start the Metro bundler first, then launch the app on your target platform.
+        {{ t('docDocsCookbookMobile.runningIntro') }}
       </p>
 
       <CodeTabs :tabs="runTabs" />
 
-      <h3>Connecting to the server</h3>
+      <h3>{{ t('docDocsCookbookMobile.runningConnectHeading') }}</h3>
       <p>
-        After the app launches, navigate to <strong>Settings → Server</strong> and enter
-        your ClaudeNest API URL and WebSocket endpoint. Tap <strong>Test Connection</strong>
-        to verify reachability before logging in.
+        {{ t('docDocsCookbookMobile.runningConnectBody1') }} <strong>{{ t('docDocsCookbookMobile.runningConnectSettings') }}</strong> {{ t('docDocsCookbookMobile.runningConnectBody2') }} <strong>{{ t('docDocsCookbookMobile.runningConnectTest') }}</strong> {{ t('docDocsCookbookMobile.runningConnectBody3') }}
       </p>
       <CodeBlock
         :code="authFlow"
@@ -253,92 +244,90 @@
     </section>
 
     <section id="mobile-features">
-      <h2>Mobile Features (v1.2)</h2>
+      <h2>{{ t('docDocsCookbookMobile.featuresHeading') }}</h2>
       <p>
-        The mobile app provides full access to ClaudeNest's project management and multi-agent
-        features. Built with Expo 55, React Native 0.83, React 19, Reanimated 4, and Zustand 5.
+        {{ t('docDocsCookbookMobile.featuresIntro') }}
       </p>
 
-      <h3>Available Screens</h3>
+      <h3>{{ t('docDocsCookbookMobile.featuresScreensHeading') }}</h3>
       <ul>
-        <li><strong>Dashboard</strong> -- Aggregated metrics: machines online, active sessions, task progress, sprint burndown</li>
-        <li><strong>Machines</strong> -- List machines, view details, trigger Wake-on-LAN</li>
-        <li><strong>Sessions</strong> -- Monitor active Claude Code sessions in real-time</li>
-        <li><strong>Projects</strong> -- Manage shared projects with context, instances, and tasks</li>
-        <li><strong>Epics</strong> -- Create and track epics with progress percentage and task counts</li>
-        <li><strong>Sprints</strong> -- Manage time-boxed sprints with burndown charts</li>
-        <li><strong>Kanban Board</strong> -- Drag-and-drop task management across status columns</li>
-        <li><strong>Planning Chat</strong> -- Conversational interface to the Planning Agent</li>
-        <li><strong>Orchestration</strong> -- Monitor all Claude instances, their current tasks, and resource usage</li>
-        <li><strong>Settings</strong> -- Server configuration, theme, notifications, and credential management</li>
+        <li><strong>{{ t('docDocsCookbookMobile.screenDashboard') }}</strong> -- {{ t('docDocsCookbookMobile.screenDashboardDesc') }}</li>
+        <li><strong>{{ t('docDocsCookbookMobile.screenMachines') }}</strong> -- {{ t('docDocsCookbookMobile.screenMachinesDesc') }}</li>
+        <li><strong>{{ t('docDocsCookbookMobile.screenSessions') }}</strong> -- {{ t('docDocsCookbookMobile.screenSessionsDesc') }}</li>
+        <li><strong>{{ t('docDocsCookbookMobile.screenProjects') }}</strong> -- {{ t('docDocsCookbookMobile.screenProjectsDesc') }}</li>
+        <li><strong>{{ t('docDocsCookbookMobile.screenEpics') }}</strong> -- {{ t('docDocsCookbookMobile.screenEpicsDesc') }}</li>
+        <li><strong>{{ t('docDocsCookbookMobile.screenSprints') }}</strong> -- {{ t('docDocsCookbookMobile.screenSprintsDesc') }}</li>
+        <li><strong>{{ t('docDocsCookbookMobile.screenKanban') }}</strong> -- {{ t('docDocsCookbookMobile.screenKanbanDesc') }}</li>
+        <li><strong>{{ t('docDocsCookbookMobile.screenPlanning') }}</strong> -- {{ t('docDocsCookbookMobile.screenPlanningDesc') }}</li>
+        <li><strong>{{ t('docDocsCookbookMobile.screenOrchestration') }}</strong> -- {{ t('docDocsCookbookMobile.screenOrchestrationDesc') }}</li>
+        <li><strong>{{ t('docDocsCookbookMobile.screenSettings') }}</strong> -- {{ t('docDocsCookbookMobile.screenSettingsDesc') }}</li>
       </ul>
 
-      <h3>Key Libraries</h3>
+      <h3>{{ t('docDocsCookbookMobile.featuresLibrariesHeading') }}</h3>
       <div class="prereq-grid">
         <div class="prereq-item">
           <span class="check">&#10003;</span>
           <div>
             <strong>React 19</strong>
-            <span>Latest React with concurrent features</span>
+            <span>{{ t('docDocsCookbookMobile.libReactDesc') }}</span>
           </div>
         </div>
         <div class="prereq-item">
           <span class="check">&#10003;</span>
           <div>
             <strong>Reanimated 4</strong>
-            <span>60fps native animations and layout transitions</span>
+            <span>{{ t('docDocsCookbookMobile.libReanimatedDesc') }}</span>
           </div>
         </div>
         <div class="prereq-item">
           <span class="check">&#10003;</span>
           <div>
             <strong>Zustand 5</strong>
-            <span>Lightweight state management with persist middleware</span>
+            <span>{{ t('docDocsCookbookMobile.libZustandDesc') }}</span>
           </div>
         </div>
         <div class="prereq-item">
           <span class="check">&#10003;</span>
           <div>
             <strong>React Navigation 7</strong>
-            <span>Native stack and tab navigation</span>
+            <span>{{ t('docDocsCookbookMobile.libNavigationDesc') }}</span>
           </div>
         </div>
       </div>
     </section>
 
     <section id="push-notifications">
-      <h2>Push Notifications</h2>
+      <h2>{{ t('docDocsCookbookMobile.pushHeading') }}</h2>
       <p>
-        ClaudeNest uses <strong>Firebase Cloud Messaging (FCM)</strong> for Android and
-        <strong>Apple Push Notification Service (APNs)</strong> for iOS to deliver
-        session-complete and task-update notifications even when the app is in the background.
+        {{ t('docDocsCookbookMobile.pushIntro1') }} <strong>Firebase Cloud Messaging (FCM)</strong> {{ t('docDocsCookbookMobile.pushIntro2') }}
+        <strong>Apple Push Notification Service (APNs)</strong> {{ t('docDocsCookbookMobile.pushIntro3') }}
       </p>
 
-      <h3>Server-side credentials</h3>
-      <p>Add the following variables to <code>packages/server/.env</code>:</p>
+      <h3>{{ t('docDocsCookbookMobile.pushServerHeading') }}</h3>
+      <p>{{ t('docDocsCookbookMobile.pushServerIntro') }} <code>packages/server/.env</code>:</p>
       <CodeBlock
         :code="pushServerEnv"
         language="bash"
         filename="packages/server/.env"
       />
 
-      <h3>iOS — APNs key</h3>
+      <h3>{{ t('docDocsCookbookMobile.pushIosHeading') }}</h3>
       <ol>
-        <li>In the <a href="https://developer.apple.com/account" target="_blank" rel="noopener">Apple Developer portal</a>, go to <strong>Certificates, Identifiers &amp; Profiles → Keys</strong>.</li>
-        <li>Create a new key with the <strong>Apple Push Notifications service (APNs)</strong> capability.</li>
-        <li>Download the <code>.p8</code> file and place it at <code>storage/app/apns/AuthKey.p8</code> on your server.</li>
-        <li>Set <code>APNS_KEY_ID</code>, <code>APNS_TEAM_ID</code>, and <code>APNS_BUNDLE_ID</code> in the server <code>.env</code>.</li>
+        <li>{{ t('docDocsCookbookMobile.pushIosStep1a') }} <a href="https://developer.apple.com/account" target="_blank" rel="noopener">{{ t('docDocsCookbookMobile.pushIosStep1Link') }}</a>{{ t('docDocsCookbookMobile.pushIosStep1b') }} <strong>Certificates, Identifiers &amp; Profiles → Keys</strong>.</li>
+        <li>{{ t('docDocsCookbookMobile.pushIosStep2a') }} <strong>Apple Push Notifications service (APNs)</strong> {{ t('docDocsCookbookMobile.pushIosStep2b') }}</li>
+        <li>{{ t('docDocsCookbookMobile.pushIosStep3a') }} <code>.p8</code> {{ t('docDocsCookbookMobile.pushIosStep3b') }} <code>storage/app/apns/AuthKey.p8</code> {{ t('docDocsCookbookMobile.pushIosStep3c') }}</li>
+        <li>{{ t('docDocsCookbookMobile.pushIosStep4a') }} <code>APNS_KEY_ID</code>, <code>APNS_TEAM_ID</code>, {{ t('docDocsCookbookMobile.pushIosStep4and') }} <code>APNS_BUNDLE_ID</code> {{ t('docDocsCookbookMobile.pushIosStep4b') }} <code>.env</code>.</li>
       </ol>
 
-      <h3>Android — Firebase setup</h3>
+      <h3>{{ t('docDocsCookbookMobile.pushAndroidHeading') }}</h3>
       <ol>
-        <li>Create a Firebase project at <a href="https://console.firebase.google.com" target="_blank" rel="noopener">console.firebase.google.com</a>.</li>
-        <li>Register the Android app with package name <code>com.claudenest.app</code>.</li>
-        <li>Download <code>google-services.json</code> and place it in <code>packages/mobile/android/app/</code>.</li>
-        <li>Copy the <strong>Server key</strong> from Firebase project settings to <code>FCM_SERVER_KEY</code> on the server.</li>
+        <li>{{ t('docDocsCookbookMobile.pushAndroidStep1a') }} <a href="https://console.firebase.google.com" target="_blank" rel="noopener">console.firebase.google.com</a>.</li>
+        <li>{{ t('docDocsCookbookMobile.pushAndroidStep2a') }} <code>com.claudenest.app</code>.</li>
+        <li>{{ t('docDocsCookbookMobile.pushAndroidStep3a') }} <code>google-services.json</code> {{ t('docDocsCookbookMobile.pushAndroidStep3b') }} <code>packages/mobile/android/app/</code>.</li>
+        <li>{{ t('docDocsCookbookMobile.pushAndroidStep4a') }} <strong>{{ t('docDocsCookbookMobile.pushAndroidStep4Key') }}</strong> {{ t('docDocsCookbookMobile.pushAndroidStep4b') }} <code>FCM_SERVER_KEY</code> {{ t('docDocsCookbookMobile.pushAndroidStep4c') }}</li>
       </ol>
 
-      <h3>Client registration</h3>
+      <h3>{{ t('docDocsCookbookMobile.pushClientHeading') }}</h3>
       <CodeBlock
         :code="pushClientCode"
         language="typescript"
@@ -348,29 +337,27 @@
       <div class="callout tip">
         <span class="callout-icon">i</span>
         <div>
-          <strong>Push notifications are optional</strong>
+          <strong>{{ t('docDocsCookbookMobile.pushOptionalTitle') }}</strong>
           <p>
-            If you skip push notification setup, the app still works fully for interactive use.
-            Background alerts will simply not be delivered.
+            {{ t('docDocsCookbookMobile.pushOptionalBody') }}
           </p>
         </div>
       </div>
     </section>
 
     <section id="production">
-      <h2>Building for Production</h2>
+      <h2>{{ t('docDocsCookbookMobile.prodHeading') }}</h2>
       <p>
-        Production builds are optimized, minified, and signed for distribution through
-        the App Store and Google Play.
+        {{ t('docDocsCookbookMobile.prodIntro') }}
       </p>
 
       <CodeTabs :tabs="productionBuildTabs" />
 
-      <h3>Environment-specific configuration</h3>
+      <h3>{{ t('docDocsCookbookMobile.prodEnvHeading') }}</h3>
       <p>
-        For production builds, create a <code>.env.production</code> file alongside the
-        standard <code>.env</code> and ensure <code>API_URL</code> and <code>WS_URL</code>
-        point to your production ClaudeNest server.
+        {{ t('docDocsCookbookMobile.prodEnvBody1') }} <code>.env.production</code> {{ t('docDocsCookbookMobile.prodEnvBody2') }}
+        <code>.env</code> {{ t('docDocsCookbookMobile.prodEnvBody3') }} <code>API_URL</code> {{ t('docDocsCookbookMobile.prodEnvBody4') }} <code>WS_URL</code>
+        {{ t('docDocsCookbookMobile.prodEnvBody5') }}
       </p>
       <CodeBlock
         :code="productionEnvCode"
@@ -381,22 +368,21 @@
       <div class="callout warning">
         <span class="callout-icon">!</span>
         <div>
-          <strong>Never commit signing credentials</strong>
+          <strong>{{ t('docDocsCookbookMobile.prodNeverCommitTitle') }}</strong>
           <p>
-            Keep <code>google-services.json</code>, <code>AuthKey.p8</code>, and any
-            keystore files out of version control. Use CI/CD secret injection or an
-            encrypted secrets manager to supply them during build.
+            {{ t('docDocsCookbookMobile.prodNeverCommitBody1') }} <code>google-services.json</code>, <code>AuthKey.p8</code>, {{ t('docDocsCookbookMobile.prodNeverCommitBody2') }}
+            {{ t('docDocsCookbookMobile.prodNeverCommitBody3') }}
           </p>
         </div>
       </div>
     </section>
 
     <section id="troubleshooting">
-      <h2>Troubleshooting</h2>
+      <h2>{{ t('docDocsCookbookMobile.tsHeading') }}</h2>
 
-      <h3>Metro bundler port conflict</h3>
+      <h3>{{ t('docDocsCookbookMobile.tsMetroHeading') }}</h3>
       <p>
-        If port 8081 is already in use, specify a different port:
+        {{ t('docDocsCookbookMobile.tsMetroBody') }}
       </p>
       <CodeBlock
         code="npx react-native start --port 8082"
@@ -404,24 +390,23 @@
         filename="Terminal"
       />
 
-      <h3>iOS build fails with CocoaPods error</h3>
+      <h3>{{ t('docDocsCookbookMobile.tsIosPodHeading') }}</h3>
       <CodeBlock
         :code="iosPodErrorCode"
         language="bash"
         filename="Terminal"
       />
 
-      <h3>Android — ANDROID_HOME not set</h3>
+      <h3>{{ t('docDocsCookbookMobile.tsAndroidHomeHeading') }}</h3>
       <CodeBlock
         :code="androidHomeCode"
         language="bash"
         filename="Terminal"
       />
 
-      <h3>WebSocket connection refused on device</h3>
+      <h3>{{ t('docDocsCookbookMobile.tsWsHeading') }}</h3>
       <p>
-        Ensure the WebSocket port (default <code>8080</code>) is open in your firewall and
-        that <code>WS_URL</code> uses the LAN IP of the server, not <code>localhost</code>.
+        {{ t('docDocsCookbookMobile.tsWsBody1') }} <code>8080</code>{{ t('docDocsCookbookMobile.tsWsBody2') }} <code>WS_URL</code> {{ t('docDocsCookbookMobile.tsWsBody3') }} <code>localhost</code>.
       </p>
       <CodeBlock
         :code="wsDebugCode"
@@ -429,29 +414,27 @@
         filename="Terminal"
       />
 
-      <h3>Push notifications not received on iOS simulator</h3>
+      <h3>{{ t('docDocsCookbookMobile.tsPushHeading') }}</h3>
       <div class="callout tip">
         <span class="callout-icon">i</span>
         <div>
-          <strong>Simulators do not support real push notifications</strong>
+          <strong>{{ t('docDocsCookbookMobile.tsPushTitle') }}</strong>
           <p>
-            APNs push notifications can only be tested on a <strong>physical iOS device</strong>.
-            Use a physical device or mock the notification handler locally during development.
+            {{ t('docDocsCookbookMobile.tsPushBody1') }} <strong>{{ t('docDocsCookbookMobile.tsPushDevice') }}</strong>{{ t('docDocsCookbookMobile.tsPushBody2') }}
           </p>
         </div>
       </div>
 
-      <h3>Blank screen on Android after login</h3>
+      <h3>{{ t('docDocsCookbookMobile.tsBlankHeading') }}</h3>
       <CodeBlock
         :code="androidBlankCode"
         language="bash"
         filename="Terminal"
       />
 
-      <h3>Full reset</h3>
+      <h3>{{ t('docDocsCookbookMobile.tsResetHeading') }}</h3>
       <p>
-        When the Metro cache or native build artifacts are stale, a clean rebuild resolves
-        most persistent issues:
+        {{ t('docDocsCookbookMobile.tsResetBody') }}
       </p>
       <CodeBlock
         :code="fullResetCode"
@@ -464,8 +447,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import CodeBlock from '@/components/docs/CodeBlock.vue';
 import CodeTabs from '@/components/docs/CodeTabs.vue';
+
+const { t } = useI18n();
 
 const prereqCheckCode = ref(`# Node.js version (must be 24+)
 node --version

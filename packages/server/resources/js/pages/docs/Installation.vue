@@ -57,7 +57,7 @@
     </section>
 
     <section id="server-installation">
-      <h2>Server Installation</h2>
+      <h2>{{ $t('docDocsInstallation.serverInstallationTitle') }}</h2>
       
       <div class="tabs">
         <button 
@@ -78,8 +78,8 @@
 
       <!-- Docker Installation -->
       <div v-if="activeTab === 'docker'" class="tab-content">
-        <h3>Quick Start with Docker</h3>
-        <p>The easiest way to get started is using Docker Compose:</p>
+        <h3>{{ $t('docDocsInstallation.dockerQuickStartTitle') }}</h3>
+        <p>{{ $t('docDocsInstallation.dockerQuickStartPara') }}</p>
         
         <CodeBlock 
           code="# Clone the repository
@@ -104,19 +104,19 @@ docker-compose exec app php artisan user:create --admin"
           filename="Terminal"
         />
 
-        <h3>Docker Services</h3>
-        <p>The Docker Compose setup includes:</p>
+        <h3>{{ $t('docDocsInstallation.dockerServicesTitle') }}</h3>
+        <p>{{ $t('docDocsInstallation.dockerServicesPara') }}</p>
         <ul>
-          <li><strong>app</strong> - Laravel application server</li>
-          <li><strong>web</strong> - Nginx reverse proxy</li>
-          <li><strong>postgres</strong> - PostgreSQL database with pgvector</li>
-          <li><strong>redis</strong> - Redis cache and queue</li>
-          <li><strong>reverb</strong> - Laravel Reverb WebSocket server</li>
-          <li><strong>ollama</strong> - Ollama for local AI models (optional)</li>
+          <li><strong>app</strong> - {{ $t('docDocsInstallation.dockerServiceApp') }}</li>
+          <li><strong>web</strong> - {{ $t('docDocsInstallation.dockerServiceWeb') }}</li>
+          <li><strong>postgres</strong> - {{ $t('docDocsInstallation.dockerServicePostgres') }}</li>
+          <li><strong>redis</strong> - {{ $t('docDocsInstallation.dockerServiceRedis') }}</li>
+          <li><strong>reverb</strong> - {{ $t('docDocsInstallation.dockerServiceReverb') }}</li>
+          <li><strong>ollama</strong> - {{ $t('docDocsInstallation.dockerServiceOllama') }}</li>
         </ul>
 
-        <h3>Environment Variables</h3>
-        <p>Key configuration options in your <code>.env</code> file:</p>
+        <h3>{{ $t('docDocsInstallation.envVarsTitle') }}</h3>
+        <p>{{ $t('docDocsInstallation.envVarsPara1') }} <code>.env</code> {{ $t('docDocsInstallation.envVarsPara2') }}</p>
         
         <CodeBlock 
           :code="envConfigCode" 
@@ -127,8 +127,8 @@ docker-compose exec app php artisan user:create --admin"
 
       <!-- Bare-Metal Installation -->
       <div v-if="activeTab === 'baremetal'" class="tab-content">
-        <h3>Production Installation</h3>
-        <p>For production environments with dedicated resources, use the automated installer:</p>
+        <h3>{{ $t('docDocsInstallation.prodInstallTitle') }}</h3>
+        <p>{{ $t('docDocsInstallation.prodInstallPara') }}</p>
         
         <CodeBlock 
           code="# Download and run the installer
@@ -152,8 +152,8 @@ cd claudenest/packages/server
           filename="Terminal"
         />
 
-        <h3>Manual Setup Steps</h3>
-        <p>If you prefer to set up manually:</p>
+        <h3>{{ $t('docDocsInstallation.manualSetupTitle') }}</h3>
+        <p>{{ $t('docDocsInstallation.manualSetupPara') }}</p>
         
         <CodeBlock 
           code="# Install PHP dependencies
@@ -197,10 +197,9 @@ sudo systemctl reload nginx"
     </section>
 
     <section id="agent-installation">
-      <h2>Agent Installation</h2>
+      <h2>{{ $t('docDocsInstallation.agentInstallTitle') }}</h2>
       <p>
-        The agent runs on your local machines and connects to the ClaudeNest server. 
-        Install it on any machine where you want to run Claude Code.
+        {{ $t('docDocsInstallation.agentInstallPara') }}
       </p>
 
       <CodeBlock
@@ -231,8 +230,8 @@ claudenest-agent start-service"
         filename="Terminal"
       />
 
-      <h3>Agent Configuration</h3>
-      <p>The agent configuration file is located at <code>~/.claudenest/config.json</code>:</p>
+      <h3>{{ $t('docDocsInstallation.agentConfigTitle') }}</h3>
+      <p>{{ $t('docDocsInstallation.agentConfigPara') }} <code>~/.claudenest/config.json</code>:</p>
       
       <CodeBlock 
         code='{
@@ -264,15 +263,15 @@ claudenest-agent start-service"
     </section>
 
     <section id="verifying">
-      <h2>Verifying Installation</h2>
-      
-      <h3>Check Server Health</h3>
+      <h2>{{ $t('docDocsInstallation.verifyingTitle') }}</h2>
+
+      <h3>{{ $t('docDocsInstallation.checkServerHealthTitle') }}</h3>
       <CodeBlock 
         code="curl https://claudenest.yourdomain.com/api/health" 
         language="bash"
       />
 
-      <h3>Check Agent Connection</h3>
+      <h3>{{ $t('docDocsInstallation.checkAgentConnectionTitle') }}</h3>
       <CodeBlock 
         code="# View agent logs
 claudenest-agent logs
@@ -285,8 +284,8 @@ claudenest-agent ping"
         language="bash"
       />
 
-      <h3>Access the Dashboard</h3>
-      <p>Open your browser and navigate to your server URL:</p>
+      <h3>{{ $t('docDocsInstallation.accessDashboardTitle') }}</h3>
+      <p>{{ $t('docDocsInstallation.accessDashboardPara') }}</p>
       <CodeBlock 
         code="https://claudenest.yourdomain.com" 
         language="bash"
@@ -294,24 +293,24 @@ claudenest-agent ping"
     </section>
 
     <section id="next-steps">
-      <h2>Next Steps</h2>
+      <h2>{{ $t('docDocsInstallation.nextStepsTitle') }}</h2>
       <div class="next-steps-grid">
         <router-link to="/docs/authentication" class="next-step-card">
           <span class="step-icon">🔐</span>
-          <h3>Configure Authentication</h3>
-          <p>Set up OAuth providers and user accounts</p>
+          <h3>{{ $t('docDocsInstallation.nextStepAuthTitle') }}</h3>
+          <p>{{ $t('docDocsInstallation.nextStepAuthDesc') }}</p>
         </router-link>
-        
+
         <router-link to="/docs/quickstart" class="next-step-card">
           <span class="step-icon">🚀</span>
-          <h3>Quickstart Guide</h3>
-          <p>Create your first session and API call</p>
+          <h3>{{ $t('docDocsInstallation.nextStepQuickstartTitle') }}</h3>
+          <p>{{ $t('docDocsInstallation.nextStepQuickstartDesc') }}</p>
         </router-link>
-        
+
         <router-link to="/docs/api/authentication" class="next-step-card">
           <span class="step-icon">📚</span>
-          <h3>API Reference</h3>
-          <p>Explore the complete API documentation</p>
+          <h3>{{ $t('docDocsInstallation.nextStepApiTitle') }}</h3>
+          <p>{{ $t('docDocsInstallation.nextStepApiDesc') }}</p>
         </router-link>
       </div>
     </section>

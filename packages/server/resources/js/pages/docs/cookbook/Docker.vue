@@ -1,45 +1,44 @@
 <template>
   <article class="doc-content">
     <header class="doc-header">
-      <h1>Docker Deployment</h1>
+      <h1>{{ t('docDocsCookbookDocker.title') }}</h1>
       <p class="lead">
-        Deploy ClaudeNest with Docker Compose for a reproducible, containerized setup.
-        This guide covers everything from prerequisites to troubleshooting common issues.
+        {{ t('docDocsCookbookDocker.lead') }}
       </p>
     </header>
 
     <section id="prerequisites">
-      <h2>Prerequisites</h2>
+      <h2>{{ t('docDocsCookbookDocker.prerequisitesHeading') }}</h2>
       <p>
-        Before getting started, ensure the following tools are installed on your host machine.
+        {{ t('docDocsCookbookDocker.prerequisitesIntro') }}
       </p>
       <div class="prereq-grid">
         <div class="prereq-item">
           <span class="check">&#10003;</span>
           <div>
             <strong>Docker 24+</strong>
-            <span>Container runtime</span>
+            <span>{{ t('docDocsCookbookDocker.prereqDockerDesc') }}</span>
           </div>
         </div>
         <div class="prereq-item">
           <span class="check">&#10003;</span>
           <div>
             <strong>Docker Compose v2</strong>
-            <span>Multi-container orchestration</span>
+            <span>{{ t('docDocsCookbookDocker.prereqComposeDesc') }}</span>
           </div>
         </div>
         <div class="prereq-item">
           <span class="check">&#10003;</span>
           <div>
-            <strong>4 GB RAM minimum</strong>
-            <span>8 GB recommended for Ollama</span>
+            <strong>{{ t('docDocsCookbookDocker.prereqRamTitle') }}</strong>
+            <span>{{ t('docDocsCookbookDocker.prereqRamDesc') }}</span>
           </div>
         </div>
         <div class="prereq-item">
           <span class="check">&#10003;</span>
           <div>
-            <strong>10 GB disk space</strong>
-            <span>Images + volumes</span>
+            <strong>{{ t('docDocsCookbookDocker.prereqDiskTitle') }}</strong>
+            <span>{{ t('docDocsCookbookDocker.prereqDiskDesc') }}</span>
           </div>
         </div>
       </div>
@@ -47,8 +46,8 @@
       <div class="tip">
         <span class="tip-icon">i</span>
         <div>
-          <strong>Verify Docker is installed</strong>
-          <p>Run <code>docker --version</code> and <code>docker compose version</code> to confirm both are available.</p>
+          <strong>{{ t('docDocsCookbookDocker.tipVerifyDockerTitle') }}</strong>
+          <p>{{ t('docDocsCookbookDocker.tipVerifyDockerBody1') }} <code>docker --version</code> {{ t('docDocsCookbookDocker.tipVerifyDockerBody2') }} <code>docker compose version</code> {{ t('docDocsCookbookDocker.tipVerifyDockerBody3') }}</p>
         </div>
       </div>
 
@@ -66,10 +65,9 @@ docker compose version
     </section>
 
     <section id="docker-compose">
-      <h2>Docker Compose Configuration</h2>
+      <h2>{{ t('docDocsCookbookDocker.composeHeading') }}</h2>
       <p>
-        The <code>docker-compose.yml</code> file defines all the services required to run ClaudeNest:
-        PostgreSQL with pgvector, Redis, the Laravel application, and the Reverb WebSocket server.
+        {{ t('docDocsCookbookDocker.composeIntro1') }} <code>docker-compose.yml</code> {{ t('docDocsCookbookDocker.composeIntro2') }}
       </p>
 
       <CodeBlock
@@ -78,21 +76,21 @@ docker compose version
         filename="docker-compose.yml"
       />
 
-      <h3>Services overview</h3>
+      <h3>{{ t('docDocsCookbookDocker.servicesHeading') }}</h3>
       <ul>
-        <li><strong>postgres</strong> -- PostgreSQL 16 with the pgvector extension pre-installed for RAG embeddings.</li>
-        <li><strong>redis</strong> -- Redis 7 for caching, queues, and session storage.</li>
-        <li><strong>app</strong> -- The Laravel 13 backend serving the API and the Vue.js SPA.</li>
-        <li><strong>reverb</strong> -- Laravel Reverb providing real-time WebSocket communication.</li>
-        <li><strong>queue</strong> -- A dedicated worker for Laravel queued jobs.</li>
-        <li><strong>ollama</strong> -- (Optional) Local AI model server for embedding generation and summarization.</li>
+        <li><strong>postgres</strong> -- {{ t('docDocsCookbookDocker.servicePostgres') }}</li>
+        <li><strong>redis</strong> -- {{ t('docDocsCookbookDocker.serviceRedis') }}</li>
+        <li><strong>app</strong> -- {{ t('docDocsCookbookDocker.serviceApp') }}</li>
+        <li><strong>reverb</strong> -- {{ t('docDocsCookbookDocker.serviceReverb') }}</li>
+        <li><strong>queue</strong> -- {{ t('docDocsCookbookDocker.serviceQueue') }}</li>
+        <li><strong>ollama</strong> -- {{ t('docDocsCookbookDocker.serviceOllama') }}</li>
       </ul>
     </section>
 
     <section id="configuration">
-      <h2>Environment Configuration</h2>
+      <h2>{{ t('docDocsCookbookDocker.envHeading') }}</h2>
       <p>
-        Copy the example environment file and customize it for your deployment.
+        {{ t('docDocsCookbookDocker.envIntro') }}
       </p>
 
       <CodeBlock
@@ -102,8 +100,7 @@ docker compose version
       />
 
       <p>
-        Open <code>.env</code> and configure the values below. When running inside Docker,
-        service hostnames match the container names defined in the Compose file.
+        {{ t('docDocsCookbookDocker.envOpen1') }} <code>.env</code> {{ t('docDocsCookbookDocker.envOpen2') }}
       </p>
 
       <CodeBlock
@@ -115,16 +112,16 @@ docker compose version
       <div class="tip">
         <span class="tip-icon">i</span>
         <div>
-          <strong>Generate APP_KEY</strong>
-          <p>After first startup, run <code>docker compose exec app php artisan key:generate</code> to set the application encryption key.</p>
+          <strong>{{ t('docDocsCookbookDocker.tipAppKeyTitle') }}</strong>
+          <p>{{ t('docDocsCookbookDocker.tipAppKeyBody1') }} <code>docker compose exec app php artisan key:generate</code> {{ t('docDocsCookbookDocker.tipAppKeyBody2') }}</p>
         </div>
       </div>
     </section>
 
     <section id="running">
-      <h2>Running the Stack</h2>
+      <h2>{{ t('docDocsCookbookDocker.runningHeading') }}</h2>
       <p>
-        Clone the repository and bring all services up with a single command.
+        {{ t('docDocsCookbookDocker.runningIntro') }}
       </p>
 
       <CodeBlock
@@ -133,27 +130,27 @@ docker compose version
         filename="Terminal"
       />
 
-      <h3>Verifying the deployment</h3>
+      <h3>{{ t('docDocsCookbookDocker.verifyHeading') }}</h3>
       <p>
-        Once the containers are running, verify each service is healthy.
+        {{ t('docDocsCookbookDocker.verifyIntro') }}
       </p>
 
       <CodeTabs
         :tabs="[
           {
-            label: 'Health check',
+            label: t('docDocsCookbookDocker.tabHealthCheck'),
             language: 'bash',
             code: healthCheckCode,
             filename: 'Terminal'
           },
           {
-            label: 'Container status',
+            label: t('docDocsCookbookDocker.tabContainerStatus'),
             language: 'bash',
             code: containerStatusCode,
             filename: 'Terminal'
           },
           {
-            label: 'View logs',
+            label: t('docDocsCookbookDocker.tabViewLogs'),
             language: 'bash',
             code: logsCode,
             filename: 'Terminal'
@@ -161,7 +158,7 @@ docker compose version
         ]"
       />
 
-      <h3>Stopping and restarting</h3>
+      <h3>{{ t('docDocsCookbookDocker.stoppingHeading') }}</h3>
       <CodeBlock
         code="# Stop all services (preserve volumes)
 docker compose down
@@ -177,11 +174,11 @@ docker compose restart app"
     </section>
 
     <section id="troubleshooting">
-      <h2>Troubleshooting</h2>
+      <h2>{{ t('docDocsCookbookDocker.troubleshootingHeading') }}</h2>
 
-      <h3>PostgreSQL fails to start</h3>
+      <h3>{{ t('docDocsCookbookDocker.tsPostgresHeading') }}</h3>
       <p>
-        If the Postgres container exits immediately, check that no other process is bound to port 5432 on the host.
+        {{ t('docDocsCookbookDocker.tsPostgresBody') }}
       </p>
       <CodeBlock
         code="# Check for port conflicts
@@ -193,10 +190,9 @@ sudo lsof -i :5432
         filename="Terminal"
       />
 
-      <h3>pgvector extension missing</h3>
+      <h3>{{ t('docDocsCookbookDocker.tsPgvectorHeading') }}</h3>
       <p>
-        The Compose file uses the <code>pgvector/pgvector:pg16</code> image which bundles the extension.
-        If you switched to a vanilla Postgres image, install pgvector manually.
+        {{ t('docDocsCookbookDocker.tsPgvectorBody1') }} <code>pgvector/pgvector:pg16</code> {{ t('docDocsCookbookDocker.tsPgvectorBody2') }}
       </p>
       <CodeBlock
         code="docker compose exec postgres psql -U claudenest -d claudenest \
@@ -205,10 +201,9 @@ sudo lsof -i :5432
         filename="Terminal"
       />
 
-      <h3>Reverb WebSocket not connecting</h3>
+      <h3>{{ t('docDocsCookbookDocker.tsReverbHeading') }}</h3>
       <p>
-        Ensure <code>REVERB_SERVER_HOST</code> is set to <code>0.0.0.0</code> inside the container
-        and that <code>VITE_REVERB_HOST</code> points to the host your browser can reach.
+        {{ t('docDocsCookbookDocker.tsReverbBody1') }} <code>REVERB_SERVER_HOST</code> {{ t('docDocsCookbookDocker.tsReverbBody2') }} <code>0.0.0.0</code> {{ t('docDocsCookbookDocker.tsReverbBody3') }} <code>VITE_REVERB_HOST</code> {{ t('docDocsCookbookDocker.tsReverbBody4') }}
       </p>
       <CodeBlock
         :code="reverbDebugCode"
@@ -216,7 +211,7 @@ sudo lsof -i :5432
         filename="Terminal"
       />
 
-      <h3>Permission denied on storage or cache</h3>
+      <h3>{{ t('docDocsCookbookDocker.tsPermissionHeading') }}</h3>
       <CodeBlock
         code="docker compose exec app chmod -R 775 storage bootstrap/cache
 docker compose exec app chown -R www-data:www-data storage bootstrap/cache"
@@ -224,7 +219,7 @@ docker compose exec app chown -R www-data:www-data storage bootstrap/cache"
         filename="Terminal"
       />
 
-      <h3>Rebuilding after code changes</h3>
+      <h3>{{ t('docDocsCookbookDocker.tsRebuildHeading') }}</h3>
       <CodeBlock
         code="# Rebuild images and restart
 docker compose up -d --build
@@ -240,8 +235,11 @@ docker compose exec app php artisan optimize:clear"
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import CodeBlock from '@/components/docs/CodeBlock.vue';
 import CodeTabs from '@/components/docs/CodeTabs.vue';
+
+const { t } = useI18n();
 
 const dockerComposeCode = ref(`version: "3.8"
 

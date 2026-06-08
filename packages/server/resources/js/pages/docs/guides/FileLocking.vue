@@ -1,205 +1,168 @@
 <template>
   <article class="doc-content">
     <header class="doc-header">
-      <h1>File Locking</h1>
+      <h1>{{ t('docDocsGuidesFilelocking.title') }}</h1>
       <p class="lead">
-        Prevent conflicts when multiple agents edit the same files. File locks
-        guarantee exclusive write access for a configurable duration.
+        {{ t('docDocsGuidesFilelocking.lead') }}
       </p>
     </header>
 
     <section id="why-locking">
-      <h2>Why File Locking?</h2>
+      <h2>{{ t('docDocsGuidesFilelocking.whyHeading') }}</h2>
       <p>
-        When several Claude instances work on the same project simultaneously,
-        two agents might try to modify the same file at the same time. Without
-        coordination the result is merge conflicts, overwritten work, or
-        inconsistent state.
+        {{ t('docDocsGuidesFilelocking.whyPara1') }}
       </p>
       <p>
-        ClaudeNest's file locking system solves this by letting an instance
-        acquire an exclusive lock on a file path before editing it. Other
-        instances can check whether a file is locked and either wait or choose
-        a different file to work on.
+        {{ t('docDocsGuidesFilelocking.whyPara2') }}
       </p>
-      <p>Key characteristics of the locking system:</p>
+      <p>{{ t('docDocsGuidesFilelocking.keyCharacteristics') }}</p>
       <ul>
-        <li>Locks are <strong>per-project</strong> and <strong>per-path</strong></li>
-        <li>Each lock has an <strong>expiration time</strong> (default 30 minutes) to prevent deadlocks</li>
-        <li>Locks can be <strong>extended</strong> if the work takes longer than expected</li>
-        <li>Project owners can <strong>force-release</strong> any lock</li>
-        <li>Disconnected instances have their locks released automatically</li>
+        <li><span v-html="t('docDocsGuidesFilelocking.keyItem1')"></span></li>
+        <li><span v-html="t('docDocsGuidesFilelocking.keyItem2')"></span></li>
+        <li><span v-html="t('docDocsGuidesFilelocking.keyItem3')"></span></li>
+        <li><span v-html="t('docDocsGuidesFilelocking.keyItem4')"></span></li>
+        <li>{{ t('docDocsGuidesFilelocking.keyItem5') }}</li>
       </ul>
     </section>
 
     <section id="acquire-lock">
-      <h2>Acquiring a Lock</h2>
+      <h2>{{ t('docDocsGuidesFilelocking.acquireHeading') }}</h2>
       <p>
-        Before editing a file, an instance requests a lock. The server grants
-        the lock only if the file is not already locked by another instance.
+        {{ t('docDocsGuidesFilelocking.acquirePara1') }}
       </p>
 
       <CodeTabs :tabs="acquireTabs" />
 
-      <CodeBlock language="json" :code="acquireResponse" filename="Response (200)" />
+      <CodeBlock language="json" :code="acquireResponse" :filename="t('docDocsGuidesFilelocking.responseFilename200')" />
 
       <p>
-        If the file is already locked, the server returns a <code>409 Conflict</code>
-        response with details about the current lock holder:
+        {{ t('docDocsGuidesFilelocking.acquireConflictIntro') }} <code>409 Conflict</code>
+        {{ t('docDocsGuidesFilelocking.acquireConflictIntroSuffix') }}
       </p>
 
-      <CodeBlock language="json" :code="acquireConflict" filename="Response (409)" />
+      <CodeBlock language="json" :code="acquireConflict" :filename="t('docDocsGuidesFilelocking.responseFilename409')" />
 
       <p class="tip">
         <span class="tip-icon">&#128161;</span>
-        Always check for a 409 response and implement a retry or fallback
-        strategy in your agent logic.
+        {{ t('docDocsGuidesFilelocking.acquireTip') }}
       </p>
     </section>
 
     <section id="check-lock">
-      <h2>Checking Lock Status</h2>
+      <h2>{{ t('docDocsGuidesFilelocking.checkHeading') }}</h2>
       <p>
-        Before attempting to lock a file, you can check whether it is already
-        locked. This is useful for planning which files to work on next.
+        {{ t('docDocsGuidesFilelocking.checkPara1') }}
       </p>
 
       <CodeTabs :tabs="checkTabs" />
 
-      <CodeBlock language="json" :code="checkLockedResponse" filename="Response (locked)" />
+      <CodeBlock language="json" :code="checkLockedResponse" :filename="t('docDocsGuidesFilelocking.responseFilenameLocked')" />
 
-      <CodeBlock language="json" :code="checkFreeResponse" filename="Response (free)" />
+      <CodeBlock language="json" :code="checkFreeResponse" :filename="t('docDocsGuidesFilelocking.responseFilenameFree')" />
     </section>
 
     <section id="extend-lock">
-      <h2>Extending a Lock</h2>
+      <h2>{{ t('docDocsGuidesFilelocking.extendHeading') }}</h2>
       <p>
-        If the work is taking longer than the original expiration window, the
-        lock holder can extend the lock duration. Only the instance that owns
-        the lock can extend it.
+        {{ t('docDocsGuidesFilelocking.extendPara1') }}
       </p>
 
       <CodeTabs :tabs="extendTabs" />
 
-      <CodeBlock language="json" :code="extendResponse" filename="Response" />
+      <CodeBlock language="json" :code="extendResponse" :filename="t('docDocsGuidesFilelocking.responseFilename')" />
     </section>
 
     <section id="atomic-acquisition">
-      <h2>Atomic Lock Acquisition</h2>
+      <h2>{{ t('docDocsGuidesFilelocking.atomicHeading') }}</h2>
       <p>
-        Lock creation uses a database-level <code>lockForUpdate</code> to ensure true
-        atomicity. Even when two instances send a lock request at exactly the same
-        millisecond, only one succeeds. The losing request immediately receives a
-        <code>409 Conflict</code> without any risk of both believing they hold the lock.
+        {{ t('docDocsGuidesFilelocking.atomicPara1a') }} <code>lockForUpdate</code> {{ t('docDocsGuidesFilelocking.atomicPara1b') }}
+        <code>409 Conflict</code> {{ t('docDocsGuidesFilelocking.atomicPara1c') }}
       </p>
       <p>
-        This guarantee is stronger than application-level checks. You do not need to
-        implement your own mutex or retry loop beyond the standard 409 handling.
+        {{ t('docDocsGuidesFilelocking.atomicPara2') }}
       </p>
     </section>
 
     <section id="task-lock-integration">
-      <h2>Task-Lock Integration</h2>
+      <h2>{{ t('docDocsGuidesFilelocking.taskLockHeading') }}</h2>
       <p>
-        When an instance claims a task via <code>POST /tasks/{id}/claim</code>, any
-        file paths listed in the task's <code>files</code> array are automatically
-        locked for that instance. This means you rarely need to call the lock endpoints
-        directly for normal task work.
+        {{ t('docDocsGuidesFilelocking.taskLockPara1a') }} <code>POST /tasks/{id}/claim</code>{{ t('docDocsGuidesFilelocking.taskLockPara1b') }} <code>files</code> {{ t('docDocsGuidesFilelocking.taskLockPara1c') }}
       </p>
       <p>
-        Conversely, when a task is completed (<code>POST /tasks/{id}/complete</code>)
-        or released (<code>POST /tasks/{id}/release</code>), all locks held by the
-        instance for those files are automatically released. This keeps lock cleanup
-        inside the task lifecycle rather than requiring explicit teardown code.
+        {{ t('docDocsGuidesFilelocking.taskLockPara2a') }} <code>POST /tasks/{id}/complete</code>{{ t('docDocsGuidesFilelocking.taskLockPara2b') }} <code>POST /tasks/{id}/release</code>{{ t('docDocsGuidesFilelocking.taskLockPara2c') }}
       </p>
 
       <p class="tip">
         <span class="tip-icon">&#128161;</span>
-        The auto-lock behaviour applies only to files declared in the task's
-        <code>files</code> field at claim time. Files opened ad hoc during the task
-        must still be locked manually via <code>POST /locks</code>.
+        {{ t('docDocsGuidesFilelocking.taskLockTipA') }} <code>files</code> {{ t('docDocsGuidesFilelocking.taskLockTipB') }} <code>POST /locks</code>{{ t('docDocsGuidesFilelocking.taskLockTipC') }}
       </p>
     </section>
 
     <section id="heartbeat-extend">
-      <h2>Heartbeat Auto-Extend</h2>
+      <h2>{{ t('docDocsGuidesFilelocking.heartbeatHeading') }}</h2>
       <p>
-        The agent daemon sends a heartbeat to the server every 60 seconds for each
-        active session. If a session holds locks whose expiration is within 5 minutes
-        of the current time, the server automatically extends those locks by 15 minutes.
-        This prevents locks from expiring mid-task without requiring the agent to poll
-        the extend endpoint.
+        {{ t('docDocsGuidesFilelocking.heartbeatPara1') }}
       </p>
       <p>
-        You can still call <code>POST /locks/extend</code> manually at any time if you
-        need a longer window or want to extend locks held outside an active session.
+        {{ t('docDocsGuidesFilelocking.heartbeatPara2a') }} <code>POST /locks/extend</code> {{ t('docDocsGuidesFilelocking.heartbeatPara2b') }}
       </p>
     </section>
 
     <section id="conflicts-batch">
-      <h2>Batch Conflict Check</h2>
+      <h2>{{ t('docDocsGuidesFilelocking.conflictsHeading') }}</h2>
       <p>
-        Before starting a large task that touches many files, check all of them in a
-        single request using the conflicts endpoint. The server returns only the files
-        that are currently locked, so you can decide whether to wait, reassign the task,
-        or proceed with the unlocked subset.
+        {{ t('docDocsGuidesFilelocking.conflictsPara1') }}
       </p>
 
       <CodeTabs :tabs="conflictsTabs" />
 
-      <CodeBlock language="json" :code="conflictsResponse" filename="Response" />
+      <CodeBlock language="json" :code="conflictsResponse" :filename="t('docDocsGuidesFilelocking.responseFilename')" />
     </section>
 
     <section id="bulk-locking">
-      <h2>Bulk Locking</h2>
+      <h2>{{ t('docDocsGuidesFilelocking.bulkHeading') }}</h2>
       <p>
-        When a task involves multiple files, you can lock them all in a single
-        atomic request. Either all locks succeed or none are acquired, which
-        prevents partial-lock scenarios.
+        {{ t('docDocsGuidesFilelocking.bulkPara1') }}
       </p>
 
       <CodeTabs :tabs="bulkTabs" />
 
-      <CodeBlock language="json" :code="bulkResponse" filename="Response" />
+      <CodeBlock language="json" :code="bulkResponse" :filename="t('docDocsGuidesFilelocking.responseFilename')" />
 
       <p class="tip">
         <span class="tip-icon">&#128161;</span>
-        Bulk locking is atomic: if any file is already locked by another
-        instance, the entire request fails and no locks are created.
+        {{ t('docDocsGuidesFilelocking.bulkTip') }}
       </p>
 
-      <h3>Releasing Locks</h3>
+      <h3>{{ t('docDocsGuidesFilelocking.releaseHeading') }}</h3>
       <p>
-        When the instance finishes editing, it should release the lock so other
-        agents can work on the file. You can release a single lock or all locks
-        held by an instance at once.
+        {{ t('docDocsGuidesFilelocking.releasePara1') }}
       </p>
 
       <CodeTabs :tabs="releaseTabs" />
 
-      <h3>Force-Release</h3>
+      <h3>{{ t('docDocsGuidesFilelocking.forceReleaseHeading') }}</h3>
       <p>
-        Project owners can force-release any lock, regardless of who holds it.
-        This is useful when an instance has disconnected without cleaning up.
+        {{ t('docDocsGuidesFilelocking.forceReleasePara1') }}
       </p>
 
       <CodeTabs :tabs="forceReleaseTabs" />
     </section>
 
     <section id="next-steps">
-      <h2>Next Steps</h2>
+      <h2>{{ t('docDocsGuidesFilelocking.nextStepsHeading') }}</h2>
       <div class="next-steps">
         <router-link to="/docs/guides/multi-agent" class="next-step">
-          <strong>Multi-Agent Coordination</strong>
-          <span>See how file locking fits into the full multi-agent workflow &#8594;</span>
+          <strong>{{ t('docDocsGuidesFilelocking.nextMultiAgentTitle') }}</strong>
+          <span>{{ t('docDocsGuidesFilelocking.nextMultiAgentDesc') }} &#8594;</span>
         </router-link>
         <router-link to="/docs/guides/rag-pipeline" class="next-step">
-          <strong>RAG Pipeline</strong>
-          <span>Share knowledge between agents with vector-based context search &#8594;</span>
+          <strong>{{ t('docDocsGuidesFilelocking.nextRagTitle') }}</strong>
+          <span>{{ t('docDocsGuidesFilelocking.nextRagDesc') }} &#8594;</span>
         </router-link>
         <router-link to="/docs/api/tasks" class="next-step">
-          <strong>Tasks API Reference</strong>
-          <span>Distribute and track work across instances &#8594;</span>
+          <strong>{{ t('docDocsGuidesFilelocking.nextTasksTitle') }}</strong>
+          <span>{{ t('docDocsGuidesFilelocking.nextTasksDesc') }} &#8594;</span>
         </router-link>
       </div>
     </section>
@@ -208,8 +171,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import CodeBlock from '@/components/docs/CodeBlock.vue';
 import CodeTabs from '@/components/docs/CodeTabs.vue';
+
+const { t } = useI18n();
 
 // -- Acquire Lock -------------------------------------------------------------
 

@@ -96,7 +96,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick } from 'vue';
+import { ref, computed, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 interface ChatMessage {
@@ -138,12 +138,13 @@ const isTyping = ref(false);
 const messagesContainer = ref<HTMLElement | null>(null);
 const inputRef = ref<HTMLTextAreaElement | null>(null);
 
-const suggestions = [
+// computed so suggestions re-translate on locale change (plain const freezes t()).
+const suggestions = computed(() => [
   t('multiagentPlanningchat.suggestionCreateEpic'),
   t('multiagentPlanningchat.suggestionPlanSprint'),
   t('multiagentPlanningchat.suggestionDecomposeTask'),
   t('multiagentPlanningchat.suggestionShowProgress'),
-];
+]);
 
 function handleSend() {
   if (!inputText.value.trim() || isTyping.value) return;

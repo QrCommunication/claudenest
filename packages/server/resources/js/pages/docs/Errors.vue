@@ -8,7 +8,7 @@
       </p>
 
       <div class="section">
-        <h2>Error Format</h2>
+        <h2>{{ $t('docDocsErrors.errorFormatTitle') }}</h2>
         <p>
           All API errors follow a consistent format:
         </p>
@@ -23,7 +23,7 @@
       </div>
 
       <div class="section">
-        <h2>Error Categories</h2>
+        <h2>{{ $t('docDocsErrors.categoriesTitle') }}</h2>
         <div class="category-grid">
           <div class="category-card">
             <h4>AUTH</h4>
@@ -31,7 +31,7 @@
           </div>
           <div class="category-card">
             <h4>MCH</h4>
-            <p>Machine-related errors</p>
+            <p>{{ $t('docDocsErrors.catMch') }}</p>
           </div>
           <div class="category-card">
             <h4>SES</h4>
@@ -55,7 +55,7 @@
           </div>
           <div class="category-card">
             <h4>RTE</h4>
-            <p>Rate limiting errors</p>
+            <p>{{ $t('docDocsErrors.catRte') }}</p>
           </div>
           <div class="category-card">
             <h4>GEN</h4>
@@ -65,17 +65,17 @@
       </div>
 
       <div class="section">
-        <h2>Authentication Errors (AUTH)</h2>
+        <h2>{{ $t('docDocsErrors.authErrorsTitle') }}</h2>
         <ParamTable :params="authErrors" :showRequired="false" />
       </div>
 
       <div class="section">
-        <h2>Machine Errors (MCH)</h2>
+        <h2>{{ $t('docDocsErrors.machineErrorsTitle') }}</h2>
         <ParamTable :params="machineErrors" :showRequired="false" />
       </div>
 
       <div class="section">
-        <h2>Session Errors (SES)</h2>
+        <h2>{{ $t('docDocsErrors.sessionErrorsTitle') }}</h2>
         <ParamTable :params="sessionErrors" :showRequired="false" />
       </div>
 
@@ -85,7 +85,7 @@
       </div>
 
       <div class="section">
-        <h2>Task Errors (TSK)</h2>
+        <h2>{{ $t('docDocsErrors.taskErrorsTitle') }}</h2>
         <ParamTable :params="taskErrors" :showRequired="false" />
       </div>
 
@@ -95,23 +95,23 @@
       </div>
 
       <div class="section">
-        <h2>Validation Errors (VAL)</h2>
+        <h2>{{ $t('docDocsErrors.validationErrorsTitle') }}</h2>
         <ParamTable :params="validationErrors" :showRequired="false" />
       </div>
 
       <div class="section">
-        <h2>Rate Limit Errors (RTE)</h2>
+        <h2>{{ $t('docDocsErrors.rateLimitErrorsTitle') }}</h2>
         <ParamTable :params="rateLimitErrors" :showRequired="false" />
       </div>
 
       <div class="section">
-        <h2>HTTP Status Codes</h2>
+        <h2>{{ $t('docDocsErrors.httpStatusTitle') }}</h2>
         <table class="status-table">
           <thead>
             <tr>
-              <th>Status</th>
-              <th>Meaning</th>
-              <th>Common Causes</th>
+              <th>{{ $t('docDocsErrors.thStatus') }}</th>
+              <th>{{ $t('docDocsErrors.thMeaning') }}</th>
+              <th>{{ $t('docDocsErrors.thCommonCauses') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -131,8 +131,8 @@
         
         <div class="troubleshooting-item">
           <h4>401 Unauthorized</h4>
-          <p><strong>Problem:</strong> Your API token is invalid or expired.</p>
-          <p><strong>Solutions:</strong></p>
+          <p><strong>{{ $t('docDocsErrors.problemLabel') }}</strong> Your API token is invalid or expired.</p>
+          <p><strong>{{ $t('docDocsErrors.solutionsLabel') }}</strong></p>
           <ul>
             <li>Check that you're including the token in the Authorization header</li>
             <li>Verify the token format: <code>Bearer YOUR_TOKEN</code></li>
@@ -143,8 +143,8 @@
 
         <div class="troubleshooting-item">
           <h4>429 Too Many Requests</h4>
-          <p><strong>Problem:</strong> You've exceeded the rate limit.</p>
-          <p><strong>Solutions:</strong></p>
+          <p><strong>{{ $t('docDocsErrors.problemLabel') }}</strong> You've exceeded the rate limit.</p>
+          <p><strong>{{ $t('docDocsErrors.solutionsLabel') }}</strong></p>
           <ul>
             <li>Check the <code>X-RateLimit-Reset</code> header for when limits reset</li>
             <li>Implement exponential backoff in your client</li>
@@ -155,8 +155,8 @@
 
         <div class="troubleshooting-item">
           <h4>500 Internal Server Error</h4>
-          <p><strong>Problem:</strong> Something went wrong on our end.</p>
-          <p><strong>Solutions:</strong></p>
+          <p><strong>{{ $t('docDocsErrors.problemLabel') }}</strong> Something went wrong on our end.</p>
+          <p><strong>{{ $t('docDocsErrors.solutionsLabel') }}</strong></p>
           <ul>
             <li>Retry the request after a few seconds</li>
             <li>Check the <a href="https://status.claudenest.io" target="_blank">status page</a></li>
@@ -165,9 +165,9 @@
         </div>
 
         <div class="troubleshooting-item">
-          <h4>WebSocket Connection Failed</h4>
-          <p><strong>Problem:</strong> Can't establish WebSocket connection.</p>
-          <p><strong>Solutions:</strong></p>
+          <h4>{{ $t('docDocsErrors.tsWsTitle') }}</h4>
+          <p><strong>{{ $t('docDocsErrors.problemLabel') }}</strong> Can't establish WebSocket connection.</p>
+          <p><strong>{{ $t('docDocsErrors.solutionsLabel') }}</strong></p>
           <ul>
             <li>Ensure you're using <code>wss://</code> (secure WebSocket)</li>
             <li>Check that the session is running before connecting</li>
@@ -178,7 +178,7 @@
       </div>
 
       <div class="section">
-        <h2>Getting Help</h2>
+        <h2>{{ $t('docDocsErrors.gettingHelpTitle') }}</h2>
         <p>
           If you're still experiencing issues:
         </p>
@@ -194,10 +194,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import DocsLayout from '@/layouts/DocsLayout.vue';
 import CodeBlock from '@/components/docs/CodeBlock.vue';
 import ParamTable from '@/components/docs/ParamTable.vue';
+
+const { t } = useI18n();
 
 const errorFormat = ref(`{
   "success": false,
@@ -211,18 +214,18 @@ const errorFormat = ref(`{
   }
 }`);
 
-const authErrors = ref([
+const authErrors = computed(() => [
   { name: 'AUTH_001', type: 'string', description: 'Invalid provider (OAuth) or token not found' },
   { name: 'AUTH_002', type: 'string', description: 'Invalid credentials (email/password)' },
   { name: 'AUTH_003', type: 'string', description: 'Unable to send password reset link' },
   { name: 'AUTH_004', type: 'string', description: 'Invalid or expired reset token' },
-  { name: 'AUTH_005', type: 'string', description: 'Token has expired' },
-  { name: 'AUTH_006', type: 'string', description: 'Insufficient permissions for this action' },
+  { name: 'AUTH_005', type: 'string', description: t('docDocsErrors.errAuth003') },
+  { name: 'AUTH_006', type: 'string', description: t('docDocsErrors.errAuth005') },
 ]);
 
-const machineErrors = ref([
-  { name: 'MCH_001', type: 'string', description: 'Machine not found' },
-  { name: 'MCH_002', type: 'string', description: 'Machine is offline' },
+const machineErrors = computed(() => [
+  { name: 'MCH_001', type: 'string', description: t('docDocsErrors.errMch001') },
+  { name: 'MCH_002', type: 'string', description: t('docDocsErrors.errMch002') },
   { name: 'MCH_003', type: 'string', description: 'Machine does not support Wake-on-LAN' },
   { name: 'MCH_004', type: 'string', description: 'Machine is already online' },
   { name: 'MCH_005', type: 'string', description: 'Maximum sessions reached for this machine' },
@@ -236,16 +239,16 @@ const sessionErrors = ref([
   { name: 'SES_005', type: 'string', description: 'WebSocket token expired' },
 ]);
 
-const contextErrors = ref([
-  { name: 'CTX_001', type: 'string', description: 'Project not found' },
-  { name: 'CTX_002', type: 'string', description: 'Context chunk not found' },
+const contextErrors = computed(() => [
+  { name: 'CTX_001', type: 'string', description: t('docDocsErrors.errCtx001') },
+  { name: 'CTX_002', type: 'string', description: t('docDocsErrors.errCtx002') },
   { name: 'CTX_003', type: 'string', description: 'Token limit exceeded' },
-  { name: 'CTX_004', type: 'string', description: 'Embedding service unavailable' },
+  { name: 'CTX_004', type: 'string', description: t('docDocsErrors.errCtx003') },
   { name: 'CTX_005', type: 'string', description: 'Invalid context update' },
 ]);
 
-const taskErrors = ref([
-  { name: 'TSK_001', type: 'string', description: 'Task not found' },
+const taskErrors = computed(() => [
+  { name: 'TSK_001', type: 'string', description: t('docDocsErrors.errTsk001') },
   { name: 'TSK_002', type: 'string', description: 'Task already claimed by another instance' },
   { name: 'TSK_003', type: 'string', description: 'Task dependencies not completed or task not claimed' },
   { name: 'TSK_004', type: 'string', description: 'Invalid task status transition' },
@@ -266,26 +269,26 @@ const validationErrors = ref([
   { name: 'VAL_004', type: 'string', description: 'Required field missing' },
 ]);
 
-const rateLimitErrors = ref([
+const rateLimitErrors = computed(() => [
   { name: 'RTE_001', type: 'string', description: 'Rate limit exceeded - too many requests' },
   { name: 'RTE_002', type: 'string', description: 'Concurrent connection limit exceeded' },
-  { name: 'RTE_003', type: 'string', description: 'Daily quota exceeded' },
+  { name: 'RTE_003', type: 'string', description: t('docDocsErrors.errRte003') },
 ]);
 
-const httpStatuses = ref([
-  { code: '200', class: 'success', meaning: 'OK', causes: 'Request succeeded' },
-  { code: '201', class: 'success', meaning: 'Created', causes: 'Resource created successfully' },
-  { code: '204', class: 'success', meaning: 'No Content', causes: 'Success with no response body' },
-  { code: '400', class: 'client-error', meaning: 'Bad Request', causes: 'Invalid parameters or JSON' },
-  { code: '401', class: 'client-error', meaning: 'Unauthorized', causes: 'Missing or invalid token' },
-  { code: '403', class: 'client-error', meaning: 'Forbidden', causes: 'Insufficient permissions' },
-  { code: '404', class: 'client-error', meaning: 'Not Found', causes: 'Resource does not exist' },
-  { code: '409', class: 'client-error', meaning: 'Conflict', causes: 'Resource conflict (e.g., lock)' },
-  { code: '422', class: 'client-error', meaning: 'Unprocessable Entity', causes: 'Validation failed' },
-  { code: '429', class: 'client-error', meaning: 'Too Many Requests', causes: 'Rate limit exceeded' },
-  { code: '500', class: 'server-error', meaning: 'Internal Server Error', causes: 'Server error occurred' },
-  { code: '502', class: 'server-error', meaning: 'Bad Gateway', causes: 'Upstream server error' },
-  { code: '503', class: 'server-error', meaning: 'Service Unavailable', causes: 'Service temporarily down' },
+const httpStatuses = computed(() => [
+  { code: '200', class: 'success', meaning: 'OK', causes: t('docDocsErrors.httpCauses200') },
+  { code: '201', class: 'success', meaning: t('docDocsErrors.httpMeaning201'), causes: t('docDocsErrors.httpCauses201') },
+  { code: '204', class: 'success', meaning: t('docDocsErrors.httpMeaning204'), causes: 'Success with no response body' },
+  { code: '400', class: 'client-error', meaning: t('docDocsErrors.httpMeaning400'), causes: 'Invalid parameters or JSON' },
+  { code: '401', class: 'client-error', meaning: t('docDocsErrors.httpMeaning401'), causes: 'Missing or invalid token' },
+  { code: '403', class: 'client-error', meaning: t('docDocsErrors.httpMeaning403'), causes: t('docDocsErrors.httpCauses403') },
+  { code: '404', class: 'client-error', meaning: t('docDocsErrors.httpMeaning404'), causes: t('docDocsErrors.httpCauses404') },
+  { code: '409', class: 'client-error', meaning: t('docDocsErrors.httpMeaning409'), causes: 'Resource conflict (e.g., lock)' },
+  { code: '422', class: 'client-error', meaning: t('docDocsErrors.httpMeaning422'), causes: t('docDocsErrors.httpCauses422') },
+  { code: '429', class: 'client-error', meaning: t('docDocsErrors.httpMeaning429'), causes: t('docDocsErrors.httpCauses429') },
+  { code: '500', class: 'server-error', meaning: t('docDocsErrors.httpMeaning500'), causes: 'Server error occurred' },
+  { code: '502', class: 'server-error', meaning: t('docDocsErrors.httpMeaning502'), causes: 'Upstream server error' },
+  { code: '503', class: 'server-error', meaning: t('docDocsErrors.httpMeaning503'), causes: 'Service temporarily down' },
 ]);
 </script>
 

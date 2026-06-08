@@ -1,34 +1,33 @@
 <template>
   <DocsLayout>
     <div class="docs-page">
-      <h1>Skills API</h1>
-      
+      <h1>{{ $t('docDocsSkills.heading') }}</h1>
+
       <p class="lead">
-        Skills extend Claude's capabilities with custom tools and workflows. 
-        The Skills API allows you to create, manage, and deploy custom skills for your projects.
+        {{ $t('docDocsSkills.lead') }}
       </p>
 
       <div class="section">
-        <h2>What are Skills?</h2>
+        <h2>{{ $t('docDocsSkills.whatAreSkillsTitle') }}</h2>
         <p>
-          Skills are modular extensions that add new capabilities to Claude. They can include:
+          {{ $t('docDocsSkills.whatAreSkillsIntro') }}
         </p>
         <ul>
-          <li><strong>Tools:</strong> Custom functions Claude can call</li>
-          <li><strong>Workflows:</strong> Multi-step automated processes</li>
-          <li><strong>Knowledge:</strong> Domain-specific information and context</li>
-          <li><strong>Integrations:</strong> Connections to external services</li>
+          <li><strong>{{ $t('docDocsSkills.toolsLabel') }}</strong> {{ $t('docDocsSkills.toolsDesc') }}</li>
+          <li><strong>{{ $t('docDocsSkills.workflowsLabel') }}</strong> {{ $t('docDocsSkills.workflowsDesc') }}</li>
+          <li><strong>{{ $t('docDocsSkills.knowledgeLabel') }}</strong> {{ $t('docDocsSkills.knowledgeDesc') }}</li>
+          <li><strong>{{ $t('docDocsSkills.integrationsLabel') }}</strong> {{ $t('docDocsSkills.integrationsDesc') }}</li>
         </ul>
       </div>
 
       <div class="section">
-        <h2>Skill Object</h2>
+        <h2>{{ $t('docDocsSkills.skillObjectTitle') }}</h2>
         <CodeBlock language="json" :code="skillObject" />
       </div>
 
       <div class="section">
-        <h2>Skill Structure</h2>
-        <p>A skill consists of the following components:</p>
+        <h2>{{ $t('docDocsSkills.skillStructureTitle') }}</h2>
+        <p>{{ $t('docDocsSkills.skillStructureIntro') }}</p>
         <CodeBlock language="json" :code="skillStructure" filename="skill.json" />
       </div>
 
@@ -36,7 +35,7 @@
       <EndpointCard
         method="GET"
         path="/skills"
-        description="List all available skills for the user."
+        :description="$t('docDocsSkills.listDescription')"
         :params="listParams"
         :curlExample="listCurl"
         :jsExample="listJs"
@@ -48,7 +47,7 @@
       <EndpointCard
         method="GET"
         path="/skills/{id}"
-        description="Get detailed information about a skill."
+        :description="$t('docDocsSkills.getDescription')"
         :params="getParams"
         :curlExample="getCurl"
         :jsExample="getJs"
@@ -60,7 +59,7 @@
       <EndpointCard
         method="POST"
         path="/machines/{machine}/skills"
-        description="Install a skill on a specific machine."
+        :description="$t('docDocsSkills.installDescription')"
         :params="installParams"
         :curlExample="installCurl"
         :jsExample="installJs"
@@ -72,7 +71,7 @@
       <EndpointCard
         method="DELETE"
         path="/machines/{machine}/skills/{id}"
-        description="Uninstall a skill from a machine."
+        :description="$t('docDocsSkills.uninstallDescription')"
         :params="uninstallParams"
         :curlExample="uninstallCurl"
         :jsExample="uninstallJs"
@@ -84,7 +83,7 @@
       <EndpointCard
         method="POST"
         path="/skills/{id}/execute"
-        description="Execute a skill with given parameters."
+        :description="$t('docDocsSkills.executeDescription')"
         :params="executeParams"
         :curlExample="executeCurl"
         :jsExample="executeJs"
@@ -93,59 +92,59 @@
       />
 
       <div class="section">
-        <h2>Creating Custom Skills</h2>
+        <h2>{{ $t('docDocsSkills.creatingTitle') }}</h2>
         <p>
-          Custom skills are defined using a JSON manifest file and JavaScript/Python implementation:
+          {{ $t('docDocsSkills.creatingIntro') }}
         </p>
-        <h3>1. Create the Skill Manifest</h3>
+        <h3>{{ $t('docDocsSkills.creatingStep1') }}</h3>
         <CodeBlock language="json" :code="customSkillManifest" filename="skill.json" />
-        
-        <h3>2. Implement the Handler</h3>
+
+        <h3>{{ $t('docDocsSkills.creatingStep2') }}</h3>
         <CodeBlock language="javascript" :code="skillHandler" filename="handler.js" />
-        
-        <h3>3. Package and Deploy</h3>
+
+        <h3>{{ $t('docDocsSkills.creatingStep3') }}</h3>
         <CodeBlock language="bash" :code="deploySkill" />
       </div>
 
       <div class="section">
-        <h2>Skill Context</h2>
+        <h2>{{ $t('docDocsSkills.skillContextTitle') }}</h2>
         <p>
-          Skills have access to a context object that provides information about the current session:
+          {{ $t('docDocsSkills.skillContextIntro') }}
         </p>
         <CodeBlock language="typescript" :code="skillContext" />
       </div>
 
       <div class="section">
-        <h2>Official Skills Registry</h2>
+        <h2>{{ $t('docDocsSkills.registryTitle') }}</h2>
         <div class="skills-grid">
           <div class="skill-card">
-            <h4>Git Integration</h4>
-            <p>Advanced Git operations, commit analysis, and PR management</p>
+            <h4>{{ $t('docDocsSkills.registryGitTitle') }}</h4>
+            <p>{{ $t('docDocsSkills.registryGitDesc') }}</p>
             <code>@claudenest/git</code>
           </div>
           <div class="skill-card">
-            <h4>Database Manager</h4>
-            <p>SQL query generation and database schema management</p>
+            <h4>{{ $t('docDocsSkills.registryDatabaseTitle') }}</h4>
+            <p>{{ $t('docDocsSkills.registryDatabaseDesc') }}</p>
             <code>@claudenest/database</code>
           </div>
           <div class="skill-card">
-            <h4>Testing Runner</h4>
-            <p>Execute and analyze test suites across multiple frameworks</p>
+            <h4>{{ $t('docDocsSkills.registryTestingTitle') }}</h4>
+            <p>{{ $t('docDocsSkills.registryTestingDesc') }}</p>
             <code>@claudenest/testing</code>
           </div>
           <div class="skill-card">
-            <h4>Documentation</h4>
-            <p>Auto-generate and update documentation</p>
+            <h4>{{ $t('docDocsSkills.registryDocsTitle') }}</h4>
+            <p>{{ $t('docDocsSkills.registryDocsDesc') }}</p>
             <code>@claudenest/docs</code>
           </div>
           <div class="skill-card">
-            <h4>Security Audit</h4>
-            <p>Scan code for security vulnerabilities</p>
+            <h4>{{ $t('docDocsSkills.registrySecurityTitle') }}</h4>
+            <p>{{ $t('docDocsSkills.registrySecurityDesc') }}</p>
             <code>@claudenest/security</code>
           </div>
           <div class="skill-card">
-            <h4>Performance Profiler</h4>
-            <p>Analyze and optimize code performance</p>
+            <h4>{{ $t('docDocsSkills.registryPerformanceTitle') }}</h4>
+            <p>{{ $t('docDocsSkills.registryPerformanceDesc') }}</p>
             <code>@claudenest/performance</code>
           </div>
         </div>
@@ -155,10 +154,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import DocsLayout from '@/layouts/DocsLayout.vue';
 import EndpointCard from '@/components/docs/EndpointCard.vue';
 import CodeBlock from '@/components/docs/CodeBlock.vue';
+
+const { t } = useI18n();
 
 const skillObject = ref(`{
   "id": "skill-git-v1",
@@ -204,10 +206,10 @@ const skillStructure = ref(`{
 }`);
 
 // List Skills
-const listParams = [
-  { name: 'tag', type: 'string', required: false, description: 'Filter by tag' },
-  { name: 'status', type: 'enum', required: false, description: 'Filter by status', enum: ['active', 'inactive'] },
-];
+const listParams = computed(() => [
+  { name: 'tag', type: 'string', required: false, description: t('docDocsSkills.paramFilterByTag') },
+  { name: 'status', type: 'enum', required: false, description: t('docDocsSkills.paramFilterByStatus'), enum: ['active', 'inactive'] },
+]);
 
 const listCurl = `curl https://api.claudenest.io/api/skills \\
   -H "Authorization: Bearer YOUR_TOKEN" \\
@@ -244,9 +246,9 @@ const listResponses = [
 ];
 
 // Get Skill
-const getParams = [
-  { name: 'id', type: 'string', required: true, description: 'Skill ID' },
-];
+const getParams = computed(() => [
+  { name: 'id', type: 'string', required: true, description: t('docDocsSkills.paramSkillId') },
+]);
 
 const getCurl = `curl https://api.claudenest.io/api/skills/skill-git-v1 \\
   -H "Authorization: Bearer YOUR_TOKEN"`;
@@ -282,11 +284,11 @@ const getResponses = [
 ];
 
 // Install Skill
-const installParams = [
-  { name: 'machine', type: 'uuid', required: true, description: 'Machine ID' },
-  { name: 'skill_id', type: 'string', required: true, description: 'Skill ID to install' },
-  { name: 'config', type: 'object', required: false, description: 'Skill configuration' },
-];
+const installParams = computed(() => [
+  { name: 'machine', type: 'uuid', required: true, description: t('docDocsSkills.paramMachineId') },
+  { name: 'skill_id', type: 'string', required: true, description: t('docDocsSkills.paramSkillIdToInstall') },
+  { name: 'config', type: 'object', required: false, description: t('docDocsSkills.paramSkillConfig') },
+]);
 
 const installCurl = `curl -X POST https://api.claudenest.io/api/machines/550e8400-e29b-41d4-a716-446655440000/skills \\
   -H "Authorization: Bearer YOUR_TOKEN" \\
@@ -331,10 +333,10 @@ const installResponses = [
 ];
 
 // Uninstall Skill
-const uninstallParams = [
-  { name: 'machine', type: 'uuid', required: true, description: 'Machine ID' },
-  { name: 'id', type: 'string', required: true, description: 'Skill ID' },
-];
+const uninstallParams = computed(() => [
+  { name: 'machine', type: 'uuid', required: true, description: t('docDocsSkills.paramMachineId') },
+  { name: 'id', type: 'string', required: true, description: t('docDocsSkills.paramSkillId') },
+]);
 
 const uninstallCurl = `curl -X DELETE https://api.claudenest.io/api/machines/550e8400-e29b-41d4-a716-446655440000/skills/skill-git-v1 \\
   -H "Authorization: Bearer YOUR_TOKEN"`;
@@ -360,12 +362,12 @@ const uninstallResponses = [
 ];
 
 // Execute Skill
-const executeParams = [
-  { name: 'id', type: 'string', required: true, description: 'Skill ID' },
-  { name: 'tool', type: 'string', required: true, description: 'Tool name to execute' },
-  { name: 'parameters', type: 'object', required: true, description: 'Tool parameters' },
-  { name: 'session_id', type: 'uuid', required: false, description: 'Session context' },
-];
+const executeParams = computed(() => [
+  { name: 'id', type: 'string', required: true, description: t('docDocsSkills.paramSkillId') },
+  { name: 'tool', type: 'string', required: true, description: t('docDocsSkills.paramToolName') },
+  { name: 'parameters', type: 'object', required: true, description: t('docDocsSkills.paramToolParameters') },
+  { name: 'session_id', type: 'uuid', required: false, description: t('docDocsSkills.paramSessionContext') },
+]);
 
 const executeCurl = `curl -X POST https://api.claudenest.io/api/skills/skill-git-v1/execute \\
   -H "Authorization: Bearer YOUR_TOKEN" \\

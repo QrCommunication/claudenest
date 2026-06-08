@@ -110,34 +110,34 @@
       />
 
       <div class="section">
-        <h2>Machine Capabilities</h2>
-        <p>Capabilities indicate what features a machine supports:</p>
+        <h2>{{ $t('docDocsMachines.capabilitiesHeading') }}</h2>
+        <p>{{ $t('docDocsMachines.capabilitiesIntro') }}</p>
         <ParamTable :params="capabilitiesTable" />
       </div>
 
       <div class="section">
-        <h2>Machine Statuses</h2>
-        <p>Possible machine status values:</p>
+        <h2>{{ $t('docDocsMachines.statusesHeading') }}</h2>
+        <p>{{ $t('docDocsMachines.statusesIntro') }}</p>
         <ul>
-          <li><code>online</code> - Machine is connected and ready</li>
-          <li><code>offline</code> - Machine is disconnected</li>
-          <li><code>connecting</code> - Machine is in the process of connecting</li>
-          <li><code>error</code> - Machine has reported an error state</li>
-          <li><code>maintenance</code> - Machine is in maintenance mode</li>
+          <li><code>online</code> - {{ $t('docDocsMachines.statusOnline') }}</li>
+          <li><code>offline</code> - {{ $t('docDocsMachines.statusOffline') }}</li>
+          <li><code>connecting</code> - {{ $t('docDocsMachines.statusConnecting') }}</li>
+          <li><code>error</code> - {{ $t('docDocsMachines.statusError') }}</li>
+          <li><code>maintenance</code> - {{ $t('docDocsMachines.statusMaintenance') }}</li>
         </ul>
       </div>
 
       <div class="section">
-        <h2>Wake-on-LAN Requirements</h2>
+        <h2>{{ $t('docDocsMachines.wolReqHeading') }}</h2>
         <p>
-          For Wake-on-LAN to work, the machine must:
+          {{ $t('docDocsMachines.wolReqIntro') }}
         </p>
         <ul>
-          <li>Have a network card that supports Wake-on-LAN</li>
-          <li>Have WoL enabled in BIOS/UEFI settings</li>
-          <li>Have WoL enabled in the operating system</li>
-          <li>Have the <code>wake_on_lan</code> capability set</li>
-          <li>Be on the same network as another online ClaudeNest agent (for proxy)</li>
+          <li>{{ $t('docDocsMachines.wolReq1') }}</li>
+          <li>{{ $t('docDocsMachines.wolReq2') }}</li>
+          <li>{{ $t('docDocsMachines.wolReq3') }}</li>
+          <li>{{ $t('docDocsMachines.wolReq4Before') }}<code>wake_on_lan</code>{{ $t('docDocsMachines.wolReq4After') }}</li>
+          <li>{{ $t('docDocsMachines.wolReq5') }}</li>
         </ul>
       </div>
     </div>
@@ -145,11 +145,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import DocsLayout from '@/layouts/DocsLayout.vue';
 import EndpointCard from '@/components/docs/EndpointCard.vue';
 import CodeBlock from '@/components/docs/CodeBlock.vue';
 import ParamTable from '@/components/docs/ParamTable.vue';
+
+const { t } = useI18n();
 
 const machineObject = ref(`{
   "id": "550e8400-e29b-41d4-a716-446655440000",
@@ -172,11 +175,11 @@ const machineObject = ref(`{
 }`);
 
 // List Machines
-const listParams = [
-  { name: 'per_page', type: 'integer', required: false, description: 'Items per page (default: 15)', default: 15 },
-  { name: 'search', type: 'string', required: false, description: 'Search by name or hostname' },
-  { name: 'status', type: 'enum', required: false, description: 'Filter by status', enum: ['online', 'offline', 'connecting', 'error', 'maintenance'] },
-];
+const listParams = computed(() => [
+  { name: 'per_page', type: 'integer', required: false, description: t('docDocsMachines.paramPerPage'), default: 15 },
+  { name: 'search', type: 'string', required: false, description: t('docDocsMachines.paramSearch') },
+  { name: 'status', type: 'enum', required: false, description: t('docDocsMachines.paramStatusFilter'), enum: ['online', 'offline', 'connecting', 'error', 'maintenance'] },
+]);
 
 const listCurl = `curl https://api.claudenest.io/api/machines \\
   -H "Authorization: Bearer YOUR_TOKEN" \\
@@ -230,18 +233,18 @@ const listResponses = [
 ];
 
 // Create Machine
-const createParams = [
-  { name: 'name', type: 'string', required: true, description: 'Machine name' },
-  { name: 'platform', type: 'enum', required: true, description: 'Operating system', enum: ['darwin', 'linux', 'win32'] },
-  { name: 'hostname', type: 'string', required: false, description: 'System hostname' },
-  { name: 'arch', type: 'string', required: false, description: 'CPU architecture (e.g., arm64, x64)' },
-  { name: 'node_version', type: 'string', required: false, description: 'Node.js version' },
-  { name: 'agent_version', type: 'string', required: false, description: 'ClaudeNest agent version' },
-  { name: 'claude_version', type: 'string', required: false, description: 'Claude CLI version' },
-  { name: 'claude_path', type: 'string', required: false, description: 'Path to Claude CLI executable' },
-  { name: 'capabilities', type: 'array', required: false, description: 'Array of capability strings', default: [] },
-  { name: 'max_sessions', type: 'integer', required: false, description: 'Maximum concurrent sessions', default: 10 },
-];
+const createParams = computed(() => [
+  { name: 'name', type: 'string', required: true, description: t('docDocsMachines.paramName') },
+  { name: 'platform', type: 'enum', required: true, description: t('docDocsMachines.paramPlatform'), enum: ['darwin', 'linux', 'win32'] },
+  { name: 'hostname', type: 'string', required: false, description: t('docDocsMachines.paramHostname') },
+  { name: 'arch', type: 'string', required: false, description: t('docDocsMachines.paramArch') },
+  { name: 'node_version', type: 'string', required: false, description: t('docDocsMachines.paramNodeVersion') },
+  { name: 'agent_version', type: 'string', required: false, description: t('docDocsMachines.paramAgentVersion') },
+  { name: 'claude_version', type: 'string', required: false, description: t('docDocsMachines.paramClaudeVersion') },
+  { name: 'claude_path', type: 'string', required: false, description: t('docDocsMachines.paramClaudePath') },
+  { name: 'capabilities', type: 'array', required: false, description: t('docDocsMachines.paramCapabilities'), default: [] },
+  { name: 'max_sessions', type: 'integer', required: false, description: t('docDocsMachines.paramMaxSessions'), default: 10 },
+]);
 
 const createCurl = `curl -X POST https://api.claudenest.io/api/machines \\
   -H "Authorization: Bearer YOUR_TOKEN" \\
@@ -310,9 +313,9 @@ const createResponses = [
 ];
 
 // Get Machine
-const getParams = [
-  { name: 'id', type: 'uuid', required: true, description: 'Machine ID' },
-];
+const getParams = computed(() => [
+  { name: 'id', type: 'uuid', required: true, description: t('docDocsMachines.paramId') },
+]);
 
 const getCurl = `curl https://api.claudenest.io/api/machines/550e8400-e29b-41d4-a716-446655440000 \\
   -H "Authorization: Bearer YOUR_TOKEN"`;
@@ -327,7 +330,7 @@ const getPhp = `<?php
 $machine = Http::withToken($token)
     ->get('https://api.claudenest.io/api/machines/550e8400-e29b-41d4-a716-446655440000')['data'];`;
 
-const getResponses = [
+const getResponses = computed(() => [
   {
     status: 200,
     body: JSON.stringify({
@@ -348,21 +351,21 @@ const getResponses = [
   },
   {
     status: 404,
-    description: 'Machine not found',
+    description: t('docDocsMachines.respMachineNotFound'),
     body: JSON.stringify({
       success: false,
       error: { code: 'MCH_001', message: 'Machine not found' },
       meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_456' },
     }, null, 2),
   },
-];
+]);
 
 // Update Machine
-const updateParams = [
-  { name: 'id', type: 'uuid', required: true, description: 'Machine ID' },
-  { name: 'name', type: 'string', required: false, description: 'New machine name' },
-  { name: 'max_sessions', type: 'integer', required: false, description: 'New max sessions limit' },
-];
+const updateParams = computed(() => [
+  { name: 'id', type: 'uuid', required: true, description: t('docDocsMachines.paramId') },
+  { name: 'name', type: 'string', required: false, description: t('docDocsMachines.paramNewName') },
+  { name: 'max_sessions', type: 'integer', required: false, description: t('docDocsMachines.paramNewMaxSessions') },
+]);
 
 const updateCurl = `curl -X PATCH https://api.claudenest.io/api/machines/550e8400-e29b-41d4-a716-446655440000 \\
   -H "Authorization: Bearer YOUR_TOKEN" \\
@@ -397,9 +400,9 @@ const updateResponses = [
 ];
 
 // Delete Machine
-const deleteParams = [
-  { name: 'id', type: 'uuid', required: true, description: 'Machine ID' },
-];
+const deleteParams = computed(() => [
+  { name: 'id', type: 'uuid', required: true, description: t('docDocsMachines.paramId') },
+]);
 
 const deleteCurl = `curl -X DELETE https://api.claudenest.io/api/machines/550e8400-e29b-41d4-a716-446655440000 \\
   -H "Authorization: Bearer YOUR_TOKEN"`;
@@ -425,9 +428,9 @@ const deleteResponses = [
 ];
 
 // Regenerate Token
-const regenerateParams = [
-  { name: 'id', type: 'uuid', required: true, description: 'Machine ID' },
-];
+const regenerateParams = computed(() => [
+  { name: 'id', type: 'uuid', required: true, description: t('docDocsMachines.paramId') },
+]);
 
 const regenerateCurl = `curl -X POST https://api.claudenest.io/api/machines/550e8400-e29b-41d4-a716-446655440000/regenerate-token \\
   -H "Authorization: Bearer YOUR_TOKEN"`;
@@ -455,9 +458,9 @@ const regenerateResponses = [
 ];
 
 // Environment
-const environmentParams = [
-  { name: 'id', type: 'uuid', required: true, description: 'Machine ID' },
-];
+const environmentParams = computed(() => [
+  { name: 'id', type: 'uuid', required: true, description: t('docDocsMachines.paramId') },
+]);
 
 const environmentCurl = `curl https://api.claudenest.io/api/machines/550e8400-e29b-41d4-a716-446655440000/environment \\
   -H "Authorization: Bearer YOUR_TOKEN"`;
@@ -472,7 +475,7 @@ const environmentPhp = `<?php
 $env = Http::withToken($token)
     ->get('https://api.claudenest.io/api/machines/550e8400-e29b-41d4-a716-446655440000/environment')['data'];`;
 
-const environmentResponses = [
+const environmentResponses = computed(() => [
   {
     status: 200,
     body: JSON.stringify({
@@ -493,19 +496,19 @@ const environmentResponses = [
   },
   {
     status: 400,
-    description: 'Machine is offline',
+    description: t('docDocsMachines.respMachineOffline'),
     body: JSON.stringify({
       success: false,
       error: { code: 'MCH_002', message: 'Machine is offline' },
       meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_901' },
     }, null, 2),
   },
-];
+]);
 
 // Wake
-const wakeParams = [
-  { name: 'id', type: 'uuid', required: true, description: 'Machine ID' },
-];
+const wakeParams = computed(() => [
+  { name: 'id', type: 'uuid', required: true, description: t('docDocsMachines.paramId') },
+]);
 
 const wakeCurl = `curl -X POST https://api.claudenest.io/api/machines/550e8400-e29b-41d4-a716-446655440000/wake \\
   -H "Authorization: Bearer YOUR_TOKEN"`;
@@ -521,7 +524,7 @@ const wakePhp = `<?php
 $result = Http::withToken($token)
     ->post('https://api.claudenest.io/api/machines/550e8400-e29b-41d4-a716-446655440000/wake')['data'];`;
 
-const wakeResponses = [
+const wakeResponses = computed(() => [
   {
     status: 200,
     body: JSON.stringify({
@@ -535,24 +538,24 @@ const wakeResponses = [
   },
   {
     status: 400,
-    description: 'Wake-on-LAN not supported',
+    description: t('docDocsMachines.respWolNotSupported'),
     body: JSON.stringify({
       success: false,
       error: { code: 'MCH_003', message: 'Machine does not support Wake-on-LAN' },
       meta: { timestamp: '2026-02-02T15:30:00Z', request_id: 'req_567' },
     }, null, 2),
   },
-];
+]);
 
 // Capabilities table
-const capabilitiesTable = [
-  { name: 'wake_on_lan', type: 'string', required: false, description: 'Supports Wake-on-LAN functionality' },
-  { name: 'gpu_acceleration', type: 'string', required: false, description: 'Has GPU available for acceleration' },
-  { name: 'docker', type: 'string', required: false, description: 'Docker is installed and available' },
-  { name: 'kubernetes', type: 'string', required: false, description: 'Kubernetes cluster access available' },
-  { name: 'remote_desktop', type: 'string', required: false, description: 'Supports remote desktop connections' },
-  { name: 'file_sync', type: 'string', required: false, description: 'Supports real-time file synchronization' },
-];
+const capabilitiesTable = computed(() => [
+  { name: 'wake_on_lan', type: 'string', required: false, description: t('docDocsMachines.capWakeOnLan') },
+  { name: 'gpu_acceleration', type: 'string', required: false, description: t('docDocsMachines.capGpuAcceleration') },
+  { name: 'docker', type: 'string', required: false, description: t('docDocsMachines.capDocker') },
+  { name: 'kubernetes', type: 'string', required: false, description: t('docDocsMachines.capKubernetes') },
+  { name: 'remote_desktop', type: 'string', required: false, description: t('docDocsMachines.capRemoteDesktop') },
+  { name: 'file_sync', type: 'string', required: false, description: t('docDocsMachines.capFileSync') },
+]);
 </script>
 
 <style scoped>

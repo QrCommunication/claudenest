@@ -1,137 +1,124 @@
 <template>
   <article class="doc-content">
     <header class="doc-header">
-      <h1>Getting Started</h1>
+      <h1>{{ t('docDocsGuidesGettingstarted.title') }}</h1>
       <p class="lead">
-        ClaudeNest is a remote Claude Code orchestration platform that lets you control,
-        coordinate, and monitor multiple Claude Code instances from anywhere.
+        {{ t('docDocsGuidesGettingstarted.lead') }}
       </p>
     </header>
 
     <section id="overview">
-      <h2>Overview</h2>
+      <h2>{{ t('docDocsGuidesGettingstarted.overviewHeading') }}</h2>
       <p>
-        ClaudeNest transforms Claude Code from a local-only tool into a fully remote,
-        multi-agent system. Whether you need to run Claude on a powerful server,
-        coordinate multiple instances on the same codebase, or monitor sessions from
-        your phone, ClaudeNest provides the infrastructure to make it happen.
+        {{ t('docDocsGuidesGettingstarted.overviewPara1') }}
       </p>
-      <p>Key capabilities include:</p>
+      <p>{{ t('docDocsGuidesGettingstarted.keyCapabilitiesIntro') }}</p>
       <ul>
-        <li><strong>Remote Access</strong> &mdash; Control Claude Code instances running on any machine from a web dashboard or mobile app</li>
-        <li><strong>Multi-Agent Coordination</strong> &mdash; Run multiple Claude instances on the same project with shared context, task coordination, and file locking</li>
-        <li><strong>Context RAG</strong> &mdash; pgvector-powered retrieval augmented generation so every agent shares project understanding</li>
-        <li><strong>Real-Time Communication</strong> &mdash; WebSocket-based bidirectional streaming for terminal I/O</li>
-        <li><strong>MCP Integration</strong> &mdash; Discover and manage Model Context Protocol servers across your machines</li>
+        <li><strong>{{ t('docDocsGuidesGettingstarted.capRemoteAccessLabel') }}</strong> &mdash; {{ t('docDocsGuidesGettingstarted.capRemoteAccessText') }}</li>
+        <li><strong>{{ t('docDocsGuidesGettingstarted.capMultiAgentLabel') }}</strong> &mdash; {{ t('docDocsGuidesGettingstarted.capMultiAgentText') }}</li>
+        <li><strong>{{ t('docDocsGuidesGettingstarted.capContextRagLabel') }}</strong> &mdash; {{ t('docDocsGuidesGettingstarted.capContextRagText') }}</li>
+        <li><strong>{{ t('docDocsGuidesGettingstarted.capRealTimeLabel') }}</strong> &mdash; {{ t('docDocsGuidesGettingstarted.capRealTimeText') }}</li>
+        <li><strong>{{ t('docDocsGuidesGettingstarted.capMcpLabel') }}</strong> &mdash; {{ t('docDocsGuidesGettingstarted.capMcpText') }}</li>
       </ul>
     </section>
 
     <section id="architecture">
-      <h2>Architecture</h2>
+      <h2>{{ t('docDocsGuidesGettingstarted.architectureHeading') }}</h2>
       <p>
-        ClaudeNest follows a hub-and-spoke architecture with three main components
-        that communicate in real time:
+        {{ t('docDocsGuidesGettingstarted.architecturePara1') }}
       </p>
 
-      <h3>Server (Hub)</h3>
+      <h3>{{ t('docDocsGuidesGettingstarted.serverHubHeading') }}</h3>
       <p>
-        The central Laravel 13 application handles authentication, API routing,
-        WebSocket relay via Laravel Reverb, and persistent storage in PostgreSQL
-        with pgvector for embeddings. It also serves the Vue.js web dashboard.
+        {{ t('docDocsGuidesGettingstarted.serverHubPara') }}
       </p>
 
       <CodeBlock
         :code="serverStackCode"
         language="text"
-        filename="Server Stack"
+        :filename="t('docDocsGuidesGettingstarted.serverStackFilename')"
       />
 
-      <h3>Agent (Spoke)</h3>
+      <h3>{{ t('docDocsGuidesGettingstarted.agentSpokeHeading') }}</h3>
       <p>
-        A lightweight Node.js daemon that runs on each machine you want to control.
-        It manages local Claude Code processes via <code>node-pty</code>, streams
-        terminal output over WebSocket, and handles session lifecycle.
+        {{ t('docDocsGuidesGettingstarted.agentSpokePara1') }} <code>node-pty</code>{{ t('docDocsGuidesGettingstarted.agentSpokePara2') }}
       </p>
 
       <CodeBlock
         :code="agentStackCode"
         language="text"
-        filename="Agent Stack"
+        :filename="t('docDocsGuidesGettingstarted.agentStackFilename')"
       />
 
-      <h3>Clients</h3>
+      <h3>{{ t('docDocsGuidesGettingstarted.clientsHeading') }}</h3>
       <p>
-        Users interact with ClaudeNest through the web dashboard (Vue.js + xterm.js),
-        native mobile apps (React Native), or directly via the REST API. All clients
-        connect to the server, which relays commands to the appropriate agent.
+        {{ t('docDocsGuidesGettingstarted.clientsPara') }}
       </p>
 
       <CodeBlock
         :code="architectureDiagram"
         language="text"
-        filename="Data Flow"
+        :filename="t('docDocsGuidesGettingstarted.dataFlowFilename')"
       />
 
       <p class="tip">
         <span class="tip-icon">&#128161;</span>
-        The agent connects outbound to the server via WebSocket, so no inbound ports
-        need to be opened on the machine running Claude Code.
+        {{ t('docDocsGuidesGettingstarted.architectureTip') }}
       </p>
     </section>
 
     <section id="prerequisites">
-      <h2>Prerequisites</h2>
-      <p>Before setting up ClaudeNest, make sure you have the following:</p>
+      <h2>{{ t('docDocsGuidesGettingstarted.prerequisitesHeading') }}</h2>
+      <p>{{ t('docDocsGuidesGettingstarted.prerequisitesIntro') }}</p>
 
-      <h3>For the Server</h3>
+      <h3>{{ t('docDocsGuidesGettingstarted.forServerHeading') }}</h3>
       <ul class="checklist">
-        <li><span class="check">&#10003;</span> PHP 8.4+ with required extensions (pgsql, redis, pcntl)</li>
-        <li><span class="check">&#10003;</span> PostgreSQL 16+ with the pgvector extension</li>
-        <li><span class="check">&#10003;</span> Redis 7+ for caching, queues, and broadcasting</li>
-        <li><span class="check">&#10003;</span> Node.js 24+ and npm (for building the frontend)</li>
-        <li><span class="check">&#10003;</span> Composer 2.x for PHP dependencies</li>
+        <li><span class="check">&#10003;</span> {{ t('docDocsGuidesGettingstarted.reqServerPhp') }}</li>
+        <li><span class="check">&#10003;</span> {{ t('docDocsGuidesGettingstarted.reqServerPostgres') }}</li>
+        <li><span class="check">&#10003;</span> {{ t('docDocsGuidesGettingstarted.reqServerRedis') }}</li>
+        <li><span class="check">&#10003;</span> {{ t('docDocsGuidesGettingstarted.reqServerNode') }}</li>
+        <li><span class="check">&#10003;</span> {{ t('docDocsGuidesGettingstarted.reqServerComposer') }}</li>
       </ul>
 
-      <h3>For the Agent</h3>
+      <h3>{{ t('docDocsGuidesGettingstarted.forAgentHeading') }}</h3>
       <ul class="checklist">
-        <li><span class="check">&#10003;</span> Node.js 24 LTS</li>
-        <li><span class="check">&#10003;</span> Claude Code CLI installed and authenticated</li>
-        <li><span class="check">&#10003;</span> Network access to the ClaudeNest server (outbound WebSocket)</li>
+        <li><span class="check">&#10003;</span> {{ t('docDocsGuidesGettingstarted.reqAgentNode') }}</li>
+        <li><span class="check">&#10003;</span> {{ t('docDocsGuidesGettingstarted.reqAgentCli') }}</li>
+        <li><span class="check">&#10003;</span> {{ t('docDocsGuidesGettingstarted.reqAgentNetwork') }}</li>
       </ul>
 
-      <h3>For Development</h3>
+      <h3>{{ t('docDocsGuidesGettingstarted.forDevelopmentHeading') }}</h3>
       <ul class="checklist">
-        <li><span class="check">&#10003;</span> Git</li>
-        <li><span class="check">&#10003;</span> A code editor with Vue.js and PHP support</li>
-        <li><span class="check">&#10003;</span> Docker (optional, for containerized setup)</li>
+        <li><span class="check">&#10003;</span> {{ t('docDocsGuidesGettingstarted.reqDevGit') }}</li>
+        <li><span class="check">&#10003;</span> {{ t('docDocsGuidesGettingstarted.reqDevEditor') }}</li>
+        <li><span class="check">&#10003;</span> {{ t('docDocsGuidesGettingstarted.reqDevDocker') }}</li>
       </ul>
 
       <p class="tip">
         <span class="tip-icon">&#128161;</span>
-        If you prefer Docker, you can skip the individual prerequisites and use
-        <code>docker-compose up</code> to start all services at once.
+        {{ t('docDocsGuidesGettingstarted.prerequisitesTipPre') }} <code>docker-compose up</code> {{ t('docDocsGuidesGettingstarted.prerequisitesTipPost') }}
       </p>
     </section>
 
     <section id="next-steps">
-      <h2>Next Steps</h2>
-      <p>Now that you understand the platform, follow these guides to get up and running:</p>
+      <h2>{{ t('docDocsGuidesGettingstarted.nextStepsHeading') }}</h2>
+      <p>{{ t('docDocsGuidesGettingstarted.nextStepsIntro') }}</p>
       <div class="next-steps">
         <router-link to="/docs/installation" class="next-step">
-          <strong>Installation</strong>
-          <span>Install and configure the ClaudeNest server &#8594;</span>
+          <strong>{{ t('docDocsGuidesGettingstarted.nextInstallationLabel') }}</strong>
+          <span>{{ t('docDocsGuidesGettingstarted.nextInstallationText') }} &#8594;</span>
         </router-link>
         <router-link to="/docs/guides/first-machine" class="next-step">
-          <strong>Register Your First Machine</strong>
-          <span>Set up the agent and pair it with the server &#8594;</span>
+          <strong>{{ t('docDocsGuidesGettingstarted.nextFirstMachineLabel') }}</strong>
+          <span>{{ t('docDocsGuidesGettingstarted.nextFirstMachineText') }} &#8594;</span>
         </router-link>
         <router-link to="/docs/guides/remote-sessions" class="next-step">
-          <strong>Remote Sessions</strong>
-          <span>Create and interact with Claude Code sessions &#8594;</span>
+          <strong>{{ t('docDocsGuidesGettingstarted.nextRemoteSessionsLabel') }}</strong>
+          <span>{{ t('docDocsGuidesGettingstarted.nextRemoteSessionsText') }} &#8594;</span>
         </router-link>
         <router-link to="/docs/api" class="next-step">
-          <strong>API Reference</strong>
-          <span>Explore the full REST API documentation &#8594;</span>
+          <strong>{{ t('docDocsGuidesGettingstarted.nextApiLabel') }}</strong>
+          <span>{{ t('docDocsGuidesGettingstarted.nextApiText') }} &#8594;</span>
         </router-link>
       </div>
     </section>
@@ -139,8 +126,11 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import CodeBlock from '@/components/docs/CodeBlock.vue';
 import CodeTabs from '@/components/docs/CodeTabs.vue';
+
+const { t } = useI18n();
 
 const serverStackCode = `Server Components
 -----------------

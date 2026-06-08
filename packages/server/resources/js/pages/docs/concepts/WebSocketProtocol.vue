@@ -1,28 +1,23 @@
 <template>
   <article class="doc-content">
     <header class="doc-header">
-      <span class="badge">Concepts</span>
-      <h1>WebSocket Protocol</h1>
+      <span class="badge">{{ t('docDocsConceptsWebsocketprotocol.badge') }}</span>
+      <h1>{{ t('docDocsConceptsWebsocketprotocol.title') }}</h1>
       <p class="lead">
-        Understanding ClaudeNest's real-time communication protocol built on Laravel Reverb.
+        {{ t('docDocsConceptsWebsocketprotocol.lead') }}
       </p>
     </header>
 
     <!-- 1. Overview -->
     <section id="overview">
-      <h2>Overview</h2>
+      <h2>{{ t('docDocsConceptsWebsocketprotocol.overviewHeading') }}</h2>
       <p>
-        ClaudeNest relies on a persistent WebSocket layer for every piece of real-time interaction:
-        terminal I/O streaming, machine health signals, multi-agent task coordination, and file-lock
-        notifications. Without this channel the system degrades to a polling model, which is
-        unsuitable for latency-sensitive terminal sessions and high-frequency agent events.
+        {{ t('docDocsConceptsWebsocketprotocol.overviewPara1') }}
       </p>
       <p>
-        The protocol is built on <strong>Laravel Reverb</strong>, a first-party WebSocket server
-        that integrates natively with Laravel's broadcasting system. Every state change in the
-        backend — a session producing output, a task being claimed, a file being locked — is
-        dispatched as a Laravel event that Reverb immediately delivers to all authenticated
-        subscribers of the relevant channel.
+        <i18n-t keypath="docDocsConceptsWebsocketprotocol.overviewPara2" tag="span">
+          <template #reverb><strong>Laravel Reverb</strong></template>
+        </i18n-t>
       </p>
 
       <div class="feature-grid">
@@ -32,8 +27,8 @@
               <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
             </svg>
           </div>
-          <h4>Sub-millisecond delivery</h4>
-          <p>Terminal output chunks are pushed to clients as soon as the agent emits them, with no polling interval overhead.</p>
+          <h4>{{ t('docDocsConceptsWebsocketprotocol.featureDeliveryTitle') }}</h4>
+          <p>{{ t('docDocsConceptsWebsocketprotocol.featureDeliveryDesc') }}</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon">
@@ -41,8 +36,8 @@
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
             </svg>
           </div>
-          <h4>Private channels only</h4>
-          <p>All channels require a valid Sanctum token. Unauthorized subscription attempts are rejected before the channel is joined.</p>
+          <h4>{{ t('docDocsConceptsWebsocketprotocol.featurePrivateTitle') }}</h4>
+          <p>{{ t('docDocsConceptsWebsocketprotocol.featurePrivateDesc') }}</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon">
@@ -50,46 +45,47 @@
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
             </svg>
           </div>
-          <h4>Multi-client fan-out</h4>
-          <p>A single agent event is simultaneously delivered to the web dashboard, mobile app, and any other authenticated subscriber.</p>
+          <h4>{{ t('docDocsConceptsWebsocketprotocol.featureFanoutTitle') }}</h4>
+          <p>{{ t('docDocsConceptsWebsocketprotocol.featureFanoutDesc') }}</p>
         </div>
       </div>
     </section>
 
     <!-- 2. Architecture -->
     <section id="architecture">
-      <h2>Architecture</h2>
+      <h2>{{ t('docDocsConceptsWebsocketprotocol.architectureHeading') }}</h2>
       <p>
-        The real-time stack is composed of two infrastructure pieces working in tandem:
-        <strong>Laravel Reverb</strong> as the WebSocket server and <strong>Redis</strong> as the
-        message broker between PHP worker processes and the Reverb server.
+        <i18n-t keypath="docDocsConceptsWebsocketprotocol.architecturePara1" tag="span">
+          <template #reverb><strong>Laravel Reverb</strong></template>
+          <template #redis><strong>Redis</strong></template>
+        </i18n-t>
       </p>
 
       <div class="arch-diagram">
         <div class="arch-row">
           <div class="arch-node client">
-            <span class="node-label">Web Dashboard</span>
+            <span class="node-label">{{ t('docDocsConceptsWebsocketprotocol.archWebDashboard') }}</span>
             <span class="node-sub">Vue.js + Laravel Echo</span>
           </div>
           <div class="arch-node client">
-            <span class="node-label">Mobile App</span>
+            <span class="node-label">{{ t('docDocsConceptsWebsocketprotocol.archMobileApp') }}</span>
             <span class="node-sub">React Native + Socket.io</span>
           </div>
           <div class="arch-node client">
-            <span class="node-label">Agent</span>
+            <span class="node-label">{{ t('docDocsConceptsWebsocketprotocol.archAgent') }}</span>
             <span class="node-sub">Node.js + ws</span>
           </div>
         </div>
 
         <div class="arch-connector">
-          <span class="connector-label">WebSocket (Pusher protocol / raw WS)</span>
+          <span class="connector-label">{{ t('docDocsConceptsWebsocketprotocol.archConnectorWebsocket') }}</span>
           <div class="connector-line"></div>
         </div>
 
         <div class="arch-row">
           <div class="arch-node server">
             <span class="node-label">Laravel Reverb</span>
-            <span class="node-sub">WebSocket Server</span>
+            <span class="node-sub">{{ t('docDocsConceptsWebsocketprotocol.archWebsocketServer') }}</span>
           </div>
         </div>
 
@@ -101,34 +97,31 @@
         <div class="arch-row">
           <div class="arch-node broker">
             <span class="node-label">Redis</span>
-            <span class="node-sub">Message Broker</span>
+            <span class="node-sub">{{ t('docDocsConceptsWebsocketprotocol.archMessageBroker') }}</span>
           </div>
           <div class="arch-node broker">
             <span class="node-label">Laravel Workers</span>
-            <span class="node-sub">Queue + Broadcast</span>
+            <span class="node-sub">{{ t('docDocsConceptsWebsocketprotocol.archQueueBroadcast') }}</span>
           </div>
           <div class="arch-node broker">
             <span class="node-label">PostgreSQL</span>
-            <span class="node-sub">Persistent State</span>
+            <span class="node-sub">{{ t('docDocsConceptsWebsocketprotocol.archPersistentState') }}</span>
           </div>
         </div>
       </div>
 
       <p>
-        When a Laravel controller dispatches a broadcast event, it is serialized and pushed onto
-        a Redis channel. The queue worker picks it up, and Reverb reads from Redis to deliver the
-        message to all connected WebSocket clients that have subscribed to the target channel.
-        This decoupling means PHP workers never block on WebSocket delivery.
+        {{ t('docDocsConceptsWebsocketprotocol.architecturePara2') }}
       </p>
 
       <div class="tip">
         <span class="tip-icon">i</span>
         <div>
-          <h4>Pusher Protocol Compatibility</h4>
+          <h4>{{ t('docDocsConceptsWebsocketprotocol.tipPusherTitle') }}</h4>
           <p>
-            Reverb implements the Pusher WebSocket protocol. Any Pusher-compatible client library
-            — Laravel Echo, pusher-js, and most Socket.io adapters — works without modification.
-            Raw <code>ws</code> connections use the agent's bespoke JSON envelope instead.
+            <i18n-t keypath="docDocsConceptsWebsocketprotocol.tipPusherDesc" tag="span">
+              <template #ws><code>ws</code></template>
+            </i18n-t>
           </p>
         </div>
       </div>
@@ -136,50 +129,50 @@
 
     <!-- 3. Connection Flow -->
     <section id="connection-flow">
-      <h2>Connection Flow</h2>
+      <h2>{{ t('docDocsConceptsWebsocketprotocol.connectionHeading') }}</h2>
       <p>
-        Establishing a WebSocket connection follows a structured handshake. Clients must present
-        a valid Sanctum bearer token in the HTTP upgrade request headers, after which they can
-        subscribe to private channels that Reverb authorizes server-side.
+        {{ t('docDocsConceptsWebsocketprotocol.connectionPara1') }}
       </p>
 
-      <CodeBlock :code="connectionFlow" language="typescript" filename="Connection handshake sequence" />
+      <CodeBlock :code="connectionFlow" language="typescript" :filename="t('docDocsConceptsWebsocketprotocol.connectionFilename')" />
 
-      <h3>Step-by-Step</h3>
+      <h3>{{ t('docDocsConceptsWebsocketprotocol.connectionStepByStep') }}</h3>
       <div class="steps">
         <div class="step">
           <span class="step-num">1</span>
           <div>
-            <h4>HTTP Upgrade with Bearer Token</h4>
-            <p>The client opens a TCP connection and sends an HTTP <code>GET</code> request with
-            <code>Upgrade: websocket</code>. The <code>Authorization: Bearer &lt;token&gt;</code>
-            header is included in this initial request.</p>
+            <h4>{{ t('docDocsConceptsWebsocketprotocol.step1Title') }}</h4>
+            <p><i18n-t keypath="docDocsConceptsWebsocketprotocol.step1Desc" tag="span">
+              <template #get><code>GET</code></template>
+              <template #upgrade><code>Upgrade: websocket</code></template>
+              <template #auth><code>Authorization: Bearer &lt;token&gt;</code></template>
+            </i18n-t></p>
           </div>
         </div>
         <div class="step">
           <span class="step-num">2</span>
           <div>
-            <h4>101 Switching Protocols</h4>
-            <p>Reverb validates the token against Sanctum, then responds with
-            <code>101 Switching Protocols</code> to upgrade the connection. Invalid tokens
-            receive a <code>403</code> and the connection is closed.</p>
+            <h4>{{ t('docDocsConceptsWebsocketprotocol.step2Title') }}</h4>
+            <p><i18n-t keypath="docDocsConceptsWebsocketprotocol.step2Desc" tag="span">
+              <template #switching><code>101 Switching Protocols</code></template>
+              <template #forbidden><code>403</code></template>
+            </i18n-t></p>
           </div>
         </div>
         <div class="step">
           <span class="step-num">3</span>
           <div>
-            <h4>Channel Subscription</h4>
-            <p>The client sends a subscribe command for each private channel it needs.
-            Reverb hits the Laravel channel authorization endpoint (<code>POST /broadcasting/auth</code>)
-            to verify that the authenticated user owns the subscribed resource.</p>
+            <h4>{{ t('docDocsConceptsWebsocketprotocol.step3Title') }}</h4>
+            <p><i18n-t keypath="docDocsConceptsWebsocketprotocol.step3Desc" tag="span">
+              <template #endpoint><code>POST /broadcasting/auth</code></template>
+            </i18n-t></p>
           </div>
         </div>
         <div class="step">
           <span class="step-num">4</span>
           <div>
-            <h4>Event Stream</h4>
-            <p>Once subscribed, the client receives all broadcast events on that channel in
-            real-time. The connection is kept alive by the heartbeat mechanism described below.</p>
+            <h4>{{ t('docDocsConceptsWebsocketprotocol.step4Title') }}</h4>
+            <p>{{ t('docDocsConceptsWebsocketprotocol.step4Desc') }}</p>
           </div>
         </div>
       </div>
@@ -187,72 +180,72 @@
 
     <!-- 4. Channel Types -->
     <section id="channels">
-      <h2>Channel Types</h2>
+      <h2>{{ t('docDocsConceptsWebsocketprotocol.channelsHeading') }}</h2>
       <p>
-        All channels in ClaudeNest are <strong>private channels</strong>. Subscription is rejected
-        unless the authenticated user owns or has access to the referenced resource. Channel
-        authorization is defined in <code>routes/channels.php</code>.
+        <i18n-t keypath="docDocsConceptsWebsocketprotocol.channelsPara1" tag="span">
+          <template #private><strong>{{ t('docDocsConceptsWebsocketprotocol.channelsPrivateChannels') }}</strong></template>
+          <template #channelsFile><code>routes/channels.php</code></template>
+        </i18n-t>
       </p>
 
       <div class="channels-table">
         <table>
           <thead>
             <tr>
-              <th>Channel</th>
-              <th>Scope</th>
-              <th>Subscribers</th>
-              <th>Purpose</th>
+              <th>{{ t('docDocsConceptsWebsocketprotocol.channelsColChannel') }}</th>
+              <th>{{ t('docDocsConceptsWebsocketprotocol.channelsColScope') }}</th>
+              <th>{{ t('docDocsConceptsWebsocketprotocol.channelsColSubscribers') }}</th>
+              <th>{{ t('docDocsConceptsWebsocketprotocol.channelsColPurpose') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td><code>private-sessions.{id}</code></td>
-              <td>Single session</td>
-              <td>Dashboard, mobile, agent</td>
-              <td>Terminal I/O streaming</td>
+              <td>{{ t('docDocsConceptsWebsocketprotocol.channelsSessionScope') }}</td>
+              <td>{{ t('docDocsConceptsWebsocketprotocol.channelsSessionSubscribers') }}</td>
+              <td>{{ t('docDocsConceptsWebsocketprotocol.channelsSessionPurpose') }}</td>
             </tr>
             <tr>
               <td><code>private-machines.{id}</code></td>
-              <td>Single machine</td>
-              <td>Dashboard, mobile</td>
-              <td>Machine status &amp; commands</td>
+              <td>{{ t('docDocsConceptsWebsocketprotocol.channelsMachineScope') }}</td>
+              <td>{{ t('docDocsConceptsWebsocketprotocol.channelsMachineSubscribers') }}</td>
+              <td>{{ t('docDocsConceptsWebsocketprotocol.channelsMachinePurpose') }}</td>
             </tr>
             <tr>
               <td><code>private-projects.{id}</code></td>
-              <td>Shared project</td>
-              <td>All agents on the project</td>
-              <td>Multi-agent coordination</td>
+              <td>{{ t('docDocsConceptsWebsocketprotocol.channelsProjectScope') }}</td>
+              <td>{{ t('docDocsConceptsWebsocketprotocol.channelsProjectSubscribers') }}</td>
+              <td>{{ t('docDocsConceptsWebsocketprotocol.channelsProjectPurpose') }}</td>
             </tr>
             <tr>
               <td><code>private-users.{id}</code></td>
-              <td>User-level</td>
-              <td>All user's clients</td>
-              <td>Global notifications</td>
+              <td>{{ t('docDocsConceptsWebsocketprotocol.channelsUserScope') }}</td>
+              <td>{{ t('docDocsConceptsWebsocketprotocol.channelsUserSubscribers') }}</td>
+              <td>{{ t('docDocsConceptsWebsocketprotocol.channelsUserPurpose') }}</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <h3>Channel Authorization</h3>
+      <h3>{{ t('docDocsConceptsWebsocketprotocol.channelAuthHeading') }}</h3>
       <CodeBlock :code="channelAuth" language="php" filename="routes/channels.php" />
     </section>
 
     <!-- 5. Event Types -->
     <section id="events">
-      <h2>Event Types</h2>
+      <h2>{{ t('docDocsConceptsWebsocketprotocol.eventsHeading') }}</h2>
       <p>
-        Events represent atomic state transitions in the system. Each event is broadcast on the
-        channel of the resource it belongs to and received by all authenticated subscribers.
+        {{ t('docDocsConceptsWebsocketprotocol.eventsPara1') }}
       </p>
 
-      <h3>Session Events</h3>
+      <h3>{{ t('docDocsConceptsWebsocketprotocol.eventsSessionHeading') }}</h3>
       <div class="events-list">
         <div class="event-card">
           <div class="event-header">
             <code class="event-name">session.output</code>
             <span class="event-channel">private-sessions.{id}</span>
           </div>
-          <p>Terminal output from the Claude Code PTY process. Delivered in chunks as data becomes available. Clients render this directly into xterm.js.</p>
+          <p>{{ t('docDocsConceptsWebsocketprotocol.eventOutputDesc') }}</p>
           <CodeBlock :code="eventOutput" language="json" />
         </div>
 
@@ -261,7 +254,7 @@
             <code class="event-name">session.input</code>
             <span class="event-channel">private-sessions.{id}</span>
           </div>
-          <p>User keystrokes forwarded from the dashboard or mobile app to the agent managing the PTY. The agent writes this data directly to the pseudoterminal.</p>
+          <p>{{ t('docDocsConceptsWebsocketprotocol.eventInputDesc') }}</p>
           <CodeBlock :code="eventInput" language="json" />
         </div>
 
@@ -270,7 +263,9 @@
             <code class="event-name">session.status</code>
             <span class="event-channel">private-sessions.{id}</span>
           </div>
-          <p>Lifecycle state change for the session. Possible values: <code>starting</code>, <code>active</code>, <code>idle</code>, <code>completed</code>, <code>error</code>.</p>
+          <p><i18n-t keypath="docDocsConceptsWebsocketprotocol.eventStatusDesc" tag="span">
+            <template #values><code>starting</code>, <code>active</code>, <code>idle</code>, <code>completed</code>, <code>error</code></template>
+          </i18n-t></p>
           <CodeBlock :code="eventStatus" language="json" />
         </div>
 
@@ -279,19 +274,24 @@
             <code class="event-name">session.resize</code>
             <span class="event-channel">private-sessions.{id}</span>
           </div>
-          <p>PTY dimension change. The agent calls <code>pty.resize(cols, rows)</code> upon receipt, which sends a <code>SIGWINCH</code> to the Claude Code process.</p>
+          <p><i18n-t keypath="docDocsConceptsWebsocketprotocol.eventResizeDesc" tag="span">
+            <template #resize><code>pty.resize(cols, rows)</code></template>
+            <template #sigwinch><code>SIGWINCH</code></template>
+          </i18n-t></p>
           <CodeBlock :code="eventResize" language="json" />
         </div>
       </div>
 
-      <h3>Machine Events</h3>
+      <h3>{{ t('docDocsConceptsWebsocketprotocol.eventsMachineHeading') }}</h3>
       <div class="events-list">
         <div class="event-card">
           <div class="event-header">
             <code class="event-name">machine.status</code>
             <span class="event-channel">private-machines.{id}</span>
           </div>
-          <p>Machine connectivity state change. Possible values: <code>online</code>, <code>offline</code>, <code>connecting</code>. Triggered by agent heartbeat or disconnect.</p>
+          <p><i18n-t keypath="docDocsConceptsWebsocketprotocol.eventMachineStatusDesc" tag="span">
+            <template #values><code>online</code>, <code>offline</code>, <code>connecting</code></template>
+          </i18n-t></p>
           <CodeBlock :code="eventMachineStatus" language="json" />
         </div>
 
@@ -300,19 +300,19 @@
             <code class="event-name">machine.command</code>
             <span class="event-channel">private-machines.{id}</span>
           </div>
-          <p>Server-initiated command sent to the agent. Used for session lifecycle operations, configuration updates, and capability refreshes.</p>
+          <p>{{ t('docDocsConceptsWebsocketprotocol.eventMachineCommandDesc') }}</p>
           <CodeBlock :code="eventMachineCommand" language="json" />
         </div>
       </div>
 
-      <h3>Task Events</h3>
+      <h3>{{ t('docDocsConceptsWebsocketprotocol.eventsTaskHeading') }}</h3>
       <div class="events-list">
         <div class="event-card">
           <div class="event-header">
             <code class="event-name">task.created</code>
             <span class="event-channel">private-projects.{id}</span>
           </div>
-          <p>A new task was added to the shared project task board. All agents subscribed to the project channel see the new task immediately.</p>
+          <p>{{ t('docDocsConceptsWebsocketprotocol.eventTaskCreatedDesc') }}</p>
         </div>
 
         <div class="event-card">
@@ -320,7 +320,7 @@
             <code class="event-name">task.claimed</code>
             <span class="event-channel">private-projects.{id}</span>
           </div>
-          <p>An agent atomically claimed a pending task. Includes the instance ID so other agents know the task is no longer available.</p>
+          <p>{{ t('docDocsConceptsWebsocketprotocol.eventTaskClaimedDesc') }}</p>
           <CodeBlock :code="eventTaskClaimed" language="json" />
         </div>
 
@@ -329,7 +329,7 @@
             <code class="event-name">task.completed</code>
             <span class="event-channel">private-projects.{id}</span>
           </div>
-          <p>A task was completed successfully. Includes a summary of changes and the list of modified files for context synchronization.</p>
+          <p>{{ t('docDocsConceptsWebsocketprotocol.eventTaskCompletedDesc') }}</p>
           <CodeBlock :code="eventTaskCompleted" language="json" />
         </div>
 
@@ -338,18 +338,20 @@
             <code class="event-name">task.released</code>
             <span class="event-channel">private-projects.{id}</span>
           </div>
-          <p>An agent released a previously claimed task back to the pending pool. Other agents can now claim it.</p>
+          <p>{{ t('docDocsConceptsWebsocketprotocol.eventTaskReleasedDesc') }}</p>
         </div>
       </div>
 
-      <h3>File Lock Events</h3>
+      <h3>{{ t('docDocsConceptsWebsocketprotocol.eventsFileLockHeading') }}</h3>
       <div class="events-list">
         <div class="event-card">
           <div class="event-header">
             <code class="event-name">file.locked</code>
             <span class="event-channel">private-projects.{id}</span>
           </div>
-          <p>A file was exclusively locked by an agent instance. Other agents should avoid editing this path until <code>file.unlocked</code> is received or the lock expires.</p>
+          <p><i18n-t keypath="docDocsConceptsWebsocketprotocol.eventFileLockedDesc" tag="span">
+            <template #unlocked><code>file.unlocked</code></template>
+          </i18n-t></p>
           <CodeBlock :code="eventFileLocked" language="json" />
         </div>
 
@@ -358,18 +360,20 @@
             <code class="event-name">file.unlocked</code>
             <span class="event-channel">private-projects.{id}</span>
           </div>
-          <p>A file lock was released, either explicitly by the agent or automatically when the <code>expires_at</code> timestamp passed.</p>
+          <p><i18n-t keypath="docDocsConceptsWebsocketprotocol.eventFileUnlockedDesc" tag="span">
+            <template #expires><code>expires_at</code></template>
+          </i18n-t></p>
         </div>
       </div>
 
-      <h3>Project Events</h3>
+      <h3>{{ t('docDocsConceptsWebsocketprotocol.eventsProjectHeading') }}</h3>
       <div class="events-list">
         <div class="event-card">
           <div class="event-header">
             <code class="event-name">project.broadcast</code>
             <span class="event-channel">private-projects.{id}</span>
           </div>
-          <p>A free-form message broadcast to all agents on the project. Used for coordination announcements, context updates, and custom agent-to-agent communication.</p>
+          <p>{{ t('docDocsConceptsWebsocketprotocol.eventProjectBroadcastDesc') }}</p>
           <CodeBlock :code="eventProjectBroadcast" language="json" />
         </div>
       </div>
@@ -377,64 +381,59 @@
 
     <!-- 6. Message Format -->
     <section id="message-format">
-      <h2>Message Format</h2>
+      <h2>{{ t('docDocsConceptsWebsocketprotocol.messageFormatHeading') }}</h2>
       <p>
-        All messages flowing through the WebSocket layer follow a consistent JSON structure.
-        The exact envelope differs depending on the direction and the client type.
+        {{ t('docDocsConceptsWebsocketprotocol.messageFormatPara1') }}
       </p>
 
-      <h3>Server → Client (Reverb broadcast envelope)</h3>
+      <h3>{{ t('docDocsConceptsWebsocketprotocol.messageFormatServerHeading') }}</h3>
       <p>
-        Reverb wraps every Laravel event in the Pusher protocol format before delivery.
-        Clients using Laravel Echo or pusher-js automatically unwrap this envelope.
+        {{ t('docDocsConceptsWebsocketprotocol.messageFormatServerDesc') }}
       </p>
-      <CodeBlock :code="messageFormatBroadcast" language="json" filename="Pusher protocol envelope" />
+      <CodeBlock :code="messageFormatBroadcast" language="json" :filename="t('docDocsConceptsWebsocketprotocol.messageFormatBroadcastFilename')" />
 
-      <h3>Client → Server (whisper / client event)</h3>
+      <h3>{{ t('docDocsConceptsWebsocketprotocol.messageFormatClientHeading') }}</h3>
       <p>
-        Client-originated events use whispers for ephemeral data — such as user input — that
-        does not require server-side persistence. Whispers are relayed directly by Reverb without
-        touching the Laravel application layer.
+        {{ t('docDocsConceptsWebsocketprotocol.messageFormatClientDesc') }}
       </p>
-      <CodeBlock :code="messageFormatClient" language="json" filename="Client whisper event" />
+      <CodeBlock :code="messageFormatClient" language="json" :filename="t('docDocsConceptsWebsocketprotocol.messageFormatClientFilename')" />
 
-      <h3>Agent → Server (direct WebSocket)</h3>
+      <h3>{{ t('docDocsConceptsWebsocketprotocol.messageFormatAgentHeading') }}</h3>
       <p>
-        The Node.js agent uses a simpler envelope over its raw WebSocket connection. The server
-        parses these messages and translates them into Laravel broadcast events for fan-out to
-        other subscribers.
+        {{ t('docDocsConceptsWebsocketprotocol.messageFormatAgentDesc') }}
       </p>
-      <CodeBlock :code="messageFormatAgent" language="json" filename="Agent envelope" />
+      <CodeBlock :code="messageFormatAgent" language="json" :filename="t('docDocsConceptsWebsocketprotocol.messageFormatAgentFilename')" />
     </section>
 
     <!-- 7. Authentication -->
     <section id="authentication">
-      <h2>Authentication</h2>
+      <h2>{{ t('docDocsConceptsWebsocketprotocol.authHeading') }}</h2>
       <p>
-        WebSocket connections are secured with the same <strong>Laravel Sanctum</strong> tokens
-        used for the REST API. The token is passed in the HTTP upgrade request header, not as a
-        query parameter, to avoid it appearing in server access logs.
+        <i18n-t keypath="docDocsConceptsWebsocketprotocol.authPara1" tag="span">
+          <template #sanctum><strong>Laravel Sanctum</strong></template>
+        </i18n-t>
       </p>
 
       <CodeTabs :tabs="authTabs" />
 
-      <h3>Channel Authorization</h3>
+      <h3>{{ t('docDocsConceptsWebsocketprotocol.authChannelAuthHeading') }}</h3>
       <p>
-        After the connection is established, each private channel subscription triggers a
-        server-side authorization check. Reverb sends a <code>POST</code> request to
-        <code>/broadcasting/auth</code> with the channel name and the user's socket ID.
-        Laravel evaluates the channel callback defined in <code>routes/channels.php</code>
-        and returns a signed auth token if the user is permitted.
+        <i18n-t keypath="docDocsConceptsWebsocketprotocol.authChannelAuthDesc" tag="span">
+          <template #post><code>POST</code></template>
+          <template #endpoint><code>/broadcasting/auth</code></template>
+          <template #channelsFile><code>routes/channels.php</code></template>
+        </i18n-t>
       </p>
 
       <div class="tip warning">
         <span class="tip-icon">!</span>
         <div>
-          <h4>Never pass tokens as query parameters</h4>
+          <h4>{{ t('docDocsConceptsWebsocketprotocol.authWarningTitle') }}</h4>
           <p>
-            Query parameters appear in web server access logs and browser history. Always pass the
-            Sanctum token in the <code>Authorization</code> header or via the Echo
-            <code>auth.headers</code> configuration option.
+            <i18n-t keypath="docDocsConceptsWebsocketprotocol.authWarningDesc" tag="span">
+              <template #authHeader><code>Authorization</code></template>
+              <template #echoOption><code>auth.headers</code></template>
+            </i18n-t>
           </p>
         </div>
       </div>
@@ -442,25 +441,25 @@
 
     <!-- 8. Reconnection Strategy -->
     <section id="reconnection">
-      <h2>Reconnection Strategy</h2>
+      <h2>{{ t('docDocsConceptsWebsocketprotocol.reconnectionHeading') }}</h2>
       <p>
-        Network interruptions are inevitable. All ClaudeNest clients implement an exponential
-        backoff strategy with jitter to avoid thundering-herd reconnection storms after a server
-        restart. The maximum reconnection delay is capped at <strong>30 seconds</strong> with a
-        maximum of <strong>10 attempts</strong> before the client emits a
-        <code>reconnect_failed</code> event.
+        <i18n-t keypath="docDocsConceptsWebsocketprotocol.reconnectionPara1" tag="span">
+          <template #maxDelay><strong>{{ t('docDocsConceptsWebsocketprotocol.reconnectionMaxDelay') }}</strong></template>
+          <template #maxAttempts><strong>{{ t('docDocsConceptsWebsocketprotocol.reconnectionMaxAttempts') }}</strong></template>
+          <template #event><code>reconnect_failed</code></template>
+        </i18n-t>
       </p>
 
       <CodeBlock :code="reconnectionStrategy" language="typescript" filename="packages/agent/src/websocket/client.ts" />
 
-      <h3>Backoff Schedule</h3>
+      <h3>{{ t('docDocsConceptsWebsocketprotocol.backoffScheduleHeading') }}</h3>
       <div class="channels-table">
         <table>
           <thead>
             <tr>
-              <th>Attempt</th>
-              <th>Base delay</th>
-              <th>With jitter (±20%)</th>
+              <th>{{ t('docDocsConceptsWebsocketprotocol.backoffColAttempt') }}</th>
+              <th>{{ t('docDocsConceptsWebsocketprotocol.backoffColBaseDelay') }}</th>
+              <th>{{ t('docDocsConceptsWebsocketprotocol.backoffColJitter') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -491,7 +490,7 @@
             </tr>
             <tr>
               <td>6+</td>
-              <td>30 s (cap)</td>
+              <td>{{ t('docDocsConceptsWebsocketprotocol.backoffCapDelay') }}</td>
               <td>24 – 36 s</td>
             </tr>
           </tbody>
@@ -501,11 +500,9 @@
       <div class="tip">
         <span class="tip-icon">i</span>
         <div>
-          <h4>Message Queuing During Disconnection</h4>
+          <h4>{{ t('docDocsConceptsWebsocketprotocol.tipQueuingTitle') }}</h4>
           <p>
-            Agents buffer outbound messages in an in-memory queue while disconnected. On
-            successful reconnection the queue is flushed in FIFO order. Messages older than
-            5 minutes are discarded to prevent delivering stale terminal output.
+            {{ t('docDocsConceptsWebsocketprotocol.tipQueuingDesc') }}
           </p>
         </div>
       </div>
@@ -513,89 +510,86 @@
 
     <!-- 9. Heartbeat -->
     <section id="heartbeat">
-      <h2>Heartbeat</h2>
+      <h2>{{ t('docDocsConceptsWebsocketprotocol.heartbeatHeading') }}</h2>
       <p>
-        Both the agent and the server exchange periodic keepalive frames to detect silent
-        connection failures — scenarios where the TCP connection is broken but neither end
-        receives a close frame (common with NAT timeouts or mobile network switches).
+        {{ t('docDocsConceptsWebsocketprotocol.heartbeatPara1') }}
       </p>
 
-      <h3>Agent Heartbeat (30 s interval)</h3>
-      <CodeBlock :code="heartbeatCode" language="typescript" filename="Agent ping loop" />
+      <h3>{{ t('docDocsConceptsWebsocketprotocol.heartbeatAgentHeading') }}</h3>
+      <CodeBlock :code="heartbeatCode" language="typescript" :filename="t('docDocsConceptsWebsocketprotocol.heartbeatAgentFilename')" />
 
-      <h3>Reverb Heartbeat</h3>
+      <h3>{{ t('docDocsConceptsWebsocketprotocol.heartbeatReverbHeading') }}</h3>
       <p>
-        Laravel Reverb itself sends a Pusher-protocol <code>pusher:ping</code> frame to all
-        connected clients every 30 seconds. Clients must respond with <code>pusher:pong</code>
-        within 10 seconds or Reverb closes the connection, triggering the client's reconnection
-        logic. Laravel Echo and pusher-js handle this automatically.
+        <i18n-t keypath="docDocsConceptsWebsocketprotocol.heartbeatReverbDesc" tag="span">
+          <template #ping><code>pusher:ping</code></template>
+          <template #pong><code>pusher:pong</code></template>
+        </i18n-t>
       </p>
 
       <div class="heartbeat-flow">
         <div class="hb-step">
-          <div class="hb-node agent">Agent</div>
+          <div class="hb-node agent">{{ t('docDocsConceptsWebsocketprotocol.heartbeatNodeAgent') }}</div>
           <div class="hb-arrow">
-            <span>ping (30 s)</span>
+            <span>{{ t('docDocsConceptsWebsocketprotocol.heartbeatArrowPing') }}</span>
             <svg width="80" height="12" viewBox="0 0 80 12">
               <line x1="0" y1="6" x2="68" y2="6" stroke="currentColor" stroke-width="1.5"/>
               <polyline points="60,2 68,6 60,10" stroke="currentColor" stroke-width="1.5" fill="none"/>
             </svg>
           </div>
-          <div class="hb-node server">Server</div>
+          <div class="hb-node server">{{ t('docDocsConceptsWebsocketprotocol.heartbeatNodeServer') }}</div>
         </div>
         <div class="hb-step">
-          <div class="hb-node agent">Agent</div>
+          <div class="hb-node agent">{{ t('docDocsConceptsWebsocketprotocol.heartbeatNodeAgent') }}</div>
           <div class="hb-arrow reverse">
             <svg width="80" height="12" viewBox="0 0 80 12">
               <line x1="80" y1="6" x2="12" y2="6" stroke="currentColor" stroke-width="1.5"/>
               <polyline points="20,2 12,6 20,10" stroke="currentColor" stroke-width="1.5" fill="none"/>
             </svg>
-            <span>pong (&lt;1 s)</span>
+            <span>{{ t('docDocsConceptsWebsocketprotocol.heartbeatArrowPong') }}</span>
           </div>
-          <div class="hb-node server">Server</div>
+          <div class="hb-node server">{{ t('docDocsConceptsWebsocketprotocol.heartbeatNodeServer') }}</div>
         </div>
       </div>
     </section>
 
     <!-- 10. Client Libraries -->
     <section id="client-libraries">
-      <h2>Client Libraries</h2>
+      <h2>{{ t('docDocsConceptsWebsocketprotocol.clientLibsHeading') }}</h2>
       <p>
-        ClaudeNest supports three distinct client integration patterns depending on the runtime
-        environment.
+        {{ t('docDocsConceptsWebsocketprotocol.clientLibsPara1') }}
       </p>
 
       <CodeTabs :tabs="clientLibsTabs" />
 
-      <h3>Library Reference</h3>
+      <h3>{{ t('docDocsConceptsWebsocketprotocol.libraryReferenceHeading') }}</h3>
       <div class="channels-table">
         <table>
           <thead>
             <tr>
-              <th>Client</th>
-              <th>Library</th>
-              <th>Protocol</th>
-              <th>Notes</th>
+              <th>{{ t('docDocsConceptsWebsocketprotocol.libColClient') }}</th>
+              <th>{{ t('docDocsConceptsWebsocketprotocol.libColLibrary') }}</th>
+              <th>{{ t('docDocsConceptsWebsocketprotocol.libColProtocol') }}</th>
+              <th>{{ t('docDocsConceptsWebsocketprotocol.libColNotes') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td>Web Dashboard</td>
+              <td>{{ t('docDocsConceptsWebsocketprotocol.libWebDashboard') }}</td>
               <td><code>laravel-echo</code> + <code>pusher-js</code></td>
               <td>Pusher / Reverb</td>
-              <td>Automatic channel auth, reconnection, presence</td>
+              <td>{{ t('docDocsConceptsWebsocketprotocol.libWebNotes') }}</td>
             </tr>
             <tr>
-              <td>Agent</td>
+              <td>{{ t('docDocsConceptsWebsocketprotocol.libAgent') }}</td>
               <td><code>ws</code></td>
-              <td>Raw WebSocket</td>
-              <td>Custom JSON envelope, message queue, backoff</td>
+              <td>{{ t('docDocsConceptsWebsocketprotocol.libAgentProtocol') }}</td>
+              <td>{{ t('docDocsConceptsWebsocketprotocol.libAgentNotes') }}</td>
             </tr>
             <tr>
-              <td>Mobile App</td>
+              <td>{{ t('docDocsConceptsWebsocketprotocol.libMobileApp') }}</td>
               <td><code>socket.io-client</code></td>
               <td>Socket.io / Pusher adapter</td>
-              <td>Auto reconnect, background handling via AppState</td>
+              <td>{{ t('docDocsConceptsWebsocketprotocol.libMobileNotes') }}</td>
             </tr>
           </tbody>
         </table>
@@ -606,8 +600,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import CodeBlock from '@/components/docs/CodeBlock.vue';
 import CodeTabs from '@/components/docs/CodeTabs.vue';
+
+const { t } = useI18n();
 
 // ==================== Connection Flow ====================
 const connectionFlow = ref(`// Sequence: client → Reverb → Laravel → channel authorization

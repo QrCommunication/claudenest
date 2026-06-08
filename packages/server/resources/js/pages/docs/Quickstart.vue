@@ -1,28 +1,26 @@
 <template>
   <article class="doc-content">
     <header class="doc-header">
-      <h1>Quickstart</h1>
+      <h1>{{ $t('docDocsQuickstart.title') }}</h1>
       <p class="lead">
-        Get up and running with ClaudeNest in minutes. Create your first machine,
-        start a session, create a shared project, and interact with Claude Code remotely.
-        Then explore epics, sprints, and the Planning Agent for full project management.
+        {{ $t('docDocsQuickstart.lead') }}
       </p>
     </header>
 
     <section id="prerequisites">
-      <h2>Before You Start</h2>
-      <p>Make sure you have:</p>
+      <h2>{{ $t('docDocsQuickstart.beforeYouStart') }}</h2>
+      <p>{{ $t('docDocsQuickstart.makeSureYouHave') }}</p>
       <ul class="checklist">
-        <li><span class="check">✓</span> A running ClaudeNest server</li>
-        <li><span class="check">✓</span> An API token (get one from the dashboard or via OAuth)</li>
-        <li><span class="check">✓</span> curl or a HTTP client installed</li>
-        <li><span class="check">✓</span> The agent installed on at least one machine</li>
+        <li><span class="check">✓</span> {{ $t('docDocsQuickstart.prereqServer') }}</li>
+        <li><span class="check">✓</span> {{ $t('docDocsQuickstart.prereqToken') }}</li>
+        <li><span class="check">✓</span> {{ $t('docDocsQuickstart.prereqCurl') }}</li>
+        <li><span class="check">✓</span> {{ $t('docDocsQuickstart.prereqAgent') }}</li>
       </ul>
     </section>
 
     <section id="first-api-call">
-      <h2>Your First API Call</h2>
-      <p>Let's start by checking the health of your server:</p>
+      <h2>{{ $t('docDocsQuickstart.firstApiCall') }}</h2>
+      <p>{{ $t('docDocsQuickstart.firstApiCallIntro') }}</p>
       
       <CodeBlock 
         code="curl https://claudenest.yourdomain.com/api/health" 
@@ -38,13 +36,13 @@
 
       <p class="tip">
         <span class="tip-icon">💡</span>
-        The health endpoint doesn't require authentication and is useful for monitoring.
+        {{ $t('docDocsQuickstart.healthTip') }}
       </p>
     </section>
 
     <section id="list-machines">
-      <h2>List Your Machines</h2>
-      <p>Now let's see what machines are registered:</p>
+      <h2>{{ $t('docDocsQuickstart.listMachines') }}</h2>
+      <p>{{ $t('docDocsQuickstart.listMachinesIntro') }}</p>
       
       <CodeBlock 
         :code="listMachinesCode" 
@@ -60,8 +58,8 @@
     </section>
 
     <section id="create-session">
-      <h2>Create a Session</h2>
-      <p>Start a Claude Code session on one of your machines:</p>
+      <h2>{{ $t('docDocsQuickstart.createSession') }}</h2>
+      <p>{{ $t('docDocsQuickstart.createSessionIntro') }}</p>
       
       <CodeBlock 
         :code="createSessionCode" 
@@ -75,12 +73,12 @@
         filename="Response"
       />
 
-      <p>Save the session ID - you'll need it for the next steps!</p>
+      <p>{{ $t('docDocsQuickstart.saveSessionId') }}</p>
     </section>
 
     <section id="attach-session">
-      <h2>Attach to Session</h2>
-      <p>To interact with the session, you need a WebSocket token:</p>
+      <h2>{{ $t('docDocsQuickstart.attachSession') }}</h2>
+      <p>{{ $t('docDocsQuickstart.attachSessionIntro') }}</p>
       
       <CodeBlock 
         :code="attachSessionCode" 
@@ -94,8 +92,8 @@
         filename="Response"
       />
 
-      <h3>WebSocket Connection</h3>
-      <p>Connect to the WebSocket endpoint to receive terminal output and send input:</p>
+      <h3>{{ $t('docDocsQuickstart.websocketConnection') }}</h3>
+      <p>{{ $t('docDocsQuickstart.websocketConnectionIntro') }}</p>
       
       <CodeBlock 
         :code="websocketCode" 
@@ -105,8 +103,8 @@
     </section>
 
     <section id="create-project">
-      <h2>Create a Shared Project</h2>
-      <p>For multi-agent collaboration, create a shared project:</p>
+      <h2>{{ $t('docDocsQuickstart.createProject') }}</h2>
+      <p>{{ $t('docDocsQuickstart.createProjectIntro') }}</p>
       
       <CodeBlock 
         :code="createProjectCode" 
@@ -122,8 +120,8 @@
     </section>
 
     <section id="create-task">
-      <h2>Create a Task</h2>
-      <p>Create tasks that can be claimed by different Claude instances:</p>
+      <h2>{{ $t('docDocsQuickstart.createTask') }}</h2>
+      <p>{{ $t('docDocsQuickstart.createTaskIntro') }}</p>
       
       <CodeBlock 
         :code="createTaskCode" 
@@ -139,8 +137,8 @@
     </section>
 
     <section id="query-context">
-      <h2>Query Project Context</h2>
-      <p>Use RAG to query project context:</p>
+      <h2>{{ $t('docDocsQuickstart.queryContext') }}</h2>
+      <p>{{ $t('docDocsQuickstart.queryContextIntro') }}</p>
       
       <CodeBlock 
         :code="queryContextCode" 
@@ -156,8 +154,8 @@
     </section>
 
     <section id="create-epic">
-      <h2>Create an Epic</h2>
-      <p>Organize related tasks into epics for feature-level tracking:</p>
+      <h2>{{ $t('docDocsQuickstart.createEpic') }}</h2>
+      <p>{{ $t('docDocsQuickstart.createEpicIntro') }}</p>
 
       <CodeBlock
         :code="createEpicCode"
@@ -173,8 +171,8 @@
     </section>
 
     <section id="planning-agent">
-      <h2>Use the Planning Agent</h2>
-      <p>Ask the Planning Agent to decompose work and suggest sprint scope:</p>
+      <h2>{{ $t('docDocsQuickstart.planningAgent') }}</h2>
+      <p>{{ $t('docDocsQuickstart.planningAgentIntro') }}</p>
 
       <CodeBlock
         :code="planningAgentCode"
@@ -190,14 +188,13 @@
 
       <p class="tip">
         <span class="tip-icon">&#128161;</span>
-        The Planning Agent uses your backlog, velocity history, and epic structure to make
-        data-driven suggestions. Let it propose the sprint scope, then fine-tune manually.
+        {{ $t('docDocsQuickstart.planningAgentTip') }}
       </p>
     </section>
 
     <section id="javascript-sdk">
-      <h2>Using the JavaScript SDK</h2>
-      <p>For easier integration, use the official JavaScript SDK:</p>
+      <h2>{{ $t('docDocsQuickstart.javascriptSdk') }}</h2>
+      <p>{{ $t('docDocsQuickstart.javascriptSdkIntro') }}</p>
       
       <CodeBlock 
         code="npm install @claudenest/sdk" 
@@ -212,23 +209,23 @@
     </section>
 
     <section id="next-steps">
-      <h2>Next Steps</h2>
+      <h2>{{ $t('docDocsQuickstart.nextSteps') }}</h2>
       <div class="next-steps">
         <router-link to="/docs/guides/multi-agent" class="next-step">
-          <strong>Multi-Agent Guide</strong>
-          <span>Set up multi-agent collaboration with Planning Agent →</span>
+          <strong>{{ $t('docDocsQuickstart.nextMultiAgentTitle') }}</strong>
+          <span>{{ $t('docDocsQuickstart.nextMultiAgentDesc') }}</span>
         </router-link>
         <router-link to="/docs/guides/task-coordination" class="next-step">
-          <strong>Task Coordination</strong>
-          <span>Epics, sprints, Kanban boards, and story points →</span>
+          <strong>{{ $t('docDocsQuickstart.nextTaskCoordinationTitle') }}</strong>
+          <span>{{ $t('docDocsQuickstart.nextTaskCoordinationDesc') }}</span>
         </router-link>
         <router-link to="/docs/api/machines" class="next-step">
-          <strong>Machines API</strong>
-          <span>Manage your registered machines →</span>
+          <strong>{{ $t('docDocsQuickstart.nextMachinesTitle') }}</strong>
+          <span>{{ $t('docDocsQuickstart.nextMachinesDesc') }}</span>
         </router-link>
         <router-link to="/docs/api/sessions" class="next-step">
-          <strong>Sessions API</strong>
-          <span>Create and manage Claude Code sessions →</span>
+          <strong>{{ $t('docDocsQuickstart.nextSessionsTitle') }}</strong>
+          <span>{{ $t('docDocsQuickstart.nextSessionsDesc') }}</span>
         </router-link>
       </div>
     </section>

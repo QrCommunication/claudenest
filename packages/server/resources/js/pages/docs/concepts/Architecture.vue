@@ -1,40 +1,35 @@
 <template>
   <article class="doc-content">
     <header class="doc-header">
-      <h1>Architecture Overview</h1>
+      <h1>{{ $t('docDocsConceptsArchitecture.title') }}</h1>
       <p class="lead">
-        ClaudeNest v1.2 follows a distributed architecture with three main packages: a Laravel 13
-        server acting as the central hub, lightweight Node.js 24 agents running on developer machines,
-        and native Expo 55 / React Native mobile apps for on-the-go access.
+        {{ $t('docDocsConceptsArchitecture.lead') }}
       </p>
     </header>
 
     <section id="system-design">
-      <h2>System Design</h2>
+      <h2>{{ $t('docDocsConceptsArchitecture.systemDesignHeading') }}</h2>
       <p>
-        The platform is organized around a client-server model where multiple client types
-        (web dashboard, mobile apps, agents) communicate with a central Laravel server. The
-        server manages authentication, session orchestration, context storage, and real-time
-        event distribution.
+        {{ $t('docDocsConceptsArchitecture.systemDesignPara1') }}
       </p>
 
       <div class="architecture-diagram">
         <div class="arch-layer">
-          <h4 class="layer-label">Clients</h4>
+          <h4 class="layer-label">{{ $t('docDocsConceptsArchitecture.layerClients') }}</h4>
           <div class="arch-boxes">
             <div class="arch-box">
               <span class="arch-icon">WEB</span>
-              <span class="arch-name">Web Dashboard</span>
+              <span class="arch-name">{{ $t('docDocsConceptsArchitecture.boxWebDashboard') }}</span>
               <span class="arch-tech">Vue.js 3.5 + Vite 8 + xterm.js</span>
             </div>
             <div class="arch-box">
               <span class="arch-icon">MOB</span>
-              <span class="arch-name">Mobile App</span>
+              <span class="arch-name">{{ $t('docDocsConceptsArchitecture.boxMobileApp') }}</span>
               <span class="arch-tech">Expo 55 + React Native 0.83</span>
             </div>
             <div class="arch-box">
               <span class="arch-icon">AGT</span>
-              <span class="arch-name">Agent</span>
+              <span class="arch-name">{{ $t('docDocsConceptsArchitecture.boxAgent') }}</span>
               <span class="arch-tech">Node.js 24 + node-pty</span>
             </div>
           </div>
@@ -44,14 +39,14 @@
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path d="M12 5v14m0 0l-4-4m4 4l4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          <span>REST API + WebSocket</span>
+          <span>{{ $t('docDocsConceptsArchitecture.arrowRestApiWebSocket') }}</span>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path d="M12 19V5m0 0l-4 4m4-4l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
 
         <div class="arch-layer">
-          <h4 class="layer-label">Server</h4>
+          <h4 class="layer-label">{{ $t('docDocsConceptsArchitecture.layerServer') }}</h4>
           <div class="arch-boxes">
             <div class="arch-box highlight">
               <span class="arch-icon">API</span>
@@ -61,11 +56,11 @@
             <div class="arch-box highlight">
               <span class="arch-icon">WS</span>
               <span class="arch-name">Reverb 1.10</span>
-              <span class="arch-tech">WebSocket Relay</span>
+              <span class="arch-tech">{{ $t('docDocsConceptsArchitecture.techWebSocketRelay') }}</span>
             </div>
             <div class="arch-box highlight">
               <span class="arch-icon">RAG</span>
-              <span class="arch-name">Context Engine</span>
+              <span class="arch-name">{{ $t('docDocsConceptsArchitecture.boxContextEngine') }}</span>
               <span class="arch-tech">pgvector 384d + bge-small-en</span>
             </div>
           </div>
@@ -75,14 +70,14 @@
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path d="M12 5v14m0 0l-4-4m4 4l4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          <span>Persistent Storage</span>
+          <span>{{ $t('docDocsConceptsArchitecture.arrowPersistentStorage') }}</span>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path d="M12 19V5m0 0l-4 4m4-4l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
 
         <div class="arch-layer">
-          <h4 class="layer-label">Infrastructure</h4>
+          <h4 class="layer-label">{{ $t('docDocsConceptsArchitecture.layerInfrastructure') }}</h4>
           <div class="arch-boxes">
             <div class="arch-box infra">
               <span class="arch-icon">PG</span>
@@ -92,7 +87,7 @@
             <div class="arch-box infra">
               <span class="arch-icon">RD</span>
               <span class="arch-name">Redis</span>
-              <span class="arch-tech">Cache + Queues</span>
+              <span class="arch-tech">{{ $t('docDocsConceptsArchitecture.techCacheQueues') }}</span>
             </div>
             <div class="arch-box infra">
               <span class="arch-icon">AI</span>
@@ -106,128 +101,123 @@
       <div class="tip">
         <span class="tip-icon">i</span>
         <div>
-          <h4>Monorepo Structure</h4>
+          <h4>{{ $t('docDocsConceptsArchitecture.monorepoTipHeading') }}</h4>
           <p>
-            All three packages live in a single monorepo under <code>packages/</code>. The server
-            package includes both the Laravel backend and the Vue.js frontend SPA.
+            <i18n-t keypath="docDocsConceptsArchitecture.monorepoTipBody" tag="span" scope="global">
+              <template #packages><code>packages/</code></template>
+            </i18n-t>
           </p>
         </div>
       </div>
     </section>
 
     <section id="server">
-      <h2>Server Package</h2>
+      <h2>{{ $t('docDocsConceptsArchitecture.serverHeading') }}</h2>
       <p>
-        The server is a <strong>Laravel 13</strong> application that serves as the central orchestration
-        hub. It exposes a REST API for CRUD operations, hosts the Vue.js SPA dashboard, and runs a
-        WebSocket relay via Laravel Reverb for real-time communication.
+        <i18n-t keypath="docDocsConceptsArchitecture.serverPara1" tag="span" scope="global">
+          <template #laravel><strong>Laravel 13</strong></template>
+        </i18n-t>
       </p>
 
-      <h3>Key Responsibilities</h3>
+      <h3>{{ $t('docDocsConceptsArchitecture.keyResponsibilitiesHeading') }}</h3>
       <ul>
-        <li>User authentication and authorization via Laravel Sanctum</li>
-        <li>Machine registration and health monitoring</li>
-        <li>Session lifecycle management (create, attach, terminate)</li>
-        <li>Multi-agent coordination (tasks, file locks, shared context)</li>
-        <li>Project management with epics, sprints, and Kanban boards</li>
-        <li>Planning Agent service for AI-powered task decomposition</li>
-        <li>Runner Agent service for automated sprint monitoring</li>
-        <li>RAG engine with pgvector (384d bge-small-en-v1.5) for context retrieval</li>
-        <li>Credential management with AES-256-CBC encryption</li>
-        <li>Real-time event broadcasting via Laravel Reverb 1.10</li>
+        <li>{{ $t('docDocsConceptsArchitecture.serverResp1') }}</li>
+        <li>{{ $t('docDocsConceptsArchitecture.serverResp2') }}</li>
+        <li>{{ $t('docDocsConceptsArchitecture.serverResp3') }}</li>
+        <li>{{ $t('docDocsConceptsArchitecture.serverResp4') }}</li>
+        <li>{{ $t('docDocsConceptsArchitecture.serverResp5') }}</li>
+        <li>{{ $t('docDocsConceptsArchitecture.serverResp6') }}</li>
+        <li>{{ $t('docDocsConceptsArchitecture.serverResp7') }}</li>
+        <li>{{ $t('docDocsConceptsArchitecture.serverResp8') }}</li>
+        <li>{{ $t('docDocsConceptsArchitecture.serverResp9') }}</li>
+        <li>{{ $t('docDocsConceptsArchitecture.serverResp10') }}</li>
       </ul>
 
-      <h3>Directory Layout</h3>
+      <h3>{{ $t('docDocsConceptsArchitecture.directoryLayoutHeading') }}</h3>
       <CodeBlock :code="serverStructure" language="bash" />
 
-      <h3>Request Lifecycle</h3>
+      <h3>{{ $t('docDocsConceptsArchitecture.requestLifecycleHeading') }}</h3>
       <p>
-        Every API request follows the standard Laravel pipeline: middleware (auth, rate limiting),
-        controller, form request validation, service layer, Eloquent model, and API resource
-        for response formatting.
+        {{ $t('docDocsConceptsArchitecture.requestLifecyclePara1') }}
       </p>
-      <CodeBlock :code="requestLifecycle" language="php" filename="Typical API flow" />
+      <CodeBlock :code="requestLifecycle" language="php" :filename="$t('docDocsConceptsArchitecture.filenameTypicalApiFlow')" />
     </section>
 
     <section id="agent">
-      <h2>Agent Package</h2>
+      <h2>{{ $t('docDocsConceptsArchitecture.agentHeading') }}</h2>
       <p>
-        The agent is a <strong>Node.js</strong> daemon that runs on the developer's machine. It manages
-        local Claude Code processes via <code>node-pty</code>, streams terminal I/O over WebSocket, and
-        handles discovery of local skills and MCP servers.
+        <i18n-t keypath="docDocsConceptsArchitecture.agentPara1" tag="span" scope="global">
+          <template #nodejs><strong>Node.js</strong></template>
+          <template #nodePty><code>node-pty</code></template>
+        </i18n-t>
       </p>
 
-      <h3>Key Responsibilities</h3>
+      <h3>{{ $t('docDocsConceptsArchitecture.keyResponsibilitiesHeading') }}</h3>
       <ul>
-        <li>Maintain a persistent WebSocket connection to the server</li>
-        <li>Spawn and manage Claude Code PTY processes</li>
-        <li>Stream terminal output in real-time (chunked at 16ms intervals)</li>
-        <li>Discover local MCP servers and slash commands</li>
-        <li>Sync context data with the server's RAG engine</li>
-        <li>Handle reconnection with exponential backoff</li>
+        <li>{{ $t('docDocsConceptsArchitecture.agentResp1') }}</li>
+        <li>{{ $t('docDocsConceptsArchitecture.agentResp2') }}</li>
+        <li>{{ $t('docDocsConceptsArchitecture.agentResp3') }}</li>
+        <li>{{ $t('docDocsConceptsArchitecture.agentResp4') }}</li>
+        <li>{{ $t('docDocsConceptsArchitecture.agentResp5') }}</li>
+        <li>{{ $t('docDocsConceptsArchitecture.agentResp6') }}</li>
       </ul>
 
-      <h3>Agent Lifecycle</h3>
+      <h3>{{ $t('docDocsConceptsArchitecture.agentLifecycleHeading') }}</h3>
       <CodeBlock :code="agentLifecycle" language="typescript" filename="agent.ts" />
     </section>
 
     <section id="mobile">
-      <h2>Mobile Package</h2>
+      <h2>{{ $t('docDocsConceptsArchitecture.mobileHeading') }}</h2>
       <p>
-        The mobile package is an <strong>Expo 55 / React Native 0.83</strong> application built with
-        <strong>React 19</strong>, targeting both iOS and Android. It provides on-the-go access to
-        sessions, machines, project management, and multi-agent coordination with native performance.
+        <i18n-t keypath="docDocsConceptsArchitecture.mobilePara1" tag="span" scope="global">
+          <template #expo><strong>Expo 55 / React Native 0.83</strong></template>
+          <template #react><strong>React 19</strong></template>
+        </i18n-t>
       </p>
 
-      <h3>Key Features</h3>
+      <h3>{{ $t('docDocsConceptsArchitecture.keyFeaturesHeading') }}</h3>
       <ul>
-        <li>Real-time session monitoring and interaction</li>
-        <li>Machine status overview and Wake-on-LAN</li>
-        <li>Dashboard with aggregated metrics</li>
-        <li>Epic and sprint management with burndown charts</li>
-        <li>Kanban board with drag-and-drop task management</li>
-        <li>Planning Agent chat interface</li>
-        <li>Multi-agent orchestration monitoring</li>
-        <li>Push notifications for session and task events</li>
-        <li>Biometric authentication (Face ID / fingerprint)</li>
-        <li>Offline support with Zustand 5 persisted stores</li>
-        <li>Animations via Reanimated 4</li>
+        <li>{{ $t('docDocsConceptsArchitecture.mobileFeature1') }}</li>
+        <li>{{ $t('docDocsConceptsArchitecture.mobileFeature2') }}</li>
+        <li>{{ $t('docDocsConceptsArchitecture.mobileFeature3') }}</li>
+        <li>{{ $t('docDocsConceptsArchitecture.mobileFeature4') }}</li>
+        <li>{{ $t('docDocsConceptsArchitecture.mobileFeature5') }}</li>
+        <li>{{ $t('docDocsConceptsArchitecture.mobileFeature6') }}</li>
+        <li>{{ $t('docDocsConceptsArchitecture.mobileFeature7') }}</li>
+        <li>{{ $t('docDocsConceptsArchitecture.mobileFeature8') }}</li>
+        <li>{{ $t('docDocsConceptsArchitecture.mobileFeature9') }}</li>
+        <li>{{ $t('docDocsConceptsArchitecture.mobileFeature10') }}</li>
+        <li>{{ $t('docDocsConceptsArchitecture.mobileFeature11') }}</li>
       </ul>
 
-      <h3>State Management</h3>
+      <h3>{{ $t('docDocsConceptsArchitecture.stateManagementHeading') }}</h3>
       <CodeBlock :code="mobileStore" language="typescript" filename="stores/sessions.ts" />
     </section>
 
     <section id="data-flow">
-      <h2>Data Flow</h2>
+      <h2>{{ $t('docDocsConceptsArchitecture.dataFlowHeading') }}</h2>
       <p>
-        Data flows through the system in two main patterns: request-response for CRUD operations
-        and event-driven for real-time updates. Both paths converge at the server, which acts
-        as the single source of truth.
+        {{ $t('docDocsConceptsArchitecture.dataFlowPara1') }}
       </p>
 
-      <h3>Session I/O Flow</h3>
+      <h3>{{ $t('docDocsConceptsArchitecture.sessionIoFlowHeading') }}</h3>
       <p>
-        When a user types in the web terminal, the input travels through several hops before
-        reaching the Claude Code process on the agent machine:
+        {{ $t('docDocsConceptsArchitecture.sessionIoFlowPara1') }}
       </p>
       <CodeTabs :tabs="dataFlowTabs" />
 
-      <h3>Context Synchronization</h3>
+      <h3>{{ $t('docDocsConceptsArchitecture.contextSyncHeading') }}</h3>
       <p>
-        Context data flows from agents to the server, where it is embedded and stored in pgvector.
-        Other agents and clients can then query this context for relevant information:
+        {{ $t('docDocsConceptsArchitecture.contextSyncPara1') }}
       </p>
-      <CodeBlock :code="contextFlow" language="typescript" filename="Context sync flow" />
+      <CodeBlock :code="contextFlow" language="typescript" :filename="$t('docDocsConceptsArchitecture.filenameContextSyncFlow')" />
 
       <div class="tip">
         <span class="tip-icon">i</span>
         <div>
-          <h4>Event-Driven Architecture</h4>
+          <h4>{{ $t('docDocsConceptsArchitecture.eventDrivenTipHeading') }}</h4>
           <p>
-            All state changes are broadcast as Laravel events. Clients subscribe to relevant
-            channels and receive updates in real-time via WebSocket, eliminating the need for
-            polling.
+            {{ $t('docDocsConceptsArchitecture.eventDrivenTipBody') }}
           </p>
         </div>
       </div>
@@ -236,9 +226,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import CodeBlock from '@/components/docs/CodeBlock.vue';
 import CodeTabs from '@/components/docs/CodeTabs.vue';
+
+const { t } = useI18n();
 
 const serverStructure = ref(`packages/server/
   app/
@@ -361,9 +354,9 @@ export const useSessionsStore = create<SessionsState>()(
   )
 );`);
 
-const dataFlowTabs = ref([
+const dataFlowTabs = computed(() => [
   {
-    label: 'Input (User to Agent)',
+    label: t('docDocsConceptsArchitecture.tabInputUserToAgent'),
     language: 'typescript',
     code: `// 1. User types in xterm.js terminal (Web Dashboard)
 terminal.onData((data: string) => {
@@ -382,7 +375,7 @@ wsClient.on('session:input', (payload) => {
 });`,
   },
   {
-    label: 'Output (Agent to User)',
+    label: t('docDocsConceptsArchitecture.tabOutputAgentToUser'),
     language: 'typescript',
     code: `// 1. Claude Code writes to PTY stdout
 pty.onData((data: string) => {

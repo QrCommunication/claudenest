@@ -1,157 +1,133 @@
 <template>
   <article class="doc-content">
     <header class="doc-header">
-      <h1>RAG Pipeline</h1>
+      <h1>{{ t('docDocsGuidesRagpipeline.title') }}</h1>
       <p class="lead">
-        Context retrieval augmented generation with pgvector. Share knowledge
-        across Claude instances so every agent benefits from work already done.
+        {{ t('docDocsGuidesRagpipeline.lead') }}
       </p>
     </header>
 
     <section id="how-it-works">
-      <h2>How It Works</h2>
+      <h2>{{ t('docDocsGuidesRagpipeline.howItWorksHeading') }}</h2>
       <p>
-        The RAG pipeline turns free-text context into searchable vector
-        embeddings stored in PostgreSQL via the pgvector extension. When an
-        instance needs information, the server converts the query into an
-        embedding and finds the most relevant chunks using cosine similarity.
+        {{ t('docDocsGuidesRagpipeline.howItWorksPara1') }}
       </p>
-      <p>The pipeline follows four steps:</p>
+      <p>{{ t('docDocsGuidesRagpipeline.fourSteps') }}</p>
       <ol>
         <li>
-          <strong>Embed</strong> &mdash; The content is sent to the embedding
-          model (<code>bge-small-en-v1.5</code>) which produces a 384-dimensional
-          vector.
+          <strong>{{ t('docDocsGuidesRagpipeline.stepEmbedLabel') }}</strong> &mdash; {{ t('docDocsGuidesRagpipeline.stepEmbedPre') }}
+          (<code>bge-small-en-v1.5</code>) {{ t('docDocsGuidesRagpipeline.stepEmbedPost') }}
         </li>
         <li>
-          <strong>Store</strong> &mdash; The vector and its source text are
-          persisted in the <code>context_chunks</code> table alongside metadata
-          such as the originating instance, related files, and an importance
-          score.
+          <strong>{{ t('docDocsGuidesRagpipeline.stepStoreLabel') }}</strong> &mdash; {{ t('docDocsGuidesRagpipeline.stepStorePre') }}
+          <code>context_chunks</code> {{ t('docDocsGuidesRagpipeline.stepStorePost') }}
         </li>
         <li>
-          <strong>Search</strong> &mdash; At query time the same embedding model
-          converts the question into a vector. An IVFFlat index on the
-          <code>context_chunks</code> table returns the closest matches by
-          cosine distance.
+          <strong>{{ t('docDocsGuidesRagpipeline.stepSearchLabel') }}</strong> &mdash; {{ t('docDocsGuidesRagpipeline.stepSearchPre') }}
+          <code>context_chunks</code> {{ t('docDocsGuidesRagpipeline.stepSearchPost') }}
         </li>
         <li>
-          <strong>Compile</strong> &mdash; The top-k results are assembled into
-          a context payload that the requesting instance can consume directly.
+          <strong>{{ t('docDocsGuidesRagpipeline.stepCompileLabel') }}</strong> &mdash; {{ t('docDocsGuidesRagpipeline.stepCompileText') }}
         </li>
       </ol>
       <p class="tip">
         <span class="tip-icon">&#128161;</span>
-        If the embedding service (Ollama) is unavailable, the server falls back
-        to keyword-based search so context queries never completely fail.
+        {{ t('docDocsGuidesRagpipeline.howItWorksTip') }}
       </p>
     </section>
 
     <section id="adding-context">
-      <h2>Adding Context</h2>
+      <h2>{{ t('docDocsGuidesRagpipeline.addingContextHeading') }}</h2>
       <p>
-        Context is added as <em>chunks</em>. Each chunk is a self-contained
-        piece of knowledge &mdash; a task completion summary, an architecture
-        decision, a code review note, etc. The server automatically generates
-        the embedding when the chunk is created.
+        {{ t('docDocsGuidesRagpipeline.addingContextPre') }} <em>{{ t('docDocsGuidesRagpipeline.chunksWord') }}</em>{{ t('docDocsGuidesRagpipeline.addingContextPost') }}
       </p>
 
-      <h3>Create a Context Chunk</h3>
+      <h3>{{ t('docDocsGuidesRagpipeline.createChunkHeading') }}</h3>
       <CodeTabs :tabs="addChunkTabs" />
 
-      <CodeBlock language="json" :code="addChunkResponse" filename="Response" />
+      <CodeBlock language="json" :code="addChunkResponse" :filename="t('docDocsGuidesRagpipeline.responseFilename')" />
 
-      <h3>Chunk Types</h3>
+      <h3>{{ t('docDocsGuidesRagpipeline.chunkTypesHeading') }}</h3>
       <p>
-        Use the <code>type</code> field to categorize chunks so you can filter
-        them later:
+        {{ t('docDocsGuidesRagpipeline.chunkTypesPre') }} <code>type</code> {{ t('docDocsGuidesRagpipeline.chunkTypesPost') }}
       </p>
       <ul>
-        <li><code>task_completion</code> &mdash; Summary produced when a task is marked done</li>
-        <li><code>architecture</code> &mdash; System design decisions</li>
-        <li><code>convention</code> &mdash; Coding standards and patterns</li>
-        <li><code>note</code> &mdash; Ad-hoc knowledge from an instance</li>
-        <li><code>file_summary</code> &mdash; Condensed description of a file or module</li>
+        <li><code>task_completion</code> &mdash; {{ t('docDocsGuidesRagpipeline.typeTaskCompletion') }}</li>
+        <li><code>architecture</code> &mdash; {{ t('docDocsGuidesRagpipeline.typeArchitecture') }}</li>
+        <li><code>convention</code> &mdash; {{ t('docDocsGuidesRagpipeline.typeConvention') }}</li>
+        <li><code>note</code> &mdash; {{ t('docDocsGuidesRagpipeline.typeNote') }}</li>
+        <li><code>file_summary</code> &mdash; {{ t('docDocsGuidesRagpipeline.typeFileSummary') }}</li>
       </ul>
     </section>
 
     <section id="querying">
-      <h2>Querying Context</h2>
+      <h2>{{ t('docDocsGuidesRagpipeline.queryingHeading') }}</h2>
       <p>
-        Send a natural-language query and the server returns the most relevant
-        chunks ranked by similarity. You can control how many results are
-        returned with the <code>limit</code> parameter.
+        {{ t('docDocsGuidesRagpipeline.queryingPre') }} <code>limit</code> {{ t('docDocsGuidesRagpipeline.queryingPost') }}
       </p>
 
       <CodeTabs :tabs="queryTabs" />
 
-      <CodeBlock language="json" :code="queryResponse" filename="Response" />
+      <CodeBlock language="json" :code="queryResponse" :filename="t('docDocsGuidesRagpipeline.responseFilename')" />
 
       <p>
-        Each result includes a <code>similarity</code> score between 0 and 1.
-        Values above 0.8 are usually highly relevant; below 0.5 the match is
-        weak.
+        {{ t('docDocsGuidesRagpipeline.similarityPre') }} <code>similarity</code> {{ t('docDocsGuidesRagpipeline.similarityPost') }}
       </p>
 
-      <h3>Summarizing Context</h3>
+      <h3>{{ t('docDocsGuidesRagpipeline.summarizingHeading') }}</h3>
       <p>
-        For a high-level overview of all project knowledge, use the summarize
-        endpoint. It feeds the top chunks into the summarization model
-        (<code>mistral:7b</code>) and returns a condensed summary.
+        {{ t('docDocsGuidesRagpipeline.summarizingPre') }}
+        (<code>mistral:7b</code>) {{ t('docDocsGuidesRagpipeline.summarizingPost') }}
       </p>
 
       <CodeTabs :tabs="summarizeTabs" />
     </section>
 
     <section id="embeddings">
-      <h2>Embedding Model</h2>
+      <h2>{{ t('docDocsGuidesRagpipeline.embeddingModelHeading') }}</h2>
       <p>
-        ClaudeNest uses <strong>bge-small-en-v1.5</strong> served by Ollama for
-        generating embeddings. This model produces 384-dimensional vectors and
-        strikes a good balance between accuracy and speed.
+        {{ t('docDocsGuidesRagpipeline.embeddingModelPre') }} <strong>bge-small-en-v1.5</strong> {{ t('docDocsGuidesRagpipeline.embeddingModelPost') }}
       </p>
       <ul>
-        <li><strong>Model:</strong> <code>bge-small-en-v1.5</code></li>
-        <li><strong>Dimensions:</strong> 384</li>
-        <li><strong>Distance metric:</strong> Cosine similarity</li>
-        <li><strong>Index type:</strong> IVFFlat (lists = 100)</li>
-        <li><strong>Served by:</strong> Ollama (<code>OLLAMA_HOST</code> env variable)</li>
+        <li><strong>{{ t('docDocsGuidesRagpipeline.specModel') }}</strong> <code>bge-small-en-v1.5</code></li>
+        <li><strong>{{ t('docDocsGuidesRagpipeline.specDimensions') }}</strong> 384</li>
+        <li><strong>{{ t('docDocsGuidesRagpipeline.specDistanceMetric') }}</strong> {{ t('docDocsGuidesRagpipeline.specDistanceMetricValue') }}</li>
+        <li><strong>{{ t('docDocsGuidesRagpipeline.specIndexType') }}</strong> IVFFlat (lists = 100)</li>
+        <li><strong>{{ t('docDocsGuidesRagpipeline.specServedBy') }}</strong> Ollama (<code>OLLAMA_HOST</code> {{ t('docDocsGuidesRagpipeline.envVariableWord') }})</li>
       </ul>
 
       <p class="tip">
         <span class="tip-icon">&#128161;</span>
-        Make sure Ollama is running and the embedding model is pulled before
-        using RAG features:
+        {{ t('docDocsGuidesRagpipeline.embeddingTip') }}
       </p>
 
       <CodeBlock
         language="bash"
         code="ollama pull bge-small-en-v1.5"
-        filename="Terminal"
+        :filename="t('docDocsGuidesRagpipeline.terminalFilename')"
       />
 
-      <h3>Database Schema</h3>
+      <h3>{{ t('docDocsGuidesRagpipeline.databaseSchemaHeading') }}</h3>
       <p>
-        The <code>context_chunks</code> table stores both the text content and
-        its vector representation:
+        {{ t('docDocsGuidesRagpipeline.databaseSchemaPre') }} <code>context_chunks</code> {{ t('docDocsGuidesRagpipeline.databaseSchemaPost') }}
       </p>
       <CodeBlock language="json" :code="schemaExample" filename="context_chunks columns" />
     </section>
 
     <section id="next-steps">
-      <h2>Next Steps</h2>
+      <h2>{{ t('docDocsGuidesRagpipeline.nextStepsHeading') }}</h2>
       <div class="next-steps">
         <router-link to="/docs/guides/multi-agent" class="next-step">
-          <strong>Multi-Agent Coordination</strong>
-          <span>See how RAG fits into the broader multi-agent workflow &#8594;</span>
+          <strong>{{ t('docDocsGuidesRagpipeline.nextMultiAgentTitle') }}</strong>
+          <span>{{ t('docDocsGuidesRagpipeline.nextMultiAgentDesc') }}</span>
         </router-link>
         <router-link to="/docs/guides/file-locking" class="next-step">
-          <strong>File Locking</strong>
-          <span>Prevent conflicts between agents editing the same files &#8594;</span>
+          <strong>{{ t('docDocsGuidesRagpipeline.nextFileLockingTitle') }}</strong>
+          <span>{{ t('docDocsGuidesRagpipeline.nextFileLockingDesc') }}</span>
         </router-link>
         <router-link to="/docs/api/projects" class="next-step">
-          <strong>Context API Reference</strong>
-          <span>Full endpoint documentation for context chunks and queries &#8594;</span>
+          <strong>{{ t('docDocsGuidesRagpipeline.nextContextApiTitle') }}</strong>
+          <span>{{ t('docDocsGuidesRagpipeline.nextContextApiDesc') }}</span>
         </router-link>
       </div>
     </section>
@@ -160,8 +136,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import CodeBlock from '@/components/docs/CodeBlock.vue';
 import CodeTabs from '@/components/docs/CodeTabs.vue';
+
+const { t } = useI18n();
 
 // -- Adding Context -----------------------------------------------------------
 

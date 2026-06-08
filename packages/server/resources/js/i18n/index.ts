@@ -24,6 +24,7 @@ function getDefaultLocale(): SupportedLocale {
 
 export const i18n = createI18n({
   legacy: false, // Use Composition API mode
+  globalInjection: true, // Expose $t/$d/$n in every template, reactive to global locale
   locale: getDefaultLocale(),
   fallbackLocale: 'en',
   messages: {

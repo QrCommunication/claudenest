@@ -1,16 +1,14 @@
 <template>
   <DocsLayout>
     <div class="docs-page">
-      <h1>Sessions API</h1>
-      
+      <h1>{{ $t('docDocsSessions.title') }}</h1>
+
       <p class="lead">
-        Manage Claude Code sessions on your machines. Sessions represent interactive 
-        or automated conversations with Claude Code, with full support for real-time 
-        I/O via WebSocket.
+        {{ $t('docDocsSessions.lead') }}
       </p>
 
       <div class="section">
-        <h2>Session Object</h2>
+        <h2>{{ $t('docDocsSessions.sessionObjectHeading') }}</h2>
         <CodeBlock language="json" :code="sessionObject" />
       </div>
 
@@ -18,7 +16,7 @@
       <EndpointCard
         method="GET"
         path="/machines/{machine}/sessions"
-        description="List all sessions for a specific machine."
+        :description="$t('docDocsSessions.listDesc')"
         :params="listParams"
         :curlExample="listCurl"
         :jsExample="listJs"
@@ -30,7 +28,7 @@
       <EndpointCard
         method="POST"
         path="/machines/{machine}/sessions"
-        description="Create a new Claude Code session on the specified machine."
+        :description="$t('docDocsSessions.createDesc')"
         :params="createParams"
         :curlExample="createCurl"
         :jsExample="createJs"
@@ -42,7 +40,7 @@
       <EndpointCard
         method="GET"
         path="/sessions/{id}"
-        description="Get detailed information about a specific session."
+        :description="$t('docDocsSessions.getDesc')"
         :params="getParams"
         :curlExample="getCurl"
         :jsExample="getJs"
@@ -54,7 +52,7 @@
       <EndpointCard
         method="DELETE"
         path="/sessions/{id}"
-        description="Terminate a running session."
+        :description="$t('docDocsSessions.deleteDesc')"
         :params="deleteParams"
         :curlExample="deleteCurl"
         :jsExample="deleteJs"
@@ -66,7 +64,7 @@
       <EndpointCard
         method="GET"
         path="/sessions/{id}/logs"
-        description="Get the complete log history for a session."
+        :description="$t('docDocsSessions.logsDesc')"
         :params="logsParams"
         :curlExample="logsCurl"
         :jsExample="logsJs"
@@ -78,7 +76,7 @@
       <EndpointCard
         method="POST"
         path="/sessions/{id}/attach"
-        description="Generate a WebSocket token to attach to a running session for real-time I/O."
+        :description="$t('docDocsSessions.attachDesc')"
         :params="attachParams"
         :curlExample="attachCurl"
         :jsExample="attachJs"
@@ -90,7 +88,7 @@
       <EndpointCard
         method="POST"
         path="/sessions/{id}/input"
-        description="Send input to a running session via HTTP (use WebSocket for real-time)."
+        :description="$t('docDocsSessions.inputDesc')"
         :params="inputParams"
         :curlExample="inputCurl"
         :jsExample="inputJs"
@@ -102,7 +100,7 @@
       <EndpointCard
         method="POST"
         path="/sessions/{id}/resize"
-        description="Resize the terminal dimensions for the session."
+        :description="$t('docDocsSessions.resizeDesc')"
         :params="resizeParams"
         :curlExample="resizeCurl"
         :jsExample="resizeJs"
@@ -111,52 +109,53 @@
       />
 
       <div class="section">
-        <h2>Session Modes</h2>
+        <h2>{{ $t('docDocsSessions.modesHeading') }}</h2>
         <ul>
-          <li><code>interactive</code> - Full interactive session with Claude (default)</li>
-          <li><code>headless</code> - Automated session without user interaction</li>
-          <li><code>oneshot</code> - Single command execution, terminates when complete</li>
+          <li><code>interactive</code> - {{ $t('docDocsSessions.modeInteractive') }}</li>
+          <li><code>headless</code> - {{ $t('docDocsSessions.modeHeadless') }}</li>
+          <li><code>oneshot</code> - {{ $t('docDocsSessions.modeOneshot') }}</li>
         </ul>
       </div>
 
       <div class="section">
-        <h2>Session Statuses</h2>
+        <h2>{{ $t('docDocsSessions.statusesHeading') }}</h2>
         <ul>
-          <li><code>created</code> - Session created, waiting to start</li>
-          <li><code>starting</code> - Session is initializing</li>
-          <li><code>running</code> - Session is active and processing</li>
-          <li><code>waiting_input</code> - Session waiting for user input</li>
-          <li><code>completed</code> - Session finished successfully</li>
-          <li><code>error</code> - Session encountered an error</li>
-          <li><code>terminated</code> - Session was manually terminated</li>
+          <li><code>created</code> - {{ $t('docDocsSessions.statusCreated') }}</li>
+          <li><code>starting</code> - {{ $t('docDocsSessions.statusStarting') }}</li>
+          <li><code>running</code> - {{ $t('docDocsSessions.statusRunning') }}</li>
+          <li><code>waiting_input</code> - {{ $t('docDocsSessions.statusWaitingInput') }}</li>
+          <li><code>completed</code> - {{ $t('docDocsSessions.statusCompleted') }}</li>
+          <li><code>error</code> - {{ $t('docDocsSessions.statusError') }}</li>
+          <li><code>terminated</code> - {{ $t('docDocsSessions.statusTerminated') }}</li>
         </ul>
       </div>
 
       <div class="section">
-        <h2>WebSocket Connection</h2>
+        <h2>{{ $t('docDocsSessions.websocketHeading') }}</h2>
         <p>
-          For real-time interaction with sessions, use WebSocket connection. First, 
-          call the <code>/attach</code> endpoint to get a WebSocket token, then connect 
-          to the WebSocket server.
+          <i18n-t keypath="docDocsSessions.websocketIntro">
+            <template #attach><code>/attach</code></template>
+          </i18n-t>
         </p>
         <CodeBlock language="javascript" :code="websocketExample" />
         <p>
-          See the <router-link to="/docs/websocket">WebSocket documentation</router-link> 
-          for complete details.
+          <i18n-t keypath="docDocsSessions.websocketSeeMore">
+            <template #link><router-link to="/docs/websocket">{{ $t('docDocsSessions.websocketLinkText') }}</router-link></template>
+          </i18n-t>
         </p>
       </div>
 
       <div class="section">
-        <h2>Session Logs</h2>
+        <h2>{{ $t('docDocsSessions.logsHeading') }}</h2>
         <p>
-          Sessions automatically log all input and output. Log entries have the following types:
+          {{ $t('docDocsSessions.logsIntro') }}
         </p>
         <ul>
-          <li><code>input</code> - User input sent to the session</li>
-          <li><code>output</code> - Output from Claude Code</li>
-          <li><code>error</code> - Error messages</li>
-          <li><code>system</code> - System messages</li>
-          <li><code>tool</code> - Tool execution results</li>
+          <li><code>input</code> - {{ $t('docDocsSessions.logInput') }}</li>
+          <li><code>output</code> - {{ $t('docDocsSessions.logOutput') }}</li>
+          <li><code>error</code> - {{ $t('docDocsSessions.logError') }}</li>
+          <li><code>system</code> - {{ $t('docDocsSessions.logSystem') }}</li>
+          <li><code>tool</code> - {{ $t('docDocsSessions.logTool') }}</li>
         </ul>
       </div>
     </div>

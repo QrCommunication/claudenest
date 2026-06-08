@@ -1,42 +1,38 @@
 <template>
   <article class="doc-content">
     <header class="doc-header">
-      <h1>Politique de Confidentialite</h1>
+      <h1>{{ $t('docDocsPrivacypolicy.title') }}</h1>
       <p class="lead">
-        La presente Politique de Confidentialite decrit comment QR Communication collecte, utilise,
-        stocke et protege vos donnees a caractere personnel dans le cadre de l'utilisation de la
-        plateforme ClaudeNest, en conformite avec le Reglement General sur la Protection des Donnees
-        (RGPD - Reglement UE 2016/679) et la loi Informatique et Libertes du 6 janvier 1978 modifiee.
+        {{ $t('docDocsPrivacypolicy.leadPara') }}
       </p>
-      <p class="last-updated">Date d'effet : 12 avril 2026</p>
+      <p class="last-updated">{{ $t('docDocsPrivacypolicy.effectiveDate') }}</p>
     </header>
 
     <!-- Table of Contents -->
     <nav class="policy-toc">
-      <h2>Sommaire</h2>
+      <h2>{{ $t('docDocsPrivacypolicy.tocHeading') }}</h2>
       <ol>
-        <li><a href="#data-controller">Responsable du traitement</a></li>
-        <li><a href="#data-we-collect">Donnees collectees</a></li>
-        <li><a href="#legal-basis">Bases legales du traitement</a></li>
-        <li><a href="#how-we-use">Finalites du traitement</a></li>
-        <li><a href="#data-retention">Durees de conservation</a></li>
-        <li><a href="#data-sharing">Partage et sous-traitants</a></li>
-        <li><a href="#your-rights">Vos droits au titre du RGPD</a></li>
-        <li><a href="#cookies">Cookies et traceurs</a></li>
-        <li><a href="#data-security">Mesures de securite</a></li>
-        <li><a href="#international-transfers">Transferts internationaux</a></li>
-        <li><a href="#childrens-privacy">Mineurs</a></li>
-        <li><a href="#policy-changes">Modifications de la politique</a></li>
-        <li><a href="#contact-dpo">Contact du DPO</a></li>
+        <li><a href="#data-controller">{{ $t('docDocsPrivacypolicy.tocDataController') }}</a></li>
+        <li><a href="#data-we-collect">{{ $t('docDocsPrivacypolicy.tocDataWeCollect') }}</a></li>
+        <li><a href="#legal-basis">{{ $t('docDocsPrivacypolicy.tocLegalBasis') }}</a></li>
+        <li><a href="#how-we-use">{{ $t('docDocsPrivacypolicy.tocHowWeUse') }}</a></li>
+        <li><a href="#data-retention">{{ $t('docDocsPrivacypolicy.tocDataRetention') }}</a></li>
+        <li><a href="#data-sharing">{{ $t('docDocsPrivacypolicy.tocDataSharing') }}</a></li>
+        <li><a href="#your-rights">{{ $t('docDocsPrivacypolicy.tocYourRights') }}</a></li>
+        <li><a href="#cookies">{{ $t('docDocsPrivacypolicy.tocCookies') }}</a></li>
+        <li><a href="#data-security">{{ $t('docDocsPrivacypolicy.tocDataSecurity') }}</a></li>
+        <li><a href="#international-transfers">{{ $t('docDocsPrivacypolicy.tocInternationalTransfers') }}</a></li>
+        <li><a href="#childrens-privacy">{{ $t('docDocsPrivacypolicy.tocChildrensPrivacy') }}</a></li>
+        <li><a href="#policy-changes">{{ $t('docDocsPrivacypolicy.tocPolicyChanges') }}</a></li>
+        <li><a href="#contact-dpo">{{ $t('docDocsPrivacypolicy.tocContactDpo') }}</a></li>
       </ol>
     </nav>
 
     <!-- Section 1: Data Controller -->
     <section id="data-controller">
-      <h2 id="data-controller">1. Responsable du traitement</h2>
+      <h2 id="data-controller">{{ $t('docDocsPrivacypolicy.s1Heading') }}</h2>
       <p>
-        Le responsable du traitement des donnees a caractere personnel collectees via la
-        plateforme ClaudeNest est :
+        {{ $t('docDocsPrivacypolicy.s1Intro') }}
       </p>
       <div class="info-card">
         <div class="info-icon">
@@ -47,17 +43,15 @@
         <div>
           <h4>QR Communication (SAS)</h4>
           <p>
-            SIREN 940 163 496 &mdash; Code APE 73.12Z<br>
-            23 rue de Richelieu, 75001 Paris, France<br>
-            Email : <a href="mailto:contact@qrcommunication.com">contact@qrcommunication.com</a><br>
-            Telephone : <a href="tel:+33188833451">+33 1 88 83 34 51</a>
+            {{ $t('docDocsPrivacypolicy.s1SirenApe') }}<br>
+            {{ $t('docDocsPrivacypolicy.s1Address') }}<br>
+            {{ $t('docDocsPrivacypolicy.s1EmailLabel') }} <a href="mailto:contact@qrcommunication.com">contact@qrcommunication.com</a><br>
+            {{ $t('docDocsPrivacypolicy.s1PhoneLabel') }} <a href="tel:+33188833451">+33 1 88 83 34 51</a>
           </p>
         </div>
       </div>
       <p>
-        ClaudeNest est egalement un logiciel open source concu pour l'auto-hebergement. Lorsque
-        vous utilisez une instance exploitee par un tiers, ce tiers est le responsable du
-        traitement. Veuillez vous referer a sa propre politique de confidentialite.
+        {{ $t('docDocsPrivacypolicy.s1OpenSourcePara') }}
       </p>
       <div class="info-card">
         <div class="info-icon">
@@ -66,11 +60,9 @@
           </svg>
         </div>
         <div>
-          <h4>Instances auto-hebergees</h4>
+          <h4>{{ $t('docDocsPrivacypolicy.s1SelfHostedTitle') }}</h4>
           <p>
-            Pour les instances auto-hebergees, le responsable du traitement est l'entite
-            exploitant le serveur. La presente politique sert de reference et de modele
-            que les operateurs doivent adapter a leurs propres obligations legales.
+            {{ $t('docDocsPrivacypolicy.s1SelfHostedPara') }}
           </p>
         </div>
       </div>
@@ -78,147 +70,146 @@
 
     <!-- Section 2: Data We Collect -->
     <section id="data-we-collect">
-      <h2 id="data-we-collect">2. Donnees collectees</h2>
+      <h2 id="data-we-collect">{{ $t('docDocsPrivacypolicy.s2Heading') }}</h2>
       <p>
-        ClaudeNest collecte et traite les categories suivantes de donnees a caractere personnel,
-        chacune pour une finalite specifique et documentee.
+        {{ $t('docDocsPrivacypolicy.s2Intro') }}
       </p>
 
-      <h3 id="account-data">2.1 Donnees de compte</h3>
+      <h3 id="account-data">{{ $t('docDocsPrivacypolicy.s21Heading') }}</h3>
       <div class="data-table-wrapper">
         <table class="data-table">
           <thead>
             <tr>
-              <th>Donnee</th>
-              <th>Finalite</th>
-              <th>Conservation</th>
+              <th>{{ $t('docDocsPrivacypolicy.thData') }}</th>
+              <th>{{ $t('docDocsPrivacypolicy.thPurpose') }}</th>
+              <th>{{ $t('docDocsPrivacypolicy.thRetention') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td><code>email</code></td>
-              <td>Authentification, identification du compte, recuperation de mot de passe</td>
-              <td>Jusqu'a suppression du compte</td>
+              <td>{{ $t('docDocsPrivacypolicy.s21EmailPurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.untilAccountDeletion') }}</td>
             </tr>
             <tr>
               <td><code>name</code></td>
-              <td>Nom d'affichage dans l'interface et les fonctionnalites collaboratives</td>
-              <td>Jusqu'a suppression du compte</td>
+              <td>{{ $t('docDocsPrivacypolicy.s21NamePurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.untilAccountDeletion') }}</td>
             </tr>
             <tr>
               <td><code>password_hash</code></td>
-              <td>Authentification securisee (hache bcrypt, jamais stocke en clair)</td>
-              <td>Jusqu'a suppression du compte</td>
+              <td>{{ $t('docDocsPrivacypolicy.s21PasswordPurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.untilAccountDeletion') }}</td>
             </tr>
             <tr>
               <td><code>avatar_url</code></td>
-              <td>Affichage du profil (provient des fournisseurs OAuth le cas echeant)</td>
-              <td>Jusqu'a suppression du compte</td>
+              <td>{{ $t('docDocsPrivacypolicy.s21AvatarPurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.untilAccountDeletion') }}</td>
             </tr>
             <tr>
               <td><code>google_id</code> / <code>github_id</code></td>
-              <td>Liaison d'authentification OAuth</td>
-              <td>Jusqu'a suppression du compte ou deliaison OAuth</td>
+              <td>{{ $t('docDocsPrivacypolicy.s21OauthPurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.s21OauthRetention') }}</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <h3 id="machine-data">2.2 Donnees machine</h3>
+      <h3 id="machine-data">{{ $t('docDocsPrivacypolicy.s22Heading') }}</h3>
       <div class="data-table-wrapper">
         <table class="data-table">
           <thead>
             <tr>
-              <th>Donnee</th>
-              <th>Finalite</th>
-              <th>Conservation</th>
+              <th>{{ $t('docDocsPrivacypolicy.thData') }}</th>
+              <th>{{ $t('docDocsPrivacypolicy.thPurpose') }}</th>
+              <th>{{ $t('docDocsPrivacypolicy.thRetention') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td><code>hostname</code></td>
-              <td>Identification de la machine dans le tableau de bord</td>
-              <td>Jusqu'a suppression de la machine</td>
+              <td>{{ $t('docDocsPrivacypolicy.s22HostnamePurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.untilMachineDeletion') }}</td>
             </tr>
             <tr>
               <td><code>platform</code> / <code>arch</code></td>
-              <td>Detection de compatibilite (darwin, win32, linux)</td>
-              <td>Jusqu'a suppression de la machine</td>
+              <td>{{ $t('docDocsPrivacypolicy.s22PlatformPurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.untilMachineDeletion') }}</td>
             </tr>
             <tr>
               <td><code>agent_version</code></td>
-              <td>Suivi de version pour les notifications de mise a jour</td>
-              <td>Jusqu'a suppression de la machine</td>
+              <td>{{ $t('docDocsPrivacypolicy.s22AgentVersionPurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.untilMachineDeletion') }}</td>
             </tr>
             <tr>
               <td><code>node_version</code> / <code>claude_version</code></td>
-              <td>Verification de compatibilite d'execution</td>
-              <td>Jusqu'a suppression de la machine</td>
+              <td>{{ $t('docDocsPrivacypolicy.s22NodeVersionPurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.untilMachineDeletion') }}</td>
             </tr>
             <tr>
               <td><code>claude_path</code></td>
-              <td>Localisation du binaire Claude Code sur la machine</td>
-              <td>Jusqu'a suppression de la machine</td>
+              <td>{{ $t('docDocsPrivacypolicy.s22ClaudePathPurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.untilMachineDeletion') }}</td>
             </tr>
             <tr>
               <td><code>token_hash</code></td>
-              <td>Authentification machine (hache, jamais stocke en clair)</td>
-              <td>Jusqu'a suppression de la machine ou regeneration du token</td>
+              <td>{{ $t('docDocsPrivacypolicy.s22TokenHashPurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.s22TokenHashRetention') }}</td>
             </tr>
             <tr>
               <td><code>capabilities</code></td>
-              <td>Detection des fonctionnalites (JSON)</td>
-              <td>Jusqu'a suppression de la machine</td>
+              <td>{{ $t('docDocsPrivacypolicy.s22CapabilitiesPurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.untilMachineDeletion') }}</td>
             </tr>
             <tr>
               <td><code>last_seen_at</code> / <code>connected_at</code></td>
-              <td>Etat de connexion et surveillance de la disponibilite</td>
-              <td>Jusqu'a suppression de la machine</td>
+              <td>{{ $t('docDocsPrivacypolicy.s22LastSeenPurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.untilMachineDeletion') }}</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <h3 id="session-data">2.3 Donnees de session</h3>
+      <h3 id="session-data">{{ $t('docDocsPrivacypolicy.s23Heading') }}</h3>
       <div class="data-table-wrapper">
         <table class="data-table">
           <thead>
             <tr>
-              <th>Donnee</th>
-              <th>Finalite</th>
-              <th>Conservation</th>
+              <th>{{ $t('docDocsPrivacypolicy.thData') }}</th>
+              <th>{{ $t('docDocsPrivacypolicy.thPurpose') }}</th>
+              <th>{{ $t('docDocsPrivacypolicy.thRetention') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td><code>terminal_output</code></td>
-              <td>Affichage temps reel et journaux de session pour consultation</td>
-              <td>Configurable (par defaut : 90 jours)</td>
+              <td>{{ $t('docDocsPrivacypolicy.s23TerminalPurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.configurable90') }}</td>
             </tr>
             <tr>
               <td><code>commands / input</code></td>
-              <td>Relais d'entrees entre le client et l'agent</td>
-              <td>Transitoire (WebSocket uniquement) ou journalise</td>
+              <td>{{ $t('docDocsPrivacypolicy.s23CommandsPurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.s23CommandsRetention') }}</td>
             </tr>
             <tr>
               <td><code>project_path</code></td>
-              <td>Identification du repertoire de travail</td>
-              <td>Duree de la session</td>
+              <td>{{ $t('docDocsPrivacypolicy.s23ProjectPathPurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.sessionDuration') }}</td>
             </tr>
             <tr>
               <td><code>initial_prompt</code></td>
-              <td>Instruction de demarrage de session</td>
-              <td>Duree de la session + journaux</td>
+              <td>{{ $t('docDocsPrivacypolicy.s23InitialPromptPurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.sessionDurationLogs') }}</td>
             </tr>
             <tr>
               <td><code>pid</code> / <code>exit_code</code></td>
-              <td>Gestion du cycle de vie du processus</td>
-              <td>Duree de la session + journaux</td>
+              <td>{{ $t('docDocsPrivacypolicy.s23PidPurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.sessionDurationLogs') }}</td>
             </tr>
             <tr>
               <td><code>pty_size</code></td>
-              <td>Dimensions du terminal pour un affichage correct</td>
-              <td>Duree de la session</td>
+              <td>{{ $t('docDocsPrivacypolicy.s23PtySizePurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.sessionDuration') }}</td>
             </tr>
           </tbody>
         </table>
@@ -231,171 +222,160 @@
           </svg>
         </div>
         <div>
-          <h4>Les sorties terminal peuvent contenir des donnees sensibles</h4>
+          <h4>{{ $t('docDocsPrivacypolicy.s2WarningTitle') }}</h4>
           <p>
-            Les sessions terminal peuvent involontairement capturer des informations sensibles
-            telles que des cles API, des identifiants ou des donnees personnelles presentes dans
-            votre code source. ClaudeNest ne filtre ni ne masque les sorties de session.
-            Les operateurs doivent mettre en place des politiques de traitement des donnees
-            appropriees et en informer leurs utilisateurs.
+            {{ $t('docDocsPrivacypolicy.s2WarningPara') }}
           </p>
         </div>
       </div>
 
-      <h3 id="context-data">2.4 Donnees de contexte (RAG)</h3>
+      <h3 id="context-data">{{ $t('docDocsPrivacypolicy.s24Heading') }}</h3>
       <div class="data-table-wrapper">
         <table class="data-table">
           <thead>
             <tr>
-              <th>Donnee</th>
-              <th>Finalite</th>
-              <th>Conservation</th>
+              <th>{{ $t('docDocsPrivacypolicy.thData') }}</th>
+              <th>{{ $t('docDocsPrivacypolicy.thPurpose') }}</th>
+              <th>{{ $t('docDocsPrivacypolicy.thRetention') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td><code>content</code> (fragments texte)</td>
-              <td>Contexte de projet partage pour la collaboration multi-agent</td>
-              <td>Expiration configurable (par defaut : 30 jours)</td>
+              <td><code>content</code> {{ $t('docDocsPrivacypolicy.s24ContentSuffix') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.s24ContentPurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.s24ContentRetention') }}</td>
             </tr>
             <tr>
-              <td><code>embedding</code> (vecteur 384d)</td>
-              <td>Recherche par similarite semantique via pgvector (distance cosinus)</td>
-              <td>Identique au fragment parent</td>
+              <td><code>embedding</code> {{ $t('docDocsPrivacypolicy.s24EmbeddingSuffix') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.s24EmbeddingPurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.sameAsParentChunk') }}</td>
             </tr>
             <tr>
               <td><code>importance_score</code></td>
-              <td>Priorisation de la recuperation de contexte</td>
-              <td>Identique au fragment parent</td>
+              <td>{{ $t('docDocsPrivacypolicy.s24ImportancePurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.sameAsParentChunk') }}</td>
             </tr>
             <tr>
-              <td><code>files</code> (references)</td>
-              <td>Liaison du contexte aux fichiers sources</td>
-              <td>Identique au fragment parent</td>
+              <td><code>files</code> {{ $t('docDocsPrivacypolicy.s24FilesSuffix') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.s24FilesPurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.sameAsParentChunk') }}</td>
             </tr>
           </tbody>
         </table>
       </div>
       <p>
-        Les embeddings sont generes localement via <strong>Ollama</strong> avec le modele
-        <code>bge-small-en-v1.5</code>. Aucune donnee n'est envoyee a des services d'IA
-        externes pour la generation des embeddings.
+        {{ $t('docDocsPrivacypolicy.s24EmbeddingsPara1') }} <strong>Ollama</strong> {{ $t('docDocsPrivacypolicy.s24EmbeddingsPara2') }}
+        <code>bge-small-en-v1.5</code>. {{ $t('docDocsPrivacypolicy.s24EmbeddingsPara3') }}
       </p>
 
-      <h3 id="usage-and-cost-data">2.5 Donnees d'utilisation et de couts</h3>
+      <h3 id="usage-and-cost-data">{{ $t('docDocsPrivacypolicy.s25Heading') }}</h3>
       <div class="data-table-wrapper">
         <table class="data-table">
           <thead>
             <tr>
-              <th>Donnee</th>
-              <th>Finalite</th>
-              <th>Conservation</th>
+              <th>{{ $t('docDocsPrivacypolicy.thData') }}</th>
+              <th>{{ $t('docDocsPrivacypolicy.thPurpose') }}</th>
+              <th>{{ $t('docDocsPrivacypolicy.thRetention') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td><code>total_tokens</code></td>
-              <td>Suivi de la consommation de tokens par session et par projet</td>
-              <td>Indefinie (metriques agregees)</td>
+              <td>{{ $t('docDocsPrivacypolicy.s25TotalTokensPurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.indefiniteAggregated') }}</td>
             </tr>
             <tr>
               <td><code>total_cost</code></td>
-              <td>Estimation des couts et suivi budgetaire</td>
-              <td>Indefinie (metriques agregees)</td>
+              <td>{{ $t('docDocsPrivacypolicy.s25TotalCostPurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.indefiniteAggregated') }}</td>
             </tr>
             <tr>
               <td><code>context_tokens</code></td>
-              <td>Utilisation de la fenetre de contexte par instance Claude</td>
-              <td>Duree du cycle de vie de l'instance</td>
+              <td>{{ $t('docDocsPrivacypolicy.s25ContextTokensPurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.instanceLifecycle') }}</td>
             </tr>
             <tr>
               <td><code>tasks_completed</code></td>
-              <td>Metriques de productivite et performance de l'instance</td>
-              <td>Duree du cycle de vie de l'instance</td>
+              <td>{{ $t('docDocsPrivacypolicy.s25TasksCompletedPurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.instanceLifecycle') }}</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <h3 id="activity-logs">2.6 Journaux d'activite</h3>
+      <h3 id="activity-logs">{{ $t('docDocsPrivacypolicy.s26Heading') }}</h3>
       <p>
-        ClaudeNest enregistre un journal d'activite pour chaque projet partage, incluant l'identifiant
-        d'instance, le type d'evenement et les details de l'evenement (stockes en JSONB). Ces journaux
-        sont utilises pour les pistes d'audit, le debogage et la visibilite de la collaboration.
+        {{ $t('docDocsPrivacypolicy.s26Para') }}
       </p>
     </section>
 
     <!-- Section 3: Legal Basis -->
     <section id="legal-basis">
-      <h2 id="legal-basis">3. Bases legales du traitement (Article 6 RGPD)</h2>
+      <h2 id="legal-basis">{{ $t('docDocsPrivacypolicy.s3Heading') }}</h2>
       <p>
-        QR Communication traite les donnees personnelles sur les bases legales suivantes,
-        definies a l'article 6(1) du Reglement General sur la Protection des Donnees :
+        {{ $t('docDocsPrivacypolicy.s3Intro') }}
       </p>
 
       <div class="legal-basis-grid">
         <div class="legal-basis-card">
           <div class="basis-header">
             <span class="basis-label">Article 6(1)(b)</span>
-            <h4>Necessite contractuelle</h4>
+            <h4>{{ $t('docDocsPrivacypolicy.s3ContractualTitle') }}</h4>
           </div>
           <p>
-            Le traitement des donnees de compte, des donnees machine et des donnees de session
-            est necessaire a l'execution du contrat entre vous et QR Communication (fourniture
-            de la plateforme ClaudeNest).
+            {{ $t('docDocsPrivacypolicy.s3ContractualPara') }}
           </p>
           <ul>
-            <li>Creation de compte et authentification</li>
-            <li>Enregistrement et gestion des machines</li>
-            <li>Creation de sessions et relais terminal</li>
-            <li>Coordination multi-agent (taches, verrouillages de fichiers)</li>
+            <li>{{ $t('docDocsPrivacypolicy.s3ContractualItem1') }}</li>
+            <li>{{ $t('docDocsPrivacypolicy.s3ContractualItem2') }}</li>
+            <li>{{ $t('docDocsPrivacypolicy.s3ContractualItem3') }}</li>
+            <li>{{ $t('docDocsPrivacypolicy.s3ContractualItem4') }}</li>
           </ul>
         </div>
 
         <div class="legal-basis-card">
           <div class="basis-header">
             <span class="basis-label">Article 6(1)(f)</span>
-            <h4>Interet legitime</h4>
+            <h4>{{ $t('docDocsPrivacypolicy.s3LegitimateTitle') }}</h4>
           </div>
           <p>
-            Le traitement des donnees d'utilisation, des journaux d'activite et des metriques
-            de performance est fonde sur notre interet legitime a maintenir et ameliorer la plateforme.
+            {{ $t('docDocsPrivacypolicy.s3LegitimatePara') }}
           </p>
           <ul>
-            <li>Suivi des tokens et des couts pour la transparence</li>
-            <li>Journaux d'activite a des fins de securite et d'audit</li>
-            <li>Surveillance des performances et optimisation</li>
-            <li>Prevention de la fraude et detection des abus</li>
+            <li>{{ $t('docDocsPrivacypolicy.s3LegitimateItem1') }}</li>
+            <li>{{ $t('docDocsPrivacypolicy.s3LegitimateItem2') }}</li>
+            <li>{{ $t('docDocsPrivacypolicy.s3LegitimateItem3') }}</li>
+            <li>{{ $t('docDocsPrivacypolicy.s3LegitimateItem4') }}</li>
           </ul>
         </div>
 
         <div class="legal-basis-card">
           <div class="basis-header">
             <span class="basis-label">Article 6(1)(a)</span>
-            <h4>Consentement</h4>
+            <h4>{{ $t('docDocsPrivacypolicy.s3ConsentTitle') }}</h4>
           </div>
           <p>
-            Le cas echeant, certaines activites de traitement requierent votre consentement explicite :
+            {{ $t('docDocsPrivacypolicy.s3ConsentPara') }}
           </p>
           <ul>
-            <li>Liaison OAuth avec des fournisseurs tiers (Google, GitHub)</li>
-            <li>Analytiques et telemetrie d'utilisation optionnelles (si activees)</li>
-            <li>Notifications push sur les appareils mobiles</li>
+            <li>{{ $t('docDocsPrivacypolicy.s3ConsentItem1') }}</li>
+            <li>{{ $t('docDocsPrivacypolicy.s3ConsentItem2') }}</li>
+            <li>{{ $t('docDocsPrivacypolicy.s3ConsentItem3') }}</li>
           </ul>
         </div>
 
         <div class="legal-basis-card">
           <div class="basis-header">
             <span class="basis-label">Article 6(1)(c)</span>
-            <h4>Obligation legale</h4>
+            <h4>{{ $t('docDocsPrivacypolicy.s3LegalObligationTitle') }}</h4>
           </div>
           <p>
-            Certaines donnees peuvent etre conservees pour se conformer a des obligations legales :
+            {{ $t('docDocsPrivacypolicy.s3LegalObligationPara') }}
           </p>
           <ul>
-            <li>Respect des exigences legales de conservation des donnees</li>
-            <li>Reponse aux procedures judiciaires ou aux demandes gouvernementales</li>
-            <li>Documents fiscaux et comptables (le cas echeant)</li>
+            <li>{{ $t('docDocsPrivacypolicy.s3LegalObligationItem1') }}</li>
+            <li>{{ $t('docDocsPrivacypolicy.s3LegalObligationItem2') }}</li>
+            <li>{{ $t('docDocsPrivacypolicy.s3LegalObligationItem3') }}</li>
           </ul>
         </div>
       </div>
@@ -403,8 +383,8 @@
 
     <!-- Section 4: How We Use Data -->
     <section id="how-we-use">
-      <h2 id="how-we-use">4. Finalites du traitement</h2>
-      <p>Vos donnees personnelles sont utilisees exclusivement pour les finalites suivantes :</p>
+      <h2 id="how-we-use">{{ $t('docDocsPrivacypolicy.s4Heading') }}</h2>
+      <p>{{ $t('docDocsPrivacypolicy.s4Intro') }}</p>
 
       <div class="use-cases">
         <div class="use-case">
@@ -414,8 +394,8 @@
             </svg>
           </div>
           <div>
-            <h4>Authentification et controle d'acces</h4>
-            <p>Verification de votre identite, gestion des sessions et application des politiques d'autorisation.</p>
+            <h4>{{ $t('docDocsPrivacypolicy.s4Use1Title') }}</h4>
+            <p>{{ $t('docDocsPrivacypolicy.s4Use1Para') }}</p>
           </div>
         </div>
 
@@ -426,8 +406,8 @@
             </svg>
           </div>
           <div>
-            <h4>Gestion des machines distantes</h4>
-            <p>Connexion a vos machines enregistrees, gestion des sessions PTY et relais d'entrees/sorties terminal.</p>
+            <h4>{{ $t('docDocsPrivacypolicy.s4Use2Title') }}</h4>
+            <p>{{ $t('docDocsPrivacypolicy.s4Use2Para') }}</p>
           </div>
         </div>
 
@@ -438,8 +418,8 @@
             </svg>
           </div>
           <div>
-            <h4>Collaboration multi-agent</h4>
-            <p>Coordination des taches, gestion des verrouillages de fichiers et partage de contexte entre instances Claude.</p>
+            <h4>{{ $t('docDocsPrivacypolicy.s4Use3Title') }}</h4>
+            <p>{{ $t('docDocsPrivacypolicy.s4Use3Para') }}</p>
           </div>
         </div>
 
@@ -450,8 +430,8 @@
             </svg>
           </div>
           <div>
-            <h4>Contexte RAG (Generation Augmentee par la Recuperation)</h4>
-            <p>Generation locale d'embeddings et recherche semantique pour fournir un contexte pertinent aux instances Claude.</p>
+            <h4>{{ $t('docDocsPrivacypolicy.s4Use4Title') }}</h4>
+            <p>{{ $t('docDocsPrivacypolicy.s4Use4Para') }}</p>
           </div>
         </div>
 
@@ -462,8 +442,8 @@
             </svg>
           </div>
           <div>
-            <h4>Suivi d'utilisation et des couts</h4>
-            <p>Suivi de la consommation de tokens et estimation des couts pour la transparence et la gestion budgetaire.</p>
+            <h4>{{ $t('docDocsPrivacypolicy.s4Use5Title') }}</h4>
+            <p>{{ $t('docDocsPrivacypolicy.s4Use5Para') }}</p>
           </div>
         </div>
 
@@ -474,282 +454,251 @@
             </svg>
           </div>
           <div>
-            <h4>Amelioration de la plateforme</h4>
-            <p>Analyse de donnees d'utilisation agregees et anonymisees pour ameliorer les fonctionnalites et les performances.</p>
+            <h4>{{ $t('docDocsPrivacypolicy.s4Use6Title') }}</h4>
+            <p>{{ $t('docDocsPrivacypolicy.s4Use6Para') }}</p>
           </div>
         </div>
       </div>
 
       <p>
-        ClaudeNest n'utilise <strong>pas</strong> vos donnees personnelles a des fins publicitaires,
-        de profilage, de prise de decision automatisee ou pour toute finalite etrangere aux
-        fonctionnalites principales de la plateforme.
+        {{ $t('docDocsPrivacypolicy.s4NotUsedPara1') }} <strong>{{ $t('docDocsPrivacypolicy.s4NotUsedEmphasis') }}</strong> {{ $t('docDocsPrivacypolicy.s4NotUsedPara2') }}
       </p>
     </section>
 
     <!-- Section 5: Data Retention -->
     <section id="data-retention">
-      <h2 id="data-retention">5. Durees de conservation</h2>
+      <h2 id="data-retention">{{ $t('docDocsPrivacypolicy.s5Heading') }}</h2>
       <p>
-        Nous conservons les donnees personnelles uniquement pendant la duree necessaire aux
-        finalites decrites dans la presente politique. Les durees de conservation suivantes
-        s'appliquent :
+        {{ $t('docDocsPrivacypolicy.s5Intro') }}
       </p>
 
       <div class="data-table-wrapper">
         <table class="data-table">
           <thead>
             <tr>
-              <th>Categorie de donnees</th>
-              <th>Duree de conservation</th>
-              <th>Evenement declencheur de suppression</th>
+              <th>{{ $t('docDocsPrivacypolicy.s5ThCategory') }}</th>
+              <th>{{ $t('docDocsPrivacypolicy.s5ThRetention') }}</th>
+              <th>{{ $t('docDocsPrivacypolicy.s5ThTrigger') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td>Donnees de compte</td>
-              <td>Jusqu'a suppression du compte</td>
-              <td>L'utilisateur demande la suppression ou le compte est resilie</td>
+              <td>{{ $t('docDocsPrivacypolicy.s5RowAccountCat') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.untilAccountDeletion') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.s5RowAccountTrigger') }}</td>
             </tr>
             <tr>
-              <td>Donnees machine</td>
-              <td>Jusqu'a suppression de la machine</td>
-              <td>L'utilisateur supprime la machine de la plateforme</td>
+              <td>{{ $t('docDocsPrivacypolicy.s5RowMachineCat') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.untilMachineDeletion') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.s5RowMachineTrigger') }}</td>
             </tr>
             <tr>
-              <td>Donnees de session</td>
-              <td>Configurable (par defaut : 90 jours)</td>
-              <td>Expiration automatique ou suppression manuelle</td>
+              <td>{{ $t('docDocsPrivacypolicy.s5RowSessionCat') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.configurable90') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.s5RowSessionTrigger') }}</td>
             </tr>
             <tr>
-              <td>Journaux de session</td>
-              <td>Configurable (par defaut : 90 jours)</td>
-              <td>Tache de nettoyage automatique</td>
+              <td>{{ $t('docDocsPrivacypolicy.s5RowSessionLogsCat') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.configurable90') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.s5AutoCleanupTask') }}</td>
             </tr>
             <tr>
-              <td>Fragments de contexte</td>
-              <td>Configurable (par defaut : 30 jours)</td>
-              <td>Expiration automatique via <code>expires_at</code></td>
+              <td>{{ $t('docDocsPrivacypolicy.s5RowContextChunksCat') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.configurable30') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.s5RowContextChunksTriggerPre') }} <code>expires_at</code></td>
             </tr>
             <tr>
-              <td>Embeddings (pgvector)</td>
-              <td>Identique au fragment parent</td>
-              <td>Suppression en cascade avec le fragment de contexte</td>
+              <td>{{ $t('docDocsPrivacypolicy.s5RowEmbeddingsCat') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.sameAsParentChunk') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.s5RowEmbeddingsTrigger') }}</td>
             </tr>
             <tr>
-              <td>Journaux d'activite</td>
-              <td>Configurable (par defaut : 180 jours)</td>
-              <td>Tache de nettoyage automatique</td>
+              <td>{{ $t('docDocsPrivacypolicy.s5RowActivityLogsCat') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.configurable180') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.s5AutoCleanupTask') }}</td>
             </tr>
             <tr>
-              <td>Verrouillages de fichiers</td>
-              <td>Jusqu'a liberation ou expiration</td>
-              <td>Expiration automatique (par defaut : 30 minutes)</td>
+              <td>{{ $t('docDocsPrivacypolicy.s5RowFileLocksCat') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.s5RowFileLocksRetention') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.s5RowFileLocksTrigger') }}</td>
             </tr>
             <tr>
-              <td>Metriques d'utilisation</td>
-              <td>Indefinie (agregees)</td>
-              <td>Suppression du compte (donnees specifiques a l'utilisateur)</td>
+              <td>{{ $t('docDocsPrivacypolicy.s5RowUsageMetricsCat') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.s5RowUsageMetricsRetention') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.s5RowUsageMetricsTrigger') }}</td>
             </tr>
           </tbody>
         </table>
       </div>
 
       <p>
-        Les operateurs d'instances peuvent configurer les durees de conservation via le fichier
-        de configuration <code>claudenest.php</code> et les commandes de nettoyage planifiees.
+        {{ $t('docDocsPrivacypolicy.s5OutroPre') }} <code>claudenest.php</code> {{ $t('docDocsPrivacypolicy.s5OutroPost') }}
       </p>
     </section>
 
     <!-- Section 6: Data Sharing -->
     <section id="data-sharing">
-      <h2 id="data-sharing">6. Partage et sous-traitants</h2>
+      <h2 id="data-sharing">{{ $t('docDocsPrivacypolicy.s6Heading') }}</h2>
       <p>
-        ClaudeNest est concu avec un accent fort sur la localite des donnees. Par conception,
-        la plateforme minimise les transferts de donnees externes.
+        {{ $t('docDocsPrivacypolicy.s6Intro') }}
       </p>
 
-      <h3 id="infrastructure-components">6.1 Composants d'infrastructure</h3>
+      <h3 id="infrastructure-components">{{ $t('docDocsPrivacypolicy.s61Heading') }}</h3>
       <div class="third-party-grid">
         <div class="third-party-card">
           <div class="tp-header">
-            <span class="tp-badge local">Local</span>
+            <span class="tp-badge local">{{ $t('docDocsPrivacypolicy.badgeLocal') }}</span>
             <h4>Ollama (AI Engine)</h4>
           </div>
           <p>
-            Embedding generation (<code>bge-small-en-v1.5</code>) and summarization (<code>mistral:7b</code>)
-            are performed entirely on-premise via Ollama. <strong>No data is transmitted to
-            external AI services.</strong>
+            {{ $t('docDocsPrivacypolicy.s61OllamaPara1') }} (<code>bge-small-en-v1.5</code>) {{ $t('docDocsPrivacypolicy.s61OllamaPara2') }} (<code>mistral:7b</code>)
+            {{ $t('docDocsPrivacypolicy.s61OllamaPara3') }} <strong>{{ $t('docDocsPrivacypolicy.s61OllamaEmphasis') }}</strong>
           </p>
         </div>
 
         <div class="third-party-card">
           <div class="tp-header">
-            <span class="tp-badge local">Local</span>
+            <span class="tp-badge local">{{ $t('docDocsPrivacypolicy.badgeLocal') }}</span>
             <h4>PostgreSQL + pgvector</h4>
           </div>
           <p>
-            All persistent data, including vector embeddings, is stored in your local or
-            self-managed PostgreSQL instance. No cloud database services are required.
+            {{ $t('docDocsPrivacypolicy.s61PostgresPara') }}
           </p>
         </div>
 
         <div class="third-party-card">
           <div class="tp-header">
-            <span class="tp-badge local">Local</span>
+            <span class="tp-badge local">{{ $t('docDocsPrivacypolicy.badgeLocal') }}</span>
             <h4>Redis</h4>
           </div>
           <p>
-            Used for caching, session management, queue processing, and WebSocket state.
-            All data remains in-memory on your local or self-managed Redis instance.
+            {{ $t('docDocsPrivacypolicy.s61RedisPara') }}
           </p>
         </div>
 
         <div class="third-party-card">
           <div class="tp-header">
-            <span class="tp-badge local">Local</span>
+            <span class="tp-badge local">{{ $t('docDocsPrivacypolicy.badgeLocal') }}</span>
             <h4>Laravel Reverb (WebSocket)</h4>
           </div>
           <p>
-            Real-time communication is handled by Laravel Reverb, a self-hosted WebSocket
-            server. No third-party WebSocket services (e.g., Pusher, Ably) are used.
+            {{ $t('docDocsPrivacypolicy.s61ReverbPara') }}
           </p>
         </div>
       </div>
 
-      <h3 id="optional-external-services">6.2 Services externes optionnels</h3>
+      <h3 id="optional-external-services">{{ $t('docDocsPrivacypolicy.s62Heading') }}</h3>
       <div class="third-party-grid">
         <div class="third-party-card">
           <div class="tp-header">
-            <span class="tp-badge external">External</span>
+            <span class="tp-badge external">{{ $t('docDocsPrivacypolicy.badgeExternal') }}</span>
             <h4>Google OAuth</h4>
           </div>
           <p>
-            If configured, Google OAuth is used for authentication. Google receives the
-            standard OAuth flow data (authorization code, redirect URI). Only the user's
-            email, name, and avatar URL are retrieved.
+            {{ $t('docDocsPrivacypolicy.s62GooglePara') }}
           </p>
         </div>
 
         <div class="third-party-card">
           <div class="tp-header">
-            <span class="tp-badge external">External</span>
+            <span class="tp-badge external">{{ $t('docDocsPrivacypolicy.badgeExternal') }}</span>
             <h4>GitHub OAuth</h4>
           </div>
           <p>
-            If configured, GitHub OAuth is used for authentication. GitHub receives the
-            standard OAuth flow data. Only the user's email, name, and avatar URL are retrieved.
+            {{ $t('docDocsPrivacypolicy.s62GithubPara') }}
           </p>
         </div>
       </div>
 
-      <h3 id="no-data-sales">6.3 Aucune vente de donnees</h3>
+      <h3 id="no-data-sales">{{ $t('docDocsPrivacypolicy.s63Heading') }}</h3>
       <p>
-        ClaudeNest ne vend, ne loue, ne cede et n'echange <strong>aucune</strong> donnee personnelle
-        a quelque tiers que ce soit, pour quelque finalite que ce soit. Nous ne pratiquons
-        pas le courtage de donnees.
+        {{ $t('docDocsPrivacypolicy.s63Para1') }} <strong>{{ $t('docDocsPrivacypolicy.s63Emphasis') }}</strong> {{ $t('docDocsPrivacypolicy.s63Para2') }}
       </p>
     </section>
 
     <!-- Section 7: Your Rights -->
     <section id="your-rights">
-      <h2 id="your-rights">7. Vos droits au titre du RGPD</h2>
+      <h2 id="your-rights">{{ $t('docDocsPrivacypolicy.s7Heading') }}</h2>
       <p>
-        En vertu du Reglement General sur la Protection des Donnees et de la loi Informatique
-        et Libertes, vous disposez des droits suivants concernant vos donnees personnelles.
-        Ces droits peuvent etre exerces en contactant le Delegue a la Protection des Donnees (DPO).
+        {{ $t('docDocsPrivacypolicy.s7Intro') }}
       </p>
 
       <div class="rights-grid">
         <div class="right-card">
           <div class="right-header">
             <span class="right-article">Art. 15</span>
-            <h4>Droit d'acces</h4>
+            <h4>{{ $t('docDocsPrivacypolicy.s7AccessTitle') }}</h4>
           </div>
           <p>
-            Vous avez le droit d'obtenir la confirmation que vos donnees personnelles sont traitees,
-            et de recevoir une copie de ces donnees dans un format structure et couramment utilise.
+            {{ $t('docDocsPrivacypolicy.s7AccessPara') }}
           </p>
           <div class="right-how">
-            <strong>Comment exercer ce droit :</strong> Demandez un export de donnees via les
-            parametres de votre compte ou contactez le DPO.
+            <strong>{{ $t('docDocsPrivacypolicy.s7HowToExercise') }}</strong> {{ $t('docDocsPrivacypolicy.s7AccessHow') }}
           </div>
         </div>
 
         <div class="right-card">
           <div class="right-header">
             <span class="right-article">Art. 16</span>
-            <h4>Droit de rectification</h4>
+            <h4>{{ $t('docDocsPrivacypolicy.s7RectificationTitle') }}</h4>
           </div>
           <p>
-            Vous avez le droit de demander la correction de donnees personnelles inexactes et de
-            faire completer des donnees incompletes.
+            {{ $t('docDocsPrivacypolicy.s7RectificationPara') }}
           </p>
           <div class="right-how">
-            <strong>Comment exercer ce droit :</strong> Mettez a jour votre profil dans les parametres
-            du compte, ou contactez le DPO pour les donnees que vous ne pouvez pas modifier directement.
+            <strong>{{ $t('docDocsPrivacypolicy.s7HowToExercise') }}</strong> {{ $t('docDocsPrivacypolicy.s7RectificationHow') }}
           </div>
         </div>
 
         <div class="right-card">
           <div class="right-header">
             <span class="right-article">Art. 17</span>
-            <h4>Droit a l'effacement (droit a l'oubli)</h4>
+            <h4>{{ $t('docDocsPrivacypolicy.s7ErasureTitle') }}</h4>
           </div>
           <p>
-            Vous avez le droit de demander la suppression de vos donnees personnelles lorsqu'elles
-            ne sont plus necessaires aux finalites pour lesquelles elles ont ete collectees, ou
-            lorsque vous retirez votre consentement.
+            {{ $t('docDocsPrivacypolicy.s7ErasurePara') }}
           </p>
           <div class="right-how">
-            <strong>Comment exercer ce droit :</strong> Supprimez votre compte via les parametres
-            (suppression en cascade de toutes les donnees associees), ou contactez le DPO.
+            <strong>{{ $t('docDocsPrivacypolicy.s7HowToExercise') }}</strong> {{ $t('docDocsPrivacypolicy.s7ErasureHow') }}
           </div>
         </div>
 
         <div class="right-card">
           <div class="right-header">
             <span class="right-article">Art. 18</span>
-            <h4>Droit a la limitation du traitement</h4>
+            <h4>{{ $t('docDocsPrivacypolicy.s7RestrictionTitle') }}</h4>
           </div>
           <p>
-            Vous avez le droit de demander la limitation du traitement de vos donnees dans certaines
-            circonstances, par exemple lorsque vous contestez l'exactitude des donnees.
+            {{ $t('docDocsPrivacypolicy.s7RestrictionPara') }}
           </p>
           <div class="right-how">
-            <strong>Comment exercer ce droit :</strong> Contactez le DPO avec votre demande specifique de limitation.
+            <strong>{{ $t('docDocsPrivacypolicy.s7HowToExercise') }}</strong> {{ $t('docDocsPrivacypolicy.s7RestrictionHow') }}
           </div>
         </div>
 
         <div class="right-card">
           <div class="right-header">
             <span class="right-article">Art. 20</span>
-            <h4>Droit a la portabilite</h4>
+            <h4>{{ $t('docDocsPrivacypolicy.s7PortabilityTitle') }}</h4>
           </div>
           <p>
-            Vous avez le droit de recevoir vos donnees personnelles dans un format structure,
-            couramment utilise et lisible par machine (JSON), et de les transmettre a un autre
-            responsable de traitement.
+            {{ $t('docDocsPrivacypolicy.s7PortabilityPara') }}
           </p>
           <div class="right-how">
-            <strong>Comment exercer ce droit :</strong> Utilisez la fonctionnalite d'export de donnees
-            dans les parametres de votre compte, qui fournit une archive JSON de toutes vos donnees.
+            <strong>{{ $t('docDocsPrivacypolicy.s7HowToExercise') }}</strong> {{ $t('docDocsPrivacypolicy.s7PortabilityHow') }}
           </div>
         </div>
 
         <div class="right-card">
           <div class="right-header">
             <span class="right-article">Art. 21</span>
-            <h4>Droit d'opposition</h4>
+            <h4>{{ $t('docDocsPrivacypolicy.s7ObjectionTitle') }}</h4>
           </div>
           <p>
-            Vous avez le droit de vous opposer au traitement de vos donnees personnelles fonde
-            sur l'interet legitime, y compris le profilage. Vous pouvez egalement vous opposer
-            a tout moment au traitement a des fins de prospection commerciale.
+            {{ $t('docDocsPrivacypolicy.s7ObjectionPara') }}
           </p>
           <div class="right-how">
-            <strong>Comment exercer ce droit :</strong> Contactez le DPO. Le traitement cessera sauf
-            si des motifs legitimes imperieux prevalent sur vos interets.
+            <strong>{{ $t('docDocsPrivacypolicy.s7HowToExercise') }}</strong> {{ $t('docDocsPrivacypolicy.s7ObjectionHow') }}
           </div>
         </div>
       </div>
@@ -761,148 +710,139 @@
           </svg>
         </div>
         <div>
-          <h4>Droit d'introduire une reclamation</h4>
+          <h4>{{ $t('docDocsPrivacypolicy.s7ComplaintTitle') }}</h4>
           <p>
-            Si vous estimez que vos droits en matiere de protection des donnees ont ete violes,
-            vous avez le droit d'introduire une reclamation aupres de l'autorite de controle
-            competente. En France, il s'agit de la
+            {{ $t('docDocsPrivacypolicy.s7ComplaintPre') }}
             <a href="https://www.cnil.fr" target="_blank" rel="noopener">CNIL</a>
-            (Commission Nationale de l'Informatique et des Libertes), 3 place de Fontenoy,
-            TSA 80715, 75334 Paris Cedex 07.
+            {{ $t('docDocsPrivacypolicy.s7ComplaintPost') }}
           </p>
         </div>
       </div>
 
       <p>
-        Nous repondrons a toutes les demandes legitimes dans un delai de <strong>30 jours</strong>.
-        Dans les cas complexes, ce delai peut etre prolonge de 60 jours supplementaires,
-        avec notification prealable.
+        {{ $t('docDocsPrivacypolicy.s7ResponsePre') }} <strong>{{ $t('docDocsPrivacypolicy.s7Response30Days') }}</strong>. {{ $t('docDocsPrivacypolicy.s7ResponsePost') }}
       </p>
     </section>
 
     <!-- Section 8: Cookies -->
     <section id="cookies">
-      <h2 id="cookies">8. Cookies et traceurs</h2>
+      <h2 id="cookies">{{ $t('docDocsPrivacypolicy.s8Heading') }}</h2>
       <p>
-        ClaudeNest utilise un nombre minimal de cookies et n'emploie aucune technologie de suivi tiers.
-        Pour plus de details, consultez notre <router-link to="/docs/cookies">Politique relative aux cookies</router-link>.
+        {{ $t('docDocsPrivacypolicy.s8IntroPre') }} <router-link to="/docs/cookies">{{ $t('docDocsPrivacypolicy.s8CookiePolicyLink') }}</router-link>.
       </p>
 
       <div class="data-table-wrapper">
         <table class="data-table">
           <thead>
             <tr>
-              <th>Cookie / Stockage</th>
-              <th>Type</th>
-              <th>Finalite</th>
-              <th>Duree</th>
+              <th>{{ $t('docDocsPrivacypolicy.s8ThCookie') }}</th>
+              <th>{{ $t('docDocsPrivacypolicy.s8ThType') }}</th>
+              <th>{{ $t('docDocsPrivacypolicy.thPurpose') }}</th>
+              <th>{{ $t('docDocsPrivacypolicy.s8ThDuration') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td><code>XSRF-TOKEN</code></td>
-              <td>Strictement necessaire</td>
-              <td>Protection CSRF pour les soumissions de formulaires</td>
-              <td>Session</td>
+              <td>{{ $t('docDocsPrivacypolicy.strictlyNecessary') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.s8XsrfPurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.s8DurationSession') }}</td>
             </tr>
             <tr>
               <td><code>laravel_session</code></td>
-              <td>Strictement necessaire</td>
-              <td>Identification de session cote serveur</td>
-              <td>2 heures</td>
+              <td>{{ $t('docDocsPrivacypolicy.strictlyNecessary') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.s8LaravelSessionPurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.s8Duration2h') }}</td>
             </tr>
             <tr>
               <td><code>localStorage: auth_token</code></td>
-              <td>Strictement necessaire</td>
-              <td>Jeton d'authentification API (Sanctum)</td>
-              <td>Jusqu'a la deconnexion</td>
+              <td>{{ $t('docDocsPrivacypolicy.strictlyNecessary') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.s8AuthTokenPurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.s8DurationUntilLogout') }}</td>
             </tr>
             <tr>
               <td><code>localStorage: theme</code></td>
-              <td>Fonctionnel</td>
-              <td>Preference de theme de l'utilisateur</td>
-              <td>Persistant</td>
+              <td>{{ $t('docDocsPrivacypolicy.s8TypeFunctional') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.s8ThemePurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.s8DurationPersistent') }}</td>
             </tr>
           </tbody>
         </table>
       </div>
 
       <p>
-        ClaudeNest n'utilise <strong>pas</strong> :
+        {{ $t('docDocsPrivacypolicy.s8NotUsedPre') }} <strong>{{ $t('docDocsPrivacypolicy.s8NotUsedEmphasis') }}</strong> :
       </p>
       <ul>
-        <li>Google Analytics ou tout autre service d'analyse tiers</li>
-        <li>De cookies publicitaires ou de pixels de suivi</li>
-        <li>De mecanismes de suivi inter-sites</li>
-        <li>De techniques d'empreinte digitale de navigateur</li>
+        <li>{{ $t('docDocsPrivacypolicy.s8NotUsedItem1') }}</li>
+        <li>{{ $t('docDocsPrivacypolicy.s8NotUsedItem2') }}</li>
+        <li>{{ $t('docDocsPrivacypolicy.s8NotUsedItem3') }}</li>
+        <li>{{ $t('docDocsPrivacypolicy.s8NotUsedItem4') }}</li>
       </ul>
 
       <p>
-        Tous les cookies utilises etant strictement necessaires au fonctionnement de la
-        plateforme, aucune banniere de consentement aux cookies n'est requise conformement
-        au RGPD et aux recommandations de la CNIL.
+        {{ $t('docDocsPrivacypolicy.s8Outro') }}
       </p>
     </section>
 
     <!-- Section 9: Data Security -->
     <section id="data-security">
-      <h2 id="data-security">9. Mesures de securite</h2>
+      <h2 id="data-security">{{ $t('docDocsPrivacypolicy.s9Heading') }}</h2>
       <p>
-        ClaudeNest met en oeuvre des mesures techniques et organisationnelles completes pour proteger
-        vos donnees personnelles contre tout acces non autorise, toute alteration, divulgation ou destruction.
+        {{ $t('docDocsPrivacypolicy.s9Intro') }}
       </p>
 
       <div class="security-measures">
         <div class="measure-category">
-          <h4>Securite du transport</h4>
+          <h4>{{ $t('docDocsPrivacypolicy.s9TransportTitle') }}</h4>
           <ul>
-            <li><strong>TLS 1.3</strong> enforced for all HTTP and WebSocket connections in production</li>
-            <li><strong>HTTPS-only</strong> configuration recommended for all deployments</li>
-            <li><strong>WebSocket encryption</strong> via WSS (WebSocket Secure) protocol</li>
+            <li>{{ $t('docDocsPrivacypolicy.s9TransportItem1') }}</li>
+            <li>{{ $t('docDocsPrivacypolicy.s9TransportItem2') }}</li>
+            <li>{{ $t('docDocsPrivacypolicy.s9TransportItem3') }}</li>
           </ul>
         </div>
 
         <div class="measure-category">
-          <h4>Securite de l'authentification</h4>
+          <h4>{{ $t('docDocsPrivacypolicy.s9AuthTitle') }}</h4>
           <ul>
-            <li><strong>Bcrypt hashing</strong> for all passwords (never stored in plaintext)</li>
-            <li><strong>SHA-256 hashing</strong> for machine tokens and API tokens</li>
-            <li><strong>OS Keychain storage</strong> for agent tokens via <code>keytar</code></li>
-            <li><strong>Laravel Sanctum</strong> token-based authentication with scoped abilities</li>
-            <li><strong>Token expiration</strong> and rotation mechanisms</li>
+            <li>{{ $t('docDocsPrivacypolicy.s9AuthItem1') }}</li>
+            <li>{{ $t('docDocsPrivacypolicy.s9AuthItem2') }}</li>
+            <li>{{ $t('docDocsPrivacypolicy.s9AuthItem3Pre') }} <code>keytar</code></li>
+            <li>{{ $t('docDocsPrivacypolicy.s9AuthItem4') }}</li>
+            <li>{{ $t('docDocsPrivacypolicy.s9AuthItem5') }}</li>
           </ul>
         </div>
 
         <div class="measure-category">
-          <h4>Securite applicative</h4>
+          <h4>{{ $t('docDocsPrivacypolicy.s9AppTitle') }}</h4>
           <ul>
-            <li><strong>CSRF protection</strong> on all web routes</li>
-            <li><strong>Rate limiting</strong> on all API endpoints</li>
-            <li><strong>Input validation</strong> via Laravel Form Requests</li>
-            <li><strong>Parameterized queries</strong> via Eloquent ORM (SQL injection prevention)</li>
-            <li><strong>Content Security Policy</strong> headers</li>
-            <li><strong>No sensitive data in logs</strong> policy enforced across all components</li>
+            <li>{{ $t('docDocsPrivacypolicy.s9AppItem1') }}</li>
+            <li>{{ $t('docDocsPrivacypolicy.s9AppItem2') }}</li>
+            <li>{{ $t('docDocsPrivacypolicy.s9AppItem3') }}</li>
+            <li>{{ $t('docDocsPrivacypolicy.s9AppItem4') }}</li>
+            <li>{{ $t('docDocsPrivacypolicy.s9AppItem5') }}</li>
+            <li>{{ $t('docDocsPrivacypolicy.s9AppItem6') }}</li>
           </ul>
         </div>
 
         <div class="measure-category">
-          <h4>Securite de l'infrastructure</h4>
+          <h4>{{ $t('docDocsPrivacypolicy.s9InfraTitle') }}</h4>
           <ul>
-            <li><strong>Self-hosted architecture</strong> keeping data on your own infrastructure</li>
-            <li><strong>Database encryption at rest</strong> (recommended for production)</li>
-            <li><strong>Redis AUTH</strong> for cache and queue authentication</li>
-            <li><strong>Network isolation</strong> recommended for database and cache services</li>
-            <li><strong>Regular security updates</strong> via dependency management</li>
+            <li>{{ $t('docDocsPrivacypolicy.s9InfraItem1') }}</li>
+            <li>{{ $t('docDocsPrivacypolicy.s9InfraItem2') }}</li>
+            <li>{{ $t('docDocsPrivacypolicy.s9InfraItem3') }}</li>
+            <li>{{ $t('docDocsPrivacypolicy.s9InfraItem4') }}</li>
+            <li>{{ $t('docDocsPrivacypolicy.s9InfraItem5') }}</li>
           </ul>
         </div>
 
         <div class="measure-category">
-          <h4>Securite de l'agent</h4>
+          <h4>{{ $t('docDocsPrivacypolicy.s9AgentTitle') }}</h4>
           <ul>
-            <li><strong>Certificate validation</strong> for TLS connections</li>
-            <li><strong>No credential exposure</strong> in logs or terminal output</li>
-            <li><strong>Structured logging</strong> via Pino with sensitive data filtering</li>
-            <li><strong>Heartbeat monitoring</strong> for connection integrity</li>
+            <li>{{ $t('docDocsPrivacypolicy.s9AgentItem1') }}</li>
+            <li>{{ $t('docDocsPrivacypolicy.s9AgentItem2') }}</li>
+            <li>{{ $t('docDocsPrivacypolicy.s9AgentItem3') }}</li>
+            <li>{{ $t('docDocsPrivacypolicy.s9AgentItem4') }}</li>
           </ul>
         </div>
       </div>
@@ -910,85 +850,64 @@
 
     <!-- Section 10: International Transfers -->
     <section id="international-transfers">
-      <h2 id="international-transfers">10. Transferts internationaux</h2>
+      <h2 id="international-transfers">{{ $t('docDocsPrivacypolicy.s10Heading') }}</h2>
       <p>
-        L'instance officielle de ClaudeNest exploitee par QR Communication est hebergee en
-        France. Dans cette configuration, aucun transfert international de donnees n'a lieu
-        dans le cadre du fonctionnement standard.
+        {{ $t('docDocsPrivacypolicy.s10Para1') }}
       </p>
       <p>
-        Pour les instances auto-hebergees, si l'instance est hebergee dans une juridiction et
-        accessible depuis une autre, les garanties suivantes doivent etre considerees par
-        l'operateur :
+        {{ $t('docDocsPrivacypolicy.s10Para2') }}
       </p>
       <ul>
         <li>
-          <strong>UE vers UE :</strong> Aucune garantie supplementaire requise au titre du RGPD.
+          <strong>{{ $t('docDocsPrivacypolicy.s10Item1Label') }}</strong> {{ $t('docDocsPrivacypolicy.s10Item1Text') }}
         </li>
         <li>
-          <strong>UE vers pays adequats :</strong> Les transferts vers des pays faisant l'objet
-          d'une decision d'adequation de la Commission europeenne sont autorises sans garantie
-          supplementaire.
+          <strong>{{ $t('docDocsPrivacypolicy.s10Item2Label') }}</strong> {{ $t('docDocsPrivacypolicy.s10Item2Text') }}
         </li>
         <li>
-          <strong>UE vers pays tiers :</strong> Des garanties appropriees doivent etre mises en
-          place, telles que les Clauses Contractuelles Types (CCT) ou les Regles d'Entreprise
-          Contraignantes (BCR).
+          <strong>{{ $t('docDocsPrivacypolicy.s10Item3Label') }}</strong> {{ $t('docDocsPrivacypolicy.s10Item3Text') }}
         </li>
       </ul>
       <p>
-        Lorsque les fournisseurs OAuth sont utilises (Google, GitHub), les donnees d'authentification
-        peuvent etre traitees aux Etats-Unis. Google et GitHub se sont tous deux engages a respecter
-        le cadre de protection des donnees UE-Etats-Unis (EU-U.S. Data Privacy Framework).
+        {{ $t('docDocsPrivacypolicy.s10Para3') }}
       </p>
     </section>
 
     <!-- Section 11: Children's Privacy -->
     <section id="childrens-privacy">
-      <h2 id="childrens-privacy">11. Mineurs</h2>
+      <h2 id="childrens-privacy">{{ $t('docDocsPrivacypolicy.s11Heading') }}</h2>
       <p>
-        ClaudeNest est un outil professionnel de developpement logiciel et n'est pas destine
-        aux personnes agees de moins de 16 ans (ou de l'age minimum applicable dans votre
-        juridiction).
+        {{ $t('docDocsPrivacypolicy.s11Para1') }}
       </p>
       <p>
-        Nous ne collectons pas sciemment de donnees personnelles de mineurs. Si vous apprenez
-        qu'un mineur a fourni des donnees personnelles a une instance ClaudeNest, veuillez
-        contacter le DPO immediatement. Les donnees seront supprimees sans delai.
+        {{ $t('docDocsPrivacypolicy.s11Para2') }}
       </p>
     </section>
 
     <!-- Section 12: Policy Changes -->
     <section id="policy-changes">
-      <h2 id="policy-changes">12. Modifications de la politique</h2>
+      <h2 id="policy-changes">{{ $t('docDocsPrivacypolicy.s12Heading') }}</h2>
       <p>
-        Nous pouvons mettre a jour la presente Politique de Confidentialite de temps a autre pour
-        refleter les changements dans nos pratiques, la technologie, les exigences legales ou d'autres
-        facteurs. En cas de modification substantielle :
+        {{ $t('docDocsPrivacypolicy.s12Intro') }}
       </p>
       <ul>
-        <li>La date de mise a jour en haut de cette page sera revisee.</li>
-        <li>Une notification sera affichee dans le tableau de bord ClaudeNest pendant 30 jours.</li>
-        <li>Les utilisateurs inscrits seront notifies par email (si les notifications email sont activees).</li>
+        <li>{{ $t('docDocsPrivacypolicy.s12Item1') }}</li>
+        <li>{{ $t('docDocsPrivacypolicy.s12Item2') }}</li>
+        <li>{{ $t('docDocsPrivacypolicy.s12Item3') }}</li>
         <li>
-          Pour les modifications affectant la base legale du traitement ou introduisant de nouvelles
-          categories de donnees, nous solliciterons un nouveau consentement lorsque le RGPD l'exige.
+          {{ $t('docDocsPrivacypolicy.s12Item4') }}
         </li>
       </ul>
       <p>
-        Nous vous encourageons a consulter regulierement cette Politique de Confidentialite. Votre
-        utilisation continue de ClaudeNest apres la publication des modifications constitue
-        l'acceptation de la politique mise a jour.
+        {{ $t('docDocsPrivacypolicy.s12Outro') }}
       </p>
     </section>
 
     <!-- Section 13: Contact DPO -->
     <section id="contact-dpo">
-      <h2 id="contact-dpo">13. Contact du Delegue a la Protection des Donnees</h2>
+      <h2 id="contact-dpo">{{ $t('docDocsPrivacypolicy.s13Heading') }}</h2>
       <p>
-        Pour toute question, preoccupation ou demande relative a la presente Politique de
-        Confidentialite ou au traitement de vos donnees personnelles, veuillez contacter le
-        Delegue a la Protection des Donnees (DPO) :
+        {{ $t('docDocsPrivacypolicy.s13Intro') }}
       </p>
 
       <div class="contact-card">
@@ -998,7 +917,7 @@
               <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
             </svg>
             <div>
-              <strong>Email</strong>
+              <strong>{{ $t('docDocsPrivacypolicy.s13EmailLabel') }}</strong>
               <p><a href="mailto:dpo@claudenest.io">dpo@claudenest.io</a></p>
             </div>
           </div>
@@ -1008,7 +927,7 @@
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
             </svg>
             <div>
-              <strong>Website</strong>
+              <strong>{{ $t('docDocsPrivacypolicy.s13WebsiteLabel') }}</strong>
               <p><a href="https://claudenest.io/privacy" target="_blank" rel="noopener">claudenest.io/privacy</a></p>
             </div>
           </div>
@@ -1018,17 +937,16 @@
               <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0012 2z"/>
             </svg>
             <div>
-              <strong>GitHub</strong>
-              <p><a href="https://github.com/claudenest/claudenest/issues" target="_blank" rel="noopener">Open an issue</a></p>
+              <strong>{{ $t('docDocsPrivacypolicy.s13GithubLabel') }}</strong>
+              <p><a href="https://github.com/claudenest/claudenest/issues" target="_blank" rel="noopener">{{ $t('docDocsPrivacypolicy.s13GithubLinkText') }}</a></p>
             </div>
           </div>
         </div>
       </div>
 
       <p>
-        Nous accuserons reception de votre demande dans un delai de <strong>48 heures</strong>
-        et fournirons une reponse motivee dans un delai de <strong>30 jours</strong>,
-        conformement a l'article 12(3) du RGPD.
+        {{ $t('docDocsPrivacypolicy.s13ClosingPre') }} <strong>{{ $t('docDocsPrivacypolicy.s13Closing48h') }}</strong>
+        {{ $t('docDocsPrivacypolicy.s13ClosingMid') }} <strong>{{ $t('docDocsPrivacypolicy.s13Closing30Days') }}</strong>{{ $t('docDocsPrivacypolicy.s13ClosingPost') }}
       </p>
     </section>
   </article>

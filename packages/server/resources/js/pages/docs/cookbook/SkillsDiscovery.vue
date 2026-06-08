@@ -1,23 +1,19 @@
 <template>
   <article class="doc-content">
     <header class="doc-header">
-      <h1>Skills Discovery</h1>
+      <h1>{{ $t('docDocsCookbookSkillsdiscovery.title') }}</h1>
       <p class="lead">
-        Learn how the ClaudeNest agent discovers skills on your machine, how to register them
-        via the API, and how to manage categories, toggling, and bulk operations.
+        {{ $t('docDocsCookbookSkillsdiscovery.lead') }}
       </p>
     </header>
 
     <section id="overview">
-      <h2>Overview</h2>
+      <h2>{{ $t('docDocsCookbookSkillsdiscovery.overviewHeading') }}</h2>
       <p>
-        Skills are modular capabilities that extend what Claude Code can do on a machine.
-        They are discovered automatically by the agent or registered manually through the API.
-        Each skill has a unique path identifier, a category, and can be enabled or disabled
-        per machine.
+        {{ $t('docDocsCookbookSkillsdiscovery.overviewPara1') }}
       </p>
 
-      <p>The skill lifecycle follows this flow:</p>
+      <p>{{ $t('docDocsCookbookSkillsdiscovery.overviewLifecycleIntro') }}</p>
 
       <CodeBlock
         :code="lifecycleCode"
@@ -25,7 +21,7 @@
         filename="Skill Lifecycle"
       />
 
-      <h3>Skill object</h3>
+      <h3>{{ $t('docDocsCookbookSkillsdiscovery.skillObjectHeading') }}</h3>
       <CodeBlock
         :code="skillObjectCode"
         language="json"
@@ -34,38 +30,36 @@
     </section>
 
     <section id="agent-discovery">
-      <h2>Agent Discovery</h2>
+      <h2>{{ $t('docDocsCookbookSkillsdiscovery.agentDiscoveryHeading') }}</h2>
       <p>
-        When the agent starts, it automatically scans pre-configured directories and the system
-        PATH for known tools and runtimes. Discovered capabilities are reported to the server
-        as skills.
+        {{ $t('docDocsCookbookSkillsdiscovery.agentDiscoveryPara1') }}
       </p>
 
-      <h3>What gets discovered</h3>
+      <h3>{{ $t('docDocsCookbookSkillsdiscovery.whatGetsDiscoveredHeading') }}</h3>
       <ul>
-        <li><strong>CLI tools</strong> -- git, docker, kubectl, terraform, aws, gcloud, and more.</li>
-        <li><strong>Language runtimes</strong> -- node, python, php, ruby, go, rust (cargo), java.</li>
-        <li><strong>Package managers</strong> -- npm, yarn, pnpm, pip, composer, cargo, gem.</li>
-        <li><strong>Database clients</strong> -- psql, mysql, redis-cli, mongosh.</li>
-        <li><strong>Custom skills</strong> -- any executable in <code>~/.claudenest/skills/</code>.</li>
+        <li><strong>{{ $t('docDocsCookbookSkillsdiscovery.discoverCliToolsLabel') }}</strong> {{ $t('docDocsCookbookSkillsdiscovery.discoverCliToolsText') }}</li>
+        <li><strong>{{ $t('docDocsCookbookSkillsdiscovery.discoverRuntimesLabel') }}</strong> {{ $t('docDocsCookbookSkillsdiscovery.discoverRuntimesText') }}</li>
+        <li><strong>{{ $t('docDocsCookbookSkillsdiscovery.discoverPackageManagersLabel') }}</strong> {{ $t('docDocsCookbookSkillsdiscovery.discoverPackageManagersText') }}</li>
+        <li><strong>{{ $t('docDocsCookbookSkillsdiscovery.discoverDatabaseClientsLabel') }}</strong> {{ $t('docDocsCookbookSkillsdiscovery.discoverDatabaseClientsText') }}</li>
+        <li><strong>{{ $t('docDocsCookbookSkillsdiscovery.discoverCustomLabel') }}</strong> {{ $t('docDocsCookbookSkillsdiscovery.discoverCustomTextBefore') }} <code>~/.claudenest/skills/</code>.</li>
       </ul>
 
       <div class="tip">
         <span class="tip-icon">i</span>
         <div>
-          <strong>Discovery interval</strong>
-          <p>The agent re-scans for new skills every 5 minutes. You can also trigger a manual scan from the dashboard or via the API.</p>
+          <strong>{{ $t('docDocsCookbookSkillsdiscovery.discoveryIntervalHeading') }}</strong>
+          <p>{{ $t('docDocsCookbookSkillsdiscovery.discoveryIntervalText') }}</p>
         </div>
       </div>
 
-      <h3>Agent configuration for discovery</h3>
+      <h3>{{ $t('docDocsCookbookSkillsdiscovery.agentConfigHeading') }}</h3>
       <CodeBlock
         :code="agentConfigCode"
         language="json"
         filename="~/.claudenest/config.json"
       />
 
-      <h3>Discovery log output</h3>
+      <h3>{{ $t('docDocsCookbookSkillsdiscovery.discoveryLogHeading') }}</h3>
       <CodeBlock
         :code="discoveryLogCode"
         language="bash"
@@ -74,10 +68,9 @@
     </section>
 
     <section id="registering">
-      <h2>Registering Skills via API</h2>
+      <h2>{{ $t('docDocsCookbookSkillsdiscovery.registeringHeading') }}</h2>
       <p>
-        In addition to automatic discovery, you can register skills manually through the API.
-        This is useful for custom scripts or tools that the agent cannot auto-detect.
+        {{ $t('docDocsCookbookSkillsdiscovery.registeringPara1') }}
       </p>
 
       <CodeTabs
@@ -103,7 +96,7 @@
         ]"
       />
 
-      <h3>Registration response</h3>
+      <h3>{{ $t('docDocsCookbookSkillsdiscovery.registrationResponseHeading') }}</h3>
       <CodeBlock
         :code="registerResponseCode"
         language="json"
@@ -112,10 +105,9 @@
     </section>
 
     <section id="categories">
-      <h2>Skill Categories</h2>
+      <h2>{{ $t('docDocsCookbookSkillsdiscovery.categoriesHeading') }}</h2>
       <p>
-        Skills are organized into categories for easier management. The agent assigns categories
-        automatically during discovery, but you can override them when registering manually.
+        {{ $t('docDocsCookbookSkillsdiscovery.categoriesPara1') }}
       </p>
 
       <div class="category-grid">
@@ -177,7 +169,7 @@
         </div>
       </div>
 
-      <h3>Listing skills by category</h3>
+      <h3>{{ $t('docDocsCookbookSkillsdiscovery.listByCategoryHeading') }}</h3>
       <CodeBlock
         :code="listByCategoryCode"
         language="bash"
@@ -186,14 +178,12 @@
     </section>
 
     <section id="toggling">
-      <h2>Enabling and Disabling Skills</h2>
+      <h2>{{ $t('docDocsCookbookSkillsdiscovery.togglingHeading') }}</h2>
       <p>
-        Each skill can be individually enabled or disabled. Disabled skills are not made available
-        to Claude Code sessions. This is useful for restricting access to certain tools in
-        production environments.
+        {{ $t('docDocsCookbookSkillsdiscovery.togglingPara1') }}
       </p>
 
-      <h3>Toggle a single skill</h3>
+      <h3>{{ $t('docDocsCookbookSkillsdiscovery.toggleSingleHeading') }}</h3>
       <CodeTabs
         :tabs="[
           {
@@ -211,10 +201,9 @@
         ]"
       />
 
-      <h3>Bulk operations</h3>
+      <h3>{{ $t('docDocsCookbookSkillsdiscovery.bulkOperationsHeading') }}</h3>
       <p>
-        Update multiple skills at once using the bulk endpoint. This supports enabling, disabling,
-        or updating metadata for many skills in a single request.
+        {{ $t('docDocsCookbookSkillsdiscovery.bulkOperationsPara1') }}
       </p>
 
       <CodeBlock
@@ -223,7 +212,7 @@
         filename="Terminal"
       />
 
-      <h3>Bulk response</h3>
+      <h3>{{ $t('docDocsCookbookSkillsdiscovery.bulkResponseHeading') }}</h3>
       <CodeBlock
         :code="bulkResponseCode"
         language="json"
@@ -233,16 +222,15 @@
       <div class="tip">
         <span class="tip-icon">i</span>
         <div>
-          <strong>Category-wide toggling</strong>
-          <p>To disable all skills in a category, use the bulk endpoint with a filter:
-            pass <code>"category": "infrastructure"</code> and <code>"enabled": false</code> to disable every infrastructure skill at once.</p>
+          <strong>{{ $t('docDocsCookbookSkillsdiscovery.categoryWideToggleHeading') }}</strong>
+          <p>{{ $t('docDocsCookbookSkillsdiscovery.categoryWideToggleTextBefore') }}
+            <code>"category": "infrastructure"</code> {{ $t('docDocsCookbookSkillsdiscovery.categoryWideToggleTextAnd') }} <code>"enabled": false</code> {{ $t('docDocsCookbookSkillsdiscovery.categoryWideToggleTextAfter') }}</p>
         </div>
       </div>
 
-      <h3>Deleting a skill</h3>
+      <h3>{{ $t('docDocsCookbookSkillsdiscovery.deletingHeading') }}</h3>
       <p>
-        Remove a manually registered skill. Auto-discovered skills will reappear on the next scan
-        unless the underlying tool is uninstalled from the machine.
+        {{ $t('docDocsCookbookSkillsdiscovery.deletingPara1') }}
       </p>
       <CodeBlock
         code='curl -X DELETE https://api.claudenest.io/api/machines/{machine_id}/skills/custom%2Fdeploy-script \
@@ -256,8 +244,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import CodeBlock from '@/components/docs/CodeBlock.vue';
 import CodeTabs from '@/components/docs/CodeTabs.vue';
+
+const { t } = useI18n();
 
 const lifecycleCode = ref(`1. Agent starts
    |

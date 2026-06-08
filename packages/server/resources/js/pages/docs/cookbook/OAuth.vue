@@ -1,44 +1,42 @@
 <template>
   <article class="doc-content">
     <header class="doc-header">
-      <h1>OAuth Authentication</h1>
+      <h1>{{ t('docDocsCookbookOauth.title') }}</h1>
       <p class="lead">
-        Enable social login with Google and GitHub OAuth providers.
-        ClaudeNest handles the full redirect/callback flow and issues
-        Sanctum tokens for authenticated API access.
+        {{ t('docDocsCookbookOauth.lead') }}
       </p>
     </header>
 
     <section id="providers">
-      <h2>Supported Providers</h2>
+      <h2>{{ t('docDocsCookbookOauth.supportedProvidersHeading') }}</h2>
       <p>
-        ClaudeNest supports two OAuth providers out of the box, powered by
-        <strong>Laravel Socialite</strong>. Each provider can be enabled independently
-        by setting the appropriate environment variables.
+        <i18n-t keypath="docDocsCookbookOauth.supportedProvidersIntro" tag="span">
+          <template #socialite><strong>Laravel Socialite</strong></template>
+        </i18n-t>
       </p>
 
       <div class="providers-grid">
         <div class="provider-card">
           <div class="provider-icon google">G</div>
           <div>
-            <h4>Google</h4>
-            <p>Sign in with Google accounts. Provides email, name, and avatar.</p>
+            <h4>{{ t('docDocsCookbookOauth.googleName') }}</h4>
+            <p>{{ t('docDocsCookbookOauth.googleDesc') }}</p>
             <ul>
-              <li>OAuth 2.0 protocol</li>
-              <li>Requires Google Cloud Console project</li>
-              <li>Scopes: <code>openid</code>, <code>email</code>, <code>profile</code></li>
+              <li>{{ t('docDocsCookbookOauth.oauth2Protocol') }}</li>
+              <li>{{ t('docDocsCookbookOauth.googleRequires') }}</li>
+              <li><i18n-t keypath="docDocsCookbookOauth.googleScopes" tag="span"><template #openid><code>openid</code></template><template #email><code>email</code></template><template #profile><code>profile</code></template></i18n-t></li>
             </ul>
           </div>
         </div>
         <div class="provider-card">
           <div class="provider-icon github">GH</div>
           <div>
-            <h4>GitHub</h4>
-            <p>Sign in with GitHub accounts. Provides username, email, and avatar.</p>
+            <h4>{{ t('docDocsCookbookOauth.githubName') }}</h4>
+            <p>{{ t('docDocsCookbookOauth.githubDesc') }}</p>
             <ul>
-              <li>OAuth 2.0 protocol</li>
-              <li>Requires GitHub OAuth App</li>
-              <li>Scopes: <code>user:email</code>, <code>read:user</code></li>
+              <li>{{ t('docDocsCookbookOauth.oauth2Protocol') }}</li>
+              <li>{{ t('docDocsCookbookOauth.githubRequires') }}</li>
+              <li><i18n-t keypath="docDocsCookbookOauth.githubScopes" tag="span"><template #userEmail><code>user:email</code></template><template #readUser><code>read:user</code></template></i18n-t></li>
             </ul>
           </div>
         </div>
@@ -46,179 +44,169 @@
     </section>
 
     <section id="google-setup">
-      <h2>Google OAuth Setup</h2>
+      <h2>{{ t('docDocsCookbookOauth.googleSetupHeading') }}</h2>
       <p>
-        Create an OAuth 2.0 client in the Google Cloud Console and configure
-        the redirect URI to point to your ClaudeNest server.
+        {{ t('docDocsCookbookOauth.googleSetupIntro') }}
       </p>
 
       <ol class="steps-list">
-        <li>Go to the <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></li>
-        <li>Create a new project or select an existing one</li>
-        <li>Navigate to "APIs & Services" then "Credentials"</li>
-        <li>Click "Create Credentials" and select "OAuth client ID"</li>
-        <li>Configure the OAuth consent screen if prompted</li>
-        <li>Select "Web application" as the application type</li>
-        <li>Add your domain to "Authorized JavaScript origins"</li>
-        <li>Add the callback URL to "Authorized redirect URIs"</li>
-        <li>Copy the Client ID and Client Secret</li>
+        <li><i18n-t keypath="docDocsCookbookOauth.googleStep1" tag="span"><template #link><a href="https://console.cloud.google.com/" target="_blank">{{ t('docDocsCookbookOauth.googleCloudConsole') }}</a></template></i18n-t></li>
+        <li>{{ t('docDocsCookbookOauth.googleStep2') }}</li>
+        <li>{{ t('docDocsCookbookOauth.googleStep3') }}</li>
+        <li>{{ t('docDocsCookbookOauth.googleStep4') }}</li>
+        <li>{{ t('docDocsCookbookOauth.googleStep5') }}</li>
+        <li>{{ t('docDocsCookbookOauth.googleStep6') }}</li>
+        <li>{{ t('docDocsCookbookOauth.googleStep7') }}</li>
+        <li>{{ t('docDocsCookbookOauth.googleStep8') }}</li>
+        <li>{{ t('docDocsCookbookOauth.googleStep9') }}</li>
       </ol>
 
-      <h3>Environment Configuration</h3>
+      <h3>{{ t('docDocsCookbookOauth.environmentConfiguration') }}</h3>
       <CodeBlock :code="googleEnvCode" language="bash" filename=".env" />
 
       <div class="tip">
         <span class="tip-icon">i</span>
         <div>
-          <h4>Callback URL format</h4>
+          <h4>{{ t('docDocsCookbookOauth.callbackUrlFormatHeading') }}</h4>
           <p>
-            The redirect URI must exactly match what you configure in the Google Cloud Console.
-            Use HTTPS in production. The path is always <code>/api/auth/google/callback</code>.
+            <i18n-t keypath="docDocsCookbookOauth.callbackUrlFormatBody" tag="span">
+              <template #path><code>/api/auth/google/callback</code></template>
+            </i18n-t>
           </p>
         </div>
       </div>
     </section>
 
     <section id="github-setup">
-      <h2>GitHub OAuth Setup</h2>
+      <h2>{{ t('docDocsCookbookOauth.githubSetupHeading') }}</h2>
       <p>
-        Register an OAuth App in your GitHub settings. You can create the app
-        under your personal account or an organization.
+        {{ t('docDocsCookbookOauth.githubSetupIntro') }}
       </p>
 
       <ol class="steps-list">
-        <li>Go to GitHub Settings, then Developer settings, then OAuth Apps</li>
-        <li>Click "New OAuth App"</li>
-        <li>Enter the application name (e.g., "ClaudeNest")</li>
-        <li>Set the homepage URL to your ClaudeNest domain</li>
-        <li>Set the authorization callback URL</li>
-        <li>Register the application</li>
-        <li>Copy the Client ID and generate a Client Secret</li>
+        <li>{{ t('docDocsCookbookOauth.githubStep1') }}</li>
+        <li>{{ t('docDocsCookbookOauth.githubStep2') }}</li>
+        <li>{{ t('docDocsCookbookOauth.githubStep3') }}</li>
+        <li>{{ t('docDocsCookbookOauth.githubStep4') }}</li>
+        <li>{{ t('docDocsCookbookOauth.githubStep5') }}</li>
+        <li>{{ t('docDocsCookbookOauth.githubStep6') }}</li>
+        <li>{{ t('docDocsCookbookOauth.githubStep7') }}</li>
       </ol>
 
-      <h3>Environment Configuration</h3>
+      <h3>{{ t('docDocsCookbookOauth.environmentConfiguration') }}</h3>
       <CodeBlock :code="githubEnvCode" language="bash" filename=".env" />
     </section>
 
     <section id="flow">
-      <h2>OAuth Flow</h2>
+      <h2>{{ t('docDocsCookbookOauth.flowHeading') }}</h2>
       <p>
-        The OAuth flow follows the standard Authorization Code Grant. ClaudeNest
-        handles the server-side exchange and creates or updates the user record
-        automatically.
+        {{ t('docDocsCookbookOauth.flowIntro') }}
       </p>
 
       <div class="flow-diagram">
         <div class="flow-step">
           <span class="step-num">1</span>
-          <p>Client requests redirect URL</p>
+          <p>{{ t('docDocsCookbookOauth.flowStep1') }}</p>
         </div>
         <div class="flow-arrow">-></div>
         <div class="flow-step">
           <span class="step-num">2</span>
-          <p>User authorizes with provider</p>
+          <p>{{ t('docDocsCookbookOauth.flowStep2') }}</p>
         </div>
         <div class="flow-arrow">-></div>
         <div class="flow-step">
           <span class="step-num">3</span>
-          <p>Provider redirects with code</p>
+          <p>{{ t('docDocsCookbookOauth.flowStep3') }}</p>
         </div>
         <div class="flow-arrow">-></div>
         <div class="flow-step">
           <span class="step-num">4</span>
-          <p>Server exchanges code for token</p>
+          <p>{{ t('docDocsCookbookOauth.flowStep4') }}</p>
         </div>
       </div>
 
-      <h3>Step 1: Initiate OAuth</h3>
-      <p>Request the OAuth redirect URL from the API. The server generates a state parameter for CSRF protection.</p>
+      <h3>{{ t('docDocsCookbookOauth.step1Heading') }}</h3>
+      <p>{{ t('docDocsCookbookOauth.step1Body') }}</p>
       <CodeTabs :tabs="initiateOAuthTabs" />
 
-      <h3>Step 2: Handle Callback</h3>
+      <h3>{{ t('docDocsCookbookOauth.step2Heading') }}</h3>
       <p>
-        After the user authorizes your app, the provider redirects to the callback
-        URL with an authorization code. The server exchanges this code for user
-        information and creates a Sanctum token.
+        {{ t('docDocsCookbookOauth.step2Body') }}
       </p>
       <CodeBlock :code="callbackCode" language="bash" />
 
-      <h3>Step 3: Use the Token</h3>
+      <h3>{{ t('docDocsCookbookOauth.step3Heading') }}</h3>
       <p>
-        The callback response includes a Sanctum token. Store it securely and
-        include it in subsequent API requests.
+        {{ t('docDocsCookbookOauth.step3Body') }}
       </p>
       <CodeBlock :code="useTokenCode" language="typescript" filename="api-client.ts" />
 
-      <h3>Server-Side Controller</h3>
+      <h3>{{ t('docDocsCookbookOauth.controllerHeading') }}</h3>
       <p>
-        The controller handles user creation/lookup, avatar syncing, and token
-        generation. Users are matched by their provider ID, with email as a fallback.
+        {{ t('docDocsCookbookOauth.controllerBody') }}
       </p>
       <CodeBlock :code="controllerCode" language="php" filename="AuthController.php" />
     </section>
 
     <section id="tokens">
-      <h2>Token Management</h2>
+      <h2>{{ t('docDocsCookbookOauth.tokenManagementHeading') }}</h2>
       <p>
-        ClaudeNest uses Laravel Sanctum for API token management. Tokens can
-        be scoped, expired, and revoked.
+        {{ t('docDocsCookbookOauth.tokenManagementIntro') }}
       </p>
 
-      <h3>Token Lifecycle</h3>
+      <h3>{{ t('docDocsCookbookOauth.tokenLifecycleHeading') }}</h3>
       <table class="tokens-table">
         <thead>
           <tr>
-            <th>Action</th>
-            <th>Endpoint</th>
-            <th>Description</th>
+            <th>{{ t('docDocsCookbookOauth.tableAction') }}</th>
+            <th>{{ t('docDocsCookbookOauth.tableEndpoint') }}</th>
+            <th>{{ t('docDocsCookbookOauth.tableDescription') }}</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>Create</td>
+            <td>{{ t('docDocsCookbookOauth.actionCreate') }}</td>
             <td><code>POST /api/auth/login</code></td>
-            <td>Returns a new Sanctum token on successful authentication</td>
+            <td>{{ t('docDocsCookbookOauth.actionCreateDesc') }}</td>
           </tr>
           <tr>
-            <td>Refresh</td>
+            <td>{{ t('docDocsCookbookOauth.actionRefresh') }}</td>
             <td><code>POST /api/auth/refresh</code></td>
-            <td>Issues a new token and revokes the current one</td>
+            <td>{{ t('docDocsCookbookOauth.actionRefreshDesc') }}</td>
           </tr>
           <tr>
-            <td>Revoke</td>
+            <td>{{ t('docDocsCookbookOauth.actionRevoke') }}</td>
             <td><code>POST /api/auth/logout</code></td>
-            <td>Revokes the current token</td>
+            <td>{{ t('docDocsCookbookOauth.actionRevokeDesc') }}</td>
           </tr>
           <tr>
-            <td>Inspect</td>
+            <td>{{ t('docDocsCookbookOauth.actionInspect') }}</td>
             <td><code>GET /api/auth/me</code></td>
-            <td>Returns user info and token metadata</td>
+            <td>{{ t('docDocsCookbookOauth.actionInspectDesc') }}</td>
           </tr>
         </tbody>
       </table>
 
-      <h3>Token Scoping</h3>
+      <h3>{{ t('docDocsCookbookOauth.tokenScopingHeading') }}</h3>
       <p>
-        Tokens can be scoped to limit access. This is especially useful for
-        machine tokens that only need specific permissions.
+        {{ t('docDocsCookbookOauth.tokenScopingBody') }}
       </p>
       <CodeBlock :code="tokenScopingCode" language="php" filename="token-creation.php" />
 
-      <h3>Credential Storage</h3>
+      <h3>{{ t('docDocsCookbookOauth.credentialStorageHeading') }}</h3>
       <p>
-        For Claude API keys and OAuth tokens used by sessions, ClaudeNest provides
-        encrypted credential storage with AES-256-CBC encryption.
+        {{ t('docDocsCookbookOauth.credentialStorageBody') }}
       </p>
       <CodeBlock :code="credentialCode" language="typescript" filename="credentials.ts" />
 
       <div class="tip">
         <span class="tip-icon">!</span>
         <div>
-          <h4>Security Note</h4>
+          <h4>{{ t('docDocsCookbookOauth.securityNoteHeading') }}</h4>
           <p>
-            Never expose tokens in client-side code or URLs. Store them in
-            <code>httpOnly</code> cookies or secure storage (Keychain on iOS,
-            Keystore on Android). Rotate tokens regularly.
+            <i18n-t keypath="docDocsCookbookOauth.securityNoteBody" tag="span">
+              <template #httpOnly><code>httpOnly</code></template>
+            </i18n-t>
           </p>
         </div>
       </div>
@@ -228,8 +216,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import CodeBlock from '@/components/docs/CodeBlock.vue';
 import CodeTabs from '@/components/docs/CodeTabs.vue';
+
+const { t } = useI18n();
 
 const googleEnvCode = ref(`# Google OAuth
 GOOGLE_CLIENT_ID=123456789-abcdefg.apps.googleusercontent.com

@@ -1,46 +1,44 @@
 <template>
   <article class="doc-content">
     <header class="doc-header">
-      <span class="badge">Cookbook</span>
-      <h1>Monitoring &amp; Observability</h1>
-      <p class="lead">Monitor your ClaudeNest agents, sessions, and infrastructure performance in real time.</p>
+      <span class="badge">{{ t('docDocsCookbookMonitoring.badge') }}</span>
+      <h1>{{ t('docDocsCookbookMonitoring.title') }}</h1>
+      <p class="lead">{{ t('docDocsCookbookMonitoring.lead') }}</p>
     </header>
 
     <!-- Overview -->
     <section id="overview">
-      <h2>Overview</h2>
+      <h2>{{ t('docDocsCookbookMonitoring.overviewHeading') }}</h2>
       <p>
-        A healthy ClaudeNest deployment requires visibility at four levels: machine connectivity,
-        session lifecycle, task throughput, and infrastructure health (PostgreSQL, Redis, Reverb).
-        This guide covers the tools, endpoints, and patterns needed to keep everything observable.
+        {{ t('docDocsCookbookMonitoring.overviewPara') }}
       </p>
       <div class="metric-grid">
         <div class="metric-card">
           <span class="metric-icon">&#9635;</span>
           <div>
-            <strong>Machines</strong>
-            <span>Online status, heartbeats, agent version drift</span>
+            <strong>{{ t('docDocsCookbookMonitoring.metricMachinesLabel') }}</strong>
+            <span>{{ t('docDocsCookbookMonitoring.metricMachinesDesc') }}</span>
           </div>
         </div>
         <div class="metric-card">
           <span class="metric-icon">&#9654;</span>
           <div>
-            <strong>Sessions</strong>
-            <span>Lifecycle state, token usage, cost tracking</span>
+            <strong>{{ t('docDocsCookbookMonitoring.metricSessionsLabel') }}</strong>
+            <span>{{ t('docDocsCookbookMonitoring.metricSessionsDesc') }}</span>
           </div>
         </div>
         <div class="metric-card">
           <span class="metric-icon">&#10003;</span>
           <div>
-            <strong>Tasks</strong>
-            <span>Claim rates, completion times, blocked tasks</span>
+            <strong>{{ t('docDocsCookbookMonitoring.metricTasksLabel') }}</strong>
+            <span>{{ t('docDocsCookbookMonitoring.metricTasksDesc') }}</span>
           </div>
         </div>
         <div class="metric-card">
           <span class="metric-icon">&#9889;</span>
           <div>
-            <strong>Infrastructure</strong>
-            <span>DB queries, Redis queues, WebSocket throughput</span>
+            <strong>{{ t('docDocsCookbookMonitoring.metricInfraLabel') }}</strong>
+            <span>{{ t('docDocsCookbookMonitoring.metricInfraDesc') }}</span>
           </div>
         </div>
       </div>
@@ -48,10 +46,9 @@
 
     <!-- Health Check Endpoint -->
     <section id="health-check">
-      <h2>Health Check Endpoint</h2>
+      <h2>{{ t('docDocsCookbookMonitoring.healthHeading') }}</h2>
       <p>
-        ClaudeNest exposes a <code>GET /api/health</code> endpoint that reports the status of all
-        critical subsystems. Use it as the target for your load balancer or uptime monitor.
+        <span v-html="t('docDocsCookbookMonitoring.healthPara1')"></span>
       </p>
       <CodeBlock
         :code="healthCheckResponseCode"
@@ -59,9 +56,7 @@
         filename="GET /api/health — 200 OK"
       />
       <p>
-        A non-200 response, or a <code>status</code> of <code>"degraded"</code> or
-        <code>"down"</code> for any subsystem, should trigger an alert. The endpoint never requires
-        authentication so it is safe to expose on a public path behind rate limiting.
+        <span v-html="t('docDocsCookbookMonitoring.healthPara2')"></span>
       </p>
       <CodeTabs
         :tabs="[
@@ -74,24 +69,21 @@
 
     <!-- Machine Monitoring -->
     <section id="machine-monitoring">
-      <h2>Machine Monitoring</h2>
+      <h2>{{ t('docDocsCookbookMonitoring.machineHeading') }}</h2>
       <p>
-        Each agent pings the server every 30 seconds via the WebSocket heartbeat, updating the
-        <code>last_seen_at</code> column on the <code>machines</code> table. A machine whose
-        <code>last_seen_at</code> is older than 60 seconds should be considered offline.
+        <span v-html="t('docDocsCookbookMonitoring.machinePara1')"></span>
       </p>
 
-      <h3>Polling machine status via API</h3>
+      <h3>{{ t('docDocsCookbookMonitoring.machinePollHeading') }}</h3>
       <CodeBlock
         :code="machineStatusCode"
         language="bash"
         filename="Terminal"
       />
 
-      <h3>Real-time status via WebSocket</h3>
+      <h3>{{ t('docDocsCookbookMonitoring.machineWsHeading') }}</h3>
       <p>
-        Subscribe to the private <code>machines.{id}</code> channel to receive status change events
-        without polling.
+        <span v-html="t('docDocsCookbookMonitoring.machineWsPara')"></span>
       </p>
       <CodeBlock
         :code="machineWsCode"
@@ -102,11 +94,9 @@
       <div class="callout tip">
         <span class="callout-icon">i</span>
         <div>
-          <strong>Agent version drift</strong>
+          <strong>{{ t('docDocsCookbookMonitoring.machineCalloutTitle') }}</strong>
           <p>
-            The <code>agent_version</code> field returned by <code>GET /api/machines/{id}</code>
-            lets you detect outdated agents. Alert when the running version is more than one minor
-            version behind the server's expected version.
+            <span v-html="t('docDocsCookbookMonitoring.machineCalloutBody')"></span>
           </p>
         </div>
       </div>
@@ -114,10 +104,9 @@
 
     <!-- Session Monitoring -->
     <section id="session-monitoring">
-      <h2>Session Monitoring</h2>
+      <h2>{{ t('docDocsCookbookMonitoring.sessionHeading') }}</h2>
       <p>
-        Sessions move through a defined lifecycle. Track each transition to detect stuck or
-        runaway sessions.
+        {{ t('docDocsCookbookMonitoring.sessionPara1') }}
       </p>
 
       <div class="lifecycle-row">
@@ -134,10 +123,9 @@
         <span class="state warn-state">terminated</span>
       </div>
 
-      <h3>Token and cost tracking</h3>
+      <h3>{{ t('docDocsCookbookMonitoring.sessionTokenHeading') }}</h3>
       <p>
-        Each session accumulates <code>total_tokens</code> and <code>total_cost</code>. Query the
-        session endpoint to retrieve current values without subscribing to WebSocket events.
+        <span v-html="t('docDocsCookbookMonitoring.sessionTokenPara')"></span>
       </p>
       <CodeBlock
         :code="sessionMetricsCode"
@@ -145,10 +133,9 @@
         filename="Terminal"
       />
 
-      <h3>Session logs</h3>
+      <h3>{{ t('docDocsCookbookMonitoring.sessionLogsHeading') }}</h3>
       <p>
-        Full PTY output is stored in <code>session_logs</code>. Retrieve paginated logs for a
-        session at any time, even after completion.
+        <span v-html="t('docDocsCookbookMonitoring.sessionLogsPara')"></span>
       </p>
       <CodeBlock
         :code="sessionLogsCode"
@@ -159,11 +146,9 @@
       <div class="callout warning">
         <span class="callout-icon">!</span>
         <div>
-          <strong>Long-running session cost</strong>
+          <strong>{{ t('docDocsCookbookMonitoring.sessionCalloutTitle') }}</strong>
           <p>
-            Set a <code>max_tokens</code> alert threshold. When <code>total_tokens</code> exceeds
-            80 % of your budget, send an in-app notification or terminate the session gracefully
-            via <code>DELETE /api/sessions/{id}</code>.
+            <span v-html="t('docDocsCookbookMonitoring.sessionCalloutBody')"></span>
           </p>
         </div>
       </div>
@@ -171,10 +156,9 @@
 
     <!-- Task Metrics -->
     <section id="task-metrics">
-      <h2>Task Metrics</h2>
+      <h2>{{ t('docDocsCookbookMonitoring.taskHeading') }}</h2>
       <p>
-        The multi-agent task system exposes completion rates, average claim duration, and blocked
-        task counts through the project stats endpoint.
+        {{ t('docDocsCookbookMonitoring.taskPara1') }}
       </p>
       <CodeBlock
         :code="taskMetricsCode"
@@ -187,10 +171,9 @@
         filename="GET /api/projects/{id}/stats — 200 OK"
       />
 
-      <h3>Detecting blocked tasks</h3>
+      <h3>{{ t('docDocsCookbookMonitoring.taskBlockedHeading') }}</h3>
       <p>
-        A task with <code>status: "blocked"</code> for more than a configurable threshold (e.g.
-        15 minutes) should trigger an alert. Poll the task list filtered by status:
+        <span v-html="t('docDocsCookbookMonitoring.taskBlockedPara')"></span>
       </p>
       <CodeBlock
         :code="blockedTasksCode"
@@ -201,20 +184,19 @@
 
     <!-- WebSocket Monitoring -->
     <section id="websocket-monitoring">
-      <h2>WebSocket Monitoring</h2>
+      <h2>{{ t('docDocsCookbookMonitoring.wsHeading') }}</h2>
       <p>
-        Laravel Reverb exposes metrics on active connections and message throughput. Check the
-        Reverb status endpoint or instrument your agent to emit connection events.
+        {{ t('docDocsCookbookMonitoring.wsPara1') }}
       </p>
 
-      <h3>Reverb server info</h3>
+      <h3>{{ t('docDocsCookbookMonitoring.wsServerInfoHeading') }}</h3>
       <CodeBlock
         :code="reverbStatusCode"
         language="bash"
         filename="Terminal"
       />
 
-      <h3>Monitoring connection counts</h3>
+      <h3>{{ t('docDocsCookbookMonitoring.wsConnCountHeading') }}</h3>
       <CodeBlock
         :code="reverbConnectionCode"
         language="php"
@@ -224,11 +206,9 @@
       <div class="callout tip">
         <span class="callout-icon">i</span>
         <div>
-          <strong>Message throughput</strong>
+          <strong>{{ t('docDocsCookbookMonitoring.wsCalloutTitle') }}</strong>
           <p>
-            High throughput from terminal output events (<code>session.output</code>) is expected
-            during active sessions. Alert if the connection count drops to zero outside of a
-            maintenance window — this indicates all agents have disconnected.
+            <span v-html="t('docDocsCookbookMonitoring.wsCalloutBody')"></span>
           </p>
         </div>
       </div>
@@ -236,27 +216,26 @@
 
     <!-- Database Monitoring -->
     <section id="database-monitoring">
-      <h2>Database Monitoring</h2>
+      <h2>{{ t('docDocsCookbookMonitoring.dbHeading') }}</h2>
       <p>
-        PostgreSQL performance directly impacts RAG query latency and task coordination.
-        Monitor slow queries, index usage, and pgvector IVFFlat index health.
+        {{ t('docDocsCookbookMonitoring.dbPara1') }}
       </p>
 
-      <h3>Slow query log</h3>
+      <h3>{{ t('docDocsCookbookMonitoring.dbSlowQueryHeading') }}</h3>
       <CodeBlock
         :code="pgSlowQueryCode"
         language="bash"
         filename="/etc/postgresql/16/main/postgresql.conf (excerpt)"
       />
 
-      <h3>pgvector index health</h3>
+      <h3>{{ t('docDocsCookbookMonitoring.dbPgvectorHeading') }}</h3>
       <CodeBlock
         :code="pgvectorHealthCode"
         language="bash"
         filename="Terminal — psql"
       />
 
-      <h3>Laravel query log (development)</h3>
+      <h3>{{ t('docDocsCookbookMonitoring.dbLaravelQueryHeading') }}</h3>
       <CodeBlock
         :code="laravelQueryLogCode"
         language="php"
@@ -266,11 +245,9 @@
       <div class="callout warning">
         <span class="callout-icon">!</span>
         <div>
-          <strong>IVFFlat reindex threshold</strong>
+          <strong>{{ t('docDocsCookbookMonitoring.dbCalloutTitle') }}</strong>
           <p>
-            When the <code>context_chunks</code> table grows beyond 1 million rows, rebuild the
-            IVFFlat index with a higher <code>lists</code> value (e.g. 200) to maintain sub-10 ms
-            vector search latency:
+            <span v-html="t('docDocsCookbookMonitoring.dbCalloutBody')"></span>
             <code>REINDEX INDEX CONCURRENTLY idx_context_chunks_embedding;</code>
           </p>
         </div>
@@ -279,30 +256,28 @@
 
     <!-- Redis Monitoring -->
     <section id="redis-monitoring">
-      <h2>Redis Monitoring</h2>
+      <h2>{{ t('docDocsCookbookMonitoring.redisHeading') }}</h2>
       <p>
-        Redis backs the queue, cache, and session store. Monitor queue lengths and memory usage
-        to catch bottlenecks before they impact agent throughput.
+        {{ t('docDocsCookbookMonitoring.redisPara1') }}
       </p>
 
-      <h3>Queue length via Redis CLI</h3>
+      <h3>{{ t('docDocsCookbookMonitoring.redisQueueHeading') }}</h3>
       <CodeBlock
         :code="redisQueueCode"
         language="bash"
         filename="Terminal"
       />
 
-      <h3>Cache hit rate</h3>
+      <h3>{{ t('docDocsCookbookMonitoring.redisCacheHeading') }}</h3>
       <CodeBlock
         :code="redisCacheHitCode"
         language="bash"
         filename="Terminal"
       />
 
-      <h3>Laravel Horizon (optional)</h3>
+      <h3>{{ t('docDocsCookbookMonitoring.redisHorizonHeading') }}</h3>
       <p>
-        If you use Laravel Horizon for queue supervision, it provides a built-in dashboard with
-        queue depth, throughput, and failure rate metrics.
+        {{ t('docDocsCookbookMonitoring.redisHorizonPara') }}
       </p>
       <CodeBlock
         :code="horizonCode"
@@ -313,27 +288,26 @@
 
     <!-- Log Management -->
     <section id="log-management">
-      <h2>Log Management</h2>
+      <h2>{{ t('docDocsCookbookMonitoring.logHeading') }}</h2>
       <p>
-        ClaudeNest uses Laravel's structured logging. Configure the log channel to suit your
-        stack — local file, Slack, or a log aggregator like Loki or Datadog.
+        {{ t('docDocsCookbookMonitoring.logPara1') }}
       </p>
 
-      <h3>Log channel configuration</h3>
+      <h3>{{ t('docDocsCookbookMonitoring.logChannelHeading') }}</h3>
       <CodeBlock
         :code="logConfigCode"
         language="php"
         filename="config/logging.php (excerpt)"
       />
 
-      <h3>Log rotation (systemd/logrotate)</h3>
+      <h3>{{ t('docDocsCookbookMonitoring.logRotateHeading') }}</h3>
       <CodeBlock
         :code="logRotateCode"
         language="bash"
         filename="/etc/logrotate.d/claudenest"
       />
 
-      <h3>Structured log query (jq)</h3>
+      <h3>{{ t('docDocsCookbookMonitoring.logJqHeading') }}</h3>
       <CodeBlock
         :code="logJqCode"
         language="bash"
@@ -343,11 +317,9 @@
       <div class="callout tip">
         <span class="callout-icon">i</span>
         <div>
-          <strong>Agent structured logging</strong>
+          <strong>{{ t('docDocsCookbookMonitoring.logCalloutTitle') }}</strong>
           <p>
-            The Node.js agent uses <strong>pino</strong> for structured JSON logs. Ship agent
-            logs to the same aggregator as server logs and correlate them with the
-            <code>session_id</code> field present in every agent log line.
+            <span v-html="t('docDocsCookbookMonitoring.logCalloutBody')"></span>
           </p>
         </div>
       </div>
@@ -355,27 +327,26 @@
 
     <!-- Alerting -->
     <section id="alerting">
-      <h2>Alerting</h2>
+      <h2>{{ t('docDocsCookbookMonitoring.alertHeading') }}</h2>
       <p>
-        Use Laravel's notification system to fire alerts when key thresholds are breached.
-        The example below sends a webhook notification when a machine goes offline.
+        {{ t('docDocsCookbookMonitoring.alertPara1') }}
       </p>
 
-      <h3>Machine disconnect alert</h3>
+      <h3>{{ t('docDocsCookbookMonitoring.alertDisconnectHeading') }}</h3>
       <CodeBlock
         :code="alertingCode"
         language="php"
         filename="app/Listeners/AlertOnMachineDisconnect.php"
       />
 
-      <h3>Register the listener</h3>
+      <h3>{{ t('docDocsCookbookMonitoring.alertRegisterHeading') }}</h3>
       <CodeBlock
         :code="alertingListenerCode"
         language="php"
         filename="app/Providers/EventServiceProvider.php (excerpt)"
       />
 
-      <h3>Webhook payload example</h3>
+      <h3>{{ t('docDocsCookbookMonitoring.alertPayloadHeading') }}</h3>
       <CodeBlock
         :code="alertingWebhookPayloadCode"
         language="json"
@@ -385,32 +356,26 @@
 
     <!-- Dashboard Integration -->
     <section id="dashboard-integration">
-      <h2>Dashboard Integration</h2>
+      <h2>{{ t('docDocsCookbookMonitoring.dashHeading') }}</h2>
       <p>
-        The ClaudeNest web dashboard provides real-time visibility into machines, sessions, and
-        tasks. No additional setup is required — data is pushed via Reverb WebSocket events and
-        displayed automatically.
+        {{ t('docDocsCookbookMonitoring.dashPara1') }}
       </p>
       <ul>
         <li>
-          <strong>Machines view</strong> — live online/offline status, last seen timestamp,
-          active session count per machine.
+          <span v-html="t('docDocsCookbookMonitoring.dashItemMachines')"></span>
         </li>
         <li>
-          <strong>Session view</strong> — in-progress terminal output, token counter, elapsed
-          time, and cost estimate updated every 5 seconds.
+          <span v-html="t('docDocsCookbookMonitoring.dashItemSession')"></span>
         </li>
         <li>
-          <strong>Multi-agent view</strong> — task board with claim status, file lock map, and
-          per-instance context token usage.
+          <span v-html="t('docDocsCookbookMonitoring.dashItemMultiAgent')"></span>
         </li>
         <li>
-          <strong>Activity log</strong> — chronological feed of all project events (context
-          updates, task claims, file locks) queryable by instance or event type.
+          <span v-html="t('docDocsCookbookMonitoring.dashItemActivity')"></span>
         </li>
       </ul>
 
-      <h3>Embedding the activity feed in external tools</h3>
+      <h3>{{ t('docDocsCookbookMonitoring.dashEmbedHeading') }}</h3>
       <CodeTabs
         :tabs="[
           { label: 'cURL', language: 'bash', code: activityCurlCode, filename: 'Terminal' },
@@ -422,51 +387,51 @@
 
     <!-- Production Checklist -->
     <section id="production-checklist">
-      <h2>Production Checklist</h2>
+      <h2>{{ t('docDocsCookbookMonitoring.checklistHeading') }}</h2>
       <div class="checklist">
         <label class="checklist-item">
           <input type="checkbox" disabled />
-          <span><code>GET /api/health</code> wired to uptime monitor (e.g. UptimeRobot, Betterstack)</span>
+          <span v-html="t('docDocsCookbookMonitoring.checklistItem1')"></span>
         </label>
         <label class="checklist-item">
           <input type="checkbox" disabled />
-          <span>Machine heartbeat alert: fire if <code>last_seen_at</code> &gt; 60 s</span>
+          <span v-html="t('docDocsCookbookMonitoring.checklistItem2')"></span>
         </label>
         <label class="checklist-item">
           <input type="checkbox" disabled />
-          <span>Session token budget alert at 80 % of per-session limit</span>
+          <span>{{ t('docDocsCookbookMonitoring.checklistItem3') }}</span>
         </label>
         <label class="checklist-item">
           <input type="checkbox" disabled />
-          <span>Blocked task alert after 15-minute threshold</span>
+          <span>{{ t('docDocsCookbookMonitoring.checklistItem4') }}</span>
         </label>
         <label class="checklist-item">
           <input type="checkbox" disabled />
-          <span>PostgreSQL slow query log enabled (<code>log_min_duration_statement = 500</code>)</span>
+          <span v-html="t('docDocsCookbookMonitoring.checklistItem5')"></span>
         </label>
         <label class="checklist-item">
           <input type="checkbox" disabled />
-          <span>pgvector IVFFlat index scheduled rebuild on table growth &gt; 1 M rows</span>
+          <span>{{ t('docDocsCookbookMonitoring.checklistItem6') }}</span>
         </label>
         <label class="checklist-item">
           <input type="checkbox" disabled />
-          <span>Redis memory limit set and eviction policy configured (<code>allkeys-lru</code>)</span>
+          <span v-html="t('docDocsCookbookMonitoring.checklistItem7')"></span>
         </label>
         <label class="checklist-item">
           <input type="checkbox" disabled />
-          <span>Log rotation configured for <code>storage/logs/</code> and agent pino logs</span>
+          <span v-html="t('docDocsCookbookMonitoring.checklistItem8')"></span>
         </label>
         <label class="checklist-item">
           <input type="checkbox" disabled />
-          <span>Webhook or Slack alert on machine disconnect event</span>
+          <span>{{ t('docDocsCookbookMonitoring.checklistItem9') }}</span>
         </label>
         <label class="checklist-item">
           <input type="checkbox" disabled />
-          <span>Reverb WebSocket zero-connection alert outside maintenance windows</span>
+          <span>{{ t('docDocsCookbookMonitoring.checklistItem10') }}</span>
         </label>
         <label class="checklist-item">
           <input type="checkbox" disabled />
-          <span>Agent version drift alert when running version is &gt; 1 minor version behind</span>
+          <span>{{ t('docDocsCookbookMonitoring.checklistItem11') }}</span>
         </label>
       </div>
     </section>
@@ -475,8 +440,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import CodeBlock from '@/components/docs/CodeBlock.vue';
 import CodeTabs from '@/components/docs/CodeTabs.vue';
+
+const { t } = useI18n();
 
 // ── Health Check ──────────────────────────────────────────────────────────────
 

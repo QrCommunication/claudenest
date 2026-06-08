@@ -1,33 +1,30 @@
 <template>
   <article class="doc-content">
     <header class="doc-header">
-      <h1>Register Your First Machine</h1>
+      <h1>{{ t('docDocsGuidesFirstmachine.title') }}</h1>
       <p class="lead">
-        Set up the ClaudeNest agent on a machine and pair it with your server
-        to start running remote Claude Code sessions.
+        {{ t('docDocsGuidesFirstmachine.lead') }}
       </p>
     </header>
 
     <section id="install-agent">
-      <h2>Install the Agent</h2>
+      <h2>{{ t('docDocsGuidesFirstmachine.installAgentHeading') }}</h2>
       <p>
-        The ClaudeNest agent is a Node.js daemon that runs on any machine where
-        Claude Code is installed. It manages local processes, streams terminal
-        output, and handles session lifecycle.
+        {{ t('docDocsGuidesFirstmachine.installAgentIntro') }}
       </p>
 
-      <h3>Via npm (recommended)</h3>
+      <h3>{{ t('docDocsGuidesFirstmachine.viaNpmHeading') }}</h3>
       <CodeBlock
         code="npm install -g @claudenest/agent"
         language="bash"
         filename="Terminal"
       />
 
-      <h3>Via the install script</h3>
+      <h3>{{ t('docDocsGuidesFirstmachine.viaInstallScriptHeading') }}</h3>
       <CodeTabs :tabs="installScriptTabs" />
 
       <p>
-        After installation, verify the agent is available:
+        {{ t('docDocsGuidesFirstmachine.verifyAvailablePara') }}
       </p>
 
       <CodeBlock
@@ -38,20 +35,17 @@
 
       <p class="tip">
         <span class="tip-icon">&#128161;</span>
-        The agent requires Node.js 24 LTS or later and Claude Code CLI already
-        installed and authenticated on the machine.
+        {{ t('docDocsGuidesFirstmachine.installTip') }}
       </p>
     </section>
 
     <section id="pairing">
-      <h2>Pairing Flow</h2>
+      <h2>{{ t('docDocsGuidesFirstmachine.pairingHeading') }}</h2>
       <p>
-        Pairing connects the agent to your ClaudeNest server. The process uses a
-        short-lived pairing code to securely exchange credentials without exposing
-        tokens.
+        {{ t('docDocsGuidesFirstmachine.pairingIntro') }}
       </p>
 
-      <h3>Step 1: Start the agent in pairing mode</h3>
+      <h3>{{ t('docDocsGuidesFirstmachine.step1Heading') }}</h3>
       <CodeBlock
         :code="pairingStartCode"
         language="bash"
@@ -59,8 +53,7 @@
       />
 
       <p>
-        The agent will display a 6-character pairing code and wait for confirmation
-        from the server.
+        {{ t('docDocsGuidesFirstmachine.pairingCodeDisplayPara') }}
       </p>
 
       <CodeBlock
@@ -69,18 +62,15 @@
         filename="Agent Output"
       />
 
-      <h3>Step 2: Enter the code in the dashboard</h3>
+      <h3>{{ t('docDocsGuidesFirstmachine.step2Heading') }}</h3>
       <p>
-        Open your ClaudeNest dashboard, navigate to <strong>Machines</strong>, click
-        <strong>Add Machine</strong>, and enter the pairing code displayed by the agent.
-        The server will register the machine and send back a persistent authentication token.
+        {{ t('docDocsGuidesFirstmachine.step2Para1') }} <strong>{{ t('docDocsGuidesFirstmachine.step2Machines') }}</strong>{{ t('docDocsGuidesFirstmachine.step2Para2') }}
+        <strong>{{ t('docDocsGuidesFirstmachine.step2AddMachine') }}</strong>{{ t('docDocsGuidesFirstmachine.step2Para3') }}
       </p>
 
-      <h3>Step 3: Automatic connection</h3>
+      <h3>{{ t('docDocsGuidesFirstmachine.step3Heading') }}</h3>
       <p>
-        Once paired, the agent stores its token securely in the OS keychain and
-        connects to the server automatically on startup. You can also register
-        a machine programmatically via the API:
+        {{ t('docDocsGuidesFirstmachine.step3Para') }}
       </p>
 
       <CodeTabs :tabs="registerMachineTabs" />
@@ -93,25 +83,23 @@
 
       <p class="tip">
         <span class="tip-icon">&#128161;</span>
-        Store the returned <code>token</code> securely. It is the machine's
-        authentication credential and is only shown once.
+        {{ t('docDocsGuidesFirstmachine.tokenTip1') }} <code>token</code> {{ t('docDocsGuidesFirstmachine.tokenTip2') }}
       </p>
     </section>
 
     <section id="verify">
-      <h2>Verify the Machine</h2>
+      <h2>{{ t('docDocsGuidesFirstmachine.verifyHeading') }}</h2>
       <p>
-        After pairing, confirm the machine is online and ready to accept sessions.
+        {{ t('docDocsGuidesFirstmachine.verifyIntro') }}
       </p>
 
-      <h3>From the dashboard</h3>
+      <h3>{{ t('docDocsGuidesFirstmachine.fromDashboardHeading') }}</h3>
       <p>
-        Navigate to <strong>Machines</strong> in the sidebar. Your machine should
-        appear with a green <strong>online</strong> status indicator and its
-        platform, hostname, and agent version.
+        {{ t('docDocsGuidesFirstmachine.fromDashboardPara1') }} <strong>{{ t('docDocsGuidesFirstmachine.step2Machines') }}</strong> {{ t('docDocsGuidesFirstmachine.fromDashboardPara2') }}
+        <strong>{{ t('docDocsGuidesFirstmachine.onlineLabel') }}</strong> {{ t('docDocsGuidesFirstmachine.fromDashboardPara3') }}
       </p>
 
-      <h3>Via the API</h3>
+      <h3>{{ t('docDocsGuidesFirstmachine.viaApiHeading') }}</h3>
       <CodeTabs :tabs="listMachinesTabs" />
 
       <CodeBlock
@@ -120,9 +108,9 @@
         filename="Response"
       />
 
-      <h3>Agent health check</h3>
+      <h3>{{ t('docDocsGuidesFirstmachine.agentHealthHeading') }}</h3>
       <p>
-        On the machine itself, you can check the agent's connection status:
+        {{ t('docDocsGuidesFirstmachine.agentHealthPara') }}
       </p>
 
       <CodeBlock
@@ -139,20 +127,20 @@
     </section>
 
     <section id="next-steps">
-      <h2>Next Steps</h2>
-      <p>Your machine is registered and online. Here is what to do next:</p>
+      <h2>{{ t('docDocsGuidesFirstmachine.nextStepsHeading') }}</h2>
+      <p>{{ t('docDocsGuidesFirstmachine.nextStepsIntro') }}</p>
       <div class="next-steps">
         <router-link to="/docs/guides/remote-sessions" class="next-step">
-          <strong>Remote Sessions</strong>
-          <span>Create your first Claude Code session on this machine &#8594;</span>
+          <strong>{{ t('docDocsGuidesFirstmachine.nextRemoteSessionsTitle') }}</strong>
+          <span>{{ t('docDocsGuidesFirstmachine.nextRemoteSessionsDesc') }} &#8594;</span>
         </router-link>
         <router-link to="/docs/api/machines" class="next-step">
-          <strong>Machines API</strong>
-          <span>Manage machines, tokens, and capabilities &#8594;</span>
+          <strong>{{ t('docDocsGuidesFirstmachine.nextMachinesApiTitle') }}</strong>
+          <span>{{ t('docDocsGuidesFirstmachine.nextMachinesApiDesc') }} &#8594;</span>
         </router-link>
         <router-link to="/docs/api/projects" class="next-step">
-          <strong>Multi-Agent Projects</strong>
-          <span>Set up shared projects for multi-agent collaboration &#8594;</span>
+          <strong>{{ t('docDocsGuidesFirstmachine.nextProjectsTitle') }}</strong>
+          <span>{{ t('docDocsGuidesFirstmachine.nextProjectsDesc') }} &#8594;</span>
         </router-link>
       </div>
     </section>
@@ -161,8 +149,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import CodeBlock from '@/components/docs/CodeBlock.vue';
 import CodeTabs from '@/components/docs/CodeTabs.vue';
+
+const { t } = useI18n();
 
 const installScriptTabs = ref([
   {

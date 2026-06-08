@@ -1,57 +1,49 @@
 <template>
   <article class="doc-content">
     <header class="doc-header">
-      <h1>Credential Management</h1>
+      <h1>{{ t('docDocsGuidesCredentials.title') }}</h1>
       <p class="lead">
-        Securely manage Claude API keys and OAuth tokens. Credentials are encrypted
-        at rest with AES-256-CBC and can be bound to specific sessions for fine-grained
-        access control.
+        {{ t('docDocsGuidesCredentials.lead') }}
       </p>
     </header>
 
     <section id="overview">
-      <h2>Overview</h2>
+      <h2>{{ t('docDocsGuidesCredentials.overviewHeading') }}</h2>
       <p>
-        ClaudeNest stores credentials in an encrypted format so that raw secrets never
-        appear in logs, API responses, or database exports. Two credential types are
-        supported:
+        {{ t('docDocsGuidesCredentials.overviewPara') }}
       </p>
       <ul>
         <li>
-          <strong>API Key</strong> &mdash; A static Claude API key that is stored
-          encrypted and decrypted only when the agent needs it to start a session.
+          <strong>{{ t('docDocsGuidesCredentials.apiKeyLabel') }}</strong> &mdash; {{ t('docDocsGuidesCredentials.apiKeyDesc') }}
         </li>
         <li>
-          <strong>OAuth Token</strong> &mdash; An access / refresh token pair. The
-          server handles automatic token refresh before expiration.
+          <strong>{{ t('docDocsGuidesCredentials.oauthTokenLabel') }}</strong> &mdash; {{ t('docDocsGuidesCredentials.oauthTokenDesc') }}
         </li>
       </ul>
 
       <div class="encryption-note">
         <span class="note-icon">&#128274;</span>
         <div>
-          <strong>Encryption details</strong>
+          <strong>{{ t('docDocsGuidesCredentials.encryptionDetailsTitle') }}</strong>
           <p>
-            All sensitive fields (<code>api_key</code>, <code>oauth_token</code>,
-            <code>oauth_refresh_token</code>) are encrypted with Laravel's
-            <code>Crypt::encryptString()</code> which uses <strong>AES-256-CBC</strong>
-            with the application key. Encrypted values are never returned in API
-            responses.
+            {{ t('docDocsGuidesCredentials.encryptionDetailsPara1') }} (<code>api_key</code>, <code>oauth_token</code>,
+            <code>oauth_refresh_token</code>) {{ t('docDocsGuidesCredentials.encryptionDetailsPara2') }}
+            <code>Crypt::encryptString()</code> {{ t('docDocsGuidesCredentials.encryptionDetailsPara3') }} <strong>AES-256-CBC</strong>
+            {{ t('docDocsGuidesCredentials.encryptionDetailsPara4') }}
           </p>
         </div>
       </div>
     </section>
 
     <section id="api-keys">
-      <h2>Storing API Keys</h2>
+      <h2>{{ t('docDocsGuidesCredentials.apiKeysHeading') }}</h2>
       <p>
-        Create a credential of type <code>api_key</code> to store a Claude API key.
-        The key is encrypted before being written to the database.
+        {{ t('docDocsGuidesCredentials.apiKeysPara1') }} <code>api_key</code> {{ t('docDocsGuidesCredentials.apiKeysPara2') }}
       </p>
 
       <CodeTabs :tabs="createApiKeyTabs" />
 
-      <p>The response confirms creation but <strong>never</strong> returns the raw key:</p>
+      <p>{{ t('docDocsGuidesCredentials.apiKeysResponseIntro1') }} <strong>{{ t('docDocsGuidesCredentials.never') }}</strong> {{ t('docDocsGuidesCredentials.apiKeysResponseIntro2') }}</p>
 
       <CodeBlock
         :code="createApiKeyResponse"
@@ -61,8 +53,7 @@
 
       <p class="tip">
         <span class="tip-icon">&#128161;</span>
-        You can validate that a stored key is still accepted by the Claude API using the
-        <code>/validate</code> endpoint, which performs a lightweight test request.
+        {{ t('docDocsGuidesCredentials.validateTip1') }} <code>/validate</code> {{ t('docDocsGuidesCredentials.validateTip2') }}
       </p>
 
       <CodeBlock
@@ -73,10 +64,9 @@
     </section>
 
     <section id="oauth-tokens">
-      <h2>OAuth Tokens</h2>
+      <h2>{{ t('docDocsGuidesCredentials.oauthHeading') }}</h2>
       <p>
-        For OAuth-based authentication, store both the access token and the refresh
-        token. ClaudeNest will automatically refresh expired tokens in the background.
+        {{ t('docDocsGuidesCredentials.oauthPara') }}
       </p>
 
       <CodeTabs :tabs="createOAuthTabs" />
@@ -87,10 +77,9 @@
         filename="Response (201)"
       />
 
-      <h3>Refreshing Tokens</h3>
+      <h3>{{ t('docDocsGuidesCredentials.refreshingHeading') }}</h3>
       <p>
-        The server automatically refreshes tokens before they expire. You can also
-        trigger a manual refresh:
+        {{ t('docDocsGuidesCredentials.refreshingPara') }}
       </p>
 
       <CodeBlock
@@ -99,20 +88,18 @@
         filename="Manual Refresh"
       />
 
-      <h3>Token Statuses</h3>
+      <h3>{{ t('docDocsGuidesCredentials.tokenStatusesHeading') }}</h3>
       <ul>
-        <li><code>active</code> &mdash; Token is valid and ready for use</li>
-        <li><code>expired</code> &mdash; Token has expired; will be refreshed automatically if a refresh token exists</li>
-        <li><code>revoked</code> &mdash; Token was manually revoked and cannot be used</li>
+        <li><code>active</code> &mdash; {{ t('docDocsGuidesCredentials.statusActive') }}</li>
+        <li><code>expired</code> &mdash; {{ t('docDocsGuidesCredentials.statusExpired') }}</li>
+        <li><code>revoked</code> &mdash; {{ t('docDocsGuidesCredentials.statusRevoked') }}</li>
       </ul>
     </section>
 
     <section id="default-credential">
-      <h2>Default Credential</h2>
+      <h2>{{ t('docDocsGuidesCredentials.defaultHeading') }}</h2>
       <p>
-        Each user can mark one credential as the <strong>default</strong>. When a session
-        is created without an explicit <code>credential_id</code>, the default credential
-        is used automatically.
+        {{ t('docDocsGuidesCredentials.defaultPara1') }} <strong>{{ t('docDocsGuidesCredentials.defaultWord') }}</strong>{{ t('docDocsGuidesCredentials.defaultPara2') }} <code>credential_id</code>{{ t('docDocsGuidesCredentials.defaultPara3') }}
       </p>
 
       <CodeTabs :tabs="setDefaultTabs" />
@@ -125,23 +112,20 @@
 
       <p class="tip">
         <span class="tip-icon">&#128161;</span>
-        Setting a new default automatically removes the default flag from the previous
-        credential. Only one credential per user can be the default at any time.
+        {{ t('docDocsGuidesCredentials.defaultTip') }}
       </p>
     </section>
 
     <section id="session-binding">
-      <h2>Binding Credentials to Sessions</h2>
+      <h2>{{ t('docDocsGuidesCredentials.sessionBindingHeading') }}</h2>
       <p>
-        When creating a session you can optionally pass a <code>credential_id</code> to
-        override the default credential. This is useful when different projects require
-        different API keys or organizational accounts.
+        {{ t('docDocsGuidesCredentials.sessionBindingPara1') }} <code>credential_id</code> {{ t('docDocsGuidesCredentials.sessionBindingPara2') }}
       </p>
 
       <CodeTabs :tabs="sessionBindingTabs" />
 
       <p>
-        The session object reflects the bound credential (ID only, never the secret):
+        {{ t('docDocsGuidesCredentials.sessionBindingResponseIntro') }}
       </p>
 
       <CodeBlock
@@ -150,33 +134,33 @@
         filename="Response"
       />
 
-      <h3>Credential Lifecycle with Sessions</h3>
+      <h3>{{ t('docDocsGuidesCredentials.lifecycleHeading') }}</h3>
       <ol>
-        <li>Session is created with an explicit or default credential</li>
-        <li>The agent requests the decrypted key from the server via a secure channel</li>
-        <li>The key is injected into the Claude Code process environment</li>
-        <li>When the session ends, the key is wiped from the agent's memory</li>
+        <li>{{ t('docDocsGuidesCredentials.lifecycle1') }}</li>
+        <li>{{ t('docDocsGuidesCredentials.lifecycle2') }}</li>
+        <li>{{ t('docDocsGuidesCredentials.lifecycle3') }}</li>
+        <li>{{ t('docDocsGuidesCredentials.lifecycle4') }}</li>
       </ol>
     </section>
 
     <section id="next-steps">
-      <h2>Next Steps</h2>
+      <h2>{{ t('docDocsGuidesCredentials.nextStepsHeading') }}</h2>
       <div class="next-steps">
         <router-link to="/docs/api/credentials" class="next-step">
-          <strong>Credentials API Reference</strong>
-          <span>Full endpoint documentation for credential management &#8594;</span>
+          <strong>{{ t('docDocsGuidesCredentials.nextStep1Title') }}</strong>
+          <span>{{ t('docDocsGuidesCredentials.nextStep1Desc') }} &#8594;</span>
         </router-link>
         <router-link to="/docs/authentication" class="next-step">
-          <strong>Authentication Guide</strong>
-          <span>OAuth setup and API token management &#8594;</span>
+          <strong>{{ t('docDocsGuidesCredentials.nextStep2Title') }}</strong>
+          <span>{{ t('docDocsGuidesCredentials.nextStep2Desc') }} &#8594;</span>
         </router-link>
         <router-link to="/docs/guides/agent-setup" class="next-step">
-          <strong>Agent Setup</strong>
-          <span>Install and configure the ClaudeNest agent &#8594;</span>
+          <strong>{{ t('docDocsGuidesCredentials.nextStep3Title') }}</strong>
+          <span>{{ t('docDocsGuidesCredentials.nextStep3Desc') }} &#8594;</span>
         </router-link>
         <router-link to="/docs/api/sessions" class="next-step">
-          <strong>Sessions API</strong>
-          <span>Create sessions with credential binding &#8594;</span>
+          <strong>{{ t('docDocsGuidesCredentials.nextStep4Title') }}</strong>
+          <span>{{ t('docDocsGuidesCredentials.nextStep4Desc') }} &#8594;</span>
         </router-link>
       </div>
     </section>
@@ -185,8 +169,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import CodeBlock from '@/components/docs/CodeBlock.vue';
 import CodeTabs from '@/components/docs/CodeTabs.vue';
+
+const { t } = useI18n();
 
 // --- API Key Creation ---
 

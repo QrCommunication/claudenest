@@ -319,14 +319,16 @@ const machineToDelete = ref<Machine | null>(null);
 
 // ==================== TABLE COLUMNS ====================
 
-const columns: TableColumn[] = [
+// computed so the column labels re-translate when the locale changes
+// (a plain const snapshots t() once at setup time).
+const columns = computed<TableColumn[]>(() => [
   { key: 'name', label: t('machines.colMachine'), sortable: true },
   { key: 'hostname', label: t('machines.colHostname'), sortable: true },
   { key: 'platform', label: t('machines.colPlatform'), sortable: true },
   { key: 'status', label: t('machines.colStatus'), sortable: true },
   { key: 'last_seen_at', label: t('machines.colLastSeen'), sortable: true },
   { key: 'actions', label: '', sortable: false },
-];
+]);
 
 // ==================== LIFECYCLE ====================
 

@@ -1,19 +1,16 @@
 <template>
   <article class="doc-content">
     <header class="doc-header">
-      <h1>Task Coordination</h1>
+      <h1>{{ t('docDocsGuidesTaskcoordination.pageTitle') }}</h1>
       <p class="lead">
-        Distribute and coordinate work between Claude instances. Tasks provide an atomic
-        claiming system that prevents conflicts and ensures each unit of work is handled
-        by exactly one agent at a time.
+        {{ t('docDocsGuidesTaskcoordination.lead') }}
       </p>
     </header>
 
     <section id="task-lifecycle">
-      <h2>Task Lifecycle</h2>
+      <h2>{{ t('docDocsGuidesTaskcoordination.lifecycleTitle') }}</h2>
       <p>
-        Every task follows a well-defined lifecycle from creation to completion.
-        Understanding these states is key to building reliable multi-agent workflows.
+        {{ t('docDocsGuidesTaskcoordination.lifecyclePara1') }}
       </p>
 
       <div class="lifecycle-diagram">
@@ -21,7 +18,7 @@
           <span class="status-dot pending"></span>
           <div>
             <strong>pending</strong>
-            <span>Waiting to be claimed</span>
+            <span>{{ t('docDocsGuidesTaskcoordination.lifecyclePendingDesc') }}</span>
           </div>
         </div>
         <div class="lifecycle-arrow">&#8594;</div>
@@ -29,7 +26,7 @@
           <span class="status-dot in-progress"></span>
           <div>
             <strong>in_progress</strong>
-            <span>Claimed by an instance</span>
+            <span>{{ t('docDocsGuidesTaskcoordination.lifecycleInProgressDesc') }}</span>
           </div>
         </div>
         <div class="lifecycle-arrow">&#8594;</div>
@@ -37,7 +34,7 @@
           <span class="status-dot review"></span>
           <div>
             <strong>review</strong>
-            <span>Work completed, under review</span>
+            <span>{{ t('docDocsGuidesTaskcoordination.lifecycleReviewDesc') }}</span>
           </div>
         </div>
         <div class="lifecycle-arrow">&#8594;</div>
@@ -45,287 +42,295 @@
           <span class="status-dot done"></span>
           <div>
             <strong>done</strong>
-            <span>Finished and recorded</span>
+            <span>{{ t('docDocsGuidesTaskcoordination.lifecycleDoneDesc') }}</span>
           </div>
         </div>
       </div>
 
       <p>
-        A task can also enter the <code>blocked</code> state if it depends on other tasks
-        that have not yet been completed. Blocked tasks cannot be claimed until all
-        dependencies are resolved.
+        <i18n-t keypath="docDocsGuidesTaskcoordination.lifecycleBlocked" tag="span">
+          <template #blocked><code>blocked</code></template>
+        </i18n-t>
       </p>
 
       <p class="tip">
         <span class="tip-icon">&#128161;</span>
-        If an instance cannot finish a task, it can release it back to <code>pending</code>
-        so another instance can pick it up.
+        <i18n-t keypath="docDocsGuidesTaskcoordination.lifecycleTip" tag="span">
+          <template #pending><code>pending</code></template>
+        </i18n-t>
       </p>
     </section>
 
     <section id="creating-tasks">
-      <h2>Creating Tasks</h2>
+      <h2>{{ t('docDocsGuidesTaskcoordination.creatingTitle') }}</h2>
       <p>
-        Create tasks within a shared project. Each task includes a title, optional
-        description, priority level, and an estimate of the token budget required.
+        {{ t('docDocsGuidesTaskcoordination.creatingPara1') }}
       </p>
 
       <CodeTabs :tabs="createTaskTabs" />
 
-      <p>The response returns the newly created task with its <code>pending</code> status:</p>
+      <p>
+        <i18n-t keypath="docDocsGuidesTaskcoordination.creatingResponseIntro" tag="span">
+          <template #pending><code>pending</code></template>
+        </i18n-t>
+      </p>
 
       <CodeBlock
         :code="createTaskResponse"
         language="json"
-        filename="Response"
+        :filename="t('docDocsGuidesTaskcoordination.filenameResponse')"
       />
 
-      <h3>Priority Levels</h3>
+      <h3>{{ t('docDocsGuidesTaskcoordination.priorityLevelsTitle') }}</h3>
       <ul>
-        <li><code>low</code> &mdash; Can be done later, non-urgent</li>
-        <li><code>medium</code> &mdash; Normal priority (default)</li>
-        <li><code>high</code> &mdash; Should be addressed soon</li>
-        <li><code>critical</code> &mdash; Needs immediate attention</li>
+        <li><code>low</code> &mdash; {{ t('docDocsGuidesTaskcoordination.priorityLow') }}</li>
+        <li><code>medium</code> &mdash; {{ t('docDocsGuidesTaskcoordination.priorityMedium') }}</li>
+        <li><code>high</code> &mdash; {{ t('docDocsGuidesTaskcoordination.priorityHigh') }}</li>
+        <li><code>critical</code> &mdash; {{ t('docDocsGuidesTaskcoordination.priorityCritical') }}</li>
       </ul>
     </section>
 
     <section id="claiming">
-      <h2>Claiming Tasks</h2>
+      <h2>{{ t('docDocsGuidesTaskcoordination.claimingTitle') }}</h2>
       <p>
-        Claiming is an <strong>atomic operation</strong>: only one instance can claim a
-        given task. If two instances try to claim the same task simultaneously, only one
-        succeeds and the other receives a <code>409 Conflict</code> response.
+        <i18n-t keypath="docDocsGuidesTaskcoordination.claimingPara1" tag="span">
+          <template #atomic><strong>{{ t('docDocsGuidesTaskcoordination.claimingAtomicOperation') }}</strong></template>
+          <template #conflict><code>409 Conflict</code></template>
+        </i18n-t>
       </p>
 
       <CodeTabs :tabs="claimTaskTabs" />
 
-      <p>On success the task status changes to <code>in_progress</code>:</p>
+      <p>
+        <i18n-t keypath="docDocsGuidesTaskcoordination.claimingSuccessIntro" tag="span">
+          <template #inProgress><code>in_progress</code></template>
+        </i18n-t>
+      </p>
 
       <CodeBlock
         :code="claimTaskResponse"
         language="json"
-        filename="Response (200)"
+        :filename="t('docDocsGuidesTaskcoordination.filenameResponse200')"
       />
 
-      <p>If the task is already taken:</p>
+      <p>{{ t('docDocsGuidesTaskcoordination.claimingTakenIntro') }}</p>
 
       <CodeBlock
         :code="claimConflictResponse"
         language="json"
-        filename="Response (409)"
+        :filename="t('docDocsGuidesTaskcoordination.filenameResponse409')"
       />
 
-      <h3>Automatic Next-Task Selection</h3>
+      <h3>{{ t('docDocsGuidesTaskcoordination.nextTaskTitle') }}</h3>
       <p>
-        Instead of choosing a specific task, an instance can request the next available
-        task whose dependencies are satisfied:
+        {{ t('docDocsGuidesTaskcoordination.nextTaskPara1') }}
       </p>
 
       <CodeBlock
         :code="nextAvailableCode"
         language="bash"
-        filename="Request"
+        :filename="t('docDocsGuidesTaskcoordination.filenameRequest')"
       />
 
       <p class="tip">
         <span class="tip-icon">&#128161;</span>
-        The server picks the highest-priority, oldest-pending task whose dependencies are
-        all in <code>done</code> status.
+        <i18n-t keypath="docDocsGuidesTaskcoordination.nextTaskTip" tag="span">
+          <template #done><code>done</code></template>
+        </i18n-t>
       </p>
     </section>
 
     <section id="completing">
-      <h2>Completing Tasks</h2>
+      <h2>{{ t('docDocsGuidesTaskcoordination.completingTitle') }}</h2>
       <p>
-        When an instance finishes its work it marks the task as <code>done</code> and
-        provides a summary. The server automatically creates a context chunk from the
-        completion summary so other instances can benefit from the result via RAG.
+        <i18n-t keypath="docDocsGuidesTaskcoordination.completingPara1" tag="span">
+          <template #done><code>done</code></template>
+        </i18n-t>
       </p>
 
       <CodeTabs :tabs="completeTaskTabs" />
 
-      <p>The response confirms the task is done:</p>
+      <p>{{ t('docDocsGuidesTaskcoordination.completingResponseIntro') }}</p>
 
       <CodeBlock
         :code="completeTaskResponse"
         language="json"
-        filename="Response"
+        :filename="t('docDocsGuidesTaskcoordination.filenameResponse')"
       />
 
-      <h3>Releasing a Task</h3>
+      <h3>{{ t('docDocsGuidesTaskcoordination.releasingTitle') }}</h3>
       <p>
-        If an instance cannot finish its work, it should release the task so others can
-        pick it up. Provide an optional reason to help the next claimant understand the
-        context:
+        {{ t('docDocsGuidesTaskcoordination.releasingPara1') }}
       </p>
 
       <CodeBlock
         :code="releaseTaskCode"
         language="bash"
-        filename="Request"
+        :filename="t('docDocsGuidesTaskcoordination.filenameRequest')"
       />
     </section>
 
     <section id="dependencies">
-      <h2>Task Dependencies</h2>
+      <h2>{{ t('docDocsGuidesTaskcoordination.dependenciesTitle') }}</h2>
       <p>
-        Tasks can declare dependencies on other tasks. A dependent task cannot be claimed
-        until every task it depends on has reached the <code>done</code> status.
+        <i18n-t keypath="docDocsGuidesTaskcoordination.dependenciesPara1" tag="span">
+          <template #done><code>done</code></template>
+        </i18n-t>
       </p>
 
       <CodeTabs :tabs="dependencyTabs" />
 
       <p>
-        The dependency graph is validated at claim time. If a dependency is still pending
-        or in progress, the server returns a <code>400</code> error:
+        <i18n-t keypath="docDocsGuidesTaskcoordination.dependenciesPara2" tag="span">
+          <template #error400><code>400</code></template>
+        </i18n-t>
       </p>
 
       <CodeBlock
         :code="dependencyErrorResponse"
         language="json"
-        filename="Response (400)"
+        :filename="t('docDocsGuidesTaskcoordination.filenameResponse400')"
       />
 
       <p class="tip">
         <span class="tip-icon">&#128161;</span>
-        Keep dependency chains short. Deep chains slow down parallel execution because
-        later tasks must wait for all predecessors to complete sequentially.
+        {{ t('docDocsGuidesTaskcoordination.dependenciesTip') }}
       </p>
     </section>
 
     <section id="epics-sprints">
-      <h2>Epics, Sprints &amp; Subtasks</h2>
+      <h2>{{ t('docDocsGuidesTaskcoordination.epicsSprintsTitle') }}</h2>
       <p>
-        For larger projects, ClaudeNest extends the basic task model with epics, sprints,
-        and subtasks. These concepts let you structure work at multiple granularity levels
-        and track delivery pace across iterations.
+        {{ t('docDocsGuidesTaskcoordination.epicsSprintsIntro') }}
       </p>
 
-      <h3>Epics</h3>
+      <h3>{{ t('docDocsGuidesTaskcoordination.epicsTitle') }}</h3>
       <p>
-        An <strong>epic</strong> is a named group of related tasks that together deliver
-        a single feature or capability. Attach a task to an epic by setting its
-        <code>epic_id</code> field at creation time or via PATCH:
+        <i18n-t keypath="docDocsGuidesTaskcoordination.epicsPara1" tag="span">
+          <template #epic><strong>{{ t('docDocsGuidesTaskcoordination.epicWord') }}</strong></template>
+          <template #epicId><code>epic_id</code></template>
+        </i18n-t>
       </p>
 
       <CodeBlock
         :code="epicExample"
         language="json"
-        filename="Task with epic"
+        :filename="t('docDocsGuidesTaskcoordination.filenameTaskWithEpic')"
       />
 
       <p>
-        Retrieve all tasks that belong to a given epic using the
-        <code>?epic_id=</code> filter on the task list endpoint. The Projects API
-        exposes a dedicated <code>GET /projects/{id}/epics</code> endpoint that returns
-        all epics with their aggregate progress (total tasks, completed tasks, percent
-        done).
+        <i18n-t keypath="docDocsGuidesTaskcoordination.epicsPara2" tag="span">
+          <template #epicIdFilter><code>?epic_id=</code></template>
+          <template #epicsEndpoint><code>GET /projects/{id}/epics</code></template>
+        </i18n-t>
       </p>
 
-      <h3>Sprints</h3>
+      <h3>{{ t('docDocsGuidesTaskcoordination.sprintsTitle') }}</h3>
       <p>
-        A <strong>sprint</strong> is a time-boxed iteration, typically one to two weeks,
-        that contains a selected set of tasks. Sprints help the team commit to a
-        deliverable scope and measure velocity via a burndown chart. Assign a task to
-        the current sprint with <code>sprint_id</code>:
+        <i18n-t keypath="docDocsGuidesTaskcoordination.sprintsPara1" tag="span">
+          <template #sprint><strong>{{ t('docDocsGuidesTaskcoordination.sprintWord') }}</strong></template>
+          <template #sprintId><code>sprint_id</code></template>
+        </i18n-t>
       </p>
 
       <CodeBlock
         :code="sprintExample"
         language="json"
-        filename="Task with sprint"
+        :filename="t('docDocsGuidesTaskcoordination.filenameTaskWithSprint')"
       />
 
       <p>
-        Use <code>GET /projects/{id}/sprints</code> to list all sprints. Each sprint
-        object includes <code>starts_at</code>, <code>ends_at</code>, total story
-        points, and completed story points so you can render a burndown without
-        additional queries.
+        <i18n-t keypath="docDocsGuidesTaskcoordination.sprintsPara2" tag="span">
+          <template #sprintsEndpoint><code>GET /projects/{id}/sprints</code></template>
+          <template #startsAt><code>starts_at</code></template>
+          <template #endsAt><code>ends_at</code></template>
+        </i18n-t>
       </p>
 
-      <h3>Subtasks</h3>
+      <h3>{{ t('docDocsGuidesTaskcoordination.subtasksTitle') }}</h3>
       <p>
-        Any task can be broken down into subtasks by setting <code>parent_id</code> to
-        the parent task's UUID. Subtasks appear nested under their parent and follow the
-        same lifecycle (pending → in_progress → done). A parent task is considered
-        finished only when all its subtasks are done.
+        <i18n-t keypath="docDocsGuidesTaskcoordination.subtasksPara1" tag="span">
+          <template #parentId><code>parent_id</code></template>
+        </i18n-t>
       </p>
 
       <CodeBlock
         :code="subtaskExample"
         language="json"
-        filename="Subtask"
+        :filename="t('docDocsGuidesTaskcoordination.filenameSubtask')"
       />
 
       <p>
-        Fetch all subtasks of a task with <code>GET /tasks/{id}/subtasks</code>.
-        To show only root-level tasks (no subtasks) in a list, pass
-        <code>?root_only=true</code>. The response includes convenience fields:
-        <code>has_subtasks</code>, <code>subtasks_count</code>, and
-        <code>completed_subtasks_count</code>.
+        <i18n-t keypath="docDocsGuidesTaskcoordination.subtasksPara2" tag="span">
+          <template #subtasksEndpoint><code>GET /tasks/{id}/subtasks</code></template>
+          <template #rootOnly><code>?root_only=true</code></template>
+          <template #hasSubtasks><code>has_subtasks</code></template>
+          <template #subtasksCount><code>subtasks_count</code></template>
+          <template #completedSubtasksCount><code>completed_subtasks_count</code></template>
+        </i18n-t>
       </p>
 
-      <h3>Story Points</h3>
+      <h3>{{ t('docDocsGuidesTaskcoordination.storyPointsTitle') }}</h3>
       <p>
-        Attach a <code>story_points</code> integer to any task to express its relative
-        complexity. Story points are used by sprint burndown calculations and by the
-        Planning Agent to suggest realistic sprint scopes. Common scales are Fibonacci
-        (1, 2, 3, 5, 8, 13) or T-shirt sizes mapped to numbers (S=1, M=2, L=3, XL=5).
+        <i18n-t keypath="docDocsGuidesTaskcoordination.storyPointsPara1" tag="span">
+          <template #storyPoints><code>story_points</code></template>
+        </i18n-t>
       </p>
 
       <CodeBlock
         :code="storyPointsExample"
         language="json"
-        filename="Task with story points"
+        :filename="t('docDocsGuidesTaskcoordination.filenameTaskWithStoryPoints')"
       />
 
-      <h3>Planning Agent &amp; Runner Agent</h3>
+      <h3>{{ t('docDocsGuidesTaskcoordination.agentsTitle') }}</h3>
       <p>
-        ClaudeNest ships two built-in automation agents that operate at the project level:
+        {{ t('docDocsGuidesTaskcoordination.agentsIntro') }}
       </p>
       <ul>
         <li>
-          <strong>Planning Agent</strong> &mdash; Analyses the current backlog and suggests
-          how to split work into epics, assign story points, and populate the next sprint.
-          Access its context snapshot at
-          <code>GET /projects/{id}/planning/context</code> and trigger a planning run with
-          <code>POST /projects/{id}/planning/execute</code>.
+          <i18n-t keypath="docDocsGuidesTaskcoordination.planningAgentItem" tag="span">
+            <template #planningAgent><strong>{{ t('docDocsGuidesTaskcoordination.planningAgentName') }}</strong></template>
+            <template #contextEndpoint><code>GET /projects/{id}/planning/context</code></template>
+            <template #executeEndpoint><code>POST /projects/{id}/planning/execute</code></template>
+          </i18n-t>
         </li>
         <li>
-          <strong>Runner Agent</strong> &mdash; Monitors sprint progress in real time and
-          auto-updates task statuses based on Claude instance activity. Check its health
-          at <code>GET /projects/{id}/runner/health</code>, force a status sweep with
-          <code>POST /projects/{id}/runner/auto-update</code>, and view live progress at
-          <code>GET /projects/{id}/runner/progress</code>.
+          <i18n-t keypath="docDocsGuidesTaskcoordination.runnerAgentItem" tag="span">
+            <template #runnerAgent><strong>{{ t('docDocsGuidesTaskcoordination.runnerAgentName') }}</strong></template>
+            <template #healthEndpoint><code>GET /projects/{id}/runner/health</code></template>
+            <template #autoUpdateEndpoint><code>POST /projects/{id}/runner/auto-update</code></template>
+            <template #progressEndpoint><code>GET /projects/{id}/runner/progress</code></template>
+          </i18n-t>
         </li>
       </ul>
 
       <p class="tip">
         <span class="tip-icon">&#128161;</span>
-        Let the Planning Agent propose the sprint scope, then have each Claude instance
-        call <code>next-available</code> to claim tasks automatically. The Runner Agent
-        keeps the dashboard in sync without any manual status updates.
+        <i18n-t keypath="docDocsGuidesTaskcoordination.agentsTip" tag="span">
+          <template #nextAvailable><code>next-available</code></template>
+        </i18n-t>
       </p>
     </section>
 
     <section id="next-steps">
-      <h2>Next Steps</h2>
+      <h2>{{ t('docDocsGuidesTaskcoordination.nextStepsTitle') }}</h2>
       <div class="next-steps">
         <router-link to="/docs/api/tasks" class="next-step">
-          <strong>Tasks API Reference</strong>
-          <span>Full endpoint documentation for tasks &#8594;</span>
+          <strong>{{ t('docDocsGuidesTaskcoordination.nextStepTasksApiTitle') }}</strong>
+          <span>{{ t('docDocsGuidesTaskcoordination.nextStepTasksApiDesc') }} &#8594;</span>
         </router-link>
         <router-link to="/docs/api/projects" class="next-step">
-          <strong>Projects API</strong>
-          <span>Manage shared projects and context &#8594;</span>
+          <strong>{{ t('docDocsGuidesTaskcoordination.nextStepProjectsApiTitle') }}</strong>
+          <span>{{ t('docDocsGuidesTaskcoordination.nextStepProjectsApiDesc') }} &#8594;</span>
         </router-link>
         <router-link to="/docs/guides/agent-setup" class="next-step">
-          <strong>Agent Setup</strong>
-          <span>Install and configure the ClaudeNest agent &#8594;</span>
+          <strong>{{ t('docDocsGuidesTaskcoordination.nextStepAgentSetupTitle') }}</strong>
+          <span>{{ t('docDocsGuidesTaskcoordination.nextStepAgentSetupDesc') }} &#8594;</span>
         </router-link>
         <router-link to="/docs/websocket" class="next-step">
-          <strong>WebSocket Events</strong>
-          <span>Real-time task events via WebSocket &#8594;</span>
+          <strong>{{ t('docDocsGuidesTaskcoordination.nextStepWebsocketTitle') }}</strong>
+          <span>{{ t('docDocsGuidesTaskcoordination.nextStepWebsocketDesc') }} &#8594;</span>
         </router-link>
       </div>
     </section>
@@ -334,8 +339,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import CodeBlock from '@/components/docs/CodeBlock.vue';
 import CodeTabs from '@/components/docs/CodeTabs.vue';
+
+const { t } = useI18n();
 
 // --- Creating Tasks ---
 

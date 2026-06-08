@@ -1,20 +1,16 @@
 <template>
   <article class="doc-content">
     <header class="doc-header">
-      <h1>Remote Sessions</h1>
+      <h1>{{ t('docDocsGuidesRemotesessions.title') }}</h1>
       <p class="lead">
-        Create and manage remote Claude Code sessions on your registered machines.
-        Sessions support three modes, real-time WebSocket streaming, and full
-        lifecycle management.
+        {{ t('docDocsGuidesRemotesessions.lead') }}
       </p>
     </header>
 
     <section id="create-session">
-      <h2>Create a Session</h2>
+      <h2>{{ t('docDocsGuidesRemotesessions.createHeading') }}</h2>
       <p>
-        To start a Claude Code session, send a POST request to the sessions
-        endpoint with the target machine ID. You can specify a working directory,
-        an initial prompt, and the session mode.
+        {{ t('docDocsGuidesRemotesessions.createPara1') }}
       </p>
 
       <CodeTabs :tabs="createSessionTabs" />
@@ -26,31 +22,30 @@
       />
 
       <p>
-        The session starts in <code>created</code> status, transitions to
-        <code>starting</code> while the agent spawns the Claude Code process,
-        and then moves to <code>running</code> once the PTY is ready.
+        <i18n-t keypath="docDocsGuidesRemotesessions.createPara2" tag="span">
+          <template #created><code>created</code></template>
+          <template #starting><code>starting</code></template>
+          <template #running><code>running</code></template>
+        </i18n-t>
       </p>
 
       <p class="tip">
         <span class="tip-icon">&#128161;</span>
-        Save the returned session <code>id</code> &mdash; you will need it
-        to attach, send input, or terminate the session.
+        <i18n-t keypath="docDocsGuidesRemotesessions.createTip" tag="span">
+          <template #id><code>id</code></template>
+        </i18n-t>
       </p>
     </section>
 
     <section id="interactive-mode">
-      <h2>Interactive Mode</h2>
+      <h2>{{ t('docDocsGuidesRemotesessions.interactiveHeading') }}</h2>
       <p>
-        Interactive sessions provide a full bidirectional terminal experience.
-        You send input (keystrokes, commands) and receive real-time output
-        via WebSocket. This is the default mode and is ideal for the web
-        dashboard and mobile apps.
+        {{ t('docDocsGuidesRemotesessions.interactivePara1') }}
       </p>
 
-      <h3>Attach via WebSocket</h3>
+      <h3>{{ t('docDocsGuidesRemotesessions.attachHeading') }}</h3>
       <p>
-        To interact with an interactive session, first request a WebSocket token,
-        then connect to the Reverb WebSocket server:
+        {{ t('docDocsGuidesRemotesessions.attachPara1') }}
       </p>
 
       <CodeTabs :tabs="attachSessionTabs" />
@@ -61,10 +56,9 @@
         filename="Response"
       />
 
-      <h3>WebSocket Communication</h3>
+      <h3>{{ t('docDocsGuidesRemotesessions.wsCommHeading') }}</h3>
       <p>
-        Once attached, use the WebSocket connection to send input and receive output
-        in real time:
+        {{ t('docDocsGuidesRemotesessions.wsCommPara1') }}
       </p>
 
       <CodeBlock
@@ -75,17 +69,14 @@
 
       <p class="tip">
         <span class="tip-icon">&#128161;</span>
-        Terminal resize events should be sent whenever the client viewport changes
-        to keep the PTY dimensions in sync with the display.
+        {{ t('docDocsGuidesRemotesessions.wsCommTip') }}
       </p>
     </section>
 
     <section id="headless-mode">
-      <h2>Headless Mode</h2>
+      <h2>{{ t('docDocsGuidesRemotesessions.headlessHeading') }}</h2>
       <p>
-        Headless sessions run without user interaction. Claude Code executes the
-        initial prompt autonomously and completes when done. This mode is ideal
-        for batch processing, CI/CD pipelines, and automated tasks.
+        {{ t('docDocsGuidesRemotesessions.headlessPara1') }}
       </p>
 
       <CodeTabs :tabs="headlessSessionTabs" />
@@ -97,20 +88,19 @@
       />
 
       <p>
-        Headless sessions automatically transition through
-        <code>created</code> &#8594; <code>starting</code> &#8594;
-        <code>running</code> &#8594; <code>completed</code> without
-        requiring any further interaction. You can poll the session status
-        or listen to WebSocket events to know when the task finishes.
+        <i18n-t keypath="docDocsGuidesRemotesessions.headlessPara2" tag="span">
+          <template #created><code>created</code></template>
+          <template #starting><code>starting</code></template>
+          <template #running><code>running</code></template>
+          <template #completed><code>completed</code></template>
+        </i18n-t>
       </p>
     </section>
 
     <section id="oneshot-mode">
-      <h2>Oneshot Mode</h2>
+      <h2>{{ t('docDocsGuidesRemotesessions.oneshotHeading') }}</h2>
       <p>
-        Oneshot sessions execute a single command or prompt and terminate
-        immediately after. They are designed for quick, atomic operations
-        such as code generation, analysis, or one-off queries.
+        {{ t('docDocsGuidesRemotesessions.oneshotPara1') }}
       </p>
 
       <CodeTabs :tabs="oneshotSessionTabs" />
@@ -122,29 +112,24 @@
       />
 
       <p>
-        Unlike headless mode, oneshot sessions are expected to complete within
-        a short time frame. The response includes any output produced during
-        execution.
+        {{ t('docDocsGuidesRemotesessions.oneshotPara2') }}
       </p>
 
       <p class="tip">
         <span class="tip-icon">&#128161;</span>
-        Use oneshot mode for quick tasks that do not require ongoing context.
-        For longer-running autonomous work, prefer headless mode.
+        {{ t('docDocsGuidesRemotesessions.oneshotTip') }}
       </p>
     </section>
 
     <section id="monitoring">
-      <h2>Monitoring Sessions</h2>
+      <h2>{{ t('docDocsGuidesRemotesessions.monitoringHeading') }}</h2>
       <p>
-        ClaudeNest provides several ways to monitor session status and review
-        output after the fact.
+        {{ t('docDocsGuidesRemotesessions.monitoringPara1') }}
       </p>
 
-      <h3>Session Status</h3>
+      <h3>{{ t('docDocsGuidesRemotesessions.statusHeading') }}</h3>
       <p>
-        Query the session endpoint to check its current status, token usage,
-        cost, and duration:
+        {{ t('docDocsGuidesRemotesessions.statusPara1') }}
       </p>
 
       <CodeTabs :tabs="getSessionTabs" />
@@ -155,10 +140,9 @@
         filename="Response"
       />
 
-      <h3>Session Logs</h3>
+      <h3>{{ t('docDocsGuidesRemotesessions.logsHeading') }}</h3>
       <p>
-        Every session records a complete log of all input and output. Retrieve
-        logs for debugging, auditing, or replaying sessions:
+        {{ t('docDocsGuidesRemotesessions.logsPara1') }}
       </p>
 
       <CodeTabs :tabs="getLogsTabs" />
@@ -169,19 +153,18 @@
         filename="Response"
       />
 
-      <h3>Log Entry Types</h3>
+      <h3>{{ t('docDocsGuidesRemotesessions.logTypesHeading') }}</h3>
       <ul>
-        <li><code>input</code> &mdash; User input sent to Claude Code</li>
-        <li><code>output</code> &mdash; Terminal output from Claude Code</li>
-        <li><code>error</code> &mdash; Error messages from the process</li>
-        <li><code>system</code> &mdash; System-level events (start, stop, resize)</li>
-        <li><code>tool</code> &mdash; Tool execution results</li>
+        <li><code>input</code> &mdash; {{ t('docDocsGuidesRemotesessions.logTypeInput') }}</li>
+        <li><code>output</code> &mdash; {{ t('docDocsGuidesRemotesessions.logTypeOutput') }}</li>
+        <li><code>error</code> &mdash; {{ t('docDocsGuidesRemotesessions.logTypeError') }}</li>
+        <li><code>system</code> &mdash; {{ t('docDocsGuidesRemotesessions.logTypeSystem') }}</li>
+        <li><code>tool</code> &mdash; {{ t('docDocsGuidesRemotesessions.logTypeTool') }}</li>
       </ul>
 
-      <h3>Terminating a Session</h3>
+      <h3>{{ t('docDocsGuidesRemotesessions.terminateHeading') }}</h3>
       <p>
-        To stop a running session, send a DELETE request. The agent will
-        send a SIGTERM to the Claude Code process and clean up resources:
+        {{ t('docDocsGuidesRemotesessions.terminatePara1') }}
       </p>
 
       <CodeBlock
@@ -198,24 +181,24 @@
     </section>
 
     <section id="next-steps">
-      <h2>Next Steps</h2>
-      <p>Now that you can create and manage sessions, explore these advanced topics:</p>
+      <h2>{{ t('docDocsGuidesRemotesessions.nextStepsHeading') }}</h2>
+      <p>{{ t('docDocsGuidesRemotesessions.nextStepsIntro') }}</p>
       <div class="next-steps">
         <router-link to="/docs/websocket" class="next-step">
-          <strong>WebSocket Reference</strong>
-          <span>Full WebSocket event documentation and connection details &#8594;</span>
+          <strong>{{ t('docDocsGuidesRemotesessions.nextStep1Title') }}</strong>
+          <span>{{ t('docDocsGuidesRemotesessions.nextStep1Desc') }} &#8594;</span>
         </router-link>
         <router-link to="/docs/api/projects" class="next-step">
-          <strong>Multi-Agent Projects</strong>
-          <span>Coordinate multiple Claude instances on the same codebase &#8594;</span>
+          <strong>{{ t('docDocsGuidesRemotesessions.nextStep2Title') }}</strong>
+          <span>{{ t('docDocsGuidesRemotesessions.nextStep2Desc') }} &#8594;</span>
         </router-link>
         <router-link to="/docs/api/tasks" class="next-step">
-          <strong>Task Coordination</strong>
-          <span>Create, claim, and complete tasks across agents &#8594;</span>
+          <strong>{{ t('docDocsGuidesRemotesessions.nextStep3Title') }}</strong>
+          <span>{{ t('docDocsGuidesRemotesessions.nextStep3Desc') }} &#8594;</span>
         </router-link>
         <router-link to="/docs/api/sessions" class="next-step">
-          <strong>Sessions API Reference</strong>
-          <span>Complete API endpoint documentation for sessions &#8594;</span>
+          <strong>{{ t('docDocsGuidesRemotesessions.nextStep4Title') }}</strong>
+          <span>{{ t('docDocsGuidesRemotesessions.nextStep4Desc') }} &#8594;</span>
         </router-link>
       </div>
     </section>
@@ -224,8 +207,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import CodeBlock from '@/components/docs/CodeBlock.vue';
 import CodeTabs from '@/components/docs/CodeTabs.vue';
+
+const { t } = useI18n();
 
 const createSessionTabs = ref([
   {

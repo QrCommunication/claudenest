@@ -1,118 +1,107 @@
 <template>
   <article class="doc-content">
     <header class="doc-header">
-      <h1>Security Model</h1>
+      <h1>{{ $t('docDocsConceptsSecurity.title') }}</h1>
       <p class="lead">
-        ClaudeNest implements defense-in-depth security with Sanctum bearer authentication,
-        per-user resource isolation, AES-256-CBC credential encryption, and hashed machine
-        tokens for agent-to-server communication.
+        {{ $t('docDocsConceptsSecurity.lead') }}
       </p>
     </header>
 
     <section id="authentication">
-      <h2>Authentication</h2>
+      <h2>{{ $t('docDocsConceptsSecurity.authenticationHeading') }}</h2>
       <p>
-        All API requests require authentication via <strong>Laravel Sanctum</strong> bearer tokens.
-        Sanctum provides lightweight token-based authentication for SPAs and API consumers without
-        the complexity of OAuth2.
+        {{ $t('docDocsConceptsSecurity.authenticationPara1Pre') }} <strong>Laravel Sanctum</strong> {{ $t('docDocsConceptsSecurity.authenticationPara1Post') }}
       </p>
 
-      <h3>Token Types</h3>
+      <h3>{{ $t('docDocsConceptsSecurity.tokenTypesHeading') }}</h3>
       <div class="feature-grid">
         <div class="feature-card">
-          <h4>Personal Access Tokens</h4>
+          <h4>{{ $t('docDocsConceptsSecurity.personalAccessTokensTitle') }}</h4>
           <p>
-            Issued to users for API access. Support scoped abilities like
-            <code>machines:read</code>, <code>sessions:write</code>. Stored as SHA-256 hashes
-            in the <code>personal_access_tokens</code> table.
+            {{ $t('docDocsConceptsSecurity.personalAccessTokensDescPre') }}
+            <code>machines:read</code>, <code>sessions:write</code>. {{ $t('docDocsConceptsSecurity.personalAccessTokensDescMid') }}
+            <code>personal_access_tokens</code> {{ $t('docDocsConceptsSecurity.personalAccessTokensDescPost') }}
           </p>
         </div>
         <div class="feature-card">
-          <h4>Machine Tokens</h4>
+          <h4>{{ $t('docDocsConceptsSecurity.machineTokensTitle') }}</h4>
           <p>
-            Issued during machine registration. Used by agents to authenticate WebSocket
-            connections. Only the SHA-256 hash is stored server-side.
+            {{ $t('docDocsConceptsSecurity.machineTokensDesc') }}
           </p>
         </div>
         <div class="feature-card">
-          <h4>Session Cookies</h4>
+          <h4>{{ $t('docDocsConceptsSecurity.sessionCookiesTitle') }}</h4>
           <p>
-            For SPA authentication, Sanctum uses encrypted session cookies with CSRF
-            protection. No tokens are exposed in the browser.
+            {{ $t('docDocsConceptsSecurity.sessionCookiesDesc') }}
           </p>
         </div>
       </div>
 
-      <h3>Authentication Flow</h3>
+      <h3>{{ $t('docDocsConceptsSecurity.authenticationFlowHeading') }}</h3>
       <CodeTabs :tabs="authFlowTabs" />
 
       <div class="tip">
         <span class="tip-icon">!</span>
         <div>
-          <h4>Token Expiration</h4>
+          <h4>{{ $t('docDocsConceptsSecurity.tokenExpirationTitle') }}</h4>
           <p>
-            Personal access tokens can be configured with an expiration date. Machine tokens
-            do not expire but can be regenerated at any time. Always set reasonable expiration
-            periods for user tokens.
+            {{ $t('docDocsConceptsSecurity.tokenExpirationDesc') }}
           </p>
         </div>
       </div>
     </section>
 
     <section id="authorization">
-      <h2>Authorization</h2>
+      <h2>{{ $t('docDocsConceptsSecurity.authorizationHeading') }}</h2>
       <p>
-        ClaudeNest enforces <strong>per-user resource isolation</strong>. Every database query
-        is scoped to the authenticated user, preventing cross-tenant data access. Laravel
-        policies provide fine-grained authorization at the model level.
+        {{ $t('docDocsConceptsSecurity.authorizationPara1Pre') }} <strong>{{ $t('docDocsConceptsSecurity.authorizationPara1Strong') }}</strong>{{ $t('docDocsConceptsSecurity.authorizationPara1Post') }}
       </p>
 
-      <h3>Resource Scoping</h3>
-      <CodeBlock :code="resourceScoping" language="php" filename="Per-user isolation" />
+      <h3>{{ $t('docDocsConceptsSecurity.resourceScopingHeading') }}</h3>
+      <CodeBlock :code="resourceScoping" language="php" :filename="$t('docDocsConceptsSecurity.perUserIsolationFilename')" />
 
-      <h3>Token Abilities</h3>
+      <h3>{{ $t('docDocsConceptsSecurity.tokenAbilitiesHeading') }}</h3>
       <p>
-        Sanctum tokens can be scoped to specific abilities. A request is rejected if the
-        token lacks the required ability for the endpoint:
+        {{ $t('docDocsConceptsSecurity.tokenAbilitiesPara') }}
       </p>
-      <CodeBlock :code="tokenAbilities" language="php" filename="Ability check" />
+      <CodeBlock :code="tokenAbilities" language="php" :filename="$t('docDocsConceptsSecurity.abilityCheckFilename')" />
 
       <div class="abilities-table">
         <table>
           <thead>
             <tr>
-              <th>Ability</th>
-              <th>Description</th>
+              <th>{{ $t('docDocsConceptsSecurity.abilityColumn') }}</th>
+              <th>{{ $t('docDocsConceptsSecurity.descriptionColumn') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td><code>*</code></td>
-              <td>Full access to all resources</td>
+              <td>{{ $t('docDocsConceptsSecurity.abilityFullAccess') }}</td>
             </tr>
             <tr>
               <td><code>machines:read</code></td>
-              <td>List and view machine details</td>
+              <td>{{ $t('docDocsConceptsSecurity.abilityMachinesRead') }}</td>
             </tr>
             <tr>
               <td><code>machines:write</code></td>
-              <td>Create, update, and delete machines</td>
+              <td>{{ $t('docDocsConceptsSecurity.abilityMachinesWrite') }}</td>
             </tr>
             <tr>
               <td><code>sessions:read</code></td>
-              <td>List and view session details and logs</td>
+              <td>{{ $t('docDocsConceptsSecurity.abilitySessionsRead') }}</td>
             </tr>
             <tr>
               <td><code>sessions:write</code></td>
-              <td>Create, input to, and terminate sessions</td>
+              <td>{{ $t('docDocsConceptsSecurity.abilitySessionsWrite') }}</td>
             </tr>
             <tr>
               <td><code>projects:read</code></td>
-              <td>List and view projects and context</td>
+              <td>{{ $t('docDocsConceptsSecurity.abilityProjectsRead') }}</td>
             </tr>
             <tr>
               <td><code>projects:write</code></td>
-              <td>Create projects, manage tasks and locks</td>
+              <td>{{ $t('docDocsConceptsSecurity.abilityProjectsWrite') }}</td>
             </tr>
           </tbody>
         </table>
@@ -120,133 +109,120 @@
     </section>
 
     <section id="encryption">
-      <h2>Credential Encryption</h2>
+      <h2>{{ $t('docDocsConceptsSecurity.encryptionHeading') }}</h2>
       <p>
-        Claude API keys and OAuth tokens are encrypted at rest using <strong>AES-256-CBC</strong>
-        via Laravel's <code>Crypt::encryptString()</code>. The encryption key is derived from
-        the application's <code>APP_KEY</code> environment variable.
+        {{ $t('docDocsConceptsSecurity.encryptionPara1Pre') }} <strong>AES-256-CBC</strong>
+        {{ $t('docDocsConceptsSecurity.encryptionPara1Mid') }} <code>Crypt::encryptString()</code>. {{ $t('docDocsConceptsSecurity.encryptionPara1Mid2') }}
+        <code>APP_KEY</code> {{ $t('docDocsConceptsSecurity.encryptionPara1Post') }}
       </p>
 
-      <h3>Encryption at Rest</h3>
+      <h3>{{ $t('docDocsConceptsSecurity.encryptionAtRestHeading') }}</h3>
       <CodeBlock :code="encryptionAtRest" language="php" filename="CredentialService.php" />
 
-      <h3>Decryption for Use</h3>
+      <h3>{{ $t('docDocsConceptsSecurity.decryptionForUseHeading') }}</h3>
       <p>
-        Credentials are decrypted only at the moment they are needed (e.g., when starting a
-        session that requires an API key). The plaintext value is never stored in memory
-        longer than necessary and is never logged.
+        {{ $t('docDocsConceptsSecurity.decryptionPara') }}
       </p>
-      <CodeBlock :code="decryptionUsage" language="php" filename="Session startup" />
+      <CodeBlock :code="decryptionUsage" language="php" :filename="$t('docDocsConceptsSecurity.sessionStartupFilename')" />
 
       <div class="tip">
         <span class="tip-icon">!</span>
         <div>
-          <h4>Key Rotation</h4>
+          <h4>{{ $t('docDocsConceptsSecurity.keyRotationTitle') }}</h4>
           <p>
-            If the <code>APP_KEY</code> is rotated, all encrypted credentials become
-            unreadable. Use <code>php artisan claudenest:reencrypt-credentials</code> to
-            re-encrypt all stored credentials with the new key.
+            {{ $t('docDocsConceptsSecurity.keyRotationDescPre') }} <code>APP_KEY</code> {{ $t('docDocsConceptsSecurity.keyRotationDescMid') }}
+            <code>php artisan claudenest:reencrypt-credentials</code> {{ $t('docDocsConceptsSecurity.keyRotationDescPost') }}
           </p>
         </div>
       </div>
     </section>
 
     <section id="machine-tokens">
-      <h2>Machine Token Security</h2>
+      <h2>{{ $t('docDocsConceptsSecurity.machineTokenSecurityHeading') }}</h2>
       <p>
-        Machine tokens authenticate agents with the server. They are generated during machine
-        registration and transmitted only once. The server stores only a <strong>SHA-256 hash</strong>
-        of the token, making it impossible to recover the original value from the database.
+        {{ $t('docDocsConceptsSecurity.machineTokenSecurityPara1Pre') }} <strong>{{ $t('docDocsConceptsSecurity.machineTokenSecurityPara1Strong') }}</strong>
+        {{ $t('docDocsConceptsSecurity.machineTokenSecurityPara1Post') }}
       </p>
 
-      <h3>Token Lifecycle</h3>
+      <h3>{{ $t('docDocsConceptsSecurity.tokenLifecycleHeading') }}</h3>
       <CodeBlock :code="machineTokenLifecycle" language="php" filename="MachineController.php" />
 
-      <h3>Agent Authentication</h3>
+      <h3>{{ $t('docDocsConceptsSecurity.agentAuthenticationHeading') }}</h3>
       <p>
-        The agent includes the raw token in the <code>Authorization</code> header. The server
-        hashes the incoming token and compares it against the stored hash:
+        {{ $t('docDocsConceptsSecurity.agentAuthenticationParaPre') }} <code>Authorization</code> {{ $t('docDocsConceptsSecurity.agentAuthenticationParaPost') }}
       </p>
       <CodeTabs :tabs="agentAuthTabs" />
     </section>
 
     <section id="best-practices">
-      <h2>Best Practices</h2>
+      <h2>{{ $t('docDocsConceptsSecurity.bestPracticesHeading') }}</h2>
 
       <div class="practices-grid">
         <div class="practice-card">
           <div class="practice-header">
             <span class="practice-icon secure">S</span>
-            <h4>Always Use HTTPS</h4>
+            <h4>{{ $t('docDocsConceptsSecurity.alwaysUseHttpsTitle') }}</h4>
           </div>
           <p>
-            All production deployments must use HTTPS (TLS 1.2+) to protect tokens and
-            credentials in transit. Configure <code>FORCE_HTTPS=true</code> in your
-            environment.
+            {{ $t('docDocsConceptsSecurity.alwaysUseHttpsDescPre') }} <code>FORCE_HTTPS=true</code> {{ $t('docDocsConceptsSecurity.alwaysUseHttpsDescPost') }}
           </p>
         </div>
 
         <div class="practice-card">
           <div class="practice-header">
             <span class="practice-icon secure">S</span>
-            <h4>Scope Tokens Minimally</h4>
+            <h4>{{ $t('docDocsConceptsSecurity.scopeTokensMinimallyTitle') }}</h4>
           </div>
           <p>
-            Grant only the abilities required for each use case. A CI/CD token should
-            only have <code>sessions:write</code>, not full <code>*</code> access.
+            {{ $t('docDocsConceptsSecurity.scopeTokensMinimallyDescPre') }} <code>sessions:write</code>{{ $t('docDocsConceptsSecurity.scopeTokensMinimallyDescMid') }} <code>*</code> {{ $t('docDocsConceptsSecurity.scopeTokensMinimallyDescPost') }}
           </p>
         </div>
 
         <div class="practice-card">
           <div class="practice-header">
             <span class="practice-icon secure">S</span>
-            <h4>Rotate Machine Tokens</h4>
+            <h4>{{ $t('docDocsConceptsSecurity.rotateMachineTokensTitle') }}</h4>
           </div>
           <p>
-            Regenerate machine tokens periodically, especially if you suspect compromise.
-            Use the <code>POST /machines/{id}/regenerate-token</code> endpoint.
+            {{ $t('docDocsConceptsSecurity.rotateMachineTokensDescPre') }}
+            <code>POST /machines/{id}/regenerate-token</code> {{ $t('docDocsConceptsSecurity.rotateMachineTokensDescPost') }}
           </p>
         </div>
 
         <div class="practice-card">
           <div class="practice-header">
             <span class="practice-icon secure">S</span>
-            <h4>Set Token Expiration</h4>
+            <h4>{{ $t('docDocsConceptsSecurity.setTokenExpirationTitle') }}</h4>
           </div>
           <p>
-            Personal access tokens should have an expiration date. Short-lived tokens
-            (30-90 days) reduce the window of exposure if compromised.
+            {{ $t('docDocsConceptsSecurity.setTokenExpirationDesc') }}
           </p>
         </div>
 
         <div class="practice-card">
           <div class="practice-header">
             <span class="practice-icon secure">S</span>
-            <h4>Audit Token Usage</h4>
+            <h4>{{ $t('docDocsConceptsSecurity.auditTokenUsageTitle') }}</h4>
           </div>
           <p>
-            Regularly review <code>last_used_at</code> timestamps on tokens. Revoke
-            any token that has not been used in the expected timeframe.
+            {{ $t('docDocsConceptsSecurity.auditTokenUsageDescPre') }} <code>last_used_at</code> {{ $t('docDocsConceptsSecurity.auditTokenUsageDescPost') }}
           </p>
         </div>
 
         <div class="practice-card">
           <div class="practice-header">
             <span class="practice-icon secure">S</span>
-            <h4>Protect APP_KEY</h4>
+            <h4>{{ $t('docDocsConceptsSecurity.protectAppKeyTitle') }}</h4>
           </div>
           <p>
-            The <code>APP_KEY</code> is used for all encryption. Store it securely,
-            never commit it to version control, and restrict access to the environment
-            file.
+            {{ $t('docDocsConceptsSecurity.protectAppKeyDescPre') }} <code>APP_KEY</code> {{ $t('docDocsConceptsSecurity.protectAppKeyDescPost') }}
           </p>
         </div>
       </div>
 
-      <h3>Rate Limiting</h3>
+      <h3>{{ $t('docDocsConceptsSecurity.rateLimitingHeading') }}</h3>
       <p>
-        All API endpoints are protected by rate limiting to prevent brute-force attacks and
-        API abuse. Default limits are configured per authentication type:
+        {{ $t('docDocsConceptsSecurity.rateLimitingPara') }}
       </p>
       <CodeBlock :code="rateLimiting" language="php" filename="RouteServiceProvider.php" />
     </section>

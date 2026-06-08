@@ -1,44 +1,34 @@
 <template>
   <article class="doc-content">
     <header class="doc-header">
-      <h1>Conditions Generales d'Utilisation</h1>
+      <h1>{{ $t('docDocsTermsofservice.pageTitle') }}</h1>
       <p class="lead">
-        Veuillez lire attentivement les presentes Conditions Generales d'Utilisation avant d'utiliser
-        la plateforme ClaudeNest. En accedant ou en utilisant ClaudeNest, vous acceptez d'etre lie
-        par les presentes conditions.
+        {{ $t('docDocsTermsofservice.leadIntro') }}
       </p>
       <div class="meta-info">
         <span class="meta-item">
           <svg viewBox="0 0 24 24" fill="currentColor" class="meta-icon">
             <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/>
           </svg>
-          Date d'effet : 12 avril 2026
+          {{ $t('docDocsTermsofservice.effectiveDate') }}
         </span>
         <span class="meta-item">
           <svg viewBox="0 0 24 24" fill="currentColor" class="meta-icon">
             <path d="M12.87 15.07l-2.54-2.51.03-.03A17.52 17.52 0 0014.07 6H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
           </svg>
-          Version 2.0
+          {{ $t('docDocsTermsofservice.versionLabel') }}
         </span>
       </div>
     </header>
 
     <!-- Section 1: Acceptance of Terms -->
     <section id="acceptance-of-terms">
-      <h2 id="acceptance">1. Acceptation des conditions</h2>
+      <h2 id="acceptance">{{ $t('docDocsTermsofservice.s1Title') }}</h2>
       <p>
-        En creant un compte, en accedant ou en utilisant la plateforme ClaudeNest
-        (le "Service"), exploitee par QR Communication (SAS), SIREN 940 163 496,
-        23 rue de Richelieu, 75001 Paris, France (l'"Editeur"), vous reconnaissez avoir lu,
-        compris et accepte d'etre lie par les presentes Conditions Generales d'Utilisation
-        (les "CGU"). Si vous utilisez le Service pour le compte d'une organisation, vous
-        declarez et garantissez avoir l'autorite necessaire pour engager cette organisation
-        au respect des presentes CGU.
+        {{ $t('docDocsTermsofservice.s1Para1') }}
       </p>
       <p>
-        Si vous n'acceptez pas les presentes CGU, vous ne devez pas acceder ni utiliser
-        le Service. Votre utilisation continue du Service apres la publication de toute
-        modification des presentes CGU constitue l'acceptation de ces modifications.
+        {{ $t('docDocsTermsofservice.s1Para2') }}
       </p>
       <div class="notice notice-info">
         <div class="notice-icon">
@@ -47,332 +37,250 @@
           </svg>
         </div>
         <div class="notice-content">
-          <strong>Important :</strong> Les presentes CGU constituent un accord juridiquement
-          contraignant entre vous et QR Communication. Nous vous recommandons de les consulter
-          regulierement pour prendre connaissance de toute mise a jour.
+          <strong>{{ $t('docDocsTermsofservice.s1NoticeStrong') }}</strong> {{ $t('docDocsTermsofservice.s1NoticeText') }}
         </div>
       </div>
     </section>
 
     <!-- Section 2: Service Description -->
     <section id="service-description">
-      <h2 id="description">2. Description du Service</h2>
+      <h2 id="description">{{ $t('docDocsTermsofservice.s2Title') }}</h2>
       <p>
-        ClaudeNest is a remote Claude Code orchestration platform that provides the
-        following capabilities:
+        {{ $t('docDocsTermsofservice.s2Para1') }}
       </p>
       <ul>
         <li>
-          <strong>Remote Access:</strong> Control and interact with Claude Code instances
-          from any location through a web dashboard, mobile applications, or API
-          integrations.
+          <strong>{{ $t('docDocsTermsofservice.s2Item1Strong') }}</strong> {{ $t('docDocsTermsofservice.s2Item1Text') }}
         </li>
         <li>
-          <strong>Multi-Agent Coordination:</strong> Run multiple Claude Code instances
-          simultaneously on the same project with shared context, task coordination,
-          and file locking to prevent conflicts.
+          <strong>{{ $t('docDocsTermsofservice.s2Item2Strong') }}</strong> {{ $t('docDocsTermsofservice.s2Item2Text') }}
         </li>
         <li>
-          <strong>Context RAG:</strong> Retrieval-Augmented Generation powered by
-          pgvector for intelligent context sharing between agent instances.
+          <strong>{{ $t('docDocsTermsofservice.s2Item3Strong') }}</strong> {{ $t('docDocsTermsofservice.s2Item3Text') }}
         </li>
         <li>
-          <strong>Real-Time Communication:</strong> WebSocket-based bidirectional
-          communication between clients, servers, and agents.
+          <strong>{{ $t('docDocsTermsofservice.s2Item4Strong') }}</strong> {{ $t('docDocsTermsofservice.s2Item4Text') }}
         </li>
         <li>
-          <strong>Task Management:</strong> Atomic task claiming and coordination system
-          for distributed agent workflows.
+          <strong>{{ $t('docDocsTermsofservice.s2Item5Strong') }}</strong> {{ $t('docDocsTermsofservice.s2Item5Text') }}
         </li>
         <li>
-          <strong>MCP Integration:</strong> Model Context Protocol support for extending
-          agent capabilities with external tools and services.
+          <strong>{{ $t('docDocsTermsofservice.s2Item6Strong') }}</strong> {{ $t('docDocsTermsofservice.s2Item6Text') }}
         </li>
       </ul>
       <p>
-        The Service is provided "as is" and we reserve the right to modify, suspend,
-        or discontinue any feature of the Service at any time, with reasonable prior
-        notice where practicable.
+        {{ $t('docDocsTermsofservice.s2Para2') }}
       </p>
     </section>
 
     <!-- Section 3: User Accounts -->
     <section id="user-accounts">
-      <h2 id="accounts">3. Comptes utilisateur et inscription</h2>
+      <h2 id="accounts">{{ $t('docDocsTermsofservice.s3Title') }}</h2>
 
-      <h3 id="account-creation">3.1 Account Creation</h3>
+      <h3 id="account-creation">{{ $t('docDocsTermsofservice.s3_1Title') }}</h3>
       <p>
-        To access most features of the Service, you must create an account. You may
-        register using an email address and password, or through supported OAuth
-        providers (Google, GitHub). You must provide accurate, current, and complete
-        information during registration and keep your account information up to date.
+        {{ $t('docDocsTermsofservice.s3_1Para') }}
       </p>
 
-      <h3 id="account-security">3.2 Account Security</h3>
+      <h3 id="account-security">{{ $t('docDocsTermsofservice.s3_2Title') }}</h3>
       <p>
-        You are responsible for maintaining the confidentiality of your account
-        credentials, including passwords, API tokens, and machine tokens. You must:
+        {{ $t('docDocsTermsofservice.s3_2Para') }}
       </p>
       <ul>
-        <li>Use a strong, unique password for your ClaudeNest account.</li>
-        <li>Not share your account credentials with any third party.</li>
-        <li>Immediately notify us of any unauthorized access to or use of your account.</li>
-        <li>Regularly rotate API tokens and machine tokens.</li>
+        <li>{{ $t('docDocsTermsofservice.s3_2Item1') }}</li>
+        <li>{{ $t('docDocsTermsofservice.s3_2Item2') }}</li>
+        <li>{{ $t('docDocsTermsofservice.s3_2Item3') }}</li>
+        <li>{{ $t('docDocsTermsofservice.s3_2Item4') }}</li>
       </ul>
       <p>
-        You accept full responsibility for all activities that occur under your
-        account, whether or not authorized by you.
+        {{ $t('docDocsTermsofservice.s3_2Para2') }}
       </p>
 
-      <h3 id="account-eligibility">3.3 Eligibility</h3>
+      <h3 id="account-eligibility">{{ $t('docDocsTermsofservice.s3_3Title') }}</h3>
       <p>
-        You must be at least 16 years of age to use the Service. If you are between 16
-        and 18 years of age, you may only use the Service with the consent of a parent
-        or legal guardian who agrees to be bound by these Terms. By using the Service,
-        you represent and warrant that you meet these eligibility requirements.
+        {{ $t('docDocsTermsofservice.s3_3Para') }}
       </p>
     </section>
 
     <!-- Section 4: Acceptable Use -->
     <section id="acceptable-use">
-      <h2 id="use-policy">4. Politique d'utilisation acceptable</h2>
+      <h2 id="use-policy">{{ $t('docDocsTermsofservice.s4Title') }}</h2>
       <p>
-        You agree to use the Service only for lawful purposes and in accordance with
-        these Terms. You must not use the Service to:
+        {{ $t('docDocsTermsofservice.s4Para1') }}
       </p>
 
-      <h3 id="prohibited-activities">4.1 Prohibited Activities</h3>
+      <h3 id="prohibited-activities">{{ $t('docDocsTermsofservice.s4_1Title') }}</h3>
       <ol>
         <li>
-          Violate any applicable law, regulation, or third-party rights, including
-          intellectual property and privacy rights.
+          {{ $t('docDocsTermsofservice.s4_1Item1') }}
         </li>
         <li>
-          Distribute malware, viruses, or any other harmful code through sessions or
-          agent connections.
+          {{ $t('docDocsTermsofservice.s4_1Item2') }}
         </li>
         <li>
-          Attempt to gain unauthorized access to other users' accounts, machines,
-          sessions, or projects.
+          {{ $t('docDocsTermsofservice.s4_1Item3') }}
         </li>
         <li>
-          Circumvent, disable, or interfere with security-related features of the
-          Service, including file locking mechanisms and access controls.
+          {{ $t('docDocsTermsofservice.s4_1Item4') }}
         </li>
         <li>
-          Use the Service for cryptocurrency mining, denial-of-service attacks, or
-          any other resource-intensive activity not related to its intended purpose.
+          {{ $t('docDocsTermsofservice.s4_1Item5') }}
         </li>
         <li>
-          Reverse-engineer, decompile, or disassemble any part of the Service, except
-          where permitted by applicable law.
+          {{ $t('docDocsTermsofservice.s4_1Item6') }}
         </li>
         <li>
-          Resell, sublicense, or provide access to the Service to third parties
-          without our prior written consent.
+          {{ $t('docDocsTermsofservice.s4_1Item7') }}
         </li>
         <li>
-          Use automated systems to scrape, crawl, or extract data from the Service
-          beyond what is available through the provided API.
+          {{ $t('docDocsTermsofservice.s4_1Item8') }}
         </li>
       </ol>
 
-      <h3 id="resource-limits">4.2 Resource Limits</h3>
+      <h3 id="resource-limits">{{ $t('docDocsTermsofservice.s4_2Title') }}</h3>
       <p>
-        We may impose limits on your use of the Service, including but not limited to
-        the number of concurrent sessions, machines, projects, API requests, and
-        storage. These limits may vary based on your subscription plan. Exceeding these
-        limits may result in throttling, suspension, or termination of your account.
+        {{ $t('docDocsTermsofservice.s4_2Para') }}
       </p>
     </section>
 
     <!-- Section 5: Intellectual Property -->
     <section id="intellectual-property">
-      <h2 id="ip-rights">5. Propriete intellectuelle</h2>
+      <h2 id="ip-rights">{{ $t('docDocsTermsofservice.s5Title') }}</h2>
 
-      <h3 id="our-ip">5.1 Propriete intellectuelle de QR Communication</h3>
+      <h3 id="our-ip">{{ $t('docDocsTermsofservice.s5_1Title') }}</h3>
       <p>
-        Le Service, y compris son code source, son design, ses fonctionnalites, sa documentation,
-        ses logos et sa marque, est la propriete de QR Communication et de ses concedants de licence.
-        Le Service est protege par le droit d'auteur, le droit des marques et autres lois relatives
-        a la propriete intellectuelle de l'Union europeenne et des traites internationaux. Rien
-        dans les presentes CGU ne vous confere de droit, titre ou interet sur le Service au-dela
-        du droit limite de l'utiliser tel que decrit dans les presentes.
+        {{ $t('docDocsTermsofservice.s5_1Para') }}
       </p>
 
-      <h3 id="your-content">5.2 Your Content</h3>
+      <h3 id="your-content">{{ $t('docDocsTermsofservice.s5_2Title') }}</h3>
       <p>
-        You retain all rights to the code, data, and content you create, upload,
-        transmit, or store through the Service ("Your Content"). By using the Service,
-        you grant us a limited, non-exclusive, worldwide license to host, store,
-        process, and transmit Your Content solely for the purpose of providing and
-        improving the Service.
+        {{ $t('docDocsTermsofservice.s5_2Para1') }}
       </p>
       <p>
-        We do not claim ownership of Your Content and will not use it for purposes
-        unrelated to the provision of the Service. You are responsible for ensuring
-        that Your Content does not infringe upon the rights of any third party.
+        {{ $t('docDocsTermsofservice.s5_2Para2') }}
       </p>
 
-      <h3 id="open-source">5.3 Open Source Components</h3>
+      <h3 id="open-source">{{ $t('docDocsTermsofservice.s5_3Title') }}</h3>
       <p>
-        The Service may include open source software components, each of which is
-        licensed under its own applicable open source license. Nothing in these Terms
-        limits your rights under, or grants you rights that supersede, the terms of
-        any applicable open source license.
+        {{ $t('docDocsTermsofservice.s5_3Para') }}
       </p>
     </section>
 
     <!-- Section 6: Data Protection -->
     <section id="data-protection">
-      <h2 id="data-privacy">6. Protection des donnees et vie privee</h2>
+      <h2 id="data-privacy">{{ $t('docDocsTermsofservice.s6Title') }}</h2>
 
-      <h3 id="gdpr-compliance">6.1 GDPR Compliance</h3>
+      <h3 id="gdpr-compliance">{{ $t('docDocsTermsofservice.s6_1Title') }}</h3>
       <p>
-        We process personal data in compliance with the General Data Protection
-        Regulation (EU) 2016/679 ("GDPR") and applicable French data protection laws,
-        including the Loi Informatique et Libertes. Our processing of your personal
-        data is governed by our
-        <router-link to="/docs/privacy">Privacy Policy</router-link>, which forms
-        an integral part of these Terms.
+        {{ $t('docDocsTermsofservice.s6_1Para1') }}
+        <router-link to="/docs/privacy">{{ $t('docDocsTermsofservice.privacyPolicyLink') }}</router-link>{{ $t('docDocsTermsofservice.s6_1Para2') }}
       </p>
 
-      <h3 id="data-collection">6.2 Data We Collect</h3>
-      <p>In the course of providing the Service, we collect and process:</p>
+      <h3 id="data-collection">{{ $t('docDocsTermsofservice.s6_2Title') }}</h3>
+      <p>{{ $t('docDocsTermsofservice.s6_2Para') }}</p>
       <ul>
         <li>
-          <strong>Account Data:</strong> Name, email address, and authentication
-          credentials necessary for account creation and management.
+          <strong>{{ $t('docDocsTermsofservice.s6_2Item1Strong') }}</strong> {{ $t('docDocsTermsofservice.s6_2Item1Text') }}
         </li>
         <li>
-          <strong>Usage Data:</strong> Session logs, terminal interactions, API calls,
-          and performance metrics required for service delivery and improvement.
+          <strong>{{ $t('docDocsTermsofservice.s6_2Item2Strong') }}</strong> {{ $t('docDocsTermsofservice.s6_2Item2Text') }}
         </li>
         <li>
-          <strong>Machine Data:</strong> Hostname, platform, architecture, and agent
-          version information transmitted by connected machines.
+          <strong>{{ $t('docDocsTermsofservice.s6_2Item3Strong') }}</strong> {{ $t('docDocsTermsofservice.s6_2Item3Text') }}
         </li>
         <li>
-          <strong>Context Data:</strong> Code snippets, project metadata, and context
-          chunks stored in shared projects for RAG functionality.
+          <strong>{{ $t('docDocsTermsofservice.s6_2Item4Strong') }}</strong> {{ $t('docDocsTermsofservice.s6_2Item4Text') }}
         </li>
       </ul>
 
-      <h3 id="your-rights">6.3 Your Rights Under GDPR</h3>
-      <p>As a data subject, you have the right to:</p>
+      <h3 id="your-rights">{{ $t('docDocsTermsofservice.s6_3Title') }}</h3>
+      <p>{{ $t('docDocsTermsofservice.s6_3Para') }}</p>
       <div class="rights-grid">
         <div class="right-item">
-          <strong>Access</strong>
-          <p>Request a copy of your personal data held by us.</p>
+          <strong>{{ $t('docDocsTermsofservice.rightAccessTitle') }}</strong>
+          <p>{{ $t('docDocsTermsofservice.rightAccessText') }}</p>
         </div>
         <div class="right-item">
-          <strong>Rectification</strong>
-          <p>Request correction of inaccurate or incomplete personal data.</p>
+          <strong>{{ $t('docDocsTermsofservice.rightRectificationTitle') }}</strong>
+          <p>{{ $t('docDocsTermsofservice.rightRectificationText') }}</p>
         </div>
         <div class="right-item">
-          <strong>Erasure</strong>
-          <p>Request deletion of your personal data ("right to be forgotten").</p>
+          <strong>{{ $t('docDocsTermsofservice.rightErasureTitle') }}</strong>
+          <p>{{ $t('docDocsTermsofservice.rightErasureText') }}</p>
         </div>
         <div class="right-item">
-          <strong>Portability</strong>
-          <p>Receive your personal data in a structured, machine-readable format.</p>
+          <strong>{{ $t('docDocsTermsofservice.rightPortabilityTitle') }}</strong>
+          <p>{{ $t('docDocsTermsofservice.rightPortabilityText') }}</p>
         </div>
         <div class="right-item">
-          <strong>Restriction</strong>
-          <p>Request restriction of processing in certain circumstances.</p>
+          <strong>{{ $t('docDocsTermsofservice.rightRestrictionTitle') }}</strong>
+          <p>{{ $t('docDocsTermsofservice.rightRestrictionText') }}</p>
         </div>
         <div class="right-item">
-          <strong>Objection</strong>
-          <p>Object to processing based on legitimate interests or direct marketing.</p>
+          <strong>{{ $t('docDocsTermsofservice.rightObjectionTitle') }}</strong>
+          <p>{{ $t('docDocsTermsofservice.rightObjectionText') }}</p>
         </div>
       </div>
       <p>
-        To exercise any of these rights, contact us at
-        <a href="mailto:privacy@claudenest.io">privacy@claudenest.io</a>. We will
-        respond to your request within 30 days, as required by the GDPR.
+        {{ $t('docDocsTermsofservice.s6_3Para2Before') }}
+        <a href="mailto:privacy@claudenest.io">privacy@claudenest.io</a>{{ $t('docDocsTermsofservice.s6_3Para2After') }}
       </p>
 
-      <h3 id="data-retention">6.4 Data Retention</h3>
+      <h3 id="data-retention">{{ $t('docDocsTermsofservice.s6_4Title') }}</h3>
       <p>
-        We retain your personal data only for as long as necessary to fulfill the
-        purposes for which it was collected, comply with legal obligations, resolve
-        disputes, and enforce our agreements. Session data and terminal logs are
-        retained for a maximum of 90 days unless you request earlier deletion. Context
-        chunks in shared projects expire according to their configured retention
-        period, with a default maximum of 30 days.
+        {{ $t('docDocsTermsofservice.s6_4Para') }}
       </p>
 
-      <h3 id="data-transfers">6.5 International Data Transfers</h3>
+      <h3 id="data-transfers">{{ $t('docDocsTermsofservice.s6_5Title') }}</h3>
       <p>
-        Your data is primarily stored and processed within the European Economic Area
-        (EEA). If any data transfer outside the EEA is necessary, we ensure appropriate
-        safeguards are in place, such as Standard Contractual Clauses (SCCs) approved
-        by the European Commission or adequacy decisions.
+        {{ $t('docDocsTermsofservice.s6_5Para') }}
       </p>
     </section>
 
     <!-- Section 7: Service Availability -->
     <section id="service-availability">
-      <h2 id="sla">7. Disponibilite du Service et SLA</h2>
+      <h2 id="sla">{{ $t('docDocsTermsofservice.s7Title') }}</h2>
 
-      <h3 id="uptime-commitment">7.1 Uptime Commitment</h3>
+      <h3 id="uptime-commitment">{{ $t('docDocsTermsofservice.s7_1Title') }}</h3>
       <p>
-        We strive to maintain a high level of service availability. While we target
-        99.9% uptime for core API and WebSocket services, this is not a guaranteed
-        commitment unless specified in a separate Service Level Agreement (SLA) for
-        your subscription tier.
+        {{ $t('docDocsTermsofservice.s7_1Para') }}
       </p>
 
-      <h3 id="maintenance">7.2 Scheduled Maintenance</h3>
+      <h3 id="maintenance">{{ $t('docDocsTermsofservice.s7_2Title') }}</h3>
       <p>
-        We may perform scheduled maintenance that temporarily affects service
-        availability. We will provide at least 48 hours advance notice of planned
-        maintenance through the dashboard, email, or status page. Maintenance windows
-        will be scheduled during off-peak hours when possible.
+        {{ $t('docDocsTermsofservice.s7_2Para') }}
       </p>
 
-      <h3 id="force-majeure">7.3 Force Majeure</h3>
+      <h3 id="force-majeure">{{ $t('docDocsTermsofservice.s7_3Title') }}</h3>
       <p>
-        We shall not be liable for any failure or delay in performing our obligations
-        where such failure or delay results from events beyond our reasonable control,
-        including but not limited to natural disasters, acts of government, internet
-        outages, power failures, or third-party service provider outages.
+        {{ $t('docDocsTermsofservice.s7_3Para') }}
       </p>
     </section>
 
     <!-- Section 8: Limitation of Liability -->
     <section id="limitation-of-liability">
-      <h2 id="liability">8. Limitation de responsabilite</h2>
+      <h2 id="liability">{{ $t('docDocsTermsofservice.s8Title') }}</h2>
 
-      <h3 id="disclaimer">8.1 Disclaimer of Warranties</h3>
+      <h3 id="disclaimer">{{ $t('docDocsTermsofservice.s8_1Title') }}</h3>
       <p>
-        To the maximum extent permitted by applicable law, the Service is provided
-        "AS IS" and "AS AVAILABLE" without warranties of any kind, whether express,
-        implied, statutory, or otherwise, including but not limited to implied
-        warranties of merchantability, fitness for a particular purpose, and
-        non-infringement.
+        {{ $t('docDocsTermsofservice.s8_1Para1') }}
       </p>
       <p>
-        We do not warrant that the Service will be uninterrupted, error-free, or
-        secure, or that any defects will be corrected. You acknowledge that your use
-        of the Service is at your sole risk.
+        {{ $t('docDocsTermsofservice.s8_1Para2') }}
       </p>
 
-      <h3 id="liability-cap">8.2 Limitation of Damages</h3>
+      <h3 id="liability-cap">{{ $t('docDocsTermsofservice.s8_2Title') }}</h3>
       <p>
-        To the maximum extent permitted by applicable law, in no event shall ClaudeNest,
-        its directors, employees, partners, agents, suppliers, or affiliates be liable
-        for any indirect, incidental, special, consequential, or punitive damages,
-        including without limitation:
+        {{ $t('docDocsTermsofservice.s8_2Para') }}
       </p>
       <ul>
-        <li>Loss of profits, data, use, goodwill, or other intangible losses.</li>
-        <li>The cost of procuring substitute goods or services.</li>
+        <li>{{ $t('docDocsTermsofservice.s8_2Item1') }}</li>
+        <li>{{ $t('docDocsTermsofservice.s8_2Item2') }}</li>
         <li>
-          Any unauthorized access to or alteration of your transmissions or data.
+          {{ $t('docDocsTermsofservice.s8_2Item3') }}
         </li>
         <li>
-          Any interruption or cessation of transmission to or from the Service.
+          {{ $t('docDocsTermsofservice.s8_2Item4') }}
         </li>
       </ul>
       <div class="notice notice-warning">
@@ -382,154 +290,119 @@
           </svg>
         </div>
         <div class="notice-content">
-          Our aggregate liability for all claims related to the Service shall not
-          exceed the total amount you paid us in the twelve (12) months preceding
-          the event giving rise to the liability, or one hundred euros (EUR 100),
-          whichever is greater.
+          {{ $t('docDocsTermsofservice.s8_2Notice') }}
         </div>
       </div>
 
-      <h3 id="consumer-rights">8.3 Consumer Rights</h3>
+      <h3 id="consumer-rights">{{ $t('docDocsTermsofservice.s8_3Title') }}</h3>
       <p>
-        Nothing in these Terms shall exclude or limit our liability for death or
-        personal injury caused by our negligence, fraud or fraudulent
-        misrepresentation, or any other liability that cannot be excluded or limited
-        under applicable EU or French law. These Terms do not affect your statutory
-        rights as a consumer.
+        {{ $t('docDocsTermsofservice.s8_3Para') }}
       </p>
     </section>
 
     <!-- Section 9: Termination -->
     <section id="termination">
-      <h2 id="termination-heading">9. Resiliation</h2>
+      <h2 id="termination-heading">{{ $t('docDocsTermsofservice.s9Title') }}</h2>
 
-      <h3 id="termination-by-you">9.1 Termination by You</h3>
+      <h3 id="termination-by-you">{{ $t('docDocsTermsofservice.s9_1Title') }}</h3>
       <p>
-        You may terminate your account at any time by contacting us at
-        <a href="mailto:support@claudenest.io">support@claudenest.io</a> or through
-        the account settings in the dashboard. Upon termination:
+        {{ $t('docDocsTermsofservice.s9_1Para1Before') }}
+        <a href="mailto:support@claudenest.io">support@claudenest.io</a> {{ $t('docDocsTermsofservice.s9_1Para1After') }}
       </p>
       <ul>
-        <li>Your access to the Service will be revoked immediately.</li>
+        <li>{{ $t('docDocsTermsofservice.s9_1Item1') }}</li>
         <li>
-          All active sessions and machine connections will be terminated.
+          {{ $t('docDocsTermsofservice.s9_1Item2') }}
         </li>
         <li>
-          Your data will be retained for 30 days to allow for recovery, after which
-          it will be permanently deleted in accordance with our data retention policy.
+          {{ $t('docDocsTermsofservice.s9_1Item3') }}
         </li>
         <li>
-          You may request an export of your data prior to termination, in accordance
-          with your GDPR right to data portability.
+          {{ $t('docDocsTermsofservice.s9_1Item4') }}
         </li>
       </ul>
 
-      <h3 id="termination-by-us">9.2 Termination by ClaudeNest</h3>
+      <h3 id="termination-by-us">{{ $t('docDocsTermsofservice.s9_2Title') }}</h3>
       <p>
-        We may suspend or terminate your access to the Service, in whole or in part,
-        at any time and for any reason, including but not limited to:
+        {{ $t('docDocsTermsofservice.s9_2Para1') }}
       </p>
       <ol>
-        <li>Breach of these Terms or the Acceptable Use Policy.</li>
-        <li>Non-payment of applicable fees.</li>
+        <li>{{ $t('docDocsTermsofservice.s9_2Item1') }}</li>
+        <li>{{ $t('docDocsTermsofservice.s9_2Item2') }}</li>
         <li>
-          Conduct that we reasonably determine is harmful to other users, third
-          parties, or the integrity of the Service.
+          {{ $t('docDocsTermsofservice.s9_2Item3') }}
         </li>
-        <li>Extended periods of inactivity (more than 12 months).</li>
-        <li>Legal or regulatory requirements.</li>
+        <li>{{ $t('docDocsTermsofservice.s9_2Item4') }}</li>
+        <li>{{ $t('docDocsTermsofservice.s9_2Item5') }}</li>
       </ol>
       <p>
-        Where possible, we will provide 14 days written notice before termination,
-        except in cases of serious breach or where immediate action is required by
-        law.
+        {{ $t('docDocsTermsofservice.s9_2Para2') }}
       </p>
 
-      <h3 id="survival">9.3 Survival</h3>
+      <h3 id="survival">{{ $t('docDocsTermsofservice.s9_3Title') }}</h3>
       <p>
-        The following sections shall survive termination of these Terms: Intellectual
-        Property Rights, Data Protection and Privacy, Limitation of Liability,
-        Governing Law, and any other provisions that by their nature should survive.
+        {{ $t('docDocsTermsofservice.s9_3Para') }}
       </p>
     </section>
 
     <!-- Section 10: Changes to Terms -->
     <section id="changes-to-terms">
-      <h2 id="changes">10. Modifications des CGU</h2>
+      <h2 id="changes">{{ $t('docDocsTermsofservice.s10Title') }}</h2>
       <p>
-        We reserve the right to modify these Terms at any time. When we make material
-        changes, we will:
+        {{ $t('docDocsTermsofservice.s10Para1') }}
       </p>
       <ol>
         <li>
-          Post the updated Terms on the Service with a revised "Effective Date."
+          {{ $t('docDocsTermsofservice.s10Item1') }}
         </li>
         <li>
-          Notify you by email at least 30 days before the changes take effect.
+          {{ $t('docDocsTermsofservice.s10Item2') }}
         </li>
         <li>
-          Display a prominent notice in the dashboard upon your next login.
+          {{ $t('docDocsTermsofservice.s10Item3') }}
         </li>
       </ol>
       <p>
-        Your continued use of the Service after the effective date of the revised
-        Terms constitutes your acceptance of the changes. If you do not agree to the
-        updated Terms, you must stop using the Service and may terminate your account
-        as described in Section 9.
+        {{ $t('docDocsTermsofservice.s10Para2') }}
       </p>
       <p>
-        Non-material changes, such as typographical corrections or clarifications,
-        may be made without prior notice. We maintain a version history of these Terms
-        for your reference.
+        {{ $t('docDocsTermsofservice.s10Para3') }}
       </p>
     </section>
 
     <!-- Section 11: Governing Law -->
     <section id="governing-law">
-      <h2 id="law">11. Droit applicable et resolution des litiges</h2>
+      <h2 id="law">{{ $t('docDocsTermsofservice.s11Title') }}</h2>
 
-      <h3 id="applicable-law">11.1 Applicable Law</h3>
+      <h3 id="applicable-law">{{ $t('docDocsTermsofservice.s11_1Title') }}</h3>
       <p>
-        These Terms shall be governed by and construed in accordance with the laws of
-        the French Republic, without regard to its conflict of law provisions. The
-        application of the United Nations Convention on Contracts for the International
-        Sale of Goods (CISG) is expressly excluded.
+        {{ $t('docDocsTermsofservice.s11_1Para') }}
       </p>
 
-      <h3 id="jurisdiction">11.2 Jurisdiction</h3>
+      <h3 id="jurisdiction">{{ $t('docDocsTermsofservice.s11_2Title') }}</h3>
       <p>
-        Any disputes arising out of or in connection with these Terms shall be subject
-        to the exclusive jurisdiction of the competent courts of Paris, France.
-        Notwithstanding the foregoing, if you are a consumer residing in the European
-        Union, you may also bring proceedings in the courts of your place of residence.
+        {{ $t('docDocsTermsofservice.s11_2Para') }}
       </p>
 
-      <h3 id="mediation">11.3 Mediation</h3>
+      <h3 id="mediation">{{ $t('docDocsTermsofservice.s11_3Title') }}</h3>
       <p>
-        In accordance with Articles L.611-1 et seq. of the French Consumer Code
-        (Code de la consommation), if you are a consumer, you have the right to
-        resort to a consumer mediation procedure free of charge. Before initiating
-        any legal proceedings, we encourage you to contact us directly to attempt to
-        resolve the dispute amicably.
+        {{ $t('docDocsTermsofservice.s11_3Para') }}
       </p>
 
-      <h3 id="eu-odr">11.4 European Online Dispute Resolution</h3>
+      <h3 id="eu-odr">{{ $t('docDocsTermsofservice.s11_4Title') }}</h3>
       <p>
-        In accordance with Regulation (EU) No 524/2013, the European Commission
-        provides an Online Dispute Resolution (ODR) platform, accessible at
+        {{ $t('docDocsTermsofservice.s11_4Para1') }}
         <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer">
           https://ec.europa.eu/consumers/odr</a>.
-        You may use this platform to resolve any dispute arising from online
-        transactions with us.
+        {{ $t('docDocsTermsofservice.s11_4Para2') }}
       </p>
     </section>
 
     <!-- Section 12: Contact Information -->
     <section id="contact-information">
-      <h2 id="contact">12. Informations de contact</h2>
+      <h2 id="contact">{{ $t('docDocsTermsofservice.s12Title') }}</h2>
       <p>
-        If you have any questions, concerns, or requests regarding these Terms of
-        Service, please contact us through the following channels:
+        {{ $t('docDocsTermsofservice.s12Para') }}
       </p>
       <div class="contact-cards">
         <div class="contact-card">
@@ -539,7 +412,7 @@
             </svg>
           </div>
           <div>
-            <h4>General Inquiries</h4>
+            <h4>{{ $t('docDocsTermsofservice.contactGeneralTitle') }}</h4>
             <a href="mailto:contact@qrcommunication.com">contact@qrcommunication.com</a>
           </div>
         </div>
@@ -550,7 +423,7 @@
             </svg>
           </div>
           <div>
-            <h4>Data Protection Officer</h4>
+            <h4>{{ $t('docDocsTermsofservice.contactDpoTitle') }}</h4>
             <a href="mailto:privacy@claudenest.io">privacy@claudenest.io</a>
           </div>
         </div>
@@ -561,7 +434,7 @@
             </svg>
           </div>
           <div>
-            <h4>Technical Support</h4>
+            <h4>{{ $t('docDocsTermsofservice.contactSupportTitle') }}</h4>
             <a href="mailto:support@claudenest.io">support@claudenest.io</a>
           </div>
         </div>
@@ -570,47 +443,32 @@
 
     <!-- Section 13: Miscellaneous -->
     <section id="miscellaneous">
-      <h2 id="misc">13. Dispositions diverses</h2>
+      <h2 id="misc">{{ $t('docDocsTermsofservice.s13Title') }}</h2>
 
-      <h3 id="entire-agreement">13.1 Entire Agreement</h3>
+      <h3 id="entire-agreement">{{ $t('docDocsTermsofservice.s13_1Title') }}</h3>
       <p>
-        These Terms, together with the
-        <router-link to="/docs/privacy">Privacy Policy</router-link> and any
-        additional terms applicable to specific features of the Service, constitute
-        the entire agreement between you and ClaudeNest regarding the use of the
-        Service.
+        {{ $t('docDocsTermsofservice.s13_1Para1') }}
+        <router-link to="/docs/privacy">{{ $t('docDocsTermsofservice.privacyPolicyLink') }}</router-link> {{ $t('docDocsTermsofservice.s13_1Para2') }}
       </p>
 
-      <h3 id="severability">13.2 Severability</h3>
+      <h3 id="severability">{{ $t('docDocsTermsofservice.s13_2Title') }}</h3>
       <p>
-        If any provision of these Terms is held to be invalid, illegal, or
-        unenforceable by a court of competent jurisdiction, such provision shall be
-        modified to the minimum extent necessary to make it valid and enforceable, or
-        if modification is not possible, shall be severed from these Terms. The
-        remaining provisions shall continue in full force and effect.
+        {{ $t('docDocsTermsofservice.s13_2Para') }}
       </p>
 
-      <h3 id="waiver">13.3 Waiver</h3>
+      <h3 id="waiver">{{ $t('docDocsTermsofservice.s13_3Title') }}</h3>
       <p>
-        The failure of ClaudeNest to enforce any right or provision of these Terms
-        shall not constitute a waiver of such right or provision. Any waiver of any
-        provision of these Terms will be effective only if in writing and signed by
-        ClaudeNest.
+        {{ $t('docDocsTermsofservice.s13_3Para') }}
       </p>
 
-      <h3 id="assignment">13.4 Assignment</h3>
+      <h3 id="assignment">{{ $t('docDocsTermsofservice.s13_4Title') }}</h3>
       <p>
-        You may not assign or transfer these Terms, or any rights or obligations
-        hereunder, without our prior written consent. We may assign these Terms
-        without restriction, including in connection with a merger, acquisition,
-        corporate reorganization, or sale of all or substantially all of our assets.
+        {{ $t('docDocsTermsofservice.s13_4Para') }}
       </p>
 
-      <h3 id="language">13.5 Langue</h3>
+      <h3 id="language">{{ $t('docDocsTermsofservice.s13_5Title') }}</h3>
       <p>
-        Les presentes CGU sont redigees en francais. En cas de conflit entre la version
-        francaise et toute version traduite, la version francaise prevaudra, sauf
-        interdiction par la loi applicable.
+        {{ $t('docDocsTermsofservice.s13_5Para') }}
       </p>
     </section>
 
@@ -618,11 +476,10 @@
     <footer class="terms-footer">
       <div class="footer-divider"></div>
       <p class="footer-text">
-        En utilisant ClaudeNest, vous reconnaissez avoir lu et compris les presentes
-        Conditions Generales d'Utilisation et acceptez d'y etre lie.
+        {{ $t('docDocsTermsofservice.footerText') }}
       </p>
       <p class="footer-meta">
-        QR Communication &mdash; CGU v2.0 &mdash; Date d'effet : 12 avril 2026
+        {{ $t('docDocsTermsofservice.footerMeta') }}
       </p>
     </footer>
   </article>

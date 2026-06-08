@@ -1,54 +1,47 @@
 <template>
   <article class="doc-content">
     <header class="doc-header">
-      <span class="badge">Concepts</span>
-      <h1>Multi-Agent Coordination</h1>
+      <span class="badge">{{ $t('docDocsConceptsMultiagentcoordination.badge') }}</span>
+      <h1>{{ $t('docDocsConceptsMultiagentcoordination.title') }}</h1>
       <p class="lead">
-        How multiple Claude Code instances collaborate on shared projects through ClaudeNest's
-        task distribution, file locking, and vector-powered context sharing.
+        {{ $t('docDocsConceptsMultiagentcoordination.lead') }}
       </p>
     </header>
 
     <!-- 1. Overview -->
     <section id="overview">
-      <h2>Why Multi-Agent?</h2>
+      <h2>{{ $t('docDocsConceptsMultiagentcoordination.overviewHeading') }}</h2>
       <p>
-        Complex software projects benefit from parallelism. Rather than a single Claude Code
-        instance working through a long queue of tasks sequentially, ClaudeNest lets you run
-        several instances simultaneously — each focused on an independent slice of work.
+        {{ $t('docDocsConceptsMultiagentcoordination.overviewPara1') }}
       </p>
       <p>
-        Concurrency introduces coordination problems: two agents must not edit the same file
-        at the same time, and each agent needs to understand what the others have already done.
-        ClaudeNest solves both problems with a centralized coordination layer built on three
-        pillars:
+        {{ $t('docDocsConceptsMultiagentcoordination.overviewPara2') }}
       </p>
 
       <div class="pillars-grid">
         <div class="pillar-card">
           <span class="pillar-icon task-icon">T</span>
-          <h4>Task Coordination</h4>
-          <p>Atomic task claiming ensures every unit of work is picked up by exactly one agent.</p>
+          <h4>{{ $t('docDocsConceptsMultiagentcoordination.pillarTaskTitle') }}</h4>
+          <p>{{ $t('docDocsConceptsMultiagentcoordination.pillarTaskDesc') }}</p>
         </div>
         <div class="pillar-card">
           <span class="pillar-icon lock-icon">L</span>
-          <h4>File Locking</h4>
-          <p>Pessimistic locking prevents simultaneous edits to the same file or directory.</p>
+          <h4>{{ $t('docDocsConceptsMultiagentcoordination.pillarLockTitle') }}</h4>
+          <p>{{ $t('docDocsConceptsMultiagentcoordination.pillarLockDesc') }}</p>
         </div>
         <div class="pillar-card">
           <span class="pillar-icon ctx-icon">C</span>
-          <h4>Context Sharing</h4>
-          <p>RAG-powered context chunks let every instance learn from what others have done.</p>
+          <h4>{{ $t('docDocsConceptsMultiagentcoordination.pillarCtxTitle') }}</h4>
+          <p>{{ $t('docDocsConceptsMultiagentcoordination.pillarCtxDesc') }}</p>
         </div>
       </div>
 
       <div class="tip">
         <span class="tip-icon">i</span>
         <div>
-          <h4>Fully Optional</h4>
+          <h4>{{ $t('docDocsConceptsMultiagentcoordination.optionalTipTitle') }}</h4>
           <p>
-            Multi-agent coordination is a layer on top of ClaudeNest's core session management.
-            A single agent with no shared project works perfectly for everyday use.
+            {{ $t('docDocsConceptsMultiagentcoordination.optionalTipDesc') }}
           </p>
         </div>
       </div>
@@ -56,151 +49,125 @@
 
     <!-- 2. Shared Projects -->
     <section id="shared-projects">
-      <h2>Shared Projects</h2>
-      <p>
-        A <strong>shared project</strong> is the central record that links all coordination
-        primitives together: instances, tasks, context chunks, and file locks all belong to a
-        project. It also stores high-level metadata that every agent can read before starting work.
-      </p>
+      <h2>{{ $t('docDocsConceptsMultiagentcoordination.sharedProjectsHeading') }}</h2>
+      <p v-html="$t('docDocsConceptsMultiagentcoordination.sharedProjectsPara1')"></p>
 
-      <h3>Project Metadata</h3>
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.projectMetadataHeading') }}</h3>
       <div class="fields-table">
         <table>
           <thead>
             <tr>
-              <th>Field</th>
-              <th>Description</th>
+              <th>{{ $t('docDocsConceptsMultiagentcoordination.thField') }}</th>
+              <th>{{ $t('docDocsConceptsMultiagentcoordination.thDescription') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td><code>summary</code></td>
-              <td>One-paragraph plain-English description of the codebase</td>
+              <td>{{ $t('docDocsConceptsMultiagentcoordination.metaSummary') }}</td>
             </tr>
             <tr>
               <td><code>architecture</code></td>
-              <td>Key architectural decisions, patterns, and component relationships</td>
+              <td>{{ $t('docDocsConceptsMultiagentcoordination.metaArchitecture') }}</td>
             </tr>
             <tr>
               <td><code>conventions</code></td>
-              <td>Coding style, naming conventions, and mandatory patterns</td>
+              <td>{{ $t('docDocsConceptsMultiagentcoordination.metaConventions') }}</td>
             </tr>
             <tr>
               <td><code>current_focus</code></td>
-              <td>The active sprint or goal (updated by team leads or orchestrators)</td>
+              <td>{{ $t('docDocsConceptsMultiagentcoordination.metaCurrentFocus') }}</td>
             </tr>
             <tr>
               <td><code>recent_changes</code></td>
-              <td>Summary of the last significant changes made to the codebase</td>
+              <td>{{ $t('docDocsConceptsMultiagentcoordination.metaRecentChanges') }}</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <h3>Creating a Project</h3>
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.creatingProjectHeading') }}</h3>
       <CodeBlock :code="createProjectCode" language="bash" filename="POST /api/machines/{id}/projects" />
 
-      <h3>Updating the Shared Context</h3>
-      <p>
-        Keep the project metadata current so new instances start with accurate information.
-        Agents should update <code>current_focus</code> and <code>recent_changes</code> after
-        completing significant work.
-      </p>
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.updatingContextHeading') }}</h3>
+      <p v-html="$t('docDocsConceptsMultiagentcoordination.updatingContextPara')"></p>
       <CodeBlock :code="updateProjectCode" language="bash" filename="PATCH /api/projects/{id}" />
     </section>
 
     <!-- 3. Claude Instances -->
     <section id="instances">
-      <h2>Claude Instances</h2>
-      <p>
-        Each running Claude Code process that connects to a shared project is registered as a
-        <strong>Claude instance</strong>. Instances are identified by a string ID (typically
-        <code>machine-hostname-pid</code>) and expose their status, current task, and token
-        consumption via the API.
-      </p>
+      <h2>{{ $t('docDocsConceptsMultiagentcoordination.instancesHeading') }}</h2>
+      <p v-html="$t('docDocsConceptsMultiagentcoordination.instancesPara1')"></p>
 
-      <h3>Status Lifecycle</h3>
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.statusLifecycleHeading') }}</h3>
       <div class="lifecycle-diagram">
         <div class="lifecycle-step active-step">
           <span class="step-label">active</span>
-          <span class="step-desc">Connected and ready</span>
+          <span class="step-desc">{{ $t('docDocsConceptsMultiagentcoordination.lifecycleActiveDesc') }}</span>
         </div>
         <div class="lifecycle-arrow">→</div>
         <div class="lifecycle-step busy-step">
           <span class="step-label">busy</span>
-          <span class="step-desc">Working on a task</span>
+          <span class="step-desc">{{ $t('docDocsConceptsMultiagentcoordination.lifecycleBusyDesc') }}</span>
         </div>
         <div class="lifecycle-arrow">→</div>
         <div class="lifecycle-step idle-step">
           <span class="step-label">idle</span>
-          <span class="step-desc">Task done, waiting</span>
+          <span class="step-desc">{{ $t('docDocsConceptsMultiagentcoordination.lifecycleIdleDesc') }}</span>
         </div>
         <div class="lifecycle-arrow">→</div>
         <div class="lifecycle-step disconnected-step">
           <span class="step-label">disconnected</span>
-          <span class="step-desc">WebSocket closed</span>
+          <span class="step-desc">{{ $t('docDocsConceptsMultiagentcoordination.lifecycleDisconnectedDesc') }}</span>
         </div>
       </div>
 
-      <p>
-        The server tracks <code>last_activity_at</code> for each instance. When an agent
-        disconnects, the server automatically releases all file locks held by that instance
-        and marks claimed tasks as <code>pending</code> again so other instances can pick them up.
-      </p>
+      <p v-html="$t('docDocsConceptsMultiagentcoordination.instancesPara2')"></p>
 
-      <h3>Listing Instances on a Project</h3>
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.listingInstancesHeading') }}</h3>
       <CodeBlock :code="listInstancesCode" language="bash" filename="GET /api/projects/{id}/instances" />
-      <CodeBlock :code="listInstancesResponse" language="json" filename="Response" />
+      <CodeBlock :code="listInstancesResponse" language="json" :filename="$t('docDocsConceptsMultiagentcoordination.filenameResponse')" />
     </section>
 
     <!-- 4. Task Coordination -->
     <section id="task-coordination">
-      <h2>Task Coordination</h2>
+      <h2>{{ $t('docDocsConceptsMultiagentcoordination.taskCoordinationHeading') }}</h2>
       <p>
-        Tasks are the primary unit of work in a multi-agent project. They describe a discrete,
-        completable piece of work that a single agent can execute independently. The claiming
-        mechanism is atomic — only one instance can ever hold a given task at the same time.
+        {{ $t('docDocsConceptsMultiagentcoordination.taskCoordinationPara1') }}
       </p>
 
-      <h3>Creating Tasks</h3>
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.creatingTasksHeading') }}</h3>
       <p>
-        Tasks are created with a priority level and an optional list of dependencies on other
-        task IDs. An agent (or an orchestrating script) typically creates all tasks upfront
-        before any instances start claiming work.
+        {{ $t('docDocsConceptsMultiagentcoordination.creatingTasksPara') }}
       </p>
       <CodeBlock :code="createTaskCode" language="bash" filename="POST /api/projects/{id}/tasks" />
 
-      <h3>Priority Levels</h3>
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.priorityLevelsHeading') }}</h3>
       <div class="priority-list">
         <div class="priority-item critical">
           <span class="priority-badge">critical</span>
-          <p>Blocking tasks — must be resolved before any other work can proceed.</p>
+          <p>{{ $t('docDocsConceptsMultiagentcoordination.priorityCritical') }}</p>
         </div>
         <div class="priority-item high">
           <span class="priority-badge">high</span>
-          <p>Important tasks that unblock multiple downstream items.</p>
+          <p>{{ $t('docDocsConceptsMultiagentcoordination.priorityHigh') }}</p>
         </div>
         <div class="priority-item medium">
           <span class="priority-badge">medium</span>
-          <p>Standard implementation tasks with no special urgency.</p>
+          <p>{{ $t('docDocsConceptsMultiagentcoordination.priorityMedium') }}</p>
         </div>
         <div class="priority-item low">
           <span class="priority-badge">low</span>
-          <p>Nice-to-have improvements, docs, or minor refactors.</p>
+          <p>{{ $t('docDocsConceptsMultiagentcoordination.priorityLow') }}</p>
         </div>
       </div>
 
-      <h3>Atomic Claiming — Preventing Race Conditions</h3>
-      <p>
-        When two agents call <code>POST /api/tasks/{id}/claim</code> simultaneously, the server
-        uses a database-level atomic update (compare-and-swap on <code>status</code>) to guarantee
-        only one succeeds. The losing agent receives a <code>409 Conflict</code> and should
-        request the next available task instead.
-      </p>
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.atomicClaimingHeading') }}</h3>
+      <p v-html="$t('docDocsConceptsMultiagentcoordination.atomicClaimingPara')"></p>
       <CodeBlock :code="claimTaskCode" language="bash" filename="POST /api/tasks/{id}/claim" />
-      <CodeBlock :code="claimTaskResponse" language="json" filename="Response — success" />
+      <CodeBlock :code="claimTaskResponse" language="json" :filename="$t('docDocsConceptsMultiagentcoordination.filenameResponseSuccess')" />
 
-      <h3>Task Status Lifecycle</h3>
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.taskStatusLifecycleHeading') }}</h3>
       <div class="status-flow">
         <div class="status-node pending-node">pending</div>
         <div class="status-arrow">→</div>
@@ -216,139 +183,105 @@
         <div class="status-node blocked-node">blocked</div>
       </div>
 
-      <p>
-        Tasks transition from <code>pending</code> to <code>in_progress</code> on claim, then to
-        <code>review</code> or <code>done</code> on completion. A task can be moved to
-        <code>blocked</code> at any point if the agent discovers an unresolvable dependency, with
-        a <code>blocked_by</code> reason attached for the human or orchestrator to resolve.
-      </p>
+      <p v-html="$t('docDocsConceptsMultiagentcoordination.taskStatusPara')"></p>
 
-      <h3>Task Dependencies</h3>
-      <p>
-        The <code>dependencies</code> array contains task IDs that must reach <code>done</code>
-        status before this task becomes claimable. The <code>next-available</code> endpoint
-        automatically filters out tasks with unresolved dependencies, so agents never need to
-        check this manually.
-      </p>
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.taskDependenciesHeading') }}</h3>
+      <p v-html="$t('docDocsConceptsMultiagentcoordination.taskDependenciesPara')"></p>
       <CodeBlock :code="nextAvailableCode" language="bash" filename="GET /api/projects/{id}/tasks/next-available" />
 
-      <h3>Completing and Releasing Tasks</h3>
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.completingTasksHeading') }}</h3>
       <CodeBlock :code="completeTaskCode" language="bash" filename="POST /api/tasks/{id}/complete" />
       <p>
-        If an agent cannot finish a task it has claimed (context window exhausted, blocked
-        dependency discovered), it should release the task so another instance can attempt it:
+        {{ $t('docDocsConceptsMultiagentcoordination.completingTasksPara') }}
       </p>
       <CodeBlock :code="releaseTaskCode" language="bash" filename="POST /api/tasks/{id}/release" />
     </section>
 
     <!-- 5. File Locking -->
     <section id="file-locking">
-      <h2>File Locking</h2>
-      <p>
-        File locks use <strong>pessimistic locking</strong>: an agent acquires a lock before
-        touching a file and holds it for the duration of its edits. Other agents that receive a
-        <code>file.locked</code> event know to skip or defer any work on that path.
-      </p>
+      <h2>{{ $t('docDocsConceptsMultiagentcoordination.fileLockingHeading') }}</h2>
+      <p v-html="$t('docDocsConceptsMultiagentcoordination.fileLockingPara1')"></p>
 
-      <h3>Acquiring a Lock</h3>
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.acquiringLockHeading') }}</h3>
       <CodeBlock :code="lockFileCode" language="bash" filename="POST /api/projects/{id}/locks" />
-      <CodeBlock :code="lockFileResponse" language="json" filename="Response" />
+      <CodeBlock :code="lockFileResponse" language="json" :filename="$t('docDocsConceptsMultiagentcoordination.filenameResponse')" />
 
-      <p>
-        Locks expire after <strong>30 minutes</strong> by default. If an agent anticipates
-        longer work, it should extend the lock before it expires to avoid another agent
-        claiming the same file.
-      </p>
+      <p v-html="$t('docDocsConceptsMultiagentcoordination.lockExpiryPara')"></p>
 
-      <h3>Checking Lock Status</h3>
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.checkingLockHeading') }}</h3>
       <CodeBlock :code="checkLockCode" language="bash" filename="POST /api/projects/{id}/locks/check" />
 
-      <h3>Bulk Locking</h3>
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.bulkLockingHeading') }}</h3>
       <p>
-        For operations that span multiple files (e.g., a refactor touching several modules),
-        request all locks in a single atomic call. The server either grants all requested
-        locks or returns an error listing which paths are already held.
+        {{ $t('docDocsConceptsMultiagentcoordination.bulkLockingPara') }}
       </p>
       <CodeBlock :code="bulkLockCode" language="bash" filename="POST /api/projects/{id}/locks/bulk" />
 
-      <h3>Releasing Locks</h3>
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.releasingLocksHeading') }}</h3>
       <p>
-        Always release locks explicitly when done. On agent disconnect, the server automatically
-        releases all locks held by that instance's ID.
+        {{ $t('docDocsConceptsMultiagentcoordination.releasingLocksPara') }}
       </p>
       <CodeBlock :code="releaseLockCode" language="bash" filename="POST /api/projects/{id}/locks/release" />
 
-      <h3>Force Release (Stuck Locks)</h3>
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.forceReleaseHeading') }}</h3>
       <p>
-        If an agent crashes and its lock has not expired yet, a project owner can force-release
-        a lock. Use with caution — only do this when you are certain the holding instance is
-        no longer running.
+        {{ $t('docDocsConceptsMultiagentcoordination.forceReleasePara') }}
       </p>
       <CodeBlock :code="forceReleaseCode" language="bash" filename="POST /api/projects/{id}/locks/force-release" />
 
       <div class="tip tip-warning">
         <span class="tip-icon warning-icon">!</span>
         <div>
-          <h4>Lock Expiration vs. Force Release</h4>
-          <p>
-            Prefer waiting for natural expiration (30 min) over force-releasing. If you need
-            shorter expiry periods, set <code>expires_at</code> explicitly when creating the lock.
-          </p>
+          <h4>{{ $t('docDocsConceptsMultiagentcoordination.lockTipTitle') }}</h4>
+          <p v-html="$t('docDocsConceptsMultiagentcoordination.lockTipDesc')"></p>
         </div>
       </div>
     </section>
 
     <!-- 6. Context Sharing -->
     <section id="context-sharing">
-      <h2>Context Sharing</h2>
-      <p>
-        As each instance completes work, it contributes <strong>context chunks</strong> to the
-        project's shared knowledge base. Chunks are embedded using
-        <code>bge-small-en-v1.5</code> (384-dimensional vectors) and stored in PostgreSQL
-        with the <code>pgvector</code> extension. Any instance can then query the knowledge
-        base using natural language and receive the most semantically relevant results.
-      </p>
+      <h2>{{ $t('docDocsConceptsMultiagentcoordination.contextSharingHeading') }}</h2>
+      <p v-html="$t('docDocsConceptsMultiagentcoordination.contextSharingPara1')"></p>
 
-      <h3>Adding a Context Chunk</h3>
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.addingChunkHeading') }}</h3>
       <CodeBlock :code="addChunkCode" language="bash" filename="POST /api/projects/{id}/context/chunks" />
 
-      <h3>Querying Shared Context</h3>
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.queryingContextHeading') }}</h3>
       <p>
-        Before starting work on a task, an instance should query the shared context to avoid
-        duplicating effort or making decisions that contradict prior work.
+        {{ $t('docDocsConceptsMultiagentcoordination.queryingContextPara') }}
       </p>
       <CodeBlock :code="queryContextCode" language="bash" filename="POST /api/projects/{id}/context/query" />
-      <CodeBlock :code="queryContextResponse" language="json" filename="Response" />
+      <CodeBlock :code="queryContextResponse" language="json" :filename="$t('docDocsConceptsMultiagentcoordination.filenameResponse')" />
 
-      <h3>Context Chunk Types</h3>
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.chunkTypesHeading') }}</h3>
       <div class="fields-table">
         <table>
           <thead>
             <tr>
-              <th>Type</th>
-              <th>When to Use</th>
+              <th>{{ $t('docDocsConceptsMultiagentcoordination.thType') }}</th>
+              <th>{{ $t('docDocsConceptsMultiagentcoordination.thWhenToUse') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td><code>task_completion</code></td>
-              <td>Summary of what was done when a task is marked complete</td>
+              <td>{{ $t('docDocsConceptsMultiagentcoordination.chunkTaskCompletion') }}</td>
             </tr>
             <tr>
               <td><code>decision</code></td>
-              <td>Architectural or design decisions made during the session</td>
+              <td>{{ $t('docDocsConceptsMultiagentcoordination.chunkDecision') }}</td>
             </tr>
             <tr>
               <td><code>discovery</code></td>
-              <td>Findings about existing code structure or behaviour</td>
+              <td>{{ $t('docDocsConceptsMultiagentcoordination.chunkDiscovery') }}</td>
             </tr>
             <tr>
               <td><code>blocker</code></td>
-              <td>Known problems or blockers that other agents should be aware of</td>
+              <td>{{ $t('docDocsConceptsMultiagentcoordination.chunkBlocker') }}</td>
             </tr>
             <tr>
               <td><code>note</code></td>
-              <td>General observations not tied to a specific task</td>
+              <td>{{ $t('docDocsConceptsMultiagentcoordination.chunkNote') }}</td>
             </tr>
           </tbody>
         </table>
@@ -357,182 +290,126 @@
       <div class="tip">
         <span class="tip-icon">i</span>
         <div>
-          <h4>Importance Score</h4>
-          <p>
-            Set <code>importance_score</code> between <code>0.0</code> and <code>1.0</code>.
-            High-importance chunks (decisions, blockers) float to the top of search results
-            when relevance scores are close. Default is <code>0.5</code>.
-          </p>
+          <h4>{{ $t('docDocsConceptsMultiagentcoordination.importanceTipTitle') }}</h4>
+          <p v-html="$t('docDocsConceptsMultiagentcoordination.importanceTipDesc')"></p>
         </div>
       </div>
     </section>
 
     <!-- 7. Real-Time Communication -->
     <section id="realtime">
-      <h2>Real-Time Communication</h2>
-      <p>
-        All coordination events are broadcast over WebSocket to every agent and dashboard client
-        subscribed to the <code>projects.{id}</code> private channel. This means agents learn
-        about task claims, lock acquisitions, and peer completions within milliseconds — no
-        polling required.
-      </p>
+      <h2>{{ $t('docDocsConceptsMultiagentcoordination.realtimeHeading') }}</h2>
+      <p v-html="$t('docDocsConceptsMultiagentcoordination.realtimePara1')"></p>
 
-      <h3>Coordination Events</h3>
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.coordinationEventsHeading') }}</h3>
       <div class="events-list">
         <div class="event-card">
           <div class="event-header">
             <code class="event-name">task.created</code>
             <span class="event-channel">projects.{id}</span>
           </div>
-          <p>A new task was added to the board. Idle agents should call <code>next-available</code> to check if they can claim it.</p>
+          <p v-html="$t('docDocsConceptsMultiagentcoordination.eventTaskCreated')"></p>
         </div>
         <div class="event-card">
           <div class="event-header">
             <code class="event-name">task.claimed</code>
             <span class="event-channel">projects.{id}</span>
           </div>
-          <p>An instance claimed a task. Other agents can mark that task as unavailable in their local view.</p>
+          <p>{{ $t('docDocsConceptsMultiagentcoordination.eventTaskClaimed') }}</p>
         </div>
         <div class="event-card">
           <div class="event-header">
             <code class="event-name">task.completed</code>
             <span class="event-channel">projects.{id}</span>
           </div>
-          <p>A task was completed. Any tasks that depended on it are now eligible for claiming.</p>
+          <p>{{ $t('docDocsConceptsMultiagentcoordination.eventTaskCompleted') }}</p>
         </div>
         <div class="event-card">
           <div class="event-header">
             <code class="event-name">task.released</code>
             <span class="event-channel">projects.{id}</span>
           </div>
-          <p>An instance released a task back to the pool. Other instances should check <code>next-available</code> again.</p>
+          <p v-html="$t('docDocsConceptsMultiagentcoordination.eventTaskReleased')"></p>
         </div>
         <div class="event-card">
           <div class="event-header">
             <code class="event-name">file.locked</code>
             <span class="event-channel">projects.{id}</span>
           </div>
-          <p>A file was locked by an instance. Agents should defer any work on that path until a corresponding <code>file.unlocked</code> event arrives.</p>
+          <p v-html="$t('docDocsConceptsMultiagentcoordination.eventFileLocked')"></p>
         </div>
         <div class="event-card">
           <div class="event-header">
             <code class="event-name">file.unlocked</code>
             <span class="event-channel">projects.{id}</span>
           </div>
-          <p>A lock was released. Waiting agents can now acquire the lock and proceed.</p>
+          <p>{{ $t('docDocsConceptsMultiagentcoordination.eventFileUnlocked') }}</p>
         </div>
       </div>
 
-      <h3>Inter-Agent Messaging</h3>
-      <p>
-        Agents can broadcast arbitrary messages to all other instances on the same project
-        using the <code>project.broadcast</code> endpoint. This is useful for a leader agent
-        to announce task decomposition results, or for any instance to signal an urgent blocker.
-      </p>
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.interAgentMessagingHeading') }}</h3>
+      <p v-html="$t('docDocsConceptsMultiagentcoordination.interAgentMessagingPara')"></p>
       <CodeBlock :code="broadcastCode" language="bash" filename="POST /api/projects/{id}/broadcast" />
 
-      <h3>WebSocket Subscription</h3>
-      <CodeBlock :code="subscribeCode" language="typescript" filename="Subscribing to project events" />
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.websocketSubscriptionHeading') }}</h3>
+      <CodeBlock :code="subscribeCode" language="typescript" :filename="$t('docDocsConceptsMultiagentcoordination.filenameSubscribing')" />
     </section>
 
     <!-- 8. Coordination Patterns -->
     <section id="patterns">
-      <h2>Coordination Patterns</h2>
+      <h2>{{ $t('docDocsConceptsMultiagentcoordination.patternsHeading') }}</h2>
       <p>
-        There is no single correct way to orchestrate agents. Choose the pattern that matches
-        your project's dependency structure and the number of instances available.
+        {{ $t('docDocsConceptsMultiagentcoordination.patternsPara1') }}
       </p>
 
-      <h3>Leader / Worker</h3>
-      <p>
-        One dedicated <em>leader</em> instance decomposes the goal into tasks, creates them
-        all upfront, then transitions to a worker role itself. Other instances connect and
-        immediately start claiming from the shared task board.
-      </p>
-      <CodeBlock :code="leaderWorkerCode" language="typescript" filename="Leader instance bootstrap" />
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.leaderWorkerHeading') }}</h3>
+      <p v-html="$t('docDocsConceptsMultiagentcoordination.leaderWorkerPara')"></p>
+      <CodeBlock :code="leaderWorkerCode" language="typescript" :filename="$t('docDocsConceptsMultiagentcoordination.filenameLeaderBootstrap')" />
 
-      <h3>Parallel Independent Tasks</h3>
-      <p>
-        The simplest pattern: all tasks are independent (no dependencies), all instances are
-        equivalent. Each instance calls <code>next-available</code> in a loop, claims, works,
-        completes, and repeats. The server automatically distributes load.
-      </p>
-      <CodeBlock :code="parallelLoopCode" language="typescript" filename="Worker loop" />
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.parallelTasksHeading') }}</h3>
+      <p v-html="$t('docDocsConceptsMultiagentcoordination.parallelTasksPara')"></p>
+      <CodeBlock :code="parallelLoopCode" language="typescript" :filename="$t('docDocsConceptsMultiagentcoordination.filenameWorkerLoop')" />
 
-      <h3>Sequential Pipeline</h3>
-      <p>
-        For workflows with strict ordering (e.g., design → implementation → tests → docs),
-        create tasks with dependency chains. Instances running the later stages will block on
-        <code>next-available</code> until upstream tasks complete.
-      </p>
-      <CodeBlock :code="pipelineCode" language="bash" filename="Creating a dependency chain" />
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.sequentialPipelineHeading') }}</h3>
+      <p v-html="$t('docDocsConceptsMultiagentcoordination.sequentialPipelinePara')"></p>
+      <CodeBlock :code="pipelineCode" language="bash" :filename="$t('docDocsConceptsMultiagentcoordination.filenameDependencyChain')" />
     </section>
 
     <!-- 9. Conflict Resolution -->
     <section id="conflict-resolution">
-      <h2>Conflict Resolution</h2>
+      <h2>{{ $t('docDocsConceptsMultiagentcoordination.conflictResolutionHeading') }}</h2>
       <p>
-        Even with file locking and atomic task claiming, some conflict scenarios can arise.
-        Here is how ClaudeNest handles each one.
+        {{ $t('docDocsConceptsMultiagentcoordination.conflictResolutionPara1') }}
       </p>
 
       <div class="conflict-list">
         <div class="conflict-card">
-          <h4>Two agents claim the same task simultaneously</h4>
-          <p>
-            The server performs an atomic compare-and-swap: only the first request succeeds.
-            The second agent receives <code>409 Conflict</code> and must call
-            <code>next-available</code> to find a different task. No manual intervention required.
-          </p>
+          <h4>{{ $t('docDocsConceptsMultiagentcoordination.conflict1Title') }}</h4>
+          <p v-html="$t('docDocsConceptsMultiagentcoordination.conflict1Desc')"></p>
         </div>
         <div class="conflict-card">
-          <h4>Two agents request a lock on the same file</h4>
-          <p>
-            The first request succeeds and creates the lock record. The second request returns
-            <code>423 Locked</code> with the lock details (holder instance ID, expiry time).
-            The blocked agent should wait for the <code>file.unlocked</code> WebSocket event
-            before retrying.
-          </p>
+          <h4>{{ $t('docDocsConceptsMultiagentcoordination.conflict2Title') }}</h4>
+          <p v-html="$t('docDocsConceptsMultiagentcoordination.conflict2Desc')"></p>
         </div>
         <div class="conflict-card">
-          <h4>An agent crashes while holding locks and a task</h4>
-          <p>
-            The server detects the WebSocket disconnect and automatically releases all file
-            locks held by that instance ID and resets any claimed tasks back to
-            <code>pending</code>. Other instances will pick them up on their next
-            <code>next-available</code> poll.
-          </p>
+          <h4>{{ $t('docDocsConceptsMultiagentcoordination.conflict3Title') }}</h4>
+          <p v-html="$t('docDocsConceptsMultiagentcoordination.conflict3Desc')"></p>
         </div>
         <div class="conflict-card">
-          <h4>Context chunks from two instances contradict each other</h4>
-          <p>
-            Context is append-only: contradicting chunks co-exist in the vector store. The
-            most recent chunk for the same file path will generally surface higher in search
-            results due to the <code>importance_score</code> and recency weighting. A human or
-            orchestrator can delete stale chunks via
-            <code>DELETE /api/projects/{id}/context/chunks/{chunkId}</code>.
-          </p>
+          <h4>{{ $t('docDocsConceptsMultiagentcoordination.conflict4Title') }}</h4>
+          <p v-html="$t('docDocsConceptsMultiagentcoordination.conflict4Desc')"></p>
         </div>
         <div class="conflict-card">
-          <h4>A task's dependency is stuck in <code>in_progress</code></h4>
-          <p>
-            If the holding instance has disconnected, the server resets the task to
-            <code>pending</code>. If the instance is still running but slow, the orchestrator
-            can move the dependency to <code>blocked</code> or <code>done</code> via
-            <code>PATCH /api/tasks/{id}</code>, unblocking downstream work.
-          </p>
+          <h4 v-html="$t('docDocsConceptsMultiagentcoordination.conflict5Title')"></h4>
+          <p v-html="$t('docDocsConceptsMultiagentcoordination.conflict5Desc')"></p>
         </div>
       </div>
 
       <div class="tip">
         <span class="tip-icon">i</span>
         <div>
-          <h4>Observability</h4>
-          <p>
-            The project activity log (<code>GET /api/projects/{id}/activity</code>) records
-            every coordination event — claims, releases, lock acquisitions, context additions —
-            with timestamps and instance IDs. Use it to debug unexpected states.
-          </p>
+          <h4>{{ $t('docDocsConceptsMultiagentcoordination.observabilityTipTitle') }}</h4>
+          <p v-html="$t('docDocsConceptsMultiagentcoordination.observabilityTipDesc')"></p>
         </div>
       </div>
     </section>

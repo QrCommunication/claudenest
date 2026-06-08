@@ -15,14 +15,14 @@
           </template>
         </SectionHeader>
 
-        <div class="billing-toggle" role="group" aria-label="Billing cycle">
+        <div class="billing-toggle" role="group" :aria-label="$t('docPricing.billingCycle')">
           <button
             type="button"
             class="toggle-option"
             :class="{ 'is-active': billing === 'monthly' }"
             @click="billing = 'monthly'"
           >
-            {{ tr('Monthly', 'Mensuel') }}
+            {{ $t('docPricing.monthly') }}
           </button>
           <button
             type="button"
@@ -30,7 +30,7 @@
             :class="{ 'is-active': billing === 'yearly' }"
             @click="billing = 'yearly'"
           >
-            {{ tr('Yearly', 'Annuel') }}
+            {{ $t('docPricing.yearly') }}
             <span class="toggle-save">-20%</span>
           </button>
           <span class="toggle-thumb" :data-pos="billing" aria-hidden="true" />
@@ -68,7 +68,7 @@
           </div>
 
           <p v-if="plan.key === 'pro' && billing === 'yearly'" class="plan-savings">
-            {{ tr('Billed annually · Save $72/year', 'Facturé annuellement · 72 $ économisés') }}
+            {{ $t('docPricing.billedAnnually') }}
           </p>
 
           <ul class="plan-features">
@@ -98,13 +98,13 @@
       <!-- Feature comparison matrix -->
       <section class="section section-matrix">
         <SectionHeader
-          :title="tr('Compare every plan', 'Comparer les plans en détail')"
-          :subtitle="tr('The full capability set — so you can pick what your team actually uses.', 'Toutes les capacités en détail — pour choisir en connaissance de cause.')"
+          :title="$t('docPricing.matrixTitle')"
+          :subtitle="$t('docPricing.matrixSubtitle')"
         />
 
         <div class="matrix">
           <div class="matrix-head">
-            <div class="matrix-cell cell-label">{{ tr('Capabilities', 'Capacités') }}</div>
+            <div class="matrix-cell cell-label">{{ $t('docPricing.capabilities') }}</div>
             <div class="matrix-cell">Community</div>
             <div class="matrix-cell is-accent">Pro</div>
             <div class="matrix-cell">Enterprise</div>
@@ -146,15 +146,15 @@
       <section class="section section-cta">
         <div class="cta-panel">
           <div>
-            <h2 class="cta-title">{{ tr('Self-host today. Scale when ready.', 'Auto-hébergez aujourd\'hui. Scalez quand vous êtes prêts.') }}</h2>
-            <p class="cta-sub">{{ tr('MIT licensed. No card required. Your infrastructure, your data, your rules.', 'Licence MIT. Sans carte. Votre infrastructure, vos données, vos règles.') }}</p>
+            <h2 class="cta-title">{{ $t('docPricing.ctaTitle') }}</h2>
+            <p class="cta-sub">{{ $t('docPricing.ctaSub') }}</p>
           </div>
           <div class="cta-actions">
             <router-link to="/register" class="btn-primary">
               {{ t('landing.cta.cta_primary') }}
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
             </router-link>
-            <router-link to="/docs/installation" class="btn-ghost">{{ tr('Installation guide', 'Guide d\'installation') }}</router-link>
+            <router-link to="/docs/installation" class="btn-ghost">{{ $t('docPricing.installationGuide') }}</router-link>
           </div>
         </div>
       </section>
@@ -165,7 +165,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, h } from 'vue';
+import { ref, h, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import PublicNav from '@/components/public/PublicNav.vue';
 import PublicFooter from '@/components/public/PublicFooter.vue';
@@ -173,7 +173,7 @@ import GrainOverlay from '@/components/public/GrainOverlay.vue';
 import SectionHeader from '@/components/public/SectionHeader.vue';
 import GradientText from '@/components/public/GradientText.vue';
 
-const { t, locale } = useI18n();
+const { t } = useI18n();
 
 type Billing = 'monthly' | 'yearly';
 const billing = ref<Billing>('monthly');
@@ -189,24 +189,20 @@ const featuresCount = (key: string) => {
   return counts[key] ?? 0;
 };
 
-function tr(en: string, fr: string): string {
-  return locale.value?.toString().startsWith('fr') ? fr : en;
-}
-
 type MatrixCell = string | boolean;
 
-const matrix = [
-  { key: 'agents', label: tr('Concurrent agents', 'Agents concurrents'), community: '3', pro: '20', enterprise: tr('Unlimited', 'Illimité') },
-  { key: 'projects', label: tr('Shared projects', 'Projets partagés'), community: '1', pro: tr('Unlimited', 'Illimité'), enterprise: tr('Unlimited', 'Illimité') },
+const matrix = computed(() => [
+  { key: 'agents', label: t('docPricing.rowAgents'), community: '3', pro: '20', enterprise: t('docPricing.unlimited') },
+  { key: 'projects', label: t('docPricing.rowProjects'), community: '1', pro: t('docPricing.unlimited'), enterprise: t('docPricing.unlimited') },
   { key: 'rag', label: 'pgvector RAG', community: true, pro: true, enterprise: true },
-  { key: 'locks', label: tr('File locking', 'Verrouillage fichiers'), community: tr('Basic', 'Basique'), pro: tr('Advanced', 'Avancé'), enterprise: tr('Advanced + audit trail', 'Avancé + piste d\'audit') },
+  { key: 'locks', label: t('docPricing.rowLocks'), community: t('docPricing.basic'), pro: t('docPricing.advanced'), enterprise: t('docPricing.advancedAudit') },
   { key: 'mcp', label: 'MCP Protocol', community: true, pro: true, enterprise: true },
-  { key: 'mobile', label: tr('Mobile apps', 'Apps mobiles'), community: true, pro: true, enterprise: true },
-  { key: 'hosting', label: tr('Managed hosting', 'Hébergement géré'), community: false, pro: tr('Optional', 'Option'), enterprise: tr('Included', 'Inclus') },
-  { key: 'analytics', label: tr('Usage analytics', 'Analytics d\'usage'), community: false, pro: true, enterprise: true },
+  { key: 'mobile', label: t('docPricing.rowMobile'), community: true, pro: true, enterprise: true },
+  { key: 'hosting', label: t('docPricing.rowHosting'), community: false, pro: t('docPricing.optional'), enterprise: t('docPricing.included') },
+  { key: 'analytics', label: t('docPricing.rowAnalytics'), community: false, pro: true, enterprise: true },
   { key: 'sso', label: 'SSO / SAML', community: false, pro: false, enterprise: true },
-  { key: 'sla', label: tr('SLA & dedicated support', 'SLA & support dédié'), community: false, pro: tr('Email priority', 'Priorité email'), enterprise: tr('24/7 dedicated', '24/7 dédié') },
-];
+  { key: 'sla', label: t('docPricing.rowSla'), community: false, pro: t('docPricing.emailPriority'), enterprise: t('docPricing.dedicated247') },
+]);
 
 const MatrixValue = (props: { value: MatrixCell }) => {
   if (typeof props.value === 'boolean') {

@@ -7,15 +7,15 @@
       <section class="changelog-hero">
         <SectionHeader
           :badge="t('landing.footer.changelog', 'Changelog')"
-          :subtitle="tr('Release notes, new capabilities, and fixes — every shipping detail worth your time.', 'Notes de version, nouvelles capacités et correctifs — chaque détail qui vaut le coup.')"
+          :subtitle="$t('docChangelog.heroSubtitle')"
           align="center"
         >
           <template #title>
-            {{ tr('Product', 'Mises à jour') }} <GradientText>{{ tr('updates', 'produit') }}</GradientText>
+            {{ $t('docChangelog.heroTitleLead') }} <GradientText>{{ $t('docChangelog.heroTitleAccent') }}</GradientText>
           </template>
         </SectionHeader>
 
-        <div class="filter-row" role="group" :aria-label="tr('Filter releases', 'Filtrer les versions')">
+        <div class="filter-row" role="group" :aria-label="$t('docChangelog.filterReleasesLabel')">
           <button
             v-for="f in filters"
             :key="f.id"
@@ -75,8 +75,8 @@
       <section class="section section-subscribe">
         <div class="subscribe-panel">
           <div>
-            <h2 class="subscribe-title">{{ tr('Every ship, in your inbox.', 'Chaque livraison, dans votre boîte mail.') }}</h2>
-            <p class="subscribe-sub">{{ tr('Low frequency. No marketing fluff. Release notes + architecture deep-dives.', 'Fréquence basse. Aucune publicité. Notes de version + deep-dives d\'architecture.') }}</p>
+            <h2 class="subscribe-title">{{ $t('docChangelog.subscribeTitle') }}</h2>
+            <p class="subscribe-sub">{{ $t('docChangelog.subscribeSub') }}</p>
           </div>
           <form class="subscribe-form" @submit.prevent="subscribe">
             <input
@@ -88,7 +88,7 @@
               required
             />
             <button type="submit" class="subscribe-btn">
-              {{ tr('Subscribe', 'S\'abonner') }}
+              {{ $t('docChangelog.subscribeButton') }}
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
             </button>
           </form>
@@ -134,86 +134,74 @@ interface Entry {
   changes: Change[];
 }
 
-const entries: Entry[] = [
+const entries = computed<Entry[]>(() => [
   {
     version: 'v1.3.0',
-    date: tr('April 6, 2026', '6 avril 2026'),
-    title: tr('Bento dashboard & public pages rebuild', 'Dashboard Bento & refonte pages publiques'),
-    description: tr(
-      'A full visual overhaul of the marketing, auth, and docs surface — plus a new Bento-powered home for every agent you run.',
-      'Refonte visuelle complète des pages marketing, auth et docs — avec un nouveau dashboard Bento pour tous vos agents.',
-    ),
+    date: t('docChangelog.v130Date'),
+    title: t('docChangelog.v130Title'),
+    description: t('docChangelog.v130Desc'),
     changes: [
-      { type: 'feat', text: tr('Refreshed Landing, Pricing and Changelog with asymmetric hero and Bento features.', 'Landing, Pricing et Changelog refondus (hero asymétrique + Bento features).') },
-      { type: 'feat', text: tr('Split-screen auth shell shared across Login, Register, Forgot and Reset flows.', 'AuthShell split-screen partagé entre Login, Register, Forgot et Reset.') },
-      { type: 'perf', text: tr('Public pages load ~22% faster thanks to reduced runtime CSS and deferred motion.', 'Pages publiques ~22% plus rapides grâce à la réduction du CSS runtime et au motion différé.') },
-      { type: 'fix', text: tr('Dark/light theme switch now reflows instantly in public layouts.', 'Le switch dark/light bascule instantanément sur les layouts publics.') },
+      { type: 'feat', text: t('docChangelog.v130Change1') },
+      { type: 'feat', text: t('docChangelog.v130Change2') },
+      { type: 'perf', text: t('docChangelog.v130Change3') },
+      { type: 'fix', text: t('docChangelog.v130Change4') },
     ],
   },
   {
     version: 'v1.2.0',
-    date: tr('February 15, 2026', '15 février 2026'),
-    title: tr('Multi-agent dashboard & performance wins', 'Dashboard multi-agents & gains de performance'),
-    description: tr(
-      'Real-time coordination dashboard and significant performance optimizations for large projects.',
-      'Dashboard de coordination temps-réel et optimisations significatives pour les gros projets.',
-    ),
+    date: t('docChangelog.v120Date'),
+    title: t('docChangelog.v120Title'),
+    description: t('docChangelog.v120Desc'),
     changes: [
-      { type: 'feat', text: tr('Multi-agent coordination dashboard with live status.', 'Dashboard multi-agents avec statuts temps réel.') },
-      { type: 'feat', text: tr('Task dependency graph visualization.', 'Visualisation des dépendances entre tâches.') },
-      { type: 'perf', text: tr('Context RAG search 3x faster with optimized pgvector IVFFlat indexes.', 'Recherche Context RAG 3x plus rapide (indexes IVFFlat pgvector optimisés).') },
-      { type: 'fix', text: tr('File lock race condition when multiple agents access the same file.', 'Race condition sur les file locks multi-agents.') },
-      { type: 'fix', text: tr('WebSocket reconnection memory leak.', 'Fuite mémoire sur reconnexion WebSocket.') },
+      { type: 'feat', text: t('docChangelog.v120Change1') },
+      { type: 'feat', text: t('docChangelog.v120Change2') },
+      { type: 'perf', text: t('docChangelog.v120Change3') },
+      { type: 'fix', text: t('docChangelog.v120Change4') },
+      { type: 'fix', text: t('docChangelog.v120Change5') },
     ],
   },
   {
     version: 'v1.1.0',
-    date: tr('February 1, 2026', '1er février 2026'),
-    title: tr('MCP integration & mobile beta', 'Intégration MCP & beta mobile'),
-    description: tr(
-      'Full Model Context Protocol support with automatic discovery, plus our first mobile app beta.',
-      'Support complet du Model Context Protocol avec découverte automatique, plus la première beta mobile.',
-    ),
+    date: t('docChangelog.v110Date'),
+    title: t('docChangelog.v110Title'),
+    description: t('docChangelog.v110Desc'),
     changes: [
-      { type: 'feat', text: tr('MCP protocol integration with automatic server discovery.', 'Intégration MCP avec découverte automatique.') },
-      { type: 'feat', text: tr('Mobile app beta for iOS and Android.', 'Beta mobile iOS et Android.') },
-      { type: 'feat', text: tr('Agent health monitoring with auto-restart.', 'Monitoring de santé des agents avec auto-restart.') },
-      { type: 'breaking', text: tr('API endpoints now require v2 header for new features.', 'Les endpoints API exigent désormais le header v2 pour les nouvelles features.') },
-      { type: 'fix', text: tr('Session logs pagination performance issue.', 'Performance de pagination des logs session.') },
+      { type: 'feat', text: t('docChangelog.v110Change1') },
+      { type: 'feat', text: t('docChangelog.v110Change2') },
+      { type: 'feat', text: t('docChangelog.v110Change3') },
+      { type: 'breaking', text: t('docChangelog.v110Change4') },
+      { type: 'fix', text: t('docChangelog.v110Change5') },
     ],
   },
   {
     version: 'v1.0.0',
-    date: tr('January 15, 2026', '15 janvier 2026'),
-    title: tr('Production release', 'Release production'),
-    description: tr(
-      'First stable production release with the complete core: context RAG, file locking, task coordination.',
-      'Première release stable production avec le cœur complet : context RAG, file locking, task coordination.',
-    ),
+    date: t('docChangelog.v100Date'),
+    title: t('docChangelog.v100Title'),
+    description: t('docChangelog.v100Desc'),
     changes: [
-      { type: 'feat', text: tr('Complete multi-agent orchestration system.', 'Système complet d\'orchestration multi-agents.') },
-      { type: 'feat', text: tr('Context RAG with pgvector and BGE embeddings.', 'Context RAG avec pgvector et embeddings BGE.') },
-      { type: 'feat', text: tr('File locking system for conflict prevention.', 'Système de file locking anti-conflit.') },
-      { type: 'feat', text: tr('Atomic task claiming and coordination.', 'Claim atomique et coordination des tâches.') },
-      { type: 'feat', text: tr('Real-time WebSocket via Laravel Reverb.', 'WebSocket temps réel via Laravel Reverb.') },
-      { type: 'feat', text: tr('Web dashboard with xterm.js terminal emulation.', 'Dashboard web avec émulation terminal xterm.js.') },
+      { type: 'feat', text: t('docChangelog.v100Change1') },
+      { type: 'feat', text: t('docChangelog.v100Change2') },
+      { type: 'feat', text: t('docChangelog.v100Change3') },
+      { type: 'feat', text: t('docChangelog.v100Change4') },
+      { type: 'feat', text: t('docChangelog.v100Change5') },
+      { type: 'feat', text: t('docChangelog.v100Change6') },
     ],
   },
-];
+]);
 
-const filters: { id: FilterId; label: string; swatch: boolean }[] = [
+const filters = computed<{ id: FilterId; label: string; swatch: boolean }[]>(() => [
   { id: 'all', label: tr('All', 'Tout'), swatch: false },
-  { id: 'feat', label: tr('Features', 'Features'), swatch: true },
-  { id: 'perf', label: tr('Performance', 'Performance'), swatch: true },
-  { id: 'fix', label: tr('Fixes', 'Correctifs'), swatch: true },
-  { id: 'breaking', label: tr('Breaking', 'Cassants'), swatch: true },
-];
+  { id: 'feat', label: t('docChangelog.filterFeatures'), swatch: true },
+  { id: 'perf', label: t('docChangelog.filterPerformance'), swatch: true },
+  { id: 'fix', label: t('docChangelog.filterFixes'), swatch: true },
+  { id: 'breaking', label: t('docChangelog.filterBreaking'), swatch: true },
+]);
 
 const activeFilter = ref<FilterId>('all');
 
 const filteredEntries = computed(() => {
-  if (activeFilter.value === 'all') return entries;
-  return entries.filter((e) => e.changes.some((c) => c.type === activeFilter.value));
+  if (activeFilter.value === 'all') return entries.value;
+  return entries.value.filter((e) => e.changes.some((c) => c.type === activeFilter.value));
 });
 
 function filteredChanges(entry: Entry): Change[] {
@@ -222,8 +210,8 @@ function filteredChanges(entry: Entry): Change[] {
 }
 
 function countFor(f: FilterId): number {
-  if (f === 'all') return entries.length;
-  return entries.filter((e) => e.changes.some((c) => c.type === f)).length;
+  if (f === 'all') return entries.value.length;
+  return entries.value.filter((e) => e.changes.some((c) => c.type === f)).length;
 }
 
 const tagLabels: Record<ChangeType, { en: string; fr: string }> = {
@@ -233,9 +221,11 @@ const tagLabels: Record<ChangeType, { en: string; fr: string }> = {
   breaking: { en: 'breaking', fr: 'cassant' },
 };
 
-function tagLabel(t: ChangeType): string {
+function tagLabel(type: ChangeType): string {
+  if (type === 'perf') return t('docChangelog.tag_perf');
+  if (type === 'breaking') return t('docChangelog.tag_breaking');
   const fr = locale.value?.toString().startsWith('fr');
-  return fr ? tagLabels[t].fr : tagLabels[t].en;
+  return fr ? tagLabels[type].fr : tagLabels[type].en;
 }
 
 async function subscribe(): Promise<void> {
@@ -243,7 +233,7 @@ async function subscribe(): Promise<void> {
     toast.error(t('common.error'), t('auth.email_required'));
     return;
   }
-  toast.success(t('common.success'), tr('You are on the list.', 'Vous êtes sur la liste.'));
+  toast.success(t('common.success'), t('docChangelog.subscribeSuccess'));
   email.value = '';
 }
 </script>

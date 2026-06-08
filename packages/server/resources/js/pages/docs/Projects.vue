@@ -1,15 +1,14 @@
 <template>
   <DocsLayout>
     <div class="docs-page">
-      <h1>Projects API</h1>
-      
+      <h1>{{ $t('docDocsProjects.title') }}</h1>
+
       <p class="lead">
-        Multi-agent projects enable collaborative AI development across multiple Claude instances. 
-        Projects maintain shared context, tasks, and file locks to coordinate work.
+        {{ $t('docDocsProjects.lead') }}
       </p>
 
       <div class="section">
-        <h2>Project Object</h2>
+        <h2>{{ $t('docDocsProjects.projectObjectHeading') }}</h2>
         <CodeBlock language="json" :code="projectObject" />
       </div>
 
@@ -17,7 +16,7 @@
       <EndpointCard
         method="GET"
         path="/machines/{machine}/projects"
-        description="List all projects for a specific machine."
+        :description="$t('docDocsProjects.listDescription')"
         :params="listParams"
         :curlExample="listCurl"
         :jsExample="listJs"
@@ -29,7 +28,7 @@
       <EndpointCard
         method="POST"
         path="/machines/{machine}/projects"
-        description="Create a new shared project on the specified machine."
+        :description="$t('docDocsProjects.createDescription')"
         :params="createParams"
         :curlExample="createCurl"
         :jsExample="createJs"
@@ -41,7 +40,7 @@
       <EndpointCard
         method="GET"
         path="/projects/{id}"
-        description="Get detailed information about a specific project."
+        :description="$t('docDocsProjects.getDescription')"
         :params="getParams"
         :curlExample="getCurl"
         :jsExample="getJs"
@@ -53,7 +52,7 @@
       <EndpointCard
         method="PATCH"
         path="/projects/{id}"
-        description="Update project configuration and context."
+        :description="$t('docDocsProjects.updateDescription')"
         :params="updateParams"
         :curlExample="updateCurl"
         :jsExample="updateJs"
@@ -65,7 +64,7 @@
       <EndpointCard
         method="DELETE"
         path="/projects/{id}"
-        description="Delete a project and all associated data."
+        :description="$t('docDocsProjects.deleteDescription')"
         :params="deleteParams"
         :curlExample="deleteCurl"
         :jsExample="deleteJs"
@@ -77,7 +76,7 @@
       <EndpointCard
         method="GET"
         path="/projects/{id}/stats"
-        description="Get project statistics including tasks, instances, and token usage."
+        :description="$t('docDocsProjects.statsDescription')"
         :params="statsParams"
         :curlExample="statsCurl"
         :jsExample="statsJs"
@@ -89,7 +88,7 @@
       <EndpointCard
         method="GET"
         path="/projects/{id}/instances"
-        description="Get all active Claude instances connected to this project."
+        :description="$t('docDocsProjects.instancesDescription')"
         :params="instancesParams"
         :curlExample="instancesCurl"
         :jsExample="instancesJs"
@@ -101,7 +100,7 @@
       <EndpointCard
         method="GET"
         path="/projects/{id}/activity"
-        description="Get recent activity logs for the project."
+        :description="$t('docDocsProjects.activityDescription')"
         :params="activityParams"
         :curlExample="activityCurl"
         :jsExample="activityJs"
@@ -113,7 +112,7 @@
       <EndpointCard
         method="POST"
         path="/projects/{id}/broadcast"
-        description="Broadcast a message to all instances in the project."
+        :description="$t('docDocsProjects.broadcastDescription')"
         :params="broadcastParams"
         :curlExample="broadcastCurl"
         :jsExample="broadcastJs"
@@ -122,46 +121,45 @@
       />
 
       <div class="section">
-        <h2>Project Context</h2>
+        <h2>{{ $t('docDocsProjects.contextHeading') }}</h2>
         <p>
-          Projects maintain shared context that all connected instances can access:
+          {{ $t('docDocsProjects.contextIntro') }}
         </p>
         <ul>
-          <li><strong>Summary:</strong> High-level project overview</li>
-          <li><strong>Architecture:</strong> System design and patterns</li>
-          <li><strong>Conventions:</strong> Coding standards and guidelines</li>
-          <li><strong>Current Focus:</strong> Active development area</li>
-          <li><strong>Recent Changes:</strong> Latest modifications</li>
+          <li><strong>{{ $t('docDocsProjects.contextSummaryLabel') }}</strong> {{ $t('docDocsProjects.contextSummaryText') }}</li>
+          <li><strong>{{ $t('docDocsProjects.contextArchitectureLabel') }}</strong> {{ $t('docDocsProjects.contextArchitectureText') }}</li>
+          <li><strong>{{ $t('docDocsProjects.contextConventionsLabel') }}</strong> {{ $t('docDocsProjects.contextConventionsText') }}</li>
+          <li><strong>{{ $t('docDocsProjects.contextCurrentFocusLabel') }}</strong> {{ $t('docDocsProjects.contextCurrentFocusText') }}</li>
+          <li><strong>{{ $t('docDocsProjects.contextRecentChangesLabel') }}</strong> {{ $t('docDocsProjects.contextRecentChangesText') }}</li>
         </ul>
         <p>
-          Update context via the PATCH endpoint or use the <router-link to="/docs/projects">Context API</router-link> 
-          for RAG-powered queries.
+          {{ $t('docDocsProjects.contextUpdatePre') }}<router-link to="/docs/projects">{{ $t('docDocsProjects.contextApiLink') }}</router-link>{{ $t('docDocsProjects.contextUpdatePost') }}
         </p>
       </div>
 
       <div class="section">
-        <h2>Token Management</h2>
+        <h2>{{ $t('docDocsProjects.tokenManagementHeading') }}</h2>
         <p>
-          Projects track token usage to prevent context overflow:
+          {{ $t('docDocsProjects.tokenManagementIntro') }}
         </p>
         <ul>
-          <li><code>total_tokens</code> - Current tokens used in project context</li>
-          <li><code>max_tokens</code> - Maximum allowed tokens</li>
-          <li><code>token_usage_percent</code> - Percentage of limit used</li>
-          <li><code>is_token_limit_reached</code> - Whether limit is exceeded</li>
+          <li><code>total_tokens</code> - {{ $t('docDocsProjects.tokenTotalText') }}</li>
+          <li><code>max_tokens</code> - {{ $t('docDocsProjects.tokenMaxText') }}</li>
+          <li><code>token_usage_percent</code> - {{ $t('docDocsProjects.tokenPercentText') }}</li>
+          <li><code>is_token_limit_reached</code> - {{ $t('docDocsProjects.tokenLimitReachedText') }}</li>
         </ul>
       </div>
 
       <div class="section">
-        <h2>Multi-Agent Coordination</h2>
+        <h2>{{ $t('docDocsProjects.coordinationHeading') }}</h2>
         <p>
-          Projects enable multiple Claude instances to work together through:
+          {{ $t('docDocsProjects.coordinationIntro') }}
         </p>
         <ul>
-          <li><strong>Shared Tasks:</strong> Distribute work via the Tasks API</li>
-          <li><strong>File Locks:</strong> Prevent conflicts using the File Locks API</li>
-          <li><strong>Broadcast Messages:</strong> Send notifications to all instances</li>
-          <li><strong>Activity Log:</strong> Track all project activity</li>
+          <li><strong>{{ $t('docDocsProjects.coordinationTasksLabel') }}</strong> {{ $t('docDocsProjects.coordinationTasksText') }}</li>
+          <li><strong>{{ $t('docDocsProjects.coordinationLocksLabel') }}</strong> {{ $t('docDocsProjects.coordinationLocksText') }}</li>
+          <li><strong>{{ $t('docDocsProjects.coordinationBroadcastLabel') }}</strong> {{ $t('docDocsProjects.coordinationBroadcastText') }}</li>
+          <li><strong>{{ $t('docDocsProjects.coordinationActivityLabel') }}</strong> {{ $t('docDocsProjects.coordinationActivityText') }}</li>
         </ul>
       </div>
     </div>

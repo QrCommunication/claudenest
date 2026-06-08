@@ -1,68 +1,61 @@
 <template>
   <article class="doc-content">
     <header class="doc-header">
-      <h1>Agent Setup</h1>
+      <h1>{{ t('docDocsGuidesAgentsetup.title') }}</h1>
       <p class="lead">
-        Install and configure the ClaudeNest agent on your machine. The agent is a
-        lightweight daemon that connects to the server, manages PTY sessions, and
-        relays terminal I/O in real time.
+        {{ t('docDocsGuidesAgentsetup.lead') }}
       </p>
     </header>
 
     <section id="installation">
-      <h2>Installation</h2>
+      <h2>{{ t('docDocsGuidesAgentsetup.installationHeading') }}</h2>
       <p>
-        The agent is distributed as an npm package. You can install it globally or run
-        it from a cloned repository.
+        {{ t('docDocsGuidesAgentsetup.installationIntro') }}
       </p>
 
-      <h3>Via npm (recommended)</h3>
+      <h3>{{ t('docDocsGuidesAgentsetup.viaNpmHeading') }}</h3>
       <CodeBlock
         code="npm install -g @claudenest/agent"
         language="bash"
-        filename="Terminal"
+        :filename="t('docDocsGuidesAgentsetup.terminalFilename')"
       />
 
-      <h3>From source</h3>
+      <h3>{{ t('docDocsGuidesAgentsetup.fromSourceHeading') }}</h3>
       <CodeBlock
         :code="installFromSourceCode"
         language="bash"
-        filename="Terminal"
+        :filename="t('docDocsGuidesAgentsetup.terminalFilename')"
       />
 
-      <p>Verify the installation:</p>
+      <p>{{ t('docDocsGuidesAgentsetup.verifyInstallation') }}</p>
       <CodeBlock
         code="claudenest-agent --version"
         language="bash"
-        filename="Terminal"
+        :filename="t('docDocsGuidesAgentsetup.terminalFilename')"
       />
 
       <p class="tip">
         <span class="tip-icon">&#128161;</span>
-        The agent requires <strong>Node.js 24 LTS</strong> or later. On Linux and macOS
-        the <code>node-pty</code> native add-on is compiled during install, so you also
-        need a C++ toolchain (build-essential / Xcode CLI tools).
+        <span v-html="t('docDocsGuidesAgentsetup.nodeRequirement')"></span>
       </p>
     </section>
 
     <section id="configuration">
-      <h2>Configuration</h2>
+      <h2>{{ t('docDocsGuidesAgentsetup.configurationHeading') }}</h2>
       <p>
-        The agent reads its configuration from <code>~/.claudenest/config.json</code>.
-        You can generate a starter file interactively or create one manually.
+        <span v-html="t('docDocsGuidesAgentsetup.configurationIntro')"></span>
       </p>
 
-      <h3>Interactive setup</h3>
+      <h3>{{ t('docDocsGuidesAgentsetup.interactiveSetupHeading') }}</h3>
       <CodeBlock
         :code="interactiveSetupCode"
         language="bash"
-        filename="Terminal"
+        :filename="t('docDocsGuidesAgentsetup.terminalFilename')"
       />
 
-      <h3>Manual configuration</h3>
+      <h3>{{ t('docDocsGuidesAgentsetup.manualConfigHeading') }}</h3>
       <p>
-        Create or edit <code>~/.claudenest/config.json</code> with the following
-        structure:
+        <span v-html="t('docDocsGuidesAgentsetup.manualConfigIntro')"></span>
       </p>
 
       <CodeBlock
@@ -71,173 +64,162 @@
         filename="~/.claudenest/config.json"
       />
 
-      <h3>Configuration Reference</h3>
+      <h3>{{ t('docDocsGuidesAgentsetup.configReferenceHeading') }}</h3>
       <div class="config-table">
         <div class="config-row">
           <code>serverUrl</code>
-          <span>WebSocket URL of the ClaudeNest server (wss:// for production)</span>
+          <span>{{ t('docDocsGuidesAgentsetup.refServerUrl') }}</span>
         </div>
         <div class="config-row">
           <code>machineToken</code>
-          <span>Authentication token obtained when registering the machine via the API or dashboard</span>
+          <span>{{ t('docDocsGuidesAgentsetup.refMachineToken') }}</span>
         </div>
         <div class="config-row">
           <code>claudePath</code>
-          <span>Absolute path to the Claude Code binary</span>
+          <span>{{ t('docDocsGuidesAgentsetup.refClaudePath') }}</span>
         </div>
         <div class="config-row">
           <code>websocket.reconnectDelay</code>
-          <span>Initial reconnect delay in milliseconds (exponential backoff)</span>
+          <span>{{ t('docDocsGuidesAgentsetup.refReconnectDelay') }}</span>
         </div>
         <div class="config-row">
           <code>websocket.maxReconnectAttempts</code>
-          <span>Maximum number of reconnection attempts before giving up</span>
+          <span>{{ t('docDocsGuidesAgentsetup.refMaxReconnectAttempts') }}</span>
         </div>
         <div class="config-row">
           <code>websocket.heartbeatInterval</code>
-          <span>Interval in milliseconds between heartbeat pings</span>
+          <span>{{ t('docDocsGuidesAgentsetup.refHeartbeatInterval') }}</span>
         </div>
         <div class="config-row">
           <code>sessions.maxSessions</code>
-          <span>Maximum concurrent PTY sessions on this machine</span>
+          <span>{{ t('docDocsGuidesAgentsetup.refMaxSessions') }}</span>
         </div>
         <div class="config-row">
           <code>sessions.defaultCwd</code>
-          <span>Default working directory for new sessions</span>
+          <span>{{ t('docDocsGuidesAgentsetup.refDefaultCwd') }}</span>
         </div>
         <div class="config-row">
           <code>logLevel</code>
-          <span>Logging verbosity: debug, info, warn, or error</span>
+          <span>{{ t('docDocsGuidesAgentsetup.refLogLevel') }}</span>
         </div>
       </div>
     </section>
 
     <section id="connecting">
-      <h2>Connecting to the Server</h2>
+      <h2>{{ t('docDocsGuidesAgentsetup.connectingHeading') }}</h2>
       <p>
-        Once configured, start the agent. It will connect to the server, register
-        the machine capabilities, and begin listening for session requests.
+        {{ t('docDocsGuidesAgentsetup.connectingIntro') }}
       </p>
 
-      <h3>Run in the foreground</h3>
+      <h3>{{ t('docDocsGuidesAgentsetup.foregroundHeading') }}</h3>
       <CodeBlock
         code="claudenest-agent start"
         language="bash"
-        filename="Terminal"
+        :filename="t('docDocsGuidesAgentsetup.terminalFilename')"
       />
 
-      <h3>Run as a system service</h3>
+      <h3>{{ t('docDocsGuidesAgentsetup.systemServiceHeading') }}</h3>
       <CodeBlock
         :code="serviceInstallCode"
         language="bash"
-        filename="Terminal"
+        :filename="t('docDocsGuidesAgentsetup.terminalFilename')"
       />
 
-      <p>You can verify the connection from the dashboard or the API:</p>
+      <p>{{ t('docDocsGuidesAgentsetup.verifyConnectionIntro') }}</p>
 
       <CodeBlock
         :code="verifyConnectionCode"
         language="bash"
-        filename="Terminal"
+        :filename="t('docDocsGuidesAgentsetup.terminalFilename')"
       />
 
       <CodeBlock
         :code="verifyConnectionResponse"
         language="json"
-        filename="Response"
+        :filename="t('docDocsGuidesAgentsetup.responseFilename')"
       />
 
       <p class="tip">
         <span class="tip-icon">&#128161;</span>
-        The agent sends a heartbeat every 30 seconds. If the server does not receive a
-        heartbeat within 90 seconds the machine is automatically marked as
-        <code>offline</code>.
+        <span v-html="t('docDocsGuidesAgentsetup.heartbeatTip')"></span>
       </p>
     </section>
 
     <section id="troubleshooting">
-      <h2>Troubleshooting</h2>
+      <h2>{{ t('docDocsGuidesAgentsetup.troubleshootingHeading') }}</h2>
 
       <div class="trouble-grid">
         <div class="trouble-item">
-          <h4>Connection Refused</h4>
+          <h4>{{ t('docDocsGuidesAgentsetup.connectionRefusedHeading') }}</h4>
           <p>
-            The agent cannot reach the server. Verify that
-            <code>serverUrl</code> in your config points to the correct host and port.
-            Check that the Reverb WebSocket server is running and that firewalls allow
-            outbound traffic on the configured port.
+            <span v-html="t('docDocsGuidesAgentsetup.connectionRefusedBody')"></span>
           </p>
           <CodeBlock
             :code="troubleConnectionCode"
             language="bash"
-            filename="Debug"
+            :filename="t('docDocsGuidesAgentsetup.debugFilename')"
           />
         </div>
 
         <div class="trouble-item">
-          <h4>Invalid Token</h4>
+          <h4>{{ t('docDocsGuidesAgentsetup.invalidTokenHeading') }}</h4>
           <p>
-            The server rejects the machine token. Regenerate it from the dashboard or
-            via the API and update <code>config.json</code>.
+            <span v-html="t('docDocsGuidesAgentsetup.invalidTokenBody')"></span>
           </p>
           <CodeBlock
             :code="troubleTokenCode"
             language="bash"
-            filename="Regenerate Token"
+            :filename="t('docDocsGuidesAgentsetup.regenerateTokenFilename')"
           />
         </div>
 
         <div class="trouble-item">
-          <h4>Claude Binary Not Found</h4>
+          <h4>{{ t('docDocsGuidesAgentsetup.binaryNotFoundHeading') }}</h4>
           <p>
-            The agent cannot locate the Claude Code binary. Run <code>which claude</code>
-            to find the correct path and update the <code>claudePath</code> field in your
-            configuration.
+            <span v-html="t('docDocsGuidesAgentsetup.binaryNotFoundBody')"></span>
           </p>
           <CodeBlock
             code="which claude
 # /usr/local/bin/claude"
             language="bash"
-            filename="Terminal"
+            :filename="t('docDocsGuidesAgentsetup.terminalFilename')"
           />
         </div>
 
         <div class="trouble-item">
-          <h4>PTY Spawn Errors</h4>
+          <h4>{{ t('docDocsGuidesAgentsetup.ptySpawnHeading') }}</h4>
           <p>
-            If sessions fail to start with <code>ENOENT</code> or permission errors,
-            ensure <code>node-pty</code> is compiled for your platform and the agent
-            process has the required permissions.
+            <span v-html="t('docDocsGuidesAgentsetup.ptySpawnBody')"></span>
           </p>
           <CodeBlock
             code="# Rebuild native modules
 cd $(npm root -g)/@claudenest/agent
 npm rebuild node-pty"
             language="bash"
-            filename="Terminal"
+            :filename="t('docDocsGuidesAgentsetup.terminalFilename')"
           />
         </div>
       </div>
     </section>
 
     <section id="next-steps">
-      <h2>Next Steps</h2>
+      <h2>{{ t('docDocsGuidesAgentsetup.nextStepsHeading') }}</h2>
       <div class="next-steps">
         <router-link to="/docs/quickstart" class="next-step">
-          <strong>Quickstart Guide</strong>
-          <span>Create your first session end-to-end &#8594;</span>
+          <strong>{{ t('docDocsGuidesAgentsetup.nextQuickstartTitle') }}</strong>
+          <span>{{ t('docDocsGuidesAgentsetup.nextQuickstartDesc') }} &#8594;</span>
         </router-link>
         <router-link to="/docs/api/machines" class="next-step">
-          <strong>Machines API</strong>
-          <span>Register and manage machines programmatically &#8594;</span>
+          <strong>{{ t('docDocsGuidesAgentsetup.nextMachinesTitle') }}</strong>
+          <span>{{ t('docDocsGuidesAgentsetup.nextMachinesDesc') }} &#8594;</span>
         </router-link>
         <router-link to="/docs/guides/task-coordination" class="next-step">
-          <strong>Task Coordination</strong>
-          <span>Distribute work between Claude instances &#8594;</span>
+          <strong>{{ t('docDocsGuidesAgentsetup.nextTaskCoordTitle') }}</strong>
+          <span>{{ t('docDocsGuidesAgentsetup.nextTaskCoordDesc') }} &#8594;</span>
         </router-link>
         <router-link to="/docs/websocket" class="next-step">
-          <strong>WebSocket Protocol</strong>
-          <span>Real-time communication reference &#8594;</span>
+          <strong>{{ t('docDocsGuidesAgentsetup.nextWebsocketTitle') }}</strong>
+          <span>{{ t('docDocsGuidesAgentsetup.nextWebsocketDesc') }} &#8594;</span>
         </router-link>
       </div>
     </section>
@@ -246,7 +228,10 @@ npm rebuild node-pty"
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import CodeBlock from '@/components/docs/CodeBlock.vue';
+
+const { t } = useI18n();
 
 const installFromSourceCode = ref(`git clone https://github.com/yourusername/claudenest.git
 cd claudenest/packages/agent

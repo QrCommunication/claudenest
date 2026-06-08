@@ -18,31 +18,31 @@
     </nav>
 
     <section id="installation">
-      <h2>Installation</h2>
+      <h2>{{ $t('docDocsSdkdocs.installationHeading') }}</h2>
       <CodeBlock :code="installCode" :language="installLang" />
     </section>
 
     <section id="configuration">
-      <h2>Configuration</h2>
-      <p>Initialize the client with your server URL and API token:</p>
+      <h2>{{ $t('docDocsSdkdocs.configurationHeading') }}</h2>
+      <p>{{ $t('docDocsSdkdocs.configurationIntro') }}</p>
       <CodeBlock :code="configCode" :language="currentSdk" />
     </section>
 
     <section id="machines">
-      <h2>Machines</h2>
-      <p>Manage your registered machines:</p>
+      <h2>{{ $t('docDocsSdkdocs.machinesHeading') }}</h2>
+      <p>{{ $t('docDocsSdkdocs.machinesIntro') }}</p>
       <CodeBlock :code="machinesCode" :language="currentSdk" />
     </section>
 
     <section id="sessions">
-      <h2>Sessions</h2>
-      <p>Create and manage Claude Code sessions:</p>
+      <h2>{{ $t('docDocsSdkdocs.sessionsHeading') }}</h2>
+      <p>{{ $t('docDocsSdkdocs.sessionsIntro') }}</p>
       <CodeBlock :code="sessionsCode" :language="currentSdk" />
     </section>
 
     <section id="examples">
-      <h2>Complete Example</h2>
-      <p>A complete example showing common operations:</p>
+      <h2>{{ $t('docDocsSdkdocs.examplesHeading') }}</h2>
+      <p>{{ $t('docDocsSdkdocs.examplesIntro') }}</p>
       <CodeBlock :code="fullExample" :language="currentSdk" :filename="`example.${fileExtension}`" />
     </section>
   </article>
@@ -51,9 +51,11 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import CodeBlock from '@/components/docs/CodeBlock.vue';
 
 const route = useRoute();
+const { t } = useI18n();
 
 const sdks = [
   { id: 'javascript', name: 'JavaScript', ext: 'js' },
@@ -68,20 +70,20 @@ const fileExtension = computed(() => sdkInfo.value.ext);
 
 const sdkTitle = computed(() => {
   const titles: Record<string, string> = {
-    javascript: 'JavaScript SDK',
-    cli: 'CLI Reference',
-    php: 'PHP SDK',
-    python: 'Python SDK'
+    javascript: t('docDocsSdkdocs.titleJavascript'),
+    cli: t('docDocsSdkdocs.titleCli'),
+    php: t('docDocsSdkdocs.titlePhp'),
+    python: t('docDocsSdkdocs.titlePython')
   };
-  return titles[currentSdk.value] || 'SDK Documentation';
+  return titles[currentSdk.value] || t('docDocsSdkdocs.titleDefault');
 });
 
 const sdkDescription = computed(() => {
   const descs: Record<string, string> = {
-    javascript: 'Official JavaScript/TypeScript SDK for Node.js and browsers.',
-    cli: 'Command-line interface for managing ClaudeNest from the terminal.',
-    php: 'PHP client library for Laravel and other PHP applications.',
-    python: 'Python SDK for scripts and automation.'
+    javascript: t('docDocsSdkdocs.descJavascript'),
+    cli: t('docDocsSdkdocs.descCli'),
+    php: t('docDocsSdkdocs.descPhp'),
+    python: t('docDocsSdkdocs.descPython')
   };
   return descs[currentSdk.value] || '';
 });

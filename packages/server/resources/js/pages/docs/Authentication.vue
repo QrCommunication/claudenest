@@ -1,42 +1,40 @@
 <template>
   <article class="doc-content">
     <header class="doc-header">
-      <h1>Authentication</h1>
+      <h1>{{ $t('docDocsAuthentication.title') }}</h1>
       <p class="lead">
-        ClaudeNest supports multiple authentication methods including OAuth (Google, GitHub),
-        email/password, magic link, and API tokens for machine-to-machine communication.
-        Manage Claude API credentials with AES-256-CBC encryption.
+        {{ $t('docDocsAuthentication.lead') }}
       </p>
     </header>
 
     <section id="oauth-setup">
-      <h2>OAuth Setup</h2>
-      <p>Configure OAuth providers to allow users to sign in with their existing accounts.</p>
+      <h2>{{ $t('docDocsAuthentication.oauthSetupTitle') }}</h2>
+      <p>{{ $t('docDocsAuthentication.oauthSetupIntro') }}</p>
 
-      <h3>Google OAuth</h3>
+      <h3>{{ $t('docDocsAuthentication.googleOauthTitle') }}</h3>
       <ol class="steps-list">
-        <li>Go to the <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></li>
-        <li>Create a new project or select an existing one</li>
-        <li>Navigate to "APIs & Services" → "Credentials"</li>
-        <li>Click "Create Credentials" → "OAuth client ID"</li>
-        <li>Configure the OAuth consent screen if not already done</li>
-        <li>Select "Web application" as the application type</li>
-        <li>Add your domain to "Authorized JavaScript origins"</li>
-        <li>Add <code>https://yourdomain.com/api/auth/google/callback</code> to "Authorized redirect URIs"</li>
-        <li>Copy the Client ID and Client Secret</li>
+        <li>{{ $t('docDocsAuthentication.googleStep1Prefix') }} <a href="https://console.cloud.google.com/" target="_blank">{{ $t('docDocsAuthentication.googleCloudConsole') }}</a></li>
+        <li>{{ $t('docDocsAuthentication.googleStep2') }}</li>
+        <li>{{ $t('docDocsAuthentication.googleStep3') }}</li>
+        <li>{{ $t('docDocsAuthentication.googleStep4') }}</li>
+        <li>{{ $t('docDocsAuthentication.googleStep5') }}</li>
+        <li>{{ $t('docDocsAuthentication.googleStep6') }}</li>
+        <li>{{ $t('docDocsAuthentication.googleStep7') }}</li>
+        <li>{{ $t('docDocsAuthentication.googleStep8Prefix') }} <code>https://yourdomain.com/api/auth/google/callback</code> {{ $t('docDocsAuthentication.googleStep8Suffix') }}</li>
+        <li>{{ $t('docDocsAuthentication.googleStep9') }}</li>
       </ol>
 
-      <h3>GitHub OAuth</h3>
+      <h3>{{ $t('docDocsAuthentication.githubOauthTitle') }}</h3>
       <ol class="steps-list">
-        <li>Go to GitHub Settings → Developer settings → OAuth Apps</li>
-        <li>Click "New OAuth App"</li>
-        <li>Fill in the application name and homepage URL</li>
-        <li>Set Authorization callback URL to <code>https://yourdomain.com/api/auth/github/callback</code></li>
-        <li>Register the application</li>
-        <li>Copy the Client ID and generate a Client Secret</li>
+        <li>{{ $t('docDocsAuthentication.githubStep1') }}</li>
+        <li>{{ $t('docDocsAuthentication.githubStep2') }}</li>
+        <li>{{ $t('docDocsAuthentication.githubStep3') }}</li>
+        <li>{{ $t('docDocsAuthentication.githubStep4Prefix') }} <code>https://yourdomain.com/api/auth/github/callback</code></li>
+        <li>{{ $t('docDocsAuthentication.githubStep5') }}</li>
+        <li>{{ $t('docDocsAuthentication.githubStep6') }}</li>
       </ol>
 
-      <h3>Configure Environment Variables</h3>
+      <h3>{{ $t('docDocsAuthentication.configureEnvTitle') }}</h3>
       <CodeBlock 
         :code="`# Google OAuth
 GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
@@ -53,32 +51,32 @@ GITHUB_REDIRECT_URI=https://claudenest.yourdomain.com/api/auth/github/callback`"
     </section>
 
     <section id="authentication-flow">
-      <h2>Authentication Flow</h2>
-      
-      <h3>OAuth Flow</h3>
+      <h2>{{ $t('docDocsAuthentication.authFlowTitle') }}</h2>
+
+      <h3>{{ $t('docDocsAuthentication.oauthFlowTitle') }}</h3>
       <div class="flow-diagram">
         <div class="flow-step">
           <span class="step-num">1</span>
-          <p>Client requests auth URL</p>
+          <p>{{ $t('docDocsAuthentication.flowStep1') }}</p>
         </div>
         <div class="flow-arrow">→</div>
         <div class="flow-step">
           <span class="step-num">2</span>
-          <p>User authorizes with provider</p>
+          <p>{{ $t('docDocsAuthentication.flowStep2') }}</p>
         </div>
         <div class="flow-arrow">→</div>
         <div class="flow-step">
           <span class="step-num">3</span>
-          <p>Provider redirects with code</p>
+          <p>{{ $t('docDocsAuthentication.flowStep3') }}</p>
         </div>
         <div class="flow-arrow">→</div>
         <div class="flow-step">
           <span class="step-num">4</span>
-          <p>Server exchanges code for token</p>
+          <p>{{ $t('docDocsAuthentication.flowStep4') }}</p>
         </div>
       </div>
 
-      <h3>Step 1: Get OAuth URL</h3>
+      <h3>{{ $t('docDocsAuthentication.step1Title') }}</h3>
       <CodeBlock 
         code='# Get Google OAuth URL
 curl https://claudenest.yourdomain.com/api/auth/google/redirect
@@ -93,8 +91,8 @@ curl https://claudenest.yourdomain.com/api/auth/google/redirect
         language="bash"
       />
 
-      <h3>Step 2: Handle Callback</h3>
-      <p>After the user authorizes, they are redirected to your callback URL with a code. Exchange it for a token:</p>
+      <h3>{{ $t('docDocsAuthentication.step2Title') }}</h3>
+      <p>{{ $t('docDocsAuthentication.step2Intro') }}</p>
       <CodeBlock 
         code='# The callback is handled automatically by the server
 # The user receives an API token in the response
@@ -115,35 +113,35 @@ GET /api/auth/google/callback?code=auth-code-from-google
     </section>
 
     <section id="api-tokens">
-      <h2>API Tokens</h2>
-      <p>Use API tokens for programmatic access and machine-to-machine communication.</p>
+      <h2>{{ $t('docDocsAuthentication.apiTokensTitle') }}</h2>
+      <p>{{ $t('docDocsAuthentication.apiTokensIntro') }}</p>
 
-      <h3>Create a Personal Access Token</h3>
-      <CodeBlock 
-        :code="createTokenCode" 
+      <h3>{{ $t('docDocsAuthentication.createPatTitle') }}</h3>
+      <CodeBlock
+        :code="createTokenCode"
         language="bash"
       />
 
-      <h3>Token Abilities</h3>
-      <p>Tokens can be scoped to specific abilities for security:</p>
+      <h3>{{ $t('docDocsAuthentication.tokenAbilitiesTitle') }}</h3>
+      <p>{{ $t('docDocsAuthentication.tokenAbilitiesIntro') }}</p>
       <ul>
-        <li><code>*</code> - Full access</li>
-        <li><code>machines:read</code> - Read machine information</li>
-        <li><code>machines:write</code> - Create/update machines</li>
-        <li><code>sessions:read</code> - Read session data</li>
-        <li><code>sessions:write</code> - Create and manage sessions</li>
-        <li><code>projects:read</code> - Read project data</li>
-        <li><code>projects:write</code> - Create and manage projects</li>
+        <li><code>*</code> - {{ $t('docDocsAuthentication.abilityFull') }}</li>
+        <li><code>machines:read</code> - {{ $t('docDocsAuthentication.abilityMachinesRead') }}</li>
+        <li><code>machines:write</code> - {{ $t('docDocsAuthentication.abilityMachinesWrite') }}</li>
+        <li><code>sessions:read</code> - {{ $t('docDocsAuthentication.abilitySessionsRead') }}</li>
+        <li><code>sessions:write</code> - {{ $t('docDocsAuthentication.abilitySessionsWrite') }}</li>
+        <li><code>projects:read</code> - {{ $t('docDocsAuthentication.abilityProjectsRead') }}</li>
+        <li><code>projects:write</code> - {{ $t('docDocsAuthentication.abilityProjectsWrite') }}</li>
       </ul>
 
-      <h3>Using Tokens</h3>
-      <p>Include the token in the Authorization header:</p>
+      <h3>{{ $t('docDocsAuthentication.usingTokensTitle') }}</h3>
+      <p>{{ $t('docDocsAuthentication.usingTokensIntro') }}</p>
       <CodeBlock 
         :code="useTokenCode" 
         language="bash"
       />
 
-      <h3>List and Revoke Tokens</h3>
+      <h3>{{ $t('docDocsAuthentication.listRevokeTitle') }}</h3>
       <CodeBlock 
         :code="listRevokeTokensCode" 
         language="bash"
@@ -151,17 +149,17 @@ GET /api/auth/google/callback?code=auth-code-from-google
     </section>
 
     <section id="machine-tokens">
-      <h2>Machine Tokens</h2>
-      <p>Machine tokens are used by the agent to authenticate with the server.</p>
+      <h2>{{ $t('docDocsAuthentication.machineTokensTitle') }}</h2>
+      <p>{{ $t('docDocsAuthentication.machineTokensIntro') }}</p>
 
-      <h3>Register a Machine</h3>
-      <CodeBlock 
-        :code="registerMachineCode" 
+      <h3>{{ $t('docDocsAuthentication.registerMachineTitle') }}</h3>
+      <CodeBlock
+        :code="registerMachineCode"
         language="bash"
       />
 
-      <h3>Regenerate Machine Token</h3>
-      <p>If a machine token is compromised, regenerate it:</p>
+      <h3>{{ $t('docDocsAuthentication.regenerateTokenTitle') }}</h3>
+      <p>{{ $t('docDocsAuthentication.regenerateTokenIntro') }}</p>
       <CodeBlock 
         :code="regenerateTokenCode" 
         language="bash"
@@ -169,97 +167,93 @@ GET /api/auth/google/callback?code=auth-code-from-google
     </section>
 
     <section id="magic-link">
-      <h2>Magic Link Authentication</h2>
+      <h2>{{ $t('docDocsAuthentication.magicLinkTitle') }}</h2>
       <p>
-        ClaudeNest also supports passwordless authentication via magic links. A temporary
-        login link is sent to the user's email, valid for 15 minutes.
+        {{ $t('docDocsAuthentication.magicLinkIntro') }}
       </p>
 
-      <h3>Request a Magic Link</h3>
+      <h3>{{ $t('docDocsAuthentication.requestMagicLinkTitle') }}</h3>
       <CodeBlock
         :code="magicLinkCode"
         language="bash"
       />
 
       <p>
-        The user receives an email with a link that authenticates them automatically. The
-        link contains a signed token that is verified server-side and exchanged for a Sanctum
-        API token.
+        {{ $t('docDocsAuthentication.magicLinkExplain') }}
       </p>
     </section>
 
     <section id="credentials">
-      <h2>Claude Credentials Management</h2>
+      <h2>{{ $t('docDocsAuthentication.credentialsTitle') }}</h2>
       <p>
-        ClaudeNest provides encrypted storage for Claude API keys and OAuth tokens. Credentials
-        are encrypted at rest using AES-256-CBC via Laravel's <code>Crypt::encryptString()</code>.
-        Each user can store multiple credentials and designate one as the default.
+        {{ $t('docDocsAuthentication.credentialsIntroPrefix') }} <code>Crypt::encryptString()</code>.
+        {{ $t('docDocsAuthentication.credentialsIntroSuffix') }}
       </p>
 
-      <h3>Supported Auth Types</h3>
+      <h3>{{ $t('docDocsAuthentication.supportedAuthTypesTitle') }}</h3>
       <ul>
-        <li><code>api_key</code> - Direct Anthropic API key (sk-ant-...)</li>
-        <li><code>oauth</code> - OAuth access token with refresh token and expiration</li>
+        <li><code>api_key</code> - {{ $t('docDocsAuthentication.authTypeApiKey') }}</li>
+        <li><code>oauth</code> - {{ $t('docDocsAuthentication.authTypeOauth') }}</li>
       </ul>
 
-      <h3>Create a Credential</h3>
+      <h3>{{ $t('docDocsAuthentication.createCredentialTitle') }}</h3>
       <CodeBlock
         :code="createCredentialCode"
         language="bash"
       />
 
-      <h3>Set Default Credential</h3>
+      <h3>{{ $t('docDocsAuthentication.setDefaultCredentialTitle') }}</h3>
       <CodeBlock
         :code="setDefaultCredentialCode"
         language="bash"
       />
 
-      <h3>Validate a Key</h3>
-      <p>Test whether an API key is still valid with the Claude API:</p>
+      <h3>{{ $t('docDocsAuthentication.validateKeyTitle') }}</h3>
+      <p>{{ $t('docDocsAuthentication.validateKeyIntro') }}</p>
       <CodeBlock
         :code="validateCredentialCode"
         language="bash"
       />
 
       <p>
-        Sessions can optionally be bound to a specific credential by passing <code>credential_id</code>
-        when creating the session. If omitted, the user's default credential is used.
+        {{ $t('docDocsAuthentication.credentialsBindingPrefix') }} <code>credential_id</code>
+        {{ $t('docDocsAuthentication.credentialsBindingSuffix') }}
       </p>
     </section>
 
     <section id="security">
-      <h2>Security Best Practices</h2>
-      
+      <h2>{{ $t('docDocsAuthentication.securityTitle') }}</h2>
+
       <div class="security-tips">
         <div class="tip">
           <span class="tip-icon">🔒</span>
           <div>
-            <h4>Use HTTPS</h4>
-            <p>Always use HTTPS in production to protect tokens in transit</p>
+            <h4>{{ $t('docDocsAuthentication.tipHttpsTitle') }}</h4>
+            <p>{{ $t('docDocsAuthentication.tipHttpsText') }}</p>
           </div>
         </div>
-        
+
         <div class="tip">
           <span class="tip-icon">⏱️</span>
           <div>
-            <h4>Set Token Expiration</h4>
-            <p>Use short-lived tokens and implement token rotation</p>
+            <h4>{{ $t('docDocsAuthentication.tipExpirationTitle') }}</h4>
+            <p>{{ $t('docDocsAuthentication.tipExpirationText') }}</p>
           </div>
         </div>
-        
+
         <div class="tip">
           <span class="tip-icon">🎯</span>
           <div>
-            <h4>Scope Your Tokens</h4>
-            <p>Only grant the minimum required abilities for each token</p>
+            <h4>{{ $t('docDocsAuthentication.tipScopeTitle') }}</h4>
+            <p>{{ $t('docDocsAuthentication.tipScopeText') }}</p>
           </div>
         </div>
-        
+
         <div class="tip">
           <span class="tip-icon">🔍</span>
           <div>
-            <h4>Monitor Token Usage</h4>
-            <p>Regularly review and revoke unused tokens</p>
+            <h4>{{ $t('docDocsAuthentication.tipMonitorTitle') }}</h4>
+            <p>{{ $t('docDocsAuthentication.tipMonitorText') }}</p>
           </div>
         </div>
       </div>

@@ -1,179 +1,178 @@
 <template>
   <DocsLayout>
     <div class="docs-page">
-      <h1>WebSocket Protocol</h1>
-      
+      <h1>{{ $t('docDocsWebsocket.pageTitle') }}</h1>
+
       <p class="lead">
-        Real-time communication for interactive sessions. WebSocket connections enable 
-        bidirectional streaming of input/output between clients and Claude Code sessions.
+        {{ $t('docDocsWebsocket.lead') }}
       </p>
 
       <div class="section">
-        <h2>Connection Overview</h2>
+        <h2>{{ $t('docDocsWebsocket.connectionOverviewTitle') }}</h2>
         <p>
-          ClaudeNest uses WebSocket connections for real-time session interaction:
+          {{ $t('docDocsWebsocket.connectionOverviewPara') }}
         </p>
         <ul>
-          <li><strong>WebSocket URL:</strong> <code>wss://api.claudenest.io:8080</code></li>
-          <li><strong>Protocol:</strong> WSS (WebSocket Secure)</li>
-          <li><strong>Authentication:</strong> Token-based via connection message</li>
-          <li><strong>Heartbeat:</strong> Ping/pong every 30 seconds</li>
+          <li><strong>{{ $t('docDocsWebsocket.overviewUrlLabel') }}</strong> <code>wss://api.claudenest.io:8080</code></li>
+          <li><strong>{{ $t('docDocsWebsocket.overviewProtocolLabel') }}</strong> {{ $t('docDocsWebsocket.overviewProtocolValue') }}</li>
+          <li><strong>{{ $t('docDocsWebsocket.overviewAuthLabel') }}</strong> {{ $t('docDocsWebsocket.overviewAuthValue') }}</li>
+          <li><strong>{{ $t('docDocsWebsocket.overviewHeartbeatLabel') }}</strong> {{ $t('docDocsWebsocket.overviewHeartbeatValue') }}</li>
         </ul>
       </div>
 
       <div class="section">
-        <h2>Connecting to a Session</h2>
+        <h2>{{ $t('docDocsWebsocket.connectingTitle') }}</h2>
         <p>
-          Before connecting via WebSocket, you must first obtain a WebSocket token:
+          {{ $t('docDocsWebsocket.connectingPara') }}
         </p>
         <CodeBlock language="javascript" :code="connectionFlow" />
       </div>
 
       <div class="section">
-        <h2>WebSocket Events</h2>
-        
-        <h3>Client to Server</h3>
+        <h2>{{ $t('docDocsWebsocket.eventsTitle') }}</h2>
+
+        <h3>{{ $t('docDocsWebsocket.clientToServerTitle') }}</h3>
         <div class="events-grid">
           <div class="event-card client">
             <h4>auth</h4>
-            <p>Authenticate with WebSocket token</p>
+            <p>{{ $t('docDocsWebsocket.authDesc') }}</p>
             <CodeBlock language="json" code='{"type":"auth","token":"ws_token_abc123"}' />
           </div>
           <div class="event-card client">
             <h4>input</h4>
-            <p>Send input to the session</p>
+            <p>{{ $t('docDocsWebsocket.inputDesc') }}</p>
             <CodeBlock language="json" code='{"type":"input","data":"hello"}' />
           </div>
           <div class="event-card client">
             <h4>resize</h4>
-            <p>Resize terminal dimensions</p>
+            <p>{{ $t('docDocsWebsocket.resizeDesc') }}</p>
             <CodeBlock language="json" code='{"type":"resize","cols":150,"rows":50}' />
           </div>
           <div class="event-card client">
             <h4>ping</h4>
-            <p>Keep connection alive</p>
+            <p>{{ $t('docDocsWebsocket.pingDesc') }}</p>
             <CodeBlock language="json" code='{"type":"ping"}' />
           </div>
         </div>
 
-        <h3>Server to Client</h3>
+        <h3>{{ $t('docDocsWebsocket.serverToClientTitle') }}</h3>
         <div class="events-grid">
           <div class="event-card server">
             <h4>SessionOutput</h4>
-            <p>Output from the session</p>
+            <p>{{ $t('docDocsWebsocket.sessionOutputDesc') }}</p>
             <CodeBlock language="json" :code="sessionOutputExample" />
           </div>
           <div class="event-card server">
             <h4>SessionInput</h4>
-            <p>Input echoed from another client</p>
+            <p>{{ $t('docDocsWebsocket.sessionInputDesc') }}</p>
             <CodeBlock language="json" :code="sessionInputExample" />
           </div>
           <div class="event-card server">
             <h4>SessionTerminated</h4>
-            <p>Session has ended</p>
+            <p>{{ $t('docDocsWebsocket.sessionTerminatedDesc') }}</p>
             <CodeBlock language="json" :code="sessionTerminatedExample" />
           </div>
           <div class="event-card server">
             <h4>SessionCreated</h4>
-            <p>New session started</p>
+            <p>{{ $t('docDocsWebsocket.sessionCreatedDesc') }}</p>
             <CodeBlock language="json" :code="sessionCreatedExample" />
           </div>
           <div class="event-card server">
             <h4>SessionResize</h4>
-            <p>Terminal was resized</p>
+            <p>{{ $t('docDocsWebsocket.sessionResizeDesc') }}</p>
             <CodeBlock language="json" :code="sessionResizeExample" />
           </div>
           <div class="event-card server">
             <h4>pong</h4>
-            <p>Heartbeat response</p>
+            <p>{{ $t('docDocsWebsocket.pongDesc') }}</p>
             <CodeBlock language="json" code='{"type":"pong","timestamp":"2026-02-02T15:30:00Z"}' />
           </div>
           <div class="event-card server error">
             <h4>error</h4>
-            <p>Error occurred</p>
+            <p>{{ $t('docDocsWebsocket.errorDesc') }}</p>
             <CodeBlock language="json" :code="errorExample" />
           </div>
         </div>
       </div>
 
       <div class="section">
-        <h2>Complete Example</h2>
+        <h2>{{ $t('docDocsWebsocket.completeExampleTitle') }}</h2>
         <CodeBlock language="javascript" :code="completeExample" filename="websocket-client.js" />
       </div>
 
       <div class="section">
-        <h2>Channel Subscriptions</h2>
+        <h2>{{ $t('docDocsWebsocket.channelSubscriptionsTitle') }}</h2>
         <p>
-          You can subscribe to different channels to receive specific events:
+          {{ $t('docDocsWebsocket.channelSubscriptionsPara') }}
         </p>
         <ul>
-          <li><code>session:{id}</code> - Session-specific events (required)</li>
-          <li><code>machine:{id}</code> - Machine-level events</li>
-          <li><code>project:{id}</code> - Project-level events (tasks, broadcasts)</li>
-          <li><code>user:{id}</code> - User-specific notifications</li>
+          <li><code>session:{id}</code> - {{ $t('docDocsWebsocket.channelSession') }}</li>
+          <li><code>machine:{id}</code> - {{ $t('docDocsWebsocket.channelMachine') }}</li>
+          <li><code>project:{id}</code> - {{ $t('docDocsWebsocket.channelProject') }}</li>
+          <li><code>user:{id}</code> - {{ $t('docDocsWebsocket.channelUser') }}</li>
         </ul>
         <CodeBlock language="javascript" :code="subscriptionExample" />
       </div>
 
       <div class="section">
-        <h2>Reconnection Strategy</h2>
+        <h2>{{ $t('docDocsWebsocket.reconnectionTitle') }}</h2>
         <p>
-          Implement exponential backoff for reconnection:
+          {{ $t('docDocsWebsocket.reconnectionPara') }}
         </p>
         <CodeBlock language="javascript" :code="reconnectionExample" />
       </div>
 
       <div class="section">
-        <h2>Error Handling</h2>
+        <h2>{{ $t('docDocsWebsocket.errorHandlingTitle') }}</h2>
         <p>
-          Common WebSocket error codes:
+          {{ $t('docDocsWebsocket.errorHandlingPara') }}
         </p>
         <table class="error-table">
           <thead>
             <tr>
-              <th>Code</th>
-              <th>Meaning</th>
+              <th>{{ $t('docDocsWebsocket.tableCode') }}</th>
+              <th>{{ $t('docDocsWebsocket.tableMeaning') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td>1000</td>
-              <td>Normal closure</td>
+              <td>{{ $t('docDocsWebsocket.code1000') }}</td>
             </tr>
             <tr>
               <td>1006</td>
-              <td>Abnormal closure (connection lost)</td>
+              <td>{{ $t('docDocsWebsocket.code1006') }}</td>
             </tr>
             <tr>
               <td>1008</td>
-              <td>Policy violation (invalid token)</td>
+              <td>{{ $t('docDocsWebsocket.code1008') }}</td>
             </tr>
             <tr>
               <td>1011</td>
-              <td>Server error</td>
+              <td>{{ $t('docDocsWebsocket.code1011') }}</td>
             </tr>
             <tr>
               <td>4401</td>
-              <td>Unauthorized (invalid/missing token)</td>
+              <td>{{ $t('docDocsWebsocket.code4401') }}</td>
             </tr>
             <tr>
               <td>4404</td>
-              <td>Session not found</td>
+              <td>{{ $t('docDocsWebsocket.code4404') }}</td>
             </tr>
           </tbody>
         </table>
       </div>
 
       <div class="section">
-        <h2>Rate Limits</h2>
+        <h2>{{ $t('docDocsWebsocket.rateLimitsTitle') }}</h2>
         <p>
-          WebSocket connections have the following limits:
+          {{ $t('docDocsWebsocket.rateLimitsPara') }}
         </p>
         <ul>
-          <li>Maximum 10 concurrent connections per user</li>
-          <li>Maximum 100 messages per second per connection</li>
-          <li>Messages larger than 1MB will be rejected</li>
-          <li>Idle connections are closed after 5 minutes</li>
+          <li>{{ $t('docDocsWebsocket.rateLimit1') }}</li>
+          <li>{{ $t('docDocsWebsocket.rateLimit2') }}</li>
+          <li>{{ $t('docDocsWebsocket.rateLimit3') }}</li>
+          <li>{{ $t('docDocsWebsocket.rateLimit4') }}</li>
         </ul>
       </div>
     </div>

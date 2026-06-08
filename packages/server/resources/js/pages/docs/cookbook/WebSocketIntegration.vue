@@ -1,214 +1,201 @@
 <template>
   <article class="doc-content">
     <header class="doc-header">
-      <h1>WebSocket Integration</h1>
+      <h1>{{ t('docDocsCookbookWebsocketintegration.title') }}</h1>
       <p class="lead">
-        Connect to ClaudeNest in real time using Laravel Reverb WebSockets.
-        Stream terminal output, send input, and coordinate multi-agent tasks
-        through private channels with automatic reconnection.
+        {{ t('docDocsCookbookWebsocketintegration.lead') }}
       </p>
     </header>
 
     <section id="overview">
-      <h2>Overview</h2>
+      <h2>{{ t('docDocsCookbookWebsocketintegration.overviewHeading') }}</h2>
       <p>
-        ClaudeNest uses <strong>Laravel Reverb</strong> as its WebSocket server, providing
-        real-time bidirectional communication between clients and Claude Code sessions.
-        The WebSocket layer handles terminal I/O streaming, session lifecycle events,
-        task coordination, and file lock notifications.
+        <i18n-t keypath="docDocsCookbookWebsocketintegration.overviewPara1" tag="span">
+          <template #reverb><strong>Laravel Reverb</strong></template>
+        </i18n-t>
       </p>
 
       <div class="tip">
         <span class="tip-icon">i</span>
         <div>
-          <h4>When to use WebSockets</h4>
+          <h4>{{ t('docDocsCookbookWebsocketintegration.tipWhenTitle') }}</h4>
           <p>
-            Use WebSockets for interactive sessions and real-time updates. For one-shot
-            commands or polling-based workflows, the REST API may be more appropriate.
+            {{ t('docDocsCookbookWebsocketintegration.tipWhenBody') }}
           </p>
         </div>
       </div>
 
-      <h3>Architecture</h3>
+      <h3>{{ t('docDocsCookbookWebsocketintegration.architectureHeading') }}</h3>
       <p>
-        The WebSocket stack consists of three layers:
+        {{ t('docDocsCookbookWebsocketintegration.architectureIntro') }}
       </p>
       <ul>
-        <li><strong>Laravel Reverb</strong> - WebSocket server running on port 8080</li>
-        <li><strong>Laravel Echo</strong> - Client-side library for channel subscriptions</li>
-        <li><strong>Pusher Protocol</strong> - Wire protocol for message framing</li>
+        <li><strong>Laravel Reverb</strong> - {{ t('docDocsCookbookWebsocketintegration.archReverb') }}</li>
+        <li><strong>Laravel Echo</strong> - {{ t('docDocsCookbookWebsocketintegration.archEcho') }}</li>
+        <li><strong>Pusher Protocol</strong> - {{ t('docDocsCookbookWebsocketintegration.archPusher') }}</li>
       </ul>
     </section>
 
     <section id="connecting">
-      <h2>Connecting</h2>
+      <h2>{{ t('docDocsCookbookWebsocketintegration.connectingHeading') }}</h2>
       <p>
-        Install the required client libraries and configure your Echo instance
-        to connect to the Reverb server.
+        {{ t('docDocsCookbookWebsocketintegration.connectingIntro') }}
       </p>
 
-      <h3>Install Dependencies</h3>
+      <h3>{{ t('docDocsCookbookWebsocketintegration.installDepsHeading') }}</h3>
       <CodeBlock :code="installDeps" language="bash" />
 
-      <h3>Initialize Echo</h3>
+      <h3>{{ t('docDocsCookbookWebsocketintegration.initEchoHeading') }}</h3>
       <p>
-        Create an Echo instance pointing to your Reverb server. The configuration
-        uses the Pusher-compatible protocol that Reverb implements.
+        {{ t('docDocsCookbookWebsocketintegration.initEchoIntro') }}
       </p>
       <CodeTabs :tabs="echoConfigTabs" />
 
-      <h3>Attach to a Session</h3>
+      <h3>{{ t('docDocsCookbookWebsocketintegration.attachHeading') }}</h3>
       <p>
-        Before subscribing to WebSocket channels, obtain a WebSocket token by
-        attaching to an existing session via the REST API:
+        {{ t('docDocsCookbookWebsocketintegration.attachIntro') }}
       </p>
       <CodeBlock :code="attachCode" language="typescript" filename="attach-session.ts" />
     </section>
 
     <section id="channels">
-      <h2>Private Channels</h2>
+      <h2>{{ t('docDocsCookbookWebsocketintegration.channelsHeading') }}</h2>
       <p>
-        All ClaudeNest channels are private and require authentication. The server
-        verifies that the authenticated user owns the resource before granting access.
+        {{ t('docDocsCookbookWebsocketintegration.channelsIntro') }}
       </p>
 
-      <h3>Available Channels</h3>
+      <h3>{{ t('docDocsCookbookWebsocketintegration.availableChannelsHeading') }}</h3>
       <table class="channels-table">
         <thead>
           <tr>
-            <th>Channel</th>
-            <th>Description</th>
-            <th>Events</th>
+            <th>{{ t('docDocsCookbookWebsocketintegration.thChannel') }}</th>
+            <th>{{ t('docDocsCookbookWebsocketintegration.thDescription') }}</th>
+            <th>{{ t('docDocsCookbookWebsocketintegration.thEvents') }}</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td><code>sessions.{id}</code></td>
-            <td>Terminal I/O and session lifecycle</td>
+            <td>{{ t('docDocsCookbookWebsocketintegration.channelSessionsDesc') }}</td>
             <td>output, input, resize, terminated</td>
           </tr>
           <tr>
             <td><code>projects.{id}</code></td>
-            <td>Multi-agent coordination</td>
+            <td>{{ t('docDocsCookbookWebsocketintegration.channelProjectsDesc') }}</td>
             <td>task.created, task.claimed, broadcast</td>
           </tr>
           <tr>
             <td><code>machines.{id}</code></td>
-            <td>Machine status and session creation</td>
+            <td>{{ t('docDocsCookbookWebsocketintegration.channelMachinesDesc') }}</td>
             <td>session.created, status.changed</td>
           </tr>
           <tr>
             <td><code>users.{id}</code></td>
-            <td>User-level notifications</td>
+            <td>{{ t('docDocsCookbookWebsocketintegration.channelUsersDesc') }}</td>
             <td>notification, alert</td>
           </tr>
         </tbody>
       </table>
 
-      <h3>Subscribing to Channels</h3>
+      <h3>{{ t('docDocsCookbookWebsocketintegration.subscribingHeading') }}</h3>
       <CodeBlock :code="channelSubscription" language="typescript" filename="subscribe-channels.ts" />
 
-      <h3>Channel Authorization</h3>
+      <h3>{{ t('docDocsCookbookWebsocketintegration.channelAuthHeading') }}</h3>
       <p>
-        Channel authorization is handled automatically by Laravel Sanctum.
-        The broadcasting routes verify ownership through Eloquent relationships:
+        {{ t('docDocsCookbookWebsocketintegration.channelAuthIntro') }}
       </p>
       <CodeBlock :code="channelAuthCode" language="php" filename="channels.php" />
     </section>
 
     <section id="events">
-      <h2>Event Types</h2>
+      <h2>{{ t('docDocsCookbookWebsocketintegration.eventTypesHeading') }}</h2>
       <p>
-        Events are broadcast using Laravel's event system. Each event includes
-        a timestamp and the relevant resource identifiers.
+        {{ t('docDocsCookbookWebsocketintegration.eventTypesIntro') }}
       </p>
 
-      <h3>Session Events</h3>
+      <h3>{{ t('docDocsCookbookWebsocketintegration.sessionEventsHeading') }}</h3>
       <div class="events-grid">
         <div class="event-card">
           <h4>session.output</h4>
-          <p>Terminal output from a Claude Code session. Streamed in real time as the agent produces output.</p>
+          <p>{{ t('docDocsCookbookWebsocketintegration.evtSessionOutput') }}</p>
           <CodeBlock :code="eventSessionOutput" language="json" />
         </div>
         <div class="event-card">
           <h4>session.input</h4>
-          <p>User input sent to the session. Echoed to all connected clients for shared viewing.</p>
+          <p>{{ t('docDocsCookbookWebsocketintegration.evtSessionInput') }}</p>
           <CodeBlock :code="eventSessionInput" language="json" />
         </div>
         <div class="event-card">
           <h4>session.terminated</h4>
-          <p>Session has ended, either normally or due to an error.</p>
+          <p>{{ t('docDocsCookbookWebsocketintegration.evtSessionTerminated') }}</p>
           <CodeBlock :code="eventSessionTerminated" language="json" />
         </div>
       </div>
 
-      <h3>Task Events</h3>
+      <h3>{{ t('docDocsCookbookWebsocketintegration.taskEventsHeading') }}</h3>
       <div class="events-grid">
         <div class="event-card">
           <h4>task.created</h4>
-          <p>A new task was added to the project task queue.</p>
+          <p>{{ t('docDocsCookbookWebsocketintegration.evtTaskCreated') }}</p>
           <CodeBlock :code="eventTaskCreated" language="json" />
         </div>
         <div class="event-card">
           <h4>task.claimed</h4>
-          <p>A Claude instance has claimed a task for execution.</p>
+          <p>{{ t('docDocsCookbookWebsocketintegration.evtTaskClaimed') }}</p>
           <CodeBlock :code="eventTaskClaimed" language="json" />
         </div>
         <div class="event-card">
           <h4>task.completed</h4>
-          <p>A task has been completed with a summary and list of modified files.</p>
+          <p>{{ t('docDocsCookbookWebsocketintegration.evtTaskCompleted') }}</p>
           <CodeBlock :code="eventTaskCompleted" language="json" />
         </div>
       </div>
 
-      <h3>File Lock Events</h3>
+      <h3>{{ t('docDocsCookbookWebsocketintegration.fileLockEventsHeading') }}</h3>
       <div class="events-grid">
         <div class="event-card">
           <h4>file.locked</h4>
-          <p>A file has been locked by a Claude instance to prevent conflicts.</p>
+          <p>{{ t('docDocsCookbookWebsocketintegration.evtFileLocked') }}</p>
           <CodeBlock :code="eventFileLocked" language="json" />
         </div>
         <div class="event-card">
           <h4>file.unlocked</h4>
-          <p>A file lock has been released and is available for editing.</p>
+          <p>{{ t('docDocsCookbookWebsocketintegration.evtFileUnlocked') }}</p>
           <CodeBlock :code="eventFileUnlocked" language="json" />
         </div>
       </div>
 
-      <h3>Listening to Events</h3>
+      <h3>{{ t('docDocsCookbookWebsocketintegration.listeningHeading') }}</h3>
       <CodeBlock :code="listeningExample" language="typescript" filename="event-listener.ts" />
     </section>
 
     <section id="reconnection">
-      <h2>Reconnection Strategy</h2>
+      <h2>{{ t('docDocsCookbookWebsocketintegration.reconnectionHeading') }}</h2>
       <p>
-        Network interruptions are inevitable. Implement exponential backoff
-        with jitter to avoid thundering herd problems when the server recovers.
+        {{ t('docDocsCookbookWebsocketintegration.reconnectionIntro') }}
       </p>
 
       <div class="tip">
         <span class="tip-icon">!</span>
         <div>
-          <h4>Built-in Reconnection</h4>
+          <h4>{{ t('docDocsCookbookWebsocketintegration.tipBuiltinTitle') }}</h4>
           <p>
-            Laravel Echo handles basic reconnection automatically. The strategy
-            below is for custom WebSocket clients or when you need finer control.
+            {{ t('docDocsCookbookWebsocketintegration.tipBuiltinBody') }}
           </p>
         </div>
       </div>
 
-      <h3>Exponential Backoff with Jitter</h3>
+      <h3>{{ t('docDocsCookbookWebsocketintegration.backoffHeading') }}</h3>
       <CodeBlock :code="reconnectionCode" language="typescript" filename="reconnect-strategy.ts" />
 
-      <h3>State Recovery</h3>
+      <h3>{{ t('docDocsCookbookWebsocketintegration.stateRecoveryHeading') }}</h3>
       <p>
-        After reconnecting, you may need to re-subscribe to channels and
-        fetch any events that were missed during the disconnection window:
+        {{ t('docDocsCookbookWebsocketintegration.stateRecoveryIntro') }}
       </p>
       <CodeBlock :code="stateRecoveryCode" language="typescript" filename="state-recovery.ts" />
 
-      <h3>Connection Lifecycle</h3>
-      <p>Monitor the connection state and display status to users:</p>
+      <h3>{{ t('docDocsCookbookWebsocketintegration.connectionLifecycleHeading') }}</h3>
+      <p>{{ t('docDocsCookbookWebsocketintegration.connectionLifecycleIntro') }}</p>
       <CodeBlock :code="connectionLifecycle" language="typescript" filename="connection-status.ts" />
     </section>
   </article>
@@ -216,8 +203,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import CodeBlock from '@/components/docs/CodeBlock.vue';
 import CodeTabs from '@/components/docs/CodeTabs.vue';
+
+const { t } = useI18n();
 
 const installDeps = ref(`npm install laravel-echo pusher-js`);
 

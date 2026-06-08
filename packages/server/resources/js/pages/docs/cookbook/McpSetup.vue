@@ -1,41 +1,36 @@
 <template>
   <article class="doc-content">
     <header class="doc-header">
-      <h1>MCP Server Setup</h1>
+      <h1>{{ $t('docDocsCookbookMcpsetup.headerTitle') }}</h1>
       <p class="lead">
-        Register, configure, and use Model Context Protocol servers with ClaudeNest
-        to extend Claude's capabilities with custom tools and integrations.
+        {{ $t('docDocsCookbookMcpsetup.headerLead') }}
       </p>
     </header>
 
     <section id="what-is-mcp">
-      <h2>What is MCP?</h2>
+      <h2>{{ $t('docDocsCookbookMcpsetup.whatIsTitle') }}</h2>
       <p>
-        The <strong>Model Context Protocol (MCP)</strong> is an open standard that lets LLM applications
-        interact with external tools, data sources, and services through a unified interface.
-        ClaudeNest supports managing MCP servers on your machines, making their tools available
-        to Claude Code sessions.
+        <strong>{{ $t('docDocsCookbookMcpsetup.mcpFullName') }}</strong> {{ $t('docDocsCookbookMcpsetup.whatIsPara1') }}
       </p>
 
-      <p>MCP servers can provide:</p>
+      <p>{{ $t('docDocsCookbookMcpsetup.canProvide') }}</p>
       <ul>
-        <li><strong>Tools</strong> -- Callable functions such as database queries, API calls, or file operations.</li>
-        <li><strong>Resources</strong> -- Read-only data sources like documentation, config files, or knowledge bases.</li>
-        <li><strong>Prompts</strong> -- Pre-defined prompt templates for common workflows.</li>
+        <li><strong>{{ $t('docDocsCookbookMcpsetup.toolsLabel') }}</strong> {{ $t('docDocsCookbookMcpsetup.toolsDesc') }}</li>
+        <li><strong>{{ $t('docDocsCookbookMcpsetup.resourcesLabel') }}</strong> {{ $t('docDocsCookbookMcpsetup.resourcesDesc') }}</li>
+        <li><strong>{{ $t('docDocsCookbookMcpsetup.promptsLabel') }}</strong> {{ $t('docDocsCookbookMcpsetup.promptsDesc') }}</li>
       </ul>
 
       <div class="tip">
         <span class="tip-icon">i</span>
         <div>
-          <strong>Transport modes</strong>
-          <p>ClaudeNest supports both <code>stdio</code> (local process) and <code>sse</code> (HTTP Server-Sent Events) transports for MCP servers.</p>
+          <strong>{{ $t('docDocsCookbookMcpsetup.transportModesTitle') }}</strong>
+          <p>{{ $t('docDocsCookbookMcpsetup.transportModesPara1') }} <code>stdio</code> {{ $t('docDocsCookbookMcpsetup.transportModesPara2') }} <code>sse</code> {{ $t('docDocsCookbookMcpsetup.transportModesPara3') }}</p>
         </div>
       </div>
 
-      <h3>How it works</h3>
+      <h3>{{ $t('docDocsCookbookMcpsetup.howItWorksTitle') }}</h3>
       <p>
-        The ClaudeNest agent running on your machine manages MCP server lifecycle. You register
-        servers via the API, and the agent starts, monitors, and routes tool calls to them.
+        {{ $t('docDocsCookbookMcpsetup.howItWorksPara1') }}
       </p>
       <CodeBlock
         :code="architectureCode"
@@ -45,15 +40,14 @@
     </section>
 
     <section id="registering">
-      <h2>Registering an MCP Server</h2>
+      <h2>{{ $t('docDocsCookbookMcpsetup.registeringTitle') }}</h2>
       <p>
-        Register an MCP server on a specific machine via the API. You need to provide the server
-        name, transport type, and the command or URL to connect to it.
+        {{ $t('docDocsCookbookMcpsetup.registeringPara1') }}
       </p>
 
-      <h3>stdio transport (local process)</h3>
+      <h3>{{ $t('docDocsCookbookMcpsetup.stdioTransportTitle') }}</h3>
       <p>
-        For servers that run as local processes, specify the command and arguments to launch them.
+        {{ $t('docDocsCookbookMcpsetup.stdioTransportPara1') }}
       </p>
       <CodeTabs
         :tabs="[
@@ -78,9 +72,9 @@
         ]"
       />
 
-      <h3>SSE transport (remote HTTP)</h3>
+      <h3>{{ $t('docDocsCookbookMcpsetup.sseTransportTitle') }}</h3>
       <p>
-        For remote MCP servers accessible over HTTP, provide the SSE endpoint URL.
+        {{ $t('docDocsCookbookMcpsetup.sseTransportPara1') }}
       </p>
       <CodeBlock
         :code="registerSseCode"
@@ -88,7 +82,7 @@
         filename="Terminal"
       />
 
-      <h3>Registration response</h3>
+      <h3>{{ $t('docDocsCookbookMcpsetup.registrationResponseTitle') }}</h3>
       <CodeBlock
         :code="registerResponseCode"
         language="json"
@@ -97,10 +91,9 @@
     </section>
 
     <section id="starting">
-      <h2>Starting and Stopping Servers</h2>
+      <h2>{{ $t('docDocsCookbookMcpsetup.startingTitle') }}</h2>
       <p>
-        After registration, start the MCP server to make its tools available. The agent will
-        launch the process (stdio) or connect to the endpoint (SSE).
+        {{ $t('docDocsCookbookMcpsetup.startingPara1') }}
       </p>
 
       <CodeTabs
@@ -129,17 +122,16 @@
       <div class="tip">
         <span class="tip-icon">i</span>
         <div>
-          <strong>Auto-restart</strong>
-          <p>If a stdio MCP server crashes, the agent will automatically attempt to restart it up to 3 times within a 60-second window.</p>
+          <strong>{{ $t('docDocsCookbookMcpsetup.autoRestartTitle') }}</strong>
+          <p>{{ $t('docDocsCookbookMcpsetup.autoRestartPara1') }}</p>
         </div>
       </div>
     </section>
 
     <section id="tools">
-      <h2>Listing Tools</h2>
+      <h2>{{ $t('docDocsCookbookMcpsetup.listingToolsTitle') }}</h2>
       <p>
-        Once a server is running, query the available tools it provides. Each tool has a name,
-        description, and a JSON Schema defining its parameters.
+        {{ $t('docDocsCookbookMcpsetup.listingToolsPara1') }}
       </p>
 
       <CodeBlock
@@ -148,16 +140,16 @@
         filename="Terminal"
       />
 
-      <h3>Tools response</h3>
+      <h3>{{ $t('docDocsCookbookMcpsetup.toolsResponseTitle') }}</h3>
       <CodeBlock
         :code="listToolsResponse"
         language="json"
         filename="Response"
       />
 
-      <h3>List tools across all servers</h3>
+      <h3>{{ $t('docDocsCookbookMcpsetup.allServersTitle') }}</h3>
       <p>
-        You can also retrieve every tool available on a machine, aggregated from all running MCP servers.
+        {{ $t('docDocsCookbookMcpsetup.allServersPara1') }}
       </p>
       <CodeBlock
         :code="allToolsCode"
@@ -167,10 +159,9 @@
     </section>
 
     <section id="executing">
-      <h2>Executing Tools</h2>
+      <h2>{{ $t('docDocsCookbookMcpsetup.executingTitle') }}</h2>
       <p>
-        Call a tool on a specific MCP server by providing the tool name and its parameters.
-        The agent forwards the call to the MCP server and returns the result.
+        {{ $t('docDocsCookbookMcpsetup.executingPara1') }}
       </p>
 
       <CodeTabs
@@ -196,7 +187,7 @@
         ]"
       />
 
-      <h3>Execution response</h3>
+      <h3>{{ $t('docDocsCookbookMcpsetup.executionResponseTitle') }}</h3>
       <CodeBlock
         :code="executeResponse"
         language="json"
@@ -206,8 +197,8 @@
       <div class="tip">
         <span class="tip-icon">i</span>
         <div>
-          <strong>Timeouts</strong>
-          <p>Tool execution has a default timeout of 30 seconds. For long-running operations, pass <code>"timeout": 120</code> in the request body to extend it up to 120 seconds.</p>
+          <strong>{{ $t('docDocsCookbookMcpsetup.timeoutsTitle') }}</strong>
+          <p>{{ $t('docDocsCookbookMcpsetup.timeoutsPara1') }} <code>"timeout": 120</code> {{ $t('docDocsCookbookMcpsetup.timeoutsPara2') }}</p>
         </div>
       </div>
     </section>
@@ -216,8 +207,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import CodeBlock from '@/components/docs/CodeBlock.vue';
 import CodeTabs from '@/components/docs/CodeTabs.vue';
+
+const { t } = useI18n();
 
 const architectureCode = ref(`Claude Code Session
   |

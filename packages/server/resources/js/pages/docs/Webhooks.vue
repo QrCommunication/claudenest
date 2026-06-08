@@ -1,38 +1,36 @@
 <template>
   <article class="doc-content">
     <header class="doc-header">
-      <h1>Webhooks & Events</h1>
+      <h1>{{ $t('docDocsWebhooks.title') }}</h1>
       <p class="lead">
-        Subscribe to real-time events via WebSockets or HTTP webhooks to build 
-        reactive applications and integrations.
+        {{ $t('docDocsWebhooks.lead') }}
       </p>
     </header>
 
     <section id="websocket-events">
-      <h2>WebSocket Events</h2>
+      <h2>{{ $t('docDocsWebhooks.websocketEventsHeading') }}</h2>
       <p>
-        ClaudeNest uses Laravel Reverb for real-time event streaming. WebSockets provide 
-        the lowest latency for session interactions.
+        {{ $t('docDocsWebhooks.websocketEventsIntro') }}
       </p>
 
-      <h3>Connection</h3>
+      <h3>{{ $t('docDocsWebhooks.connectionHeading') }}</h3>
       <CodeBlock 
         :code="wsConnectionCode" 
         language="javascript"
       />
 
-      <h3>Authentication</h3>
-      <p>After connecting, authenticate with your attachment token:</p>
+      <h3>{{ $t('docDocsWebhooks.authenticationHeading') }}</h3>
+      <p>{{ $t('docDocsWebhooks.authenticationIntro') }}</p>
       <CodeBlock 
         :code="wsAuthCode" 
         language="javascript"
       />
 
-      <h3>Message Types</h3>
+      <h3>{{ $t('docDocsWebhooks.messageTypesHeading') }}</h3>
       <div class="message-types">
         <div class="message-type">
-          <h4>Input</h4>
-          <p>Send user input to the session</p>
+          <h4>{{ $t('docDocsWebhooks.inputHeading') }}</h4>
+          <p>{{ $t('docDocsWebhooks.inputDesc') }}</p>
           <CodeBlock 
             :code="msgInputCode" 
             language="json"
@@ -40,8 +38,8 @@
         </div>
 
         <div class="message-type">
-          <h4>Output</h4>
-          <p>Receive terminal output from Claude</p>
+          <h4>{{ $t('docDocsWebhooks.outputHeading') }}</h4>
+          <p>{{ $t('docDocsWebhooks.outputDesc') }}</p>
           <CodeBlock 
             :code="msgOutputCode" 
             language="json"
@@ -49,8 +47,8 @@
         </div>
 
         <div class="message-type">
-          <h4>Resize</h4>
-          <p>Resize the terminal</p>
+          <h4>{{ $t('docDocsWebhooks.resizeHeading') }}</h4>
+          <p>{{ $t('docDocsWebhooks.resizeDesc') }}</p>
           <CodeBlock 
             :code="msgResizeCode" 
             language="json"
@@ -58,8 +56,8 @@
         </div>
 
         <div class="message-type">
-          <h4>Status</h4>
-          <p>Session status updates</p>
+          <h4>{{ $t('docDocsWebhooks.statusHeading') }}</h4>
+          <p>{{ $t('docDocsWebhooks.statusDesc') }}</p>
           <CodeBlock 
             :code="msgStatusCode" 
             language="json"
@@ -69,95 +67,95 @@
     </section>
 
     <section id="broadcast-events">
-      <h2>Broadcast Events</h2>
-      <p>Events are broadcast to connected clients for real-time updates:</p>
+      <h2>{{ $t('docDocsWebhooks.broadcastEventsHeading') }}</h2>
+      <p>{{ $t('docDocsWebhooks.broadcastEventsIntro') }}</p>
 
-      <h3>Session Events</h3>
+      <h3>{{ $t('docDocsWebhooks.sessionEventsHeading') }}</h3>
       <table class="events-table">
         <thead>
           <tr>
-            <th>Event</th>
-            <th>Description</th>
-            <th>Payload</th>
+            <th>{{ $t('docDocsWebhooks.colEvent') }}</th>
+            <th>{{ $t('docDocsWebhooks.colDescription') }}</th>
+            <th>{{ $t('docDocsWebhooks.colPayload') }}</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td><code>SessionCreated</code></td>
-            <td>New session created</td>
-            <td>Session object</td>
+            <td>{{ $t('docDocsWebhooks.evtSessionCreatedDesc') }}</td>
+            <td>{{ $t('docDocsWebhooks.payloadSessionObject') }}</td>
           </tr>
           <tr>
             <td><code>SessionStarted</code></td>
-            <td>Session started running</td>
+            <td>{{ $t('docDocsWebhooks.evtSessionStartedDesc') }}</td>
             <td>{ session_id, pid }</td>
           </tr>
           <tr>
             <td><code>SessionTerminated</code></td>
-            <td>Session ended</td>
+            <td>{{ $t('docDocsWebhooks.evtSessionTerminatedDesc') }}</td>
             <td>{ session_id, exit_code }</td>
           </tr>
           <tr>
             <td><code>SessionInput</code></td>
-            <td>Input sent to session</td>
+            <td>{{ $t('docDocsWebhooks.evtSessionInputDesc') }}</td>
             <td>{ session_id, data }</td>
           </tr>
           <tr>
             <td><code>SessionOutput</code></td>
-            <td>Output from session</td>
+            <td>{{ $t('docDocsWebhooks.evtSessionOutputDesc') }}</td>
             <td>{ session_id, data }</td>
           </tr>
           <tr>
             <td><code>SessionResize</code></td>
-            <td>Terminal resized</td>
+            <td>{{ $t('docDocsWebhooks.evtSessionResizeDesc') }}</td>
             <td>{ session_id, cols, rows }</td>
           </tr>
         </tbody>
       </table>
 
-      <h3>Project Events</h3>
+      <h3>{{ $t('docDocsWebhooks.projectEventsHeading') }}</h3>
       <table class="events-table">
         <thead>
           <tr>
-            <th>Event</th>
-            <th>Description</th>
-            <th>Payload</th>
+            <th>{{ $t('docDocsWebhooks.colEvent') }}</th>
+            <th>{{ $t('docDocsWebhooks.colDescription') }}</th>
+            <th>{{ $t('docDocsWebhooks.colPayload') }}</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td><code>ProjectBroadcast</code></td>
-            <td>Message broadcast to project</td>
+            <td>{{ $t('docDocsWebhooks.evtProjectBroadcastDesc') }}</td>
             <td>{ message, sender }</td>
           </tr>
           <tr>
             <td><code>TaskCreated</code></td>
-            <td>New task created</td>
-            <td>Task object</td>
+            <td>{{ $t('docDocsWebhooks.evtTaskCreatedDesc') }}</td>
+            <td>{{ $t('docDocsWebhooks.payloadTaskObject') }}</td>
           </tr>
           <tr>
             <td><code>TaskClaimed</code></td>
-            <td>Task claimed by instance</td>
+            <td>{{ $t('docDocsWebhooks.evtTaskClaimedDesc') }}</td>
             <td>{ task_id, instance_id }</td>
           </tr>
           <tr>
             <td><code>TaskReleased</code></td>
-            <td>Task released</td>
+            <td>{{ $t('docDocsWebhooks.evtTaskReleasedDesc') }}</td>
             <td>{ task_id, reason }</td>
           </tr>
           <tr>
             <td><code>TaskCompleted</code></td>
-            <td>Task marked complete</td>
+            <td>{{ $t('docDocsWebhooks.evtTaskCompletedDesc') }}</td>
             <td>{ task_id, summary }</td>
           </tr>
           <tr>
             <td><code>FileLocked</code></td>
-            <td>File locked</td>
+            <td>{{ $t('docDocsWebhooks.evtFileLockedDesc') }}</td>
             <td>{ path, locked_by }</td>
           </tr>
           <tr>
             <td><code>FileUnlocked</code></td>
-            <td>File unlocked</td>
+            <td>{{ $t('docDocsWebhooks.evtFileUnlockedDesc') }}</td>
             <td>{ path, forced }</td>
           </tr>
         </tbody>
@@ -165,47 +163,47 @@
     </section>
 
     <section id="http-webhooks">
-      <h2>HTTP Webhooks</h2>
-      <p>Configure HTTP webhooks to receive events at your endpoints.</p>
+      <h2>{{ $t('docDocsWebhooks.httpWebhooksHeading') }}</h2>
+      <p>{{ $t('docDocsWebhooks.httpWebhooksIntro') }}</p>
 
-      <h3>Webhook Configuration</h3>
-      <p>Set up webhooks in your server configuration or via the API:</p>
+      <h3>{{ $t('docDocsWebhooks.webhookConfigurationHeading') }}</h3>
+      <p>{{ $t('docDocsWebhooks.webhookConfigurationIntro') }}</p>
       <CodeBlock 
         :code="webhookConfigCode" 
         language="json"
       />
 
-      <h3>Webhook Payload</h3>
-      <p>All webhooks follow a consistent format:</p>
+      <h3>{{ $t('docDocsWebhooks.webhookPayloadHeading') }}</h3>
+      <p>{{ $t('docDocsWebhooks.webhookPayloadIntro') }}</p>
       <CodeBlock 
         :code="webhookPayloadCode" 
         language="json"
       />
 
-      <h3>Webhook Verification</h3>
-      <p>Verify webhook signatures to ensure authenticity:</p>
+      <h3>{{ $t('docDocsWebhooks.webhookVerificationHeading') }}</h3>
+      <p>{{ $t('docDocsWebhooks.webhookVerificationIntro') }}</p>
       <CodeBlock 
         :code="webhookVerifyCode" 
         language="javascript"
       />
 
-      <h3>Retry Policy</h3>
-      <p>Webhooks are retried with exponential backoff if your endpoint returns an error:</p>
+      <h3>{{ $t('docDocsWebhooks.retryPolicyHeading') }}</h3>
+      <p>{{ $t('docDocsWebhooks.retryPolicyIntro') }}</p>
       <ul>
-        <li>Initial attempt: Immediate</li>
-        <li>Retry 1: 5 seconds</li>
-        <li>Retry 2: 25 seconds</li>
-        <li>Retry 3: 2 minutes</li>
-        <li>Retry 4: 10 minutes</li>
-        <li>Max retries: 5 attempts over ~12 hours</li>
+        <li>{{ $t('docDocsWebhooks.retryInitial') }}</li>
+        <li>{{ $t('docDocsWebhooks.retry1') }}</li>
+        <li>{{ $t('docDocsWebhooks.retry2') }}</li>
+        <li>{{ $t('docDocsWebhooks.retry3') }}</li>
+        <li>{{ $t('docDocsWebhooks.retry4') }}</li>
+        <li>{{ $t('docDocsWebhooks.retryMax') }}</li>
       </ul>
     </section>
 
     <section id="sdk-integration">
-      <h2>SDK Integration</h2>
-      <p>Use the official SDKs for easier event handling:</p>
+      <h2>{{ $t('docDocsWebhooks.sdkIntegrationHeading') }}</h2>
+      <p>{{ $t('docDocsWebhooks.sdkIntegrationIntro') }}</p>
 
-      <h3>JavaScript SDK</h3>
+      <h3>{{ $t('docDocsWebhooks.javascriptSdkHeading') }}</h3>
       <CodeBlock 
         :code="sdkIntegrationCode" 
         language="javascript"

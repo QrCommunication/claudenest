@@ -10,7 +10,7 @@
       </p>
 
       <div class="section">
-        <h2>What is MCP?</h2>
+        <h2>{{ $t('docDocsMcp.whatIsTitle') }}</h2>
         <p>
           The Model Context Protocol (MCP) is an open protocol that enables seamless 
           integration between LLM applications and external data sources and tools. 
@@ -25,15 +25,15 @@
       </div>
 
       <div class="section">
-        <h2>MCP Endpoints</h2>
+        <h2>{{ $t('docDocsMcp.endpointsTitle') }}</h2>
         <p>
           ClaudeNest exposes the following MCP endpoints:
         </p>
         <table class="endpoints-table">
           <thead>
             <tr>
-              <th>Endpoint</th>
-              <th>Description</th>
+              <th>{{ $t('docDocsMcp.thEndpoint') }}</th>
+              <th>{{ $t('docDocsMcp.thDescription') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -43,27 +43,27 @@
             </tr>
             <tr>
               <td><code>/mcp/tools/list</code></td>
-              <td>List available tools</td>
+              <td>{{ $t('docDocsMcp.epToolsList') }}</td>
             </tr>
             <tr>
               <td><code>/mcp/tools/call</code></td>
-              <td>Call a tool</td>
+              <td>{{ $t('docDocsMcp.epToolsCall') }}</td>
             </tr>
             <tr>
               <td><code>/mcp/resources/list</code></td>
-              <td>List available resources</td>
+              <td>{{ $t('docDocsMcp.epResourcesList') }}</td>
             </tr>
             <tr>
               <td><code>/mcp/resources/read</code></td>
-              <td>Read a resource</td>
+              <td>{{ $t('docDocsMcp.epResourcesRead') }}</td>
             </tr>
             <tr>
               <td><code>/mcp/prompts/list</code></td>
-              <td>List available prompts</td>
+              <td>{{ $t('docDocsMcp.epPromptsList') }}</td>
             </tr>
             <tr>
               <td><code>/mcp/prompts/get</code></td>
-              <td>Get a prompt</td>
+              <td>{{ $t('docDocsMcp.epPromptsGet') }}</td>
             </tr>
           </tbody>
         </table>
@@ -73,7 +73,7 @@
       <EndpointCard
         method="POST"
         path="/mcp/initialize"
-        description="Initialize an MCP connection and negotiate protocol version."
+        :description="$t('docDocsMcp.descInitialize')"
         :params="initParams"
         :curlExample="initCurl"
         :jsExample="initJs"
@@ -85,7 +85,7 @@
       <EndpointCard
         method="GET"
         path="/mcp/tools/list"
-        description="List all available MCP tools."
+        :description="$t('docDocsMcp.descListTools')"
         :curlExample="listToolsCurl"
         :jsExample="listToolsJs"
         :phpExample="listToolsPhp"
@@ -96,7 +96,7 @@
       <EndpointCard
         method="POST"
         path="/mcp/tools/call"
-        description="Call an MCP tool with parameters."
+        :description="$t('docDocsMcp.descCallTool')"
         :params="callToolParams"
         :curlExample="callToolCurl"
         :jsExample="callToolJs"
@@ -108,7 +108,7 @@
       <EndpointCard
         method="GET"
         path="/mcp/resources/list"
-        description="List all available MCP resources."
+        :description="$t('docDocsMcp.descListResources')"
         :curlExample="listResourcesCurl"
         :jsExample="listResourcesJs"
         :phpExample="listResourcesPhp"
@@ -119,7 +119,7 @@
       <EndpointCard
         method="POST"
         path="/mcp/resources/read"
-        description="Read a specific MCP resource."
+        :description="$t('docDocsMcp.descReadResource')"
         :params="readResourceParams"
         :curlExample="readResourceCurl"
         :jsExample="readResourceJs"
@@ -128,61 +128,61 @@
       />
 
       <div class="section">
-        <h2>Using MCP with Claude Desktop</h2>
+        <h2>{{ $t('docDocsMcp.desktopTitle') }}</h2>
         <p>
-          To use ClaudeNest with Claude Desktop via MCP, add the following configuration:
+          {{ $t('docDocsMcp.desktopPara') }}
         </p>
         <CodeBlock language="json" :code="claudeDesktopConfig" filename="claude_desktop_config.json" />
       </div>
 
       <div class="section">
-        <h2>Available MCP Tools</h2>
+        <h2>{{ $t('docDocsMcp.toolsTitle') }}</h2>
         <div class="tools-list">
           <div class="tool-item">
             <h4>create_session</h4>
-            <p>Create a new Claude Code session</p>
+            <p>{{ $t('docDocsMcp.toolCreateSession') }}</p>
           </div>
           <div class="tool-item">
             <h4>send_input</h4>
-            <p>Send input to a running session</p>
+            <p>{{ $t('docDocsMcp.toolSendInput') }}</p>
           </div>
           <div class="tool-item">
             <h4>get_session_output</h4>
-            <p>Get output from a session</p>
+            <p>{{ $t('docDocsMcp.toolGetSessionOutput') }}</p>
           </div>
           <div class="tool-item">
             <h4>list_machines</h4>
-            <p>List available machines</p>
+            <p>{{ $t('docDocsMcp.toolListMachines') }}</p>
           </div>
           <div class="tool-item">
             <h4>list_projects</h4>
-            <p>List projects on a machine</p>
+            <p>{{ $t('docDocsMcp.toolListProjects') }}</p>
           </div>
           <div class="tool-item">
             <h4>query_context</h4>
-            <p>Query project context using RAG</p>
+            <p>{{ $t('docDocsMcp.toolQueryContext') }}</p>
           </div>
         </div>
       </div>
 
       <div class="section">
-        <h2>MCP Resources</h2>
+        <h2>{{ $t('docDocsMcp.resourcesTitle') }}</h2>
         <p>
-          MCP resources provide access to project files and context:
+          {{ $t('docDocsMcp.resourcesPara') }}
         </p>
         <ul>
-          <li><code>file://{project_id}/{path}</code> - Access project files</li>
-          <li><code>context://{project_id}/summary</code> - Project summary</li>
-          <li><code>context://{project_id}/architecture</code> - Architecture documentation</li>
-          <li><code>task://{project_id}/pending</code> - Pending tasks</li>
+          <li><code>file://{project_id}/{path}</code> - {{ $t('docDocsMcp.resourceFiles') }}</li>
+          <li><code>context://{project_id}/summary</code> - {{ $t('docDocsMcp.resourceSummary') }}</li>
+          <li><code>context://{project_id}/architecture</code> - {{ $t('docDocsMcp.resourceArchitecture') }}</li>
+          <li><code>task://{project_id}/pending</code> - {{ $t('docDocsMcp.resourcePending') }}</li>
         </ul>
       </div>
 
       <div class="section">
-        <h2>Protocol Version</h2>
+        <h2>{{ $t('docDocsMcp.protocolTitle') }}</h2>
         <p>
-          ClaudeNest currently supports MCP protocol version <strong>2024-11-05</strong>. 
-          The protocol version is negotiated during initialization.
+          {{ $t('docDocsMcp.protocolPara1') }} <strong>2024-11-05</strong>.
+          {{ $t('docDocsMcp.protocolPara2') }}
         </p>
       </div>
     </div>

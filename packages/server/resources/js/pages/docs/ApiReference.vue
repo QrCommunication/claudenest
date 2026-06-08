@@ -1,8 +1,8 @@
 <template>
   <article class="api-content">
     <header class="doc-header">
-      <h1>{{ category?.title || 'API Reference' }}</h1>
-      <p class="lead">{{ category?.description || 'Complete API documentation' }}</p>
+      <h1>{{ category?.title || $t('docDocsApireference.headerTitle') }}</h1>
+      <p class="lead">{{ category?.description || $t('docDocsApireference.headerLead') }}</p>
     </header>
 
     <!-- Category Navigation -->
@@ -33,16 +33,16 @@
 
     <!-- Error Codes Reference -->
     <section v-if="currentCategory === 'health'" class="error-codes-section">
-      <h2 id="error-codes">Error Codes Reference</h2>
-      <p>All API errors follow a consistent format with error codes:</p>
+      <h2 id="error-codes">{{ $t('docDocsApireference.errorCodesTitle') }}</h2>
+      <p>{{ $t('docDocsApireference.errorCodesIntro') }}</p>
 
       <div class="error-table-wrapper">
         <table class="error-table">
           <thead>
             <tr>
-              <th>Code</th>
-              <th>Message</th>
-              <th>HTTP</th>
+              <th>{{ $t('docDocsApireference.thCode') }}</th>
+              <th>{{ $t('docDocsApireference.thMessage') }}</th>
+              <th>{{ $t('docDocsApireference.thHttp') }}</th>
             </tr>
           </thead>
           <tbody>

@@ -1,39 +1,35 @@
 <template>
   <article class="doc-content">
     <header class="doc-header">
-      <h1>Mentions Legales</h1>
+      <h1>{{ $t('docDocsMentionslegales.pageTitle') }}</h1>
       <p class="lead">
-        Conformement aux dispositions de la loi n&deg; 2004-575 du 21 juin 2004 pour la confiance
-        dans l'economie numerique (LCEN), les presentes mentions legales sont portees a la
-        connaissance des utilisateurs et visiteurs du site claudenest.io.
+        {{ $t('docDocsMentionslegales.leadIntro') }}
       </p>
-      <p class="last-updated">Date d'effet : 12 avril 2026</p>
+      <p class="last-updated">{{ $t('docDocsMentionslegales.effectiveDate') }}</p>
     </header>
 
     <!-- Table of Contents -->
     <nav class="policy-toc">
-      <h2>Sommaire</h2>
+      <h2>{{ $t('docDocsMentionslegales.tocTitle') }}</h2>
       <ol>
-        <li><a href="#editeur">Editeur du site</a></li>
-        <li><a href="#directeur-publication">Directeur de la publication</a></li>
-        <li><a href="#hebergement">Hebergement</a></li>
-        <li><a href="#propriete-intellectuelle">Propriete intellectuelle</a></li>
-        <li><a href="#licence">Licence logicielle</a></li>
-        <li><a href="#donnees-personnelles">Donnees personnelles</a></li>
-        <li><a href="#cookies">Cookies</a></li>
-        <li><a href="#responsabilite">Limitation de responsabilite</a></li>
-        <li><a href="#liens-hypertextes">Liens hypertextes</a></li>
-        <li><a href="#droit-applicable">Droit applicable et juridiction</a></li>
-        <li><a href="#contact">Contact</a></li>
+        <li><a href="#editeur">{{ $t('docDocsMentionslegales.tocEditeur') }}</a></li>
+        <li><a href="#directeur-publication">{{ $t('docDocsMentionslegales.tocDirecteur') }}</a></li>
+        <li><a href="#hebergement">{{ $t('docDocsMentionslegales.tocHebergement') }}</a></li>
+        <li><a href="#propriete-intellectuelle">{{ $t('docDocsMentionslegales.tocPropriete') }}</a></li>
+        <li><a href="#licence">{{ $t('docDocsMentionslegales.tocLicence') }}</a></li>
+        <li><a href="#donnees-personnelles">{{ $t('docDocsMentionslegales.tocDonnees') }}</a></li>
+        <li><a href="#cookies">{{ $t('docDocsMentionslegales.tocCookies') }}</a></li>
+        <li><a href="#responsabilite">{{ $t('docDocsMentionslegales.tocResponsabilite') }}</a></li>
+        <li><a href="#liens-hypertextes">{{ $t('docDocsMentionslegales.tocLiens') }}</a></li>
+        <li><a href="#droit-applicable">{{ $t('docDocsMentionslegales.tocDroit') }}</a></li>
+        <li><a href="#contact">{{ $t('docDocsMentionslegales.tocContact') }}</a></li>
       </ol>
     </nav>
 
     <!-- Section 1: Editeur -->
     <section id="editeur">
-      <h2 id="editeur">1. Editeur du site</h2>
-      <p>
-        Le site <strong>claudenest.io</strong> est edite par :
-      </p>
+      <h2 id="editeur">{{ $t('docDocsMentionslegales.editeurHeading') }}</h2>
+      <p v-html="$t('docDocsMentionslegales.editeurIntro')"></p>
       <div class="info-card">
         <div class="info-icon">
           <svg viewBox="0 0 24 24" fill="currentColor">
@@ -44,27 +40,27 @@
           <h4>QR Communication</h4>
           <div class="company-details">
             <div class="detail-row">
-              <span class="detail-label">Forme juridique</span>
-              <span class="detail-value">Societe par Actions Simplifiee (SAS)</span>
+              <span class="detail-label">{{ $t('docDocsMentionslegales.detailFormeLabel') }}</span>
+              <span class="detail-value">{{ $t('docDocsMentionslegales.detailFormeValue') }}</span>
             </div>
             <div class="detail-row">
               <span class="detail-label">SIREN</span>
               <span class="detail-value">940 163 496</span>
             </div>
             <div class="detail-row">
-              <span class="detail-label">Code APE</span>
-              <span class="detail-value">73.12Z &mdash; Regie publicitaire de medias</span>
+              <span class="detail-label">{{ $t('docDocsMentionslegales.detailApeLabel') }}</span>
+              <span class="detail-value">{{ $t('docDocsMentionslegales.detailApeValue') }}</span>
             </div>
             <div class="detail-row">
-              <span class="detail-label">Siege social</span>
-              <span class="detail-value">23 rue de Richelieu, 75001 Paris, France</span>
+              <span class="detail-label">{{ $t('docDocsMentionslegales.detailSiegeLabel') }}</span>
+              <span class="detail-value">{{ $t('docDocsMentionslegales.detailSiegeValue') }}</span>
             </div>
             <div class="detail-row">
               <span class="detail-label">Email</span>
               <span class="detail-value"><a href="mailto:contact@qrcommunication.com">contact@qrcommunication.com</a></span>
             </div>
             <div class="detail-row">
-              <span class="detail-label">Telephone</span>
+              <span class="detail-label">{{ $t('docDocsMentionslegales.detailTelephoneLabel') }}</span>
               <span class="detail-value"><a href="tel:+33188833451">+33 1 88 83 34 51</a></span>
             </div>
             <div class="detail-row">
@@ -78,22 +74,20 @@
 
     <!-- Section 2: Directeur de la publication -->
     <section id="directeur-publication">
-      <h2 id="directeur-publication">2. Directeur de la publication</h2>
+      <h2 id="directeur-publication">{{ $t('docDocsMentionslegales.directeurHeading') }}</h2>
       <p>
-        Le directeur de la publication est le representant legal de la societe QR Communication (SAS),
-        en sa qualite de President.
+        {{ $t('docDocsMentionslegales.directeurPara1') }}
       </p>
       <p>
-        Contact : <a href="mailto:contact@qrcommunication.com">contact@qrcommunication.com</a>
+        {{ $t('docDocsMentionslegales.directeurContactLabel') }} <a href="mailto:contact@qrcommunication.com">contact@qrcommunication.com</a>
       </p>
     </section>
 
     <!-- Section 3: Hebergement -->
     <section id="hebergement">
-      <h2 id="hebergement">3. Hebergement</h2>
+      <h2 id="hebergement">{{ $t('docDocsMentionslegales.hebergementHeading') }}</h2>
       <p>
-        Le site claudenest.io et la plateforme ClaudeNest sont heberges sur une infrastructure
-        propre, situee en France :
+        {{ $t('docDocsMentionslegales.hebergementIntro') }}
       </p>
       <div class="info-card">
         <div class="info-icon">
@@ -102,53 +96,33 @@
           </svg>
         </div>
         <div>
-          <h4>Hebergement propre</h4>
+          <h4>{{ $t('docDocsMentionslegales.hebergementCardTitle') }}</h4>
           <p>
-            L'ensemble des donnees est stocke et traite sur des serveurs situes en France
-            metropolitaine. Aucun transfert de donnees vers des pays tiers n'est effectue
-            dans le cadre du fonctionnement standard de la plateforme.
+            {{ $t('docDocsMentionslegales.hebergementCardBody') }}
           </p>
         </div>
       </div>
       <p>
-        Les composants d'infrastructure utilises (PostgreSQL, Redis, Ollama) sont tous
-        auto-heberges. Aucun service cloud tiers n'est requis pour le fonctionnement de
-        la plateforme.
+        {{ $t('docDocsMentionslegales.hebergementPara2') }}
       </p>
     </section>
 
     <!-- Section 4: Propriete intellectuelle -->
     <section id="propriete-intellectuelle">
-      <h2 id="propriete-intellectuelle">4. Propriete intellectuelle</h2>
+      <h2 id="propriete-intellectuelle">{{ $t('docDocsMentionslegales.proprieteHeading') }}</h2>
       <p>
-        L'ensemble du contenu du site claudenest.io, incluant sans limitation les textes,
-        graphismes, images, logos, icones, sons, logiciels, est la propriete de QR Communication
-        ou de ses concedants de licence, et est protege par les lois francaises et internationales
-        relatives a la propriete intellectuelle.
+        {{ $t('docDocsMentionslegales.proprietePara1') }}
       </p>
+      <p v-html="$t('docDocsMentionslegales.proprietePara2')"></p>
       <p>
-        La marque <strong>ClaudeNest</strong>, le logo et les elements graphiques associes sont
-        la propriete de QR Communication. Toute reproduction, representation, modification,
-        publication, transmission ou denaturation, totale ou partielle, du site ou de son contenu,
-        par quelque procede que ce soit, et sur quelque support que ce soit, est interdite sans
-        l'autorisation ecrite prealable de QR Communication.
-      </p>
-      <p>
-        Toute exploitation non autorisee du site ou de son contenu est constitutive de
-        contrefacon et sanctionnee par les articles L.335-2 et suivants du Code de la
-        propriete intellectuelle.
+        {{ $t('docDocsMentionslegales.proprietePara3') }}
       </p>
     </section>
 
     <!-- Section 5: Licence -->
     <section id="licence">
-      <h2 id="licence">5. Licence logicielle</h2>
-      <p>
-        Le code source de ClaudeNest est distribue sous licence
-        <strong>PolyForm Noncommercial License 1.0.0</strong>. Cette licence autorise l'utilisation,
-        la copie, la modification et la redistribution du logiciel a des fins exclusivement
-        non-commerciales.
-      </p>
+      <h2 id="licence">{{ $t('docDocsMentionslegales.licenceHeading') }}</h2>
+      <p v-html="$t('docDocsMentionslegales.licencePara1')"></p>
       <div class="warning-card">
         <div class="warning-icon">
           <svg viewBox="0 0 24 24" fill="currentColor">
@@ -156,54 +130,47 @@
           </svg>
         </div>
         <div>
-          <h4>Usage commercial</h4>
+          <h4>{{ $t('docDocsMentionslegales.licenceWarningTitle') }}</h4>
           <p>
-            Toute utilisation commerciale du logiciel ClaudeNest necessite une licence commerciale
-            distincte. Contactez <a href="mailto:contact@qrcommunication.com">contact@qrcommunication.com</a>
-            pour obtenir les conditions de licence commerciale.
+            {{ $t('docDocsMentionslegales.licenceWarningBody1') }} <a href="mailto:contact@qrcommunication.com">contact@qrcommunication.com</a>
+            {{ $t('docDocsMentionslegales.licenceWarningBody2') }}
           </p>
         </div>
       </div>
       <p>
-        Le logiciel peut integrer des composants open source tiers, chacun soumis a sa propre
-        licence. La liste des licences tierces est disponible dans le fichier <code>LICENSES</code>
-        du depot source.
+        {{ $t('docDocsMentionslegales.licencePara2Before') }} <code>LICENSES</code>
+        {{ $t('docDocsMentionslegales.licencePara2After') }}
       </p>
     </section>
 
     <!-- Section 6: Donnees personnelles -->
     <section id="donnees-personnelles">
-      <h2 id="donnees-personnelles">6. Donnees personnelles</h2>
+      <h2 id="donnees-personnelles">{{ $t('docDocsMentionslegales.donneesHeading') }}</h2>
       <p>
-        QR Communication, en qualite de responsable de traitement au sens du Reglement General
-        sur la Protection des Donnees (RGPD - Reglement UE 2016/679), collecte et traite des
-        donnees a caractere personnel dans le cadre de l'utilisation de la plateforme ClaudeNest.
+        {{ $t('docDocsMentionslegales.donneesPara1') }}
       </p>
       <p>
-        Les categories de donnees collectees, les finalites de traitement, les bases legales,
-        les durees de conservation et les droits des personnes concernees sont detailles dans
-        notre <router-link to="/docs/privacy">Politique de Confidentialite</router-link>.
+        {{ $t('docDocsMentionslegales.donneesPara2Before') }}
+        <router-link to="/docs/privacy">{{ $t('docDocsMentionslegales.donneesPrivacyLink') }}</router-link>{{ $t('docDocsMentionslegales.donneesPara2After') }}
       </p>
       <p>
-        Conformement aux articles 15 a 22 du RGPD et a la loi n&deg; 78-17 du 6 janvier 1978
-        modifiee (loi Informatique et Libertes), vous disposez des droits suivants :
+        {{ $t('docDocsMentionslegales.donneesRightsIntro') }}
       </p>
       <ul>
-        <li>Droit d'acces a vos donnees personnelles (article 15 RGPD)</li>
-        <li>Droit de rectification (article 16 RGPD)</li>
-        <li>Droit a l'effacement / droit a l'oubli (article 17 RGPD)</li>
-        <li>Droit a la limitation du traitement (article 18 RGPD)</li>
-        <li>Droit a la portabilite des donnees (article 20 RGPD)</li>
-        <li>Droit d'opposition (article 21 RGPD)</li>
+        <li>{{ $t('docDocsMentionslegales.donneesRightAcces') }}</li>
+        <li>{{ $t('docDocsMentionslegales.donneesRightRectification') }}</li>
+        <li>{{ $t('docDocsMentionslegales.donneesRightEffacement') }}</li>
+        <li>{{ $t('docDocsMentionslegales.donneesRightLimitation') }}</li>
+        <li>{{ $t('docDocsMentionslegales.donneesRightPortabilite') }}</li>
+        <li>{{ $t('docDocsMentionslegales.donneesRightOpposition') }}</li>
       </ul>
       <p>
-        Pour exercer ces droits, vous pouvez nous contacter a l'adresse
+        {{ $t('docDocsMentionslegales.donneesExerciceBefore') }}
         <a href="mailto:dpo@claudenest.io">dpo@claudenest.io</a>.
-        Nous nous engageons a repondre dans un delai de 30 jours conformement a l'article 12(3) du RGPD.
+        {{ $t('docDocsMentionslegales.donneesExerciceAfter') }}
       </p>
       <p>
-        En cas de difficulte dans la gestion de vos donnees personnelles, vous pouvez introduire
-        une reclamation aupres de la CNIL (Commission Nationale de l'Informatique et des Libertes) :
+        {{ $t('docDocsMentionslegales.donneesCnilIntro') }}
       </p>
       <div class="info-card">
         <div class="info-icon">
@@ -214,8 +181,8 @@
         <div>
           <h4>CNIL</h4>
           <p>
-            Commission Nationale de l'Informatique et des Libertes<br>
-            3, place de Fontenoy &mdash; TSA 80715 &mdash; 75334 Paris Cedex 07<br>
+            {{ $t('docDocsMentionslegales.cnilName') }}<br>
+            {{ $t('docDocsMentionslegales.cnilAddress') }}<br>
             <a href="https://www.cnil.fr" target="_blank" rel="noopener noreferrer">www.cnil.fr</a>
           </p>
         </div>
@@ -224,99 +191,72 @@
 
     <!-- Section 7: Cookies -->
     <section id="cookies">
-      <h2 id="cookies">7. Cookies</h2>
+      <h2 id="cookies">{{ $t('docDocsMentionslegales.cookiesHeading') }}</h2>
       <p>
-        Le site claudenest.io utilise exclusivement des cookies strictement necessaires
-        au fonctionnement de la plateforme. Aucun cookie de suivi, de publicite ou d'analyse
-        tiers n'est utilise.
+        {{ $t('docDocsMentionslegales.cookiesPara1') }}
       </p>
       <p>
-        Pour plus de details, consultez notre
-        <router-link to="/docs/cookies">Politique relative aux cookies</router-link>.
+        {{ $t('docDocsMentionslegales.cookiesPara2Before') }}
+        <router-link to="/docs/cookies">{{ $t('docDocsMentionslegales.cookiesPolicyLink') }}</router-link>{{ $t('docDocsMentionslegales.cookiesPara2After') }}
       </p>
       <p>
-        Etant donne que seuls des cookies strictement necessaires sont utilises, aucun
-        consentement prealable n'est requis conformement a l'article 82 de la loi
-        Informatique et Libertes et aux lignes directrices de la CNIL du 17 septembre 2020.
+        {{ $t('docDocsMentionslegales.cookiesPara3') }}
       </p>
     </section>
 
     <!-- Section 8: Responsabilite -->
     <section id="responsabilite">
-      <h2 id="responsabilite">8. Limitation de responsabilite</h2>
+      <h2 id="responsabilite">{{ $t('docDocsMentionslegales.responsabiliteHeading') }}</h2>
       <p>
-        QR Communication s'efforce d'assurer au mieux l'exactitude et la mise a jour des
-        informations diffusees sur le site claudenest.io. Toutefois, QR Communication ne
-        peut garantir l'exactitude, la precision, l'exhaustivite ou l'actualite des
-        informations disponibles sur le site.
+        {{ $t('docDocsMentionslegales.responsabilitePara1') }}
       </p>
       <p>
-        En consequence, QR Communication decline toute responsabilite :
+        {{ $t('docDocsMentionslegales.responsabiliteListIntro') }}
       </p>
       <ul>
         <li>
-          Pour toute imprecision, inexactitude ou omission portant sur des informations
-          disponibles sur le site.
+          {{ $t('docDocsMentionslegales.responsabiliteItem1') }}
         </li>
         <li>
-          Pour tous dommages, directs ou indirects, quelles qu'en soient les causes, origines,
-          natures ou consequences, provenant de l'acces de quiconque au site ou de l'impossibilite
-          d'y acceder.
+          {{ $t('docDocsMentionslegales.responsabiliteItem2') }}
         </li>
         <li>
-          Pour l'utilisation du site et/ou du credit accorde a une quelconque information provenant
-          directement ou indirectement du site.
+          {{ $t('docDocsMentionslegales.responsabiliteItem3') }}
         </li>
         <li>
-          Pour toute interruption de service, que celle-ci soit volontaire (maintenance) ou
-          involontaire (force majeure, panne, dysfonctionnement).
+          {{ $t('docDocsMentionslegales.responsabiliteItem4') }}
         </li>
       </ul>
-      <p>
-        La plateforme ClaudeNest est fournie "en l'etat" (<em>"as is"</em>). L'utilisateur
-        est seul responsable de l'utilisation qu'il fait de la plateforme et des resultats
-        obtenus.
-      </p>
+      <p v-html="$t('docDocsMentionslegales.responsabilitePara2')"></p>
     </section>
 
     <!-- Section 9: Liens hypertextes -->
     <section id="liens-hypertextes">
-      <h2 id="liens-hypertextes">9. Liens hypertextes</h2>
+      <h2 id="liens-hypertextes">{{ $t('docDocsMentionslegales.liensHeading') }}</h2>
       <p>
-        Le site claudenest.io peut contenir des liens hypertextes vers d'autres sites web.
-        QR Communication n'exerce aucun controle sur le contenu de ces sites tiers et decline
-        toute responsabilite quant a leur contenu, leurs pratiques en matiere de protection
-        des donnees personnelles ou leur conformite a la reglementation applicable.
+        {{ $t('docDocsMentionslegales.liensPara1') }}
       </p>
       <p>
-        La mise en place de liens hypertextes vers le site claudenest.io est autorisee sans
-        autorisation prealable, sous reserve :
+        {{ $t('docDocsMentionslegales.liensPara2') }}
       </p>
       <ul>
-        <li>Que le lien ne soit pas utilise a des fins commerciales ou publicitaires.</li>
-        <li>Que le contenu du site liant ne soit pas contraire a l'ordre public ou aux bonnes moeurs.</li>
-        <li>Que la source soit clairement mentionnee.</li>
+        <li>{{ $t('docDocsMentionslegales.liensItem1') }}</li>
+        <li>{{ $t('docDocsMentionslegales.liensItem2') }}</li>
+        <li>{{ $t('docDocsMentionslegales.liensItem3') }}</li>
       </ul>
     </section>
 
     <!-- Section 10: Droit applicable -->
     <section id="droit-applicable">
-      <h2 id="droit-applicable">10. Droit applicable et juridiction competente</h2>
+      <h2 id="droit-applicable">{{ $t('docDocsMentionslegales.droitHeading') }}</h2>
       <p>
-        Les presentes mentions legales sont regies par le droit francais. En cas de litige
-        et apres une tentative de recherche d'une solution amiable, competence expresse est
-        attribuee aux tribunaux competents de Paris, nonobstant pluralite de defendeurs ou
-        appel en garantie.
+        {{ $t('docDocsMentionslegales.droitPara1') }}
       </p>
       <p>
-        Conformement aux articles L.611-1 et suivants du Code de la consommation, si vous
-        etes un consommateur, vous pouvez recourir gratuitement a un mediateur de la
-        consommation. Avant d'entamer toute procedure judiciaire, nous vous invitons a
-        nous contacter directement pour tenter de resoudre le differend a l'amiable.
+        {{ $t('docDocsMentionslegales.droitPara2') }}
       </p>
       <p>
-        Conformement au Reglement (UE) n&deg; 524/2013, la Commission europeenne met a
-        disposition une plateforme de resolution des litiges en ligne, accessible a l'adresse :
+        {{ $t('docDocsMentionslegales.droitPara3') }}
         <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer">
           https://ec.europa.eu/consumers/odr</a>.
       </p>
@@ -324,9 +264,9 @@
 
     <!-- Section 11: Contact -->
     <section id="contact">
-      <h2 id="contact">11. Contact</h2>
+      <h2 id="contact">{{ $t('docDocsMentionslegales.contactHeading') }}</h2>
       <p>
-        Pour toute question relative aux presentes mentions legales, vous pouvez nous contacter :
+        {{ $t('docDocsMentionslegales.contactIntro') }}
       </p>
       <div class="contact-cards">
         <div class="contact-card">
@@ -347,7 +287,7 @@
             </svg>
           </div>
           <div>
-            <h4>Telephone</h4>
+            <h4>{{ $t('docDocsMentionslegales.contactTelephoneTitle') }}</h4>
             <a href="tel:+33188833451">+33 1 88 83 34 51</a>
           </div>
         </div>
@@ -358,7 +298,7 @@
             </svg>
           </div>
           <div>
-            <h4>Adresse postale</h4>
+            <h4>{{ $t('docDocsMentionslegales.contactAdresseTitle') }}</h4>
             <p>QR Communication<br>23 rue de Richelieu<br>75001 Paris, France</p>
           </div>
         </div>
@@ -369,11 +309,10 @@
     <footer class="terms-footer">
       <div class="footer-divider"></div>
       <p class="footer-text">
-        Les presentes mentions legales sont conformes aux exigences de l'article 6 de la
-        loi n&deg; 2004-575 du 21 juin 2004 pour la confiance dans l'economie numerique (LCEN).
+        {{ $t('docDocsMentionslegales.footerText') }}
       </p>
       <p class="footer-meta">
-        QR Communication &mdash; Mentions legales &mdash; Date d'effet : 12 avril 2026
+        {{ $t('docDocsMentionslegales.footerMeta') }}
       </p>
     </footer>
   </article>

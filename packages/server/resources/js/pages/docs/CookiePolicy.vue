@@ -1,35 +1,33 @@
 <template>
   <article class="doc-content">
     <header class="doc-header">
-      <h1>Politique relative aux cookies</h1>
+      <h1>{{ $t('docDocsCookiepolicy.pageTitle') }}</h1>
       <p class="lead">
-        La presente politique explique comment la plateforme ClaudeNest utilise les cookies
-        et technologies de stockage local. ClaudeNest adopte une approche minimaliste :
-        seuls les cookies strictement necessaires au fonctionnement du service sont utilises.
+        {{ $t('docDocsCookiepolicy.lead') }}
       </p>
-      <p class="last-updated">Date d'effet : 12 avril 2026</p>
+      <p class="last-updated">{{ $t('docDocsCookiepolicy.effectiveDate') }}</p>
     </header>
 
     <!-- Table of Contents -->
     <nav class="policy-toc">
-      <h2>Sommaire</h2>
+      <h2>{{ $t('docDocsCookiepolicy.tocTitle') }}</h2>
       <ol>
-        <li><a href="#responsable">Responsable du traitement</a></li>
-        <li><a href="#definition">Qu'est-ce qu'un cookie ?</a></li>
-        <li><a href="#cookies-utilises">Cookies utilises par ClaudeNest</a></li>
-        <li><a href="#stockage-local">Stockage local (localStorage)</a></li>
-        <li><a href="#cookies-absents">Technologies non utilisees</a></li>
-        <li><a href="#base-legale">Base legale</a></li>
-        <li><a href="#gestion-cookies">Gestion des cookies</a></li>
-        <li><a href="#auto-hebergement">Instances auto-hebergees</a></li>
-        <li><a href="#modifications">Modifications de cette politique</a></li>
-        <li><a href="#contact">Contact</a></li>
+        <li><a href="#responsable">{{ $t('docDocsCookiepolicy.tocResponsable') }}</a></li>
+        <li><a href="#definition">{{ $t('docDocsCookiepolicy.tocDefinition') }}</a></li>
+        <li><a href="#cookies-utilises">{{ $t('docDocsCookiepolicy.tocCookiesUtilises') }}</a></li>
+        <li><a href="#stockage-local">{{ $t('docDocsCookiepolicy.tocStockageLocal') }}</a></li>
+        <li><a href="#cookies-absents">{{ $t('docDocsCookiepolicy.tocCookiesAbsents') }}</a></li>
+        <li><a href="#base-legale">{{ $t('docDocsCookiepolicy.tocBaseLegale') }}</a></li>
+        <li><a href="#gestion-cookies">{{ $t('docDocsCookiepolicy.tocGestionCookies') }}</a></li>
+        <li><a href="#auto-hebergement">{{ $t('docDocsCookiepolicy.tocAutoHebergement') }}</a></li>
+        <li><a href="#modifications">{{ $t('docDocsCookiepolicy.tocModifications') }}</a></li>
+        <li><a href="#contact">{{ $t('docDocsCookiepolicy.tocContact') }}</a></li>
       </ol>
     </nav>
 
     <!-- Section 1: Responsable -->
     <section id="responsable">
-      <h2 id="responsable">1. Responsable du traitement</h2>
+      <h2 id="responsable">{{ $t('docDocsCookiepolicy.s1Title') }}</h2>
       <p>
         Le responsable du traitement des donnees via les cookies deposes sur le site
         <strong>claudenest.io</strong> est :
@@ -44,7 +42,7 @@
           <h4>QR Communication (SAS)</h4>
           <p>
             SIREN 940 163 496 &mdash; 23 rue de Richelieu, 75001 Paris, France<br>
-            Email : <a href="mailto:contact@qrcommunication.com">contact@qrcommunication.com</a>
+            {{ $t('docDocsCookiepolicy.emailLabel') }} <a href="mailto:contact@qrcommunication.com">contact@qrcommunication.com</a>
           </p>
         </div>
       </div>
@@ -52,7 +50,7 @@
 
     <!-- Section 2: Definition -->
     <section id="definition">
-      <h2 id="definition">2. Qu'est-ce qu'un cookie ?</h2>
+      <h2 id="definition">{{ $t('docDocsCookiepolicy.s2Title') }}</h2>
       <p>
         Un cookie est un petit fichier texte depose sur votre terminal (ordinateur, tablette,
         smartphone) lors de la visite d'un site web. Il permet au site de reconnoitre votre
@@ -68,7 +66,7 @@
 
     <!-- Section 3: Cookies utilises -->
     <section id="cookies-utilises">
-      <h2 id="cookies-utilises">3. Cookies utilises par ClaudeNest</h2>
+      <h2 id="cookies-utilises">{{ $t('docDocsCookiepolicy.s3Title') }}</h2>
       <p>
         ClaudeNest utilise exclusivement des <strong>cookies strictement necessaires</strong>
         au fonctionnement technique de la plateforme. Ces cookies ne necessitent pas le
@@ -80,39 +78,35 @@
         <table class="data-table">
           <thead>
             <tr>
-              <th>Cookie</th>
-              <th>Categorie</th>
-              <th>Finalite</th>
-              <th>Duree</th>
-              <th>Emetteur</th>
+              <th>{{ $t('docDocsCookiepolicy.thCookie') }}</th>
+              <th>{{ $t('docDocsCookiepolicy.thCategorie') }}</th>
+              <th>{{ $t('docDocsCookiepolicy.thFinalite') }}</th>
+              <th>{{ $t('docDocsCookiepolicy.thDuree') }}</th>
+              <th>{{ $t('docDocsCookiepolicy.thEmetteur') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td><code>XSRF-TOKEN</code></td>
               <td>
-                <span class="cookie-badge necessary">Strictement necessaire</span>
+                <span class="cookie-badge necessary">{{ $t('docDocsCookiepolicy.badgeNecessary') }}</span>
               </td>
               <td>
-                Protection contre les attaques CSRF (Cross-Site Request Forgery).
-                Ce cookie contient un jeton unique verifie a chaque requete pour
-                empecher les requetes malveillantes effectuees au nom de l'utilisateur.
+                {{ $t('docDocsCookiepolicy.xsrfPurpose') }}
               </td>
-              <td>Session (expire a la fermeture du navigateur)</td>
-              <td>Laravel (serveur)</td>
+              <td>{{ $t('docDocsCookiepolicy.xsrfDuration') }}</td>
+              <td>{{ $t('docDocsCookiepolicy.issuerLaravel') }}</td>
             </tr>
             <tr>
               <td><code>laravel_session</code></td>
               <td>
-                <span class="cookie-badge necessary">Strictement necessaire</span>
+                <span class="cookie-badge necessary">{{ $t('docDocsCookiepolicy.badgeNecessary') }}</span>
               </td>
               <td>
-                Identifiant de session cote serveur. Permet de maintenir l'etat de
-                la session utilisateur entre les requetes HTTP. Le contenu de la session
-                est stocke sur le serveur (Redis) ; seul l'identifiant est transmis au navigateur.
+                {{ $t('docDocsCookiepolicy.sessionPurpose') }}
               </td>
-              <td>2 heures (configurable)</td>
-              <td>Laravel (serveur)</td>
+              <td>{{ $t('docDocsCookiepolicy.sessionDuration') }}</td>
+              <td>{{ $t('docDocsCookiepolicy.issuerLaravel') }}</td>
             </tr>
           </tbody>
         </table>
@@ -125,7 +119,7 @@
           </svg>
         </div>
         <div>
-          <h4>Securite des cookies</h4>
+          <h4>{{ $t('docDocsCookiepolicy.cookieSecurityTitle') }}</h4>
           <p>
             En environnement de production, les cookies sont configures avec les attributs
             <code>Secure</code> (transmission HTTPS uniquement), <code>HttpOnly</code>
@@ -138,71 +132,64 @@
 
     <!-- Section 4: Stockage local -->
     <section id="stockage-local">
-      <h2 id="stockage-local">4. Stockage local (localStorage)</h2>
+      <h2 id="stockage-local">{{ $t('docDocsCookiepolicy.s4Title') }}</h2>
       <p>
-        ClaudeNest utilise egalement le mecanisme de stockage local du navigateur pour
-        conserver certaines preferences fonctionnelles :
+        {{ $t('docDocsCookiepolicy.s4Intro') }}
       </p>
 
       <div class="data-table-wrapper">
         <table class="data-table">
           <thead>
             <tr>
-              <th>Cle</th>
-              <th>Categorie</th>
-              <th>Finalite</th>
-              <th>Duree</th>
+              <th>{{ $t('docDocsCookiepolicy.thCle') }}</th>
+              <th>{{ $t('docDocsCookiepolicy.thCategorie') }}</th>
+              <th>{{ $t('docDocsCookiepolicy.thFinalite') }}</th>
+              <th>{{ $t('docDocsCookiepolicy.thDuree') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td><code>auth_token</code></td>
               <td>
-                <span class="cookie-badge necessary">Strictement necessaire</span>
+                <span class="cookie-badge necessary">{{ $t('docDocsCookiepolicy.badgeNecessary') }}</span>
               </td>
               <td>
-                Jeton d'authentification API (Laravel Sanctum). Permet de maintenir
-                l'authentification de l'utilisateur sans avoir a se reconnecter a
-                chaque visite.
+                {{ $t('docDocsCookiepolicy.authTokenPurpose') }}
               </td>
-              <td>Jusqu'a la deconnexion</td>
+              <td>{{ $t('docDocsCookiepolicy.authTokenDuration') }}</td>
             </tr>
             <tr>
               <td><code>claudenest-theme</code></td>
               <td>
-                <span class="cookie-badge functional">Fonctionnel</span>
+                <span class="cookie-badge functional">{{ $t('docDocsCookiepolicy.badgeFunctional') }}</span>
               </td>
               <td>
-                Preference de theme visuel (sombre, clair ou systeme). Permet de
-                conserver le choix d'affichage de l'utilisateur entre les visites.
+                {{ $t('docDocsCookiepolicy.themePurpose') }}
               </td>
-              <td>Persistant (jusqu'a suppression manuelle)</td>
+              <td>{{ $t('docDocsCookiepolicy.persistentDuration') }}</td>
             </tr>
             <tr>
               <td><code>claudenest-locale</code></td>
               <td>
-                <span class="cookie-badge functional">Fonctionnel</span>
+                <span class="cookie-badge functional">{{ $t('docDocsCookiepolicy.badgeFunctional') }}</span>
               </td>
               <td>
-                Preference de langue de l'interface (francais ou anglais). Permet
-                d'afficher l'interface dans la langue choisie par l'utilisateur.
+                {{ $t('docDocsCookiepolicy.localePurpose') }}
               </td>
-              <td>Persistant (jusqu'a suppression manuelle)</td>
+              <td>{{ $t('docDocsCookiepolicy.persistentDuration') }}</td>
             </tr>
           </tbody>
         </table>
       </div>
 
       <p>
-        Les donnees stockees dans le localStorage ne sont jamais transmises au serveur
-        automatiquement (contrairement aux cookies). Elles restent exclusivement sur
-        le terminal de l'utilisateur et ne sont accessibles que par le site claudenest.io.
+        {{ $t('docDocsCookiepolicy.s4Outro') }}
       </p>
     </section>
 
     <!-- Section 5: Technologies non utilisees -->
     <section id="cookies-absents">
-      <h2 id="cookies-absents">5. Technologies non utilisees</h2>
+      <h2 id="cookies-absents">{{ $t('docDocsCookiepolicy.s5Title') }}</h2>
       <p>
         ClaudeNest n'utilise <strong>aucune</strong> des technologies suivantes :
       </p>
@@ -214,8 +201,8 @@
             </svg>
           </div>
           <div>
-            <h4>Pas de traceurs analytiques</h4>
-            <p>Aucun Google Analytics, Matomo, Plausible, Mixpanel ou equivalent.</p>
+            <h4>{{ $t('docDocsCookiepolicy.absentAnalyticsTitle') }}</h4>
+            <p>{{ $t('docDocsCookiepolicy.absentAnalyticsBody') }}</p>
           </div>
         </div>
         <div class="absent-card">
@@ -225,8 +212,8 @@
             </svg>
           </div>
           <div>
-            <h4>Pas de cookies publicitaires</h4>
-            <p>Aucun cookie de ciblage, de remarketing ou de reseaux publicitaires.</p>
+            <h4>{{ $t('docDocsCookiepolicy.absentAdsTitle') }}</h4>
+            <p>{{ $t('docDocsCookiepolicy.absentAdsBody') }}</p>
           </div>
         </div>
         <div class="absent-card">
@@ -236,8 +223,8 @@
             </svg>
           </div>
           <div>
-            <h4>Pas de pixels de suivi</h4>
-            <p>Aucun pixel Facebook, LinkedIn, TikTok ou autre reseau social.</p>
+            <h4>{{ $t('docDocsCookiepolicy.absentPixelsTitle') }}</h4>
+            <p>{{ $t('docDocsCookiepolicy.absentPixelsBody') }}</p>
           </div>
         </div>
         <div class="absent-card">
@@ -247,8 +234,8 @@
             </svg>
           </div>
           <div>
-            <h4>Pas de fingerprinting</h4>
-            <p>Aucune technique d'empreinte digitale de navigateur.</p>
+            <h4>{{ $t('docDocsCookiepolicy.absentFingerprintTitle') }}</h4>
+            <p>{{ $t('docDocsCookiepolicy.absentFingerprintBody') }}</p>
           </div>
         </div>
         <div class="absent-card">
@@ -258,8 +245,8 @@
             </svg>
           </div>
           <div>
-            <h4>Pas de suivi cross-site</h4>
-            <p>Aucun mecanisme de suivi entre differents sites web.</p>
+            <h4>{{ $t('docDocsCookiepolicy.absentCrossSiteTitle') }}</h4>
+            <p>{{ $t('docDocsCookiepolicy.absentCrossSiteBody') }}</p>
           </div>
         </div>
         <div class="absent-card">
@@ -269,8 +256,8 @@
             </svg>
           </div>
           <div>
-            <h4>Pas de cookies de reseaux sociaux</h4>
-            <p>Aucun bouton de partage deposant des cookies tiers.</p>
+            <h4>{{ $t('docDocsCookiepolicy.absentSocialTitle') }}</h4>
+            <p>{{ $t('docDocsCookiepolicy.absentSocialBody') }}</p>
           </div>
         </div>
       </div>
@@ -278,7 +265,7 @@
 
     <!-- Section 6: Base legale -->
     <section id="base-legale">
-      <h2 id="base-legale">6. Base legale</h2>
+      <h2 id="base-legale">{{ $t('docDocsCookiepolicy.s6Title') }}</h2>
       <p>
         Les cookies et mecanismes de stockage utilises par ClaudeNest relevent de
         l'exemption de consentement prevue par :
@@ -305,11 +292,9 @@
           </svg>
         </div>
         <div>
-          <h4>Pas de banniere cookies</h4>
+          <h4>{{ $t('docDocsCookiepolicy.noBannerTitle') }}</h4>
           <p>
-            ClaudeNest n'affiche pas de banniere de consentement aux cookies car tous les
-            cookies utilises sont strictement necessaires au fonctionnement du service. Cette
-            approche est conforme aux recommandations de la CNIL.
+            {{ $t('docDocsCookiepolicy.noBannerBody') }}
           </p>
         </div>
       </div>
@@ -317,17 +302,14 @@
 
     <!-- Section 7: Gestion des cookies -->
     <section id="gestion-cookies">
-      <h2 id="gestion-cookies">7. Gestion des cookies</h2>
+      <h2 id="gestion-cookies">{{ $t('docDocsCookiepolicy.s7Title') }}</h2>
       <p>
-        Vous pouvez a tout moment configurer votre navigateur pour accepter ou refuser
-        les cookies. Toutefois, le refus des cookies strictement necessaires empechera
-        le fonctionnement normal de la plateforme ClaudeNest.
+        {{ $t('docDocsCookiepolicy.s7Intro') }}
       </p>
 
-      <h3 id="suppression-navigateur">7.1 Suppression via le navigateur</h3>
+      <h3 id="suppression-navigateur">{{ $t('docDocsCookiepolicy.s71Title') }}</h3>
       <p>
-        Chaque navigateur propose des options de gestion des cookies. Voici les liens
-        vers les pages d'aide des principaux navigateurs :
+        {{ $t('docDocsCookiepolicy.s71Intro') }}
       </p>
       <ul>
         <li>
@@ -352,12 +334,9 @@
         </li>
       </ul>
 
-      <h3 id="suppression-localstorage">7.2 Suppression du stockage local</h3>
+      <h3 id="suppression-localstorage">{{ $t('docDocsCookiepolicy.s72Title') }}</h3>
       <p>
-        Pour supprimer les donnees du localStorage, vous pouvez utiliser les outils de
-        developpement de votre navigateur (touche F12, onglet "Application" ou "Stockage")
-        ou vider l'ensemble des donnees du site via les parametres de confidentialite de
-        votre navigateur.
+        {{ $t('docDocsCookiepolicy.s72Body') }}
       </p>
 
       <div class="warning-card">
@@ -367,11 +346,9 @@
           </svg>
         </div>
         <div>
-          <h4>Attention</h4>
+          <h4>{{ $t('docDocsCookiepolicy.warningTitle') }}</h4>
           <p>
-            La suppression des cookies et du stockage local entrainera la deconnexion
-            automatique de votre session et la reinitialisation de vos preferences
-            (theme, langue). Vous devrez vous reconnecter pour utiliser la plateforme.
+            {{ $t('docDocsCookiepolicy.warningBody') }}
           </p>
         </div>
       </div>
@@ -379,12 +356,9 @@
 
     <!-- Section 8: Auto-hebergement -->
     <section id="auto-hebergement">
-      <h2 id="auto-hebergement">8. Instances auto-hebergees</h2>
+      <h2 id="auto-hebergement">{{ $t('docDocsCookiepolicy.s8Title') }}</h2>
       <p>
-        ClaudeNest etant un logiciel open source concu pour l'auto-hebergement, les
-        operateurs d'instances auto-hebergees sont responsables de leur propre politique
-        de cookies. Ils peuvent ajouter des cookies supplementaires (analytics, etc.)
-        sous leur propre responsabilite et doivent alors :
+        {{ $t('docDocsCookiepolicy.s8Intro') }}
       </p>
       <ul>
         <li>Mettre a jour la presente politique pour refleter les cookies effectivement utilises.</li>
@@ -396,13 +370,12 @@
 
     <!-- Section 9: Modifications -->
     <section id="modifications">
-      <h2 id="modifications">9. Modifications de cette politique</h2>
+      <h2 id="modifications">{{ $t('docDocsCookiepolicy.s9Title') }}</h2>
       <p>
-        QR Communication se reserve le droit de modifier la presente politique relative
-        aux cookies a tout moment. En cas de modification substantielle :
+        {{ $t('docDocsCookiepolicy.s9Intro') }}
       </p>
       <ul>
-        <li>La date de mise a jour en haut de cette page sera actualisee.</li>
+        <li>{{ $t('docDocsCookiepolicy.s9Item1') }}</li>
         <li>Une notification sera affichee dans le tableau de bord ClaudeNest pendant 30 jours.</li>
         <li>
           Si de nouveaux types de cookies non strictement necessaires sont introduits,
@@ -413,10 +386,9 @@
 
     <!-- Section 10: Contact -->
     <section id="contact">
-      <h2 id="contact">10. Contact</h2>
+      <h2 id="contact">{{ $t('docDocsCookiepolicy.s10Title') }}</h2>
       <p>
-        Pour toute question relative a l'utilisation des cookies sur ClaudeNest,
-        vous pouvez nous contacter :
+        {{ $t('docDocsCookiepolicy.s10Intro') }}
       </p>
       <div class="contact-cards">
         <div class="contact-card">
@@ -426,7 +398,7 @@
             </svg>
           </div>
           <div>
-            <h4>Email general</h4>
+            <h4>{{ $t('docDocsCookiepolicy.contactEmailGeneralTitle') }}</h4>
             <a href="mailto:contact@qrcommunication.com">contact@qrcommunication.com</a>
           </div>
         </div>
@@ -437,7 +409,7 @@
             </svg>
           </div>
           <div>
-            <h4>Delegue a la protection des donnees (DPO)</h4>
+            <h4>{{ $t('docDocsCookiepolicy.contactDpoTitle') }}</h4>
             <a href="mailto:dpo@claudenest.io">dpo@claudenest.io</a>
           </div>
         </div>
@@ -448,11 +420,10 @@
     <footer class="terms-footer">
       <div class="footer-divider"></div>
       <p class="footer-text">
-        Cette politique relative aux cookies est conforme aux recommandations de la CNIL
-        et aux exigences de la directive ePrivacy 2002/58/CE.
+        {{ $t('docDocsCookiepolicy.footerText') }}
       </p>
       <p class="footer-meta">
-        QR Communication &mdash; Politique cookies &mdash; Date d'effet : 12 avril 2026
+        {{ $t('docDocsCookiepolicy.footerMeta') }}
       </p>
     </footer>
   </article>

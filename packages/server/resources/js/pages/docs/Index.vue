@@ -19,7 +19,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/>
           </svg>
-          API Reference
+          {{ $t('docDocsIndex.heroBtnApiRef') }}
         </router-link>
       </div>
     </header>
@@ -56,10 +56,9 @@
 
     <!-- Architecture Overview -->
     <section id="architecture">
-      <h2>Architecture Overview</h2>
+      <h2>{{ $t('docDocsIndex.archTitle') }}</h2>
       <p>
-        ClaudeNest uses a hub-and-spoke architecture. The central server orchestrates
-        communication between web clients, mobile apps, and local agents running Claude Code.
+        {{ $t('docDocsIndex.archPara') }}
       </p>
       <div class="arch-diagram">
         <div class="arch-row">
@@ -70,7 +69,7 @@
                 <path d="M8 21h8M12 17v4"/>
               </svg>
             </div>
-            <span class="arch-label">Web Dashboard</span>
+            <span class="arch-label">{{ $t('docDocsIndex.archWebDashboard') }}</span>
             <span class="arch-tech">Vue.js + xterm.js</span>
           </div>
           <div class="arch-node">
@@ -80,7 +79,7 @@
                 <line x1="12" y1="18" x2="12" y2="18" stroke-linecap="round"/>
               </svg>
             </div>
-            <span class="arch-label">Mobile App</span>
+            <span class="arch-label">{{ $t('docDocsIndex.archMobileApp') }}</span>
             <span class="arch-tech">React Native</span>
           </div>
           <div class="arch-node">
@@ -90,7 +89,7 @@
                 <line x1="12" y1="19" x2="20" y2="19"/>
               </svg>
             </div>
-            <span class="arch-label">Agent Daemon</span>
+            <span class="arch-label">{{ $t('docDocsIndex.archAgentDaemon') }}</span>
             <span class="arch-tech">Node.js + node-pty</span>
           </div>
         </div>
@@ -141,7 +140,7 @@
               </svg>
             </div>
             <span class="arch-label">Redis</span>
-            <span class="arch-tech">Cache + Queues</span>
+            <span class="arch-tech">{{ $t('docDocsIndex.archRedisTech') }}</span>
           </div>
           <div class="arch-node">
             <div class="arch-node-icon infra-icon">
@@ -159,10 +158,9 @@
 
     <!-- Getting Started -->
     <section id="getting-started">
-      <h2>Getting Started</h2>
+      <h2>{{ $t('docDocsIndex.gettingStartedTitle') }}</h2>
       <p>
-        Set up ClaudeNest in three steps. The quickest path is Docker Compose for local
-        development, or bare-metal for production deployments.
+        {{ $t('docDocsIndex.gettingStartedPara') }}
       </p>
 
       <div class="steps-timeline">
@@ -172,10 +170,9 @@
             <div class="step-line"></div>
           </div>
           <div class="step-body">
-            <h3 id="step-install">Install the Server</h3>
+            <h3 id="step-install">{{ $t('docDocsIndex.stepInstallTitle') }}</h3>
             <p>
-              Clone the repository and start services with Docker Compose. This sets up
-              PostgreSQL with pgvector, Redis, and the Laravel application.
+              {{ $t('docDocsIndex.stepInstallPara') }}
             </p>
             <CodeBlock :code="installCode" language="bash" filename="terminal" />
           </div>
@@ -187,15 +184,13 @@
             <div class="step-line"></div>
           </div>
           <div class="step-body">
-            <h3 id="step-configure">Configure Environment</h3>
+            <h3 id="step-configure">{{ $t('docDocsIndex.stepConfigureTitle') }}</h3>
             <p>
-              Copy the example environment file, generate an application key, and run
-              database migrations. Adjust the <code>.env</code> file for your setup.
+              {{ $t('docDocsIndex.stepConfigurePara1') }} <code>.env</code> {{ $t('docDocsIndex.stepConfigurePara2') }}
             </p>
             <CodeBlock :code="configCode" language="bash" filename="terminal" />
             <Callout type="info">
-              <strong>Note:</strong> PostgreSQL must have the <code>pgvector</code> extension
-              installed for context RAG features to work. The Docker setup handles this automatically.
+              <strong>{{ $t('docDocsIndex.stepConfigureNoteLabel') }}</strong> {{ $t('docDocsIndex.stepConfigureNote1') }} <code>pgvector</code> {{ $t('docDocsIndex.stepConfigureNote2') }}
             </Callout>
           </div>
         </div>
@@ -205,10 +200,9 @@
             <div class="step-number">3</div>
           </div>
           <div class="step-body">
-            <h3 id="step-connect">Connect an Agent</h3>
+            <h3 id="step-connect">{{ $t('docDocsIndex.stepConnectTitle') }}</h3>
             <p>
-              Register a machine from the dashboard, install the agent on your local
-              machine, and start it with the generated token.
+              {{ $t('docDocsIndex.stepConnectPara') }}
             </p>
             <CodeBlock :code="agentCode" language="bash" filename="terminal" />
           </div>
@@ -218,37 +212,36 @@
 
     <!-- API Overview -->
     <section id="api-overview">
-      <h2>API Overview</h2>
+      <h2>{{ $t('docDocsIndex.apiOverviewTitle') }}</h2>
       <p>
-        ClaudeNest exposes a RESTful JSON API. All endpoints are prefixed with
-        <code>/api</code> and require Bearer token authentication unless otherwise noted.
+        {{ $t('docDocsIndex.apiOverviewPara1') }}
+        <code>/api</code> {{ $t('docDocsIndex.apiOverviewPara2') }}
       </p>
 
-      <h3 id="base-url">Base URL</h3>
+      <h3 id="base-url">{{ $t('docDocsIndex.baseUrlTitle') }}</h3>
       <CodeBlock code="https://your-claudenest-instance.com/api" language="bash" />
 
-      <h3 id="authentication-header">Authentication</h3>
+      <h3 id="authentication-header">{{ $t('docDocsIndex.authHeaderTitle') }}</h3>
       <p>
-        Include your API token in the <code>Authorization</code> header on every request.
-        Tokens are obtained via the login endpoint or OAuth flow.
+        {{ $t('docDocsIndex.authHeaderPara1') }} <code>Authorization</code> {{ $t('docDocsIndex.authHeaderPara2') }}
       </p>
       <CodeBlock :code="authHeaderCode" language="bash" filename="curl" />
 
-      <h3 id="response-format">Response Format</h3>
-      <p>All successful responses share a consistent envelope structure:</p>
+      <h3 id="response-format">{{ $t('docDocsIndex.responseFormatTitle') }}</h3>
+      <p>{{ $t('docDocsIndex.responseFormatPara') }}</p>
       <CodeBlock :code="responseFormatCode" language="json" />
 
-      <h3 id="error-format">Error Responses</h3>
-      <p>Errors return the appropriate HTTP status code along with a structured body:</p>
+      <h3 id="error-format">{{ $t('docDocsIndex.errorFormatTitle') }}</h3>
+      <p>{{ $t('docDocsIndex.errorFormatPara') }}</p>
       <CodeBlock :code="errorFormatCode" language="json" />
 
       <div class="endpoint-overview">
-        <h3 id="core-endpoints">Core Endpoints</h3>
+        <h3 id="core-endpoints">{{ $t('docDocsIndex.coreEndpointsTitle') }}</h3>
         <div class="endpoint-table">
           <div class="endpoint-row header">
-            <span class="ep-method">Method</span>
-            <span class="ep-path">Endpoint</span>
-            <span class="ep-desc">Description</span>
+            <span class="ep-method">{{ $t('docDocsIndex.tableMethod') }}</span>
+            <span class="ep-path">{{ $t('docDocsIndex.tableEndpoint') }}</span>
+            <span class="ep-desc">{{ $t('docDocsIndex.tableDescription') }}</span>
           </div>
           <div class="endpoint-row" v-for="ep in coreEndpoints" :key="ep.path">
             <span class="ep-method" :class="ep.method.toLowerCase()">{{ ep.method }}</span>
@@ -261,18 +254,16 @@
 
     <!-- WebSocket -->
     <section id="websocket-overview">
-      <h2>WebSocket Communication</h2>
+      <h2>{{ $t('docDocsIndex.wsTitle') }}</h2>
       <p>
-        Real-time session interaction uses WebSocket connections via Laravel Reverb.
-        After attaching to a session over HTTP, you receive a WebSocket token for
-        bidirectional streaming.
+        {{ $t('docDocsIndex.wsPara') }}
       </p>
 
       <div class="ws-flow">
         <div class="ws-flow-step">
           <div class="ws-flow-num">1</div>
           <div class="ws-flow-content">
-            <strong>Attach to Session</strong>
+            <strong>{{ $t('docDocsIndex.wsStep1Label') }}</strong>
             <span>POST /api/sessions/{id}/attach</span>
           </div>
         </div>
@@ -284,7 +275,7 @@
         <div class="ws-flow-step">
           <div class="ws-flow-num">2</div>
           <div class="ws-flow-content">
-            <strong>Open WebSocket</strong>
+            <strong>{{ $t('docDocsIndex.wsStep2Label') }}</strong>
             <span>wss://your-server:8080</span>
           </div>
         </div>
@@ -296,8 +287,8 @@
         <div class="ws-flow-step">
           <div class="ws-flow-num">3</div>
           <div class="ws-flow-content">
-            <strong>Authenticate</strong>
-            <span>Send ws_token</span>
+            <strong>{{ $t('docDocsIndex.wsStep3Label') }}</strong>
+            <span>{{ $t('docDocsIndex.wsStep3Send') }} ws_token</span>
           </div>
         </div>
         <div class="ws-flow-arrow">
@@ -308,40 +299,40 @@
         <div class="ws-flow-step">
           <div class="ws-flow-num">4</div>
           <div class="ws-flow-content">
-            <strong>Stream I/O</strong>
-            <span>Send input, receive output</span>
+            <strong>{{ $t('docDocsIndex.wsStep4Label') }}</strong>
+            <span>{{ $t('docDocsIndex.wsStep4Desc') }}</span>
           </div>
         </div>
       </div>
 
-      <h3 id="ws-events">Key Events</h3>
+      <h3 id="ws-events">{{ $t('docDocsIndex.keyEventsTitle') }}</h3>
       <div class="events-grid">
         <div class="event-item outgoing">
-          <div class="event-direction">Client to Server</div>
+          <div class="event-direction">{{ $t('docDocsIndex.eventDirClientServer') }}</div>
           <div class="event-name">input</div>
-          <div class="event-desc">Send keystrokes to the PTY session</div>
+          <div class="event-desc">{{ $t('docDocsIndex.eventInputDesc') }}</div>
         </div>
         <div class="event-item outgoing">
-          <div class="event-direction">Client to Server</div>
+          <div class="event-direction">{{ $t('docDocsIndex.eventDirClientServer') }}</div>
           <div class="event-name">resize</div>
-          <div class="event-desc">Update terminal dimensions (cols, rows)</div>
+          <div class="event-desc">{{ $t('docDocsIndex.eventResizeDesc') }}</div>
         </div>
         <div class="event-item incoming">
-          <div class="event-direction">Server to Client</div>
+          <div class="event-direction">{{ $t('docDocsIndex.eventDirServerClient') }}</div>
           <div class="event-name">SessionOutput</div>
-          <div class="event-desc">Terminal output from the Claude session</div>
+          <div class="event-desc">{{ $t('docDocsIndex.eventOutputDesc') }}</div>
         </div>
         <div class="event-item incoming">
-          <div class="event-direction">Server to Client</div>
+          <div class="event-direction">{{ $t('docDocsIndex.eventDirServerClient') }}</div>
           <div class="event-name">SessionTerminated</div>
-          <div class="event-desc">Session has ended with exit code</div>
+          <div class="event-desc">{{ $t('docDocsIndex.eventTerminatedDesc') }}</div>
         </div>
       </div>
 
       <CodeBlock :code="wsExampleCode" language="javascript" filename="websocket-client.js" />
 
       <router-link to="/docs/websocket" class="section-link">
-        Full WebSocket documentation
+        {{ $t('docDocsIndex.wsFullDocLink') }}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M5 12h14M12 5l7 7-7 7"/>
         </svg>
@@ -350,12 +341,9 @@
 
     <!-- Multi-Agent Coordination -->
     <section id="multi-agent">
-      <h2>Multi-Agent Coordination</h2>
+      <h2>{{ $t('docDocsIndex.multiAgentTitle') }}</h2>
       <p>
-        ClaudeNest enables multiple Claude Code instances to work on the same project
-        simultaneously. The system provides shared context, task coordination with
-        epics and sprints, file locking, a conversational Planning Agent, and an
-        automated Runner Agent for monitoring.
+        {{ $t('docDocsIndex.multiAgentPara') }}
       </p>
 
       <div class="feature-cards">
@@ -367,11 +355,10 @@
                 <path d="M21 21l-4.35-4.35"/>
               </svg>
             </div>
-            <h4>Context RAG</h4>
+            <h4>{{ $t('docDocsIndex.featureContextTitle') }}</h4>
           </div>
           <p>
-            Semantic search over project knowledge using pgvector embeddings.
-            Each agent queries shared context to stay aligned with project state.
+            {{ $t('docDocsIndex.featureContextDesc') }}
           </p>
           <CodeBlock :code="ragExampleCode" language="php" filename="ContextRAGService.php" />
         </div>
@@ -384,11 +371,10 @@
                 <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
               </svg>
             </div>
-            <h4>Task Coordination</h4>
+            <h4>{{ $t('docDocsIndex.featureTaskTitle') }}</h4>
           </div>
           <p>
-            Atomic task claiming prevents multiple agents from working on the same task.
-            Tasks track status, dependencies, and completion summaries.
+            {{ $t('docDocsIndex.featureTaskDesc') }}
           </p>
           <CodeBlock :code="taskExampleCode" language="javascript" filename="claim-task.js" />
         </div>
@@ -401,11 +387,10 @@
                 <path d="M7 11V7a5 5 0 0110 0v4"/>
               </svg>
             </div>
-            <h4>File Locking</h4>
+            <h4>{{ $t('docDocsIndex.featureLockTitle') }}</h4>
           </div>
           <p>
-            Before editing a file, agents acquire a lock to prevent conflicting changes.
-            Locks expire automatically and can be force-released if needed.
+            {{ $t('docDocsIndex.featureLockDesc') }}
           </p>
           <CodeBlock :code="lockExampleCode" language="javascript" filename="file-lock.js" />
         </div>
@@ -414,35 +399,34 @@
 
     <!-- Configuration Reference -->
     <section id="configuration">
-      <h2>Configuration Reference</h2>
+      <h2>{{ $t('docDocsIndex.configRefTitle') }}</h2>
       <p>
-        ClaudeNest is configured through environment variables on the server side
-        and a JSON configuration file for the agent.
+        {{ $t('docDocsIndex.configRefPara') }}
       </p>
 
-      <h3 id="server-env">Server Environment</h3>
-      <p>Essential environment variables for the Laravel server:</p>
+      <h3 id="server-env">{{ $t('docDocsIndex.serverEnvTitle') }}</h3>
+      <p>{{ $t('docDocsIndex.serverEnvPara') }}</p>
       <CodeBlock :code="serverEnvCode" language="bash" filename=".env" />
 
-      <h3 id="agent-config">Agent Configuration</h3>
+      <h3 id="agent-config">{{ $t('docDocsIndex.agentConfigTitle') }}</h3>
       <p>
-        The agent reads its configuration from <code>~/.claudenest/config.json</code>.
-        Generate the machine token from the dashboard after registering a machine.
+        {{ $t('docDocsIndex.agentConfigPara1') }} <code>~/.claudenest/config.json</code>.
+        {{ $t('docDocsIndex.agentConfigPara2') }}
       </p>
       <CodeBlock :code="agentConfigCode" language="json" filename="~/.claudenest/config.json" />
     </section>
 
     <!-- CLI Reference -->
     <section id="cli">
-      <h2>CLI Reference</h2>
+      <h2>{{ $t('docDocsIndex.cliRefTitle') }}</h2>
       <p>
-        The ClaudeNest agent provides a command-line interface for managing the local daemon.
+        {{ $t('docDocsIndex.cliRefPara') }}
       </p>
 
       <div class="cli-table">
         <div class="cli-row header">
-          <span class="cli-cmd">Command</span>
-          <span class="cli-desc">Description</span>
+          <span class="cli-cmd">{{ $t('docDocsIndex.tableCommand') }}</span>
+          <span class="cli-desc">{{ $t('docDocsIndex.tableDescription') }}</span>
         </div>
         <div class="cli-row" v-for="cmd in cliCommands" :key="cmd.command">
           <code class="cli-cmd">{{ cmd.command }}</code>
@@ -455,7 +439,7 @@
 
     <!-- Resources -->
     <section id="resources">
-      <h2>Resources</h2>
+      <h2>{{ $t('docDocsIndex.resourcesTitle') }}</h2>
       <div class="resource-grid">
         <a href="https://github.com/yourusername/claudenest" target="_blank" class="resource-card">
           <div class="resource-icon github">
@@ -464,8 +448,8 @@
             </svg>
           </div>
           <div class="resource-content">
-            <strong>GitHub Repository</strong>
-            <span>Source code, issues, and contributions</span>
+            <strong>{{ $t('docDocsIndex.resGithubTitle') }}</strong>
+            <span>{{ $t('docDocsIndex.resGithubDesc') }}</span>
           </div>
         </a>
 
@@ -476,8 +460,8 @@
             </svg>
           </div>
           <div class="resource-content">
-            <strong>Community Discord</strong>
-            <span>Chat with other developers and get help</span>
+            <strong>{{ $t('docDocsIndex.resDiscordTitle') }}</strong>
+            <span>{{ $t('docDocsIndex.resDiscordDesc') }}</span>
           </div>
         </a>
 
@@ -488,8 +472,8 @@
             </svg>
           </div>
           <div class="resource-content">
-            <strong>Full API Reference</strong>
-            <span>Detailed endpoint documentation with examples</span>
+            <strong>{{ $t('docDocsIndex.resApiTitle') }}</strong>
+            <span>{{ $t('docDocsIndex.resApiDesc') }}</span>
           </div>
         </router-link>
 
@@ -504,8 +488,8 @@
             </svg>
           </div>
           <div class="resource-content">
-            <strong>Changelog</strong>
-            <span>Release history and migration guides</span>
+            <strong>{{ $t('docDocsIndex.resChangelogTitle') }}</strong>
+            <span>{{ $t('docDocsIndex.resChangelogDesc') }}</span>
           </div>
         </router-link>
       </div>
@@ -514,9 +498,12 @@
 </template>
 
 <script setup lang="ts">
-import { h, type FunctionalComponent } from 'vue';
+import { computed, h, type FunctionalComponent } from 'vue';
+import { useI18n } from 'vue-i18n';
 import CodeBlock from '@/components/docs/CodeBlock.vue';
 import Callout from '@/components/docs/Callout.vue';
+
+const { t } = useI18n();
 
 // --- Icon components for nav cards ---
 const IconDownload: FunctionalComponent = () => h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
@@ -562,16 +549,16 @@ const IconLink: FunctionalComponent = () => h('svg', { viewBox: '0 0 24 24', fil
   h('path', { d: 'M8 12h8' }),
 ]);
 
-const navCards = [
-  { to: '/docs/installation', title: 'Installation', description: 'Deploy with Docker Compose or install on bare-metal for production.', iconClass: 'install', iconComponent: IconDownload },
-  { to: '/docs/api/authentication', title: 'Authentication', description: 'OAuth, API tokens, and machine registration for secure access.', iconClass: 'auth', iconComponent: IconLock },
-  { to: '/docs/api/sessions', title: 'Sessions', description: 'Create and manage interactive Claude Code terminal sessions.', iconClass: 'sessions', iconComponent: IconTerminal },
-  { to: '/docs/websocket', title: 'WebSocket', description: 'Real-time bidirectional communication for session streaming.', iconClass: 'websocket', iconComponent: IconActivity },
-  { to: '/docs/api/projects', title: 'Multi-Agent', description: 'Coordinate multiple Claude instances with shared context and tasks.', iconClass: 'multiagent', iconComponent: IconUsers },
-  { to: '/docs/api/mcp', title: 'MCP Integration', description: 'Discover and manage Model Context Protocol servers and tools.', iconClass: 'mcp', iconComponent: IconLayers },
-  { to: '/docs/guides/task-coordination', title: 'Project Management', description: 'Epics, sprints, Kanban boards, burndown charts, and story points.', iconClass: 'project-mgmt', iconComponent: IconList },
-  { to: '/docs/api/credentials', title: 'Credentials', description: 'Manage Claude API keys and OAuth tokens with AES-256-CBC encryption.', iconClass: 'credentials', iconComponent: IconLink },
-];
+const navCards = computed(() => [
+  { to: '/docs/installation', title: t('docDocsIndex.navInstallationTitle'), description: t('docDocsIndex.navInstallationDesc'), iconClass: 'install', iconComponent: IconDownload },
+  { to: '/docs/api/authentication', title: t('docDocsIndex.navAuthenticationTitle'), description: t('docDocsIndex.navAuthenticationDesc'), iconClass: 'auth', iconComponent: IconLock },
+  { to: '/docs/api/sessions', title: t('docDocsIndex.navSessionsTitle'), description: t('docDocsIndex.navSessionsDesc'), iconClass: 'sessions', iconComponent: IconTerminal },
+  { to: '/docs/websocket', title: t('docDocsIndex.navWebsocketTitle'), description: t('docDocsIndex.navWebsocketDesc'), iconClass: 'websocket', iconComponent: IconActivity },
+  { to: '/docs/api/projects', title: t('docDocsIndex.navMultiAgentTitle'), description: t('docDocsIndex.navMultiAgentDesc'), iconClass: 'multiagent', iconComponent: IconUsers },
+  { to: '/docs/api/mcp', title: t('docDocsIndex.navMcpTitle'), description: t('docDocsIndex.navMcpDesc'), iconClass: 'mcp', iconComponent: IconLayers },
+  { to: '/docs/guides/task-coordination', title: t('docDocsIndex.navProjectMgmtTitle'), description: t('docDocsIndex.navProjectMgmtDesc'), iconClass: 'project-mgmt', iconComponent: IconList },
+  { to: '/docs/api/credentials', title: t('docDocsIndex.navCredentialsTitle'), description: t('docDocsIndex.navCredentialsDesc'), iconClass: 'credentials', iconComponent: IconLink },
+]);
 
 // --- Code Samples ---
 
@@ -775,37 +762,37 @@ interface Endpoint {
   description: string;
 }
 
-const coreEndpoints: Endpoint[] = [
-  { method: 'POST', path: '/api/auth/login', description: 'Authenticate and receive a Bearer token' },
-  { method: 'GET', path: '/api/machines', description: 'List all registered machines' },
-  { method: 'POST', path: '/api/machines/{id}/sessions', description: 'Create a new Claude Code session' },
-  { method: 'POST', path: '/api/sessions/{id}/attach', description: 'Attach to a session and get WebSocket token' },
-  { method: 'POST', path: '/api/sessions/{id}/input', description: 'Send input to a running session' },
-  { method: 'GET', path: '/api/projects/{id}/tasks', description: 'List tasks in a shared project' },
-  { method: 'POST', path: '/api/tasks/{id}/claim', description: 'Atomically claim a task for an agent' },
-  { method: 'POST', path: '/api/projects/{id}/context/query', description: 'Semantic search over project context' },
-  { method: 'GET', path: '/api/projects/{id}/epics', description: 'List epics with aggregate progress' },
-  { method: 'GET', path: '/api/projects/{id}/sprints', description: 'List sprints with burndown data' },
-  { method: 'POST', path: '/api/projects/{id}/planning/execute', description: 'Trigger the Planning Agent' },
-  { method: 'GET', path: '/api/projects/{id}/runner/progress', description: 'Live sprint progress from Runner Agent' },
-  { method: 'GET', path: '/api/credentials', description: 'List encrypted Claude API credentials' },
-];
+const coreEndpoints = computed<Endpoint[]>(() => [
+  { method: 'POST', path: '/api/auth/login', description: t('docDocsIndex.epAuthLogin') },
+  { method: 'GET', path: '/api/machines', description: t('docDocsIndex.epMachines') },
+  { method: 'POST', path: '/api/machines/{id}/sessions', description: t('docDocsIndex.epMachineSessions') },
+  { method: 'POST', path: '/api/sessions/{id}/attach', description: t('docDocsIndex.epSessionAttach') },
+  { method: 'POST', path: '/api/sessions/{id}/input', description: t('docDocsIndex.epSessionInput') },
+  { method: 'GET', path: '/api/projects/{id}/tasks', description: t('docDocsIndex.epProjectTasks') },
+  { method: 'POST', path: '/api/tasks/{id}/claim', description: t('docDocsIndex.epTaskClaim') },
+  { method: 'POST', path: '/api/projects/{id}/context/query', description: t('docDocsIndex.epContextQuery') },
+  { method: 'GET', path: '/api/projects/{id}/epics', description: t('docDocsIndex.epEpics') },
+  { method: 'GET', path: '/api/projects/{id}/sprints', description: t('docDocsIndex.epSprints') },
+  { method: 'POST', path: '/api/projects/{id}/planning/execute', description: t('docDocsIndex.epPlanningExecute') },
+  { method: 'GET', path: '/api/projects/{id}/runner/progress', description: t('docDocsIndex.epRunnerProgress') },
+  { method: 'GET', path: '/api/credentials', description: t('docDocsIndex.epCredentials') },
+]);
 
 interface CliCommand {
   command: string;
   description: string;
 }
 
-const cliCommands: CliCommand[] = [
-  { command: 'claudenest-agent init', description: 'Initialize agent configuration with a machine token' },
-  { command: 'claudenest-agent start', description: 'Start the agent daemon and connect to the server' },
-  { command: 'claudenest-agent stop', description: 'Gracefully stop the agent and terminate sessions' },
-  { command: 'claudenest-agent status', description: 'Show agent status, active sessions, and connectivity' },
-  { command: 'claudenest-agent sessions list', description: 'List all active sessions on this machine' },
-  { command: 'claudenest-agent sessions kill <id>', description: 'Terminate a specific session by ID' },
-  { command: 'claudenest-agent ping', description: 'Test connectivity to the ClaudeNest server' },
-  { command: 'claudenest-agent logs', description: 'Stream agent logs in real-time' },
-];
+const cliCommands = computed<CliCommand[]>(() => [
+  { command: 'claudenest-agent init', description: t('docDocsIndex.cliInit') },
+  { command: 'claudenest-agent start', description: t('docDocsIndex.cliStart') },
+  { command: 'claudenest-agent stop', description: t('docDocsIndex.cliStop') },
+  { command: 'claudenest-agent status', description: t('docDocsIndex.cliStatus') },
+  { command: 'claudenest-agent sessions list', description: t('docDocsIndex.cliSessionsList') },
+  { command: 'claudenest-agent sessions kill <id>', description: t('docDocsIndex.cliSessionsKill') },
+  { command: 'claudenest-agent ping', description: t('docDocsIndex.cliPing') },
+  { command: 'claudenest-agent logs', description: t('docDocsIndex.cliLogs') },
+]);
 </script>
 
 <style scoped>

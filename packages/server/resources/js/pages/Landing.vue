@@ -65,7 +65,7 @@
                 <span class="terminal-title">claudenest ~ multi-agent session</span>
                 <span class="terminal-chip">
                   <span class="chip-dot" />
-                  live
+                  {{ $t('docLanding.terminalLive') }}
                 </span>
               </div>
               <div class="terminal-body">
@@ -387,7 +387,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, h } from 'vue';
+import { ref, h, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import PublicNav from '@/components/public/PublicNav.vue';
 import PublicFooter from '@/components/public/PublicFooter.vue';
@@ -427,11 +427,11 @@ const stats = [
   { key: 'open_source', value: '100%' },
 ];
 
-const agents = [
-  { name: 'atlas', file: 'src/api/auth.ts', status: 'editing', color: '#a855f7' },
-  { name: 'nova', file: 'tests/auth.spec.ts', status: 'testing', color: '#22d3ee' },
-  { name: 'ember', file: 'migrations/2026_04_users.sql', status: 'waiting', color: '#f472b6' },
-];
+const agents = computed(() => [
+  { name: 'atlas', file: 'src/api/auth.ts', status: t('docLanding.agentStatus.editing'), color: '#a855f7' },
+  { name: 'nova', file: 'tests/auth.spec.ts', status: t('docLanding.agentStatus.testing'), color: '#22d3ee' },
+  { name: 'ember', file: 'migrations/2026_04_users.sql', status: t('docLanding.agentStatus.waiting'), color: '#f472b6' },
+]);
 
 const steps = [
   { key: 'install', cmd: INSTALL_CMD },

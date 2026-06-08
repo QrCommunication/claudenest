@@ -1,235 +1,207 @@
 <template>
   <article class="doc-content">
     <header class="doc-header">
-      <span class="badge">Concepts</span>
+      <span class="badge">{{ $t('docDocsConceptsRagembeddings.badge') }}</span>
       <h1>RAG &amp; Embeddings</h1>
-      <p class="lead">How ClaudeNest uses pgvector and embeddings for context retrieval across multi-agent projects.</p>
+      <p class="lead">{{ $t('docDocsConceptsRagembeddings.lead') }}</p>
     </header>
 
     <section id="what-is-rag">
-      <h2>What is RAG?</h2>
+      <h2>{{ $t('docDocsConceptsRagembeddings.whatIsRagTitle') }}</h2>
       <p>
-        <strong>Retrieval-Augmented Generation</strong> (RAG) is a technique that enhances AI outputs by
-        supplying relevant context at query time. Instead of relying solely on a model's training data,
-        a RAG system retrieves semantically similar documents from a knowledge store and injects them
-        into the prompt before generating a response.
+        <strong>{{ $t('docDocsConceptsRagembeddings.ragTerm') }}</strong> {{ $t('docDocsConceptsRagembeddings.whatIsRagPara1') }}
       </p>
       <p>
-        The core loop has two phases:
+        {{ $t('docDocsConceptsRagembeddings.coreLoopIntro') }}
       </p>
       <div class="phase-grid">
         <div class="phase-card">
-          <div class="phase-label ingestion">Ingestion</div>
-          <h4>Index Phase</h4>
+          <div class="phase-label ingestion">{{ $t('docDocsConceptsRagembeddings.ingestionLabel') }}</div>
+          <h4>{{ $t('docDocsConceptsRagembeddings.indexPhaseTitle') }}</h4>
           <p>
-            Documents (code snippets, decisions, summaries) are converted into dense numerical vectors
-            called <strong>embeddings</strong> and stored alongside the original text in a vector database.
+            {{ $t('docDocsConceptsRagembeddings.indexPhasePara1') }}<strong>{{ $t('docDocsConceptsRagembeddings.embeddingsWord') }}</strong>{{ $t('docDocsConceptsRagembeddings.indexPhasePara2') }}
           </p>
         </div>
         <div class="phase-card">
-          <div class="phase-label retrieval">Retrieval</div>
-          <h4>Query Phase</h4>
+          <div class="phase-label retrieval">{{ $t('docDocsConceptsRagembeddings.retrievalLabel') }}</div>
+          <h4>{{ $t('docDocsConceptsRagembeddings.queryPhaseTitle') }}</h4>
           <p>
-            An incoming query is embedded into the same vector space. The nearest stored vectors are
-            retrieved by <strong>cosine similarity</strong> and returned as context chunks with relevance scores.
+            {{ $t('docDocsConceptsRagembeddings.queryPhasePara1') }}<strong>{{ $t('docDocsConceptsRagembeddings.cosineSimilarityWord') }}</strong>{{ $t('docDocsConceptsRagembeddings.queryPhasePara2') }}
           </p>
         </div>
       </div>
     </section>
 
     <section id="why-rag-multi-agent">
-      <h2>Why RAG for Multi-Agent?</h2>
+      <h2>{{ $t('docDocsConceptsRagembeddings.whyRagTitle') }}</h2>
       <p>
-        When multiple Claude instances work on the same project simultaneously, they each have their own
-        isolated context window. Without a shared knowledge store, Agent A has no awareness of the
-        decisions or progress made by Agent B, leading to duplicated work, contradictory implementations,
-        and wasted tokens.
+        {{ $t('docDocsConceptsRagembeddings.whyRagPara1') }}
       </p>
       <p>
-        ClaudeNest solves this with a <strong>shared RAG context</strong> scoped to each project. Every
-        agent contributing a context chunk enriches the shared pool. Every agent querying the pool
-        benefits from the collective knowledge — creating a form of persistent, searchable team memory.
+        {{ $t('docDocsConceptsRagembeddings.whyRagPara2a') }}<strong>{{ $t('docDocsConceptsRagembeddings.sharedRagContextWord') }}</strong>{{ $t('docDocsConceptsRagembeddings.whyRagPara2b') }}
       </p>
 
       <div class="benefit-grid">
         <div class="benefit-card">
           <span class="benefit-icon">SYNC</span>
-          <h4>Shared Understanding</h4>
-          <p>All agents start each task with access to the same architectural decisions and conventions.</p>
+          <h4>{{ $t('docDocsConceptsRagembeddings.benefitSharedTitle') }}</h4>
+          <p>{{ $t('docDocsConceptsRagembeddings.benefitSharedDesc') }}</p>
         </div>
         <div class="benefit-card">
           <span class="benefit-icon">DEDUP</span>
-          <h4>No Redundant Work</h4>
-          <p>Before starting, an agent can query for prior completions on the same topic and avoid repeating it.</p>
+          <h4>{{ $t('docDocsConceptsRagembeddings.benefitDedupTitle') }}</h4>
+          <p>{{ $t('docDocsConceptsRagembeddings.benefitDedupDesc') }}</p>
         </div>
         <div class="benefit-card">
           <span class="benefit-icon">CTX</span>
-          <h4>Token Efficiency</h4>
-          <p>Only the most relevant chunks are injected into each agent's context, preserving the context window.</p>
+          <h4>{{ $t('docDocsConceptsRagembeddings.benefitTokenTitle') }}</h4>
+          <p>{{ $t('docDocsConceptsRagembeddings.benefitTokenDesc') }}</p>
         </div>
       </div>
     </section>
 
     <section id="embedding-model">
-      <h2>Embedding Model</h2>
+      <h2>{{ $t('docDocsConceptsRagembeddings.embeddingModelTitle') }}</h2>
       <p>
-        ClaudeNest uses <strong>bge-small-en-v1.5</strong> served locally via <strong>Ollama</strong> to
-        generate embeddings. This model produces 384-dimensional dense vectors and strikes an excellent
-        balance between retrieval quality and inference speed on commodity hardware.
+        {{ $t('docDocsConceptsRagembeddings.embeddingModelPara1a') }}<strong>bge-small-en-v1.5</strong>{{ $t('docDocsConceptsRagembeddings.embeddingModelPara1b') }}<strong>Ollama</strong>{{ $t('docDocsConceptsRagembeddings.embeddingModelPara1c') }}
       </p>
 
       <div class="model-card">
         <div class="model-row">
-          <span class="model-key">Model</span>
+          <span class="model-key">{{ $t('docDocsConceptsRagembeddings.modelKeyModel') }}</span>
           <code>bge-small-en-v1.5</code>
         </div>
         <div class="model-row">
-          <span class="model-key">Provider</span>
+          <span class="model-key">{{ $t('docDocsConceptsRagembeddings.modelKeyProvider') }}</span>
           <code>Ollama (local)</code>
         </div>
         <div class="model-row">
-          <span class="model-key">Dimensions</span>
+          <span class="model-key">{{ $t('docDocsConceptsRagembeddings.modelKeyDimensions') }}</span>
           <code>384</code>
         </div>
         <div class="model-row">
-          <span class="model-key">Similarity</span>
+          <span class="model-key">{{ $t('docDocsConceptsRagembeddings.modelKeySimilarity') }}</span>
           <code>Cosine</code>
         </div>
         <div class="model-row">
-          <span class="model-key">Config key</span>
+          <span class="model-key">{{ $t('docDocsConceptsRagembeddings.modelKeyConfigKey') }}</span>
           <code>OLLAMA_EMBEDDING_MODEL</code>
         </div>
       </div>
 
-      <h3>Generating an Embedding</h3>
+      <h3>{{ $t('docDocsConceptsRagembeddings.generatingEmbeddingTitle') }}</h3>
       <CodeBlock :code="embeddingGeneration" language="php" filename="app/Services/EmbeddingService.php" />
 
       <div class="tip">
         <span class="tip-icon">i</span>
         <div>
-          <h4>Graceful Degradation</h4>
+          <h4>{{ $t('docDocsConceptsRagembeddings.gracefulDegradationTitle') }}</h4>
           <p>
-            If Ollama is unavailable, <code>EmbeddingService::isAvailable()</code> returns
-            <code>false</code> and chunks are stored without embeddings. They remain searchable
-            by keyword but will not appear in vector similarity results.
+            {{ $t('docDocsConceptsRagembeddings.gracefulDegradationPara1a') }}<code>EmbeddingService::isAvailable()</code>{{ $t('docDocsConceptsRagembeddings.gracefulDegradationPara1b') }}<code>false</code>{{ $t('docDocsConceptsRagembeddings.gracefulDegradationPara1c') }}
           </p>
         </div>
       </div>
     </section>
 
     <section id="storage">
-      <h2>Storage</h2>
+      <h2>{{ $t('docDocsConceptsRagembeddings.storageTitle') }}</h2>
       <p>
-        Embeddings are stored directly in <strong>PostgreSQL</strong> using the
-        <strong>pgvector</strong> extension. This removes the need for a separate vector database
-        and keeps all project data co-located in a single durable store.
+        {{ $t('docDocsConceptsRagembeddings.storagePara1a') }}<strong>PostgreSQL</strong>{{ $t('docDocsConceptsRagembeddings.storagePara1b') }}<strong>pgvector</strong>{{ $t('docDocsConceptsRagembeddings.storagePara1c') }}
       </p>
 
-      <h3>Schema</h3>
+      <h3>{{ $t('docDocsConceptsRagembeddings.schemaTitle') }}</h3>
       <CodeBlock :code="pgvectorSchema" language="sql" filename="context_chunks table" />
 
-      <h3>IVFFlat Index</h3>
+      <h3>{{ $t('docDocsConceptsRagembeddings.ivfflatIndexTitle') }}</h3>
       <p>
-        An IVFFlat index enables approximate nearest-neighbor search. With <code>lists = 100</code>,
-        PostgreSQL partitions the vector space into 100 clusters. At query time only the most
-        promising clusters are probed, keeping latency low even at large scales.
+        {{ $t('docDocsConceptsRagembeddings.ivfflatPara1a') }}<code>lists = 100</code>{{ $t('docDocsConceptsRagembeddings.ivfflatPara1b') }}
       </p>
       <CodeBlock :code="ivfflatIndex" language="sql" filename="Vector index" />
 
       <div class="tip">
         <span class="tip-icon">i</span>
         <div>
-          <h4>Index Tuning</h4>
+          <h4>{{ $t('docDocsConceptsRagembeddings.indexTuningTitle') }}</h4>
           <p>
-            The rule of thumb for IVFFlat is <code>lists = sqrt(total_rows)</code>. At 10 000 chunks
-            use 100 lists; at 1 000 000 chunks use 1 000 lists. Rebuild the index after significant
-            data growth with <code>REINDEX INDEX CONCURRENTLY idx_context_chunks_embedding</code>.
+            {{ $t('docDocsConceptsRagembeddings.indexTuningPara1a') }}<code>lists = sqrt(total_rows)</code>{{ $t('docDocsConceptsRagembeddings.indexTuningPara1b') }}<code>REINDEX INDEX CONCURRENTLY idx_context_chunks_embedding</code>.
           </p>
         </div>
       </div>
     </section>
 
     <section id="context-chunks">
-      <h2>Context Chunks</h2>
+      <h2>{{ $t('docDocsConceptsRagembeddings.contextChunksTitle') }}</h2>
       <p>
-        A <strong>context chunk</strong> is the atomic unit of shared knowledge. Each chunk captures
-        a discrete piece of information produced by an agent — a decision, a summary, a code snippet —
-        together with rich metadata for filtering and relevance scoring.
+        {{ $t('docDocsConceptsRagembeddings.contextChunksPara1a') }}<strong>{{ $t('docDocsConceptsRagembeddings.contextChunkWord') }}</strong>{{ $t('docDocsConceptsRagembeddings.contextChunksPara1b') }}
       </p>
 
-      <h3>Chunk Types</h3>
+      <h3>{{ $t('docDocsConceptsRagembeddings.chunkTypesTitle') }}</h3>
       <div class="chunk-type-grid">
         <div class="chunk-type">
           <span class="chunk-badge code">code</span>
-          <p>A significant code pattern, utility, or module implementation worth sharing.</p>
+          <p>{{ $t('docDocsConceptsRagembeddings.chunkTypeCode') }}</p>
         </div>
         <div class="chunk-type">
           <span class="chunk-badge decision">decision</span>
-          <p>An architectural or design decision with its rationale (e.g., "chose Redis over DB for sessions").</p>
+          <p>{{ $t('docDocsConceptsRagembeddings.chunkTypeDecision') }}</p>
         </div>
         <div class="chunk-type">
           <span class="chunk-badge summary">summary</span>
-          <p>A high-level summary of a completed task or a session's work, often auto-generated.</p>
+          <p>{{ $t('docDocsConceptsRagembeddings.chunkTypeSummary') }}</p>
         </div>
         <div class="chunk-type">
           <span class="chunk-badge note">note</span>
-          <p>A free-form observation, warning, or clarification that doesn't fit other types.</p>
+          <p>{{ $t('docDocsConceptsRagembeddings.chunkTypeNote') }}</p>
         </div>
       </div>
 
-      <h3>Chunk Metadata</h3>
+      <h3>{{ $t('docDocsConceptsRagembeddings.chunkMetadataTitle') }}</h3>
       <CodeBlock :code="chunkMetadata" language="php" filename="Chunk fields" />
     </section>
 
     <section id="ingestion-pipeline">
-      <h2>Ingestion Pipeline</h2>
+      <h2>{{ $t('docDocsConceptsRagembeddings.ingestionPipelineTitle') }}</h2>
       <p>
-        When an agent produces new context it sends it to the server via the chunks API. The server
-        generates an embedding and persists both the text and the vector atomically.
+        {{ $t('docDocsConceptsRagembeddings.ingestionPipelinePara1') }}
       </p>
 
-      <h3>Step 1 — Agent sends a chunk</h3>
+      <h3>{{ $t('docDocsConceptsRagembeddings.ingestionStep1Title') }}</h3>
       <CodeBlock :code="ingestionRequest" language="bash" filename="POST /api/projects/{id}/context/chunks" />
 
-      <h3>Step 2 — Server embeds and stores</h3>
+      <h3>{{ $t('docDocsConceptsRagembeddings.ingestionStep2Title') }}</h3>
       <CodeBlock :code="ingestionService" language="php" filename="app/Services/ContextRAGService.php" />
 
       <div class="tip">
         <span class="tip-icon">i</span>
         <div>
-          <h4>Async Embedding</h4>
+          <h4>{{ $t('docDocsConceptsRagembeddings.asyncEmbeddingTitle') }}</h4>
           <p>
-            Embedding generation is dispatched as a queued job so the HTTP response is returned
-            immediately. The chunk appears in vector search results once the job completes
-            (typically under 200 ms on local Ollama).
+            {{ $t('docDocsConceptsRagembeddings.asyncEmbeddingPara1') }}
           </p>
         </div>
       </div>
     </section>
 
     <section id="query-pipeline">
-      <h2>Query Pipeline</h2>
+      <h2>{{ $t('docDocsConceptsRagembeddings.queryPipelineTitle') }}</h2>
       <p>
-        Agents retrieve context by sending a natural language query. The server embeds the query
-        text and runs a cosine similarity search, returning the top-k most semantically relevant chunks.
+        {{ $t('docDocsConceptsRagembeddings.queryPipelinePara1') }}
       </p>
 
-      <h3>Step 1 — Agent sends a query</h3>
+      <h3>{{ $t('docDocsConceptsRagembeddings.queryStep1Title') }}</h3>
       <CodeBlock :code="queryRequest" language="bash" filename="POST /api/projects/{id}/context/query" />
 
-      <h3>Step 2 — Server searches by similarity</h3>
+      <h3>{{ $t('docDocsConceptsRagembeddings.queryStep2Title') }}</h3>
       <CodeBlock :code="queryService" language="php" filename="ContextChunk::findSimilar()" />
 
-      <h3>Step 3 — Response with relevance scores</h3>
+      <h3>{{ $t('docDocsConceptsRagembeddings.queryStep3Title') }}</h3>
       <CodeBlock :code="queryResponse" language="json" filename="Query response" />
     </section>
 
     <section id="summarization">
-      <h2>Summarization</h2>
+      <h2>{{ $t('docDocsConceptsRagembeddings.summarizationTitle') }}</h2>
       <p>
-        Over time a project accumulates many small context chunks. To keep retrieval efficient and
-        avoid token bloat, ClaudeNest periodically <strong>summarizes</strong> clusters of related
-        chunks into a single higher-level chunk using <strong>Mistral 7B</strong> via Ollama.
+        {{ $t('docDocsConceptsRagembeddings.summarizationPara1a') }}<strong>{{ $t('docDocsConceptsRagembeddings.summarizesWord') }}</strong>{{ $t('docDocsConceptsRagembeddings.summarizationPara1b') }}<strong>Mistral 7B</strong>{{ $t('docDocsConceptsRagembeddings.summarizationPara1c') }}
       </p>
 
       <CodeBlock :code="summarizationCode" language="php" filename="app/Services/SummarizationService.php" />
@@ -237,91 +209,83 @@
       <div class="tip">
         <span class="tip-icon">i</span>
         <div>
-          <h4>Triggering Summarization</h4>
+          <h4>{{ $t('docDocsConceptsRagembeddings.triggeringSummarizationTitle') }}</h4>
           <p>
-            Summarization can be triggered manually via
-            <code>POST /api/projects/{id}/context/summarize</code> or automatically when the
-            project's <code>total_tokens</code> exceeds the configured threshold in
-            <code>config/claudenest.php</code>.
+            {{ $t('docDocsConceptsRagembeddings.triggeringSummarizationPara1a') }}<code>POST /api/projects/{id}/context/summarize</code>{{ $t('docDocsConceptsRagembeddings.triggeringSummarizationPara1b') }}<code>total_tokens</code>{{ $t('docDocsConceptsRagembeddings.triggeringSummarizationPara1c') }}<code>config/claudenest.php</code>.
           </p>
         </div>
       </div>
     </section>
 
     <section id="expiration">
-      <h2>Expiration</h2>
+      <h2>{{ $t('docDocsConceptsRagembeddings.expirationTitle') }}</h2>
       <p>
-        Every context chunk carries an <code>expires_at</code> timestamp. Chunks that outlive their
-        usefulness are automatically excluded from search results and periodically pruned by a
-        scheduled artisan command.
+        {{ $t('docDocsConceptsRagembeddings.expirationPara1a') }}<code>expires_at</code>{{ $t('docDocsConceptsRagembeddings.expirationPara1b') }}
       </p>
 
-      <h3>Default TTL</h3>
+      <h3>{{ $t('docDocsConceptsRagembeddings.defaultTtlTitle') }}</h3>
       <p>
-        The default time-to-live is <strong>30 days</strong>. High-importance chunks (scores above
-        <code>0.8</code>) can be pinned by setting <code>expires_at</code> far in the future, while
-        transient operational notes should use shorter TTLs (1–7 days).
+        {{ $t('docDocsConceptsRagembeddings.defaultTtlPara1a') }}<strong>{{ $t('docDocsConceptsRagembeddings.thirtyDaysWord') }}</strong>{{ $t('docDocsConceptsRagembeddings.defaultTtlPara1b') }}<code>0.8</code>{{ $t('docDocsConceptsRagembeddings.defaultTtlPara1c') }}<code>expires_at</code>{{ $t('docDocsConceptsRagembeddings.defaultTtlPara1d') }}
       </p>
 
       <CodeBlock :code="expirationCode" language="php" filename="Expiration examples" />
 
-      <h3>Cleanup Command</h3>
+      <h3>{{ $t('docDocsConceptsRagembeddings.cleanupCommandTitle') }}</h3>
       <CodeBlock :code="cleanupCommand" language="bash" filename="Artisan cleanup" />
     </section>
 
     <section id="performance">
-      <h2>Performance</h2>
+      <h2>{{ $t('docDocsConceptsRagembeddings.performanceTitle') }}</h2>
       <p>
-        The following table summarises the latency targets and operational guidelines for the RAG
-        subsystem in a standard ClaudeNest deployment.
+        {{ $t('docDocsConceptsRagembeddings.performancePara1') }}
       </p>
 
       <div class="perf-table">
         <table>
           <thead>
             <tr>
-              <th>Operation</th>
-              <th>Target Latency</th>
-              <th>Notes</th>
+              <th>{{ $t('docDocsConceptsRagembeddings.thOperation') }}</th>
+              <th>{{ $t('docDocsConceptsRagembeddings.thTargetLatency') }}</th>
+              <th>{{ $t('docDocsConceptsRagembeddings.thNotes') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td>Embedding generation</td>
+              <td>{{ $t('docDocsConceptsRagembeddings.perfRow1Op') }}</td>
               <td><code>&lt; 100 ms</code></td>
-              <td>bge-small-en-v1.5 on CPU (Ollama)</td>
+              <td>{{ $t('docDocsConceptsRagembeddings.perfRow1Notes') }}</td>
             </tr>
             <tr>
-              <td>Vector similarity search</td>
+              <td>{{ $t('docDocsConceptsRagembeddings.perfRow2Op') }}</td>
               <td><code>&lt; 20 ms</code></td>
-              <td>IVFFlat index, up to 100 k chunks</td>
+              <td>{{ $t('docDocsConceptsRagembeddings.perfRow2Notes') }}</td>
             </tr>
             <tr>
-              <td>Chunk ingestion (end-to-end)</td>
+              <td>{{ $t('docDocsConceptsRagembeddings.perfRow3Op') }}</td>
               <td><code>&lt; 150 ms</code></td>
-              <td>HTTP response before async embed job</td>
+              <td>{{ $t('docDocsConceptsRagembeddings.perfRow3Notes') }}</td>
             </tr>
             <tr>
-              <td>Context query (end-to-end)</td>
+              <td>{{ $t('docDocsConceptsRagembeddings.perfRow4Op') }}</td>
               <td><code>&lt; 250 ms</code></td>
-              <td>Embed + search + serialization</td>
+              <td>{{ $t('docDocsConceptsRagembeddings.perfRow4Notes') }}</td>
             </tr>
             <tr>
-              <td>Summarization (Mistral 7B)</td>
+              <td>{{ $t('docDocsConceptsRagembeddings.perfRow5Op') }}</td>
               <td><code>2 – 8 s</code></td>
-              <td>Runs as background job, not blocking</td>
+              <td>{{ $t('docDocsConceptsRagembeddings.perfRow5Notes') }}</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <h3>Scaling Recommendations</h3>
+      <h3>{{ $t('docDocsConceptsRagembeddings.scalingTitle') }}</h3>
       <ul>
-        <li>Run Ollama on a machine with at least 8 GB RAM for bge-small-en-v1.5.</li>
-        <li>Increase <code>lists</code> on the IVFFlat index proportionally to row count.</li>
-        <li>Use <code>probes</code> query-time hint to trade accuracy for speed: <code>SET LOCAL ivfflat.probes = 10</code>.</li>
-        <li>Enable <code>pgvector</code> parallel workers: <code>SET max_parallel_workers_per_gather = 4</code>.</li>
-        <li>Schedule periodic <code>VACUUM ANALYZE context_chunks</code> to keep planner statistics fresh.</li>
+        <li>{{ $t('docDocsConceptsRagembeddings.scalingItem1') }}</li>
+        <li>{{ $t('docDocsConceptsRagembeddings.scalingItem2a') }}<code>lists</code>{{ $t('docDocsConceptsRagembeddings.scalingItem2b') }}</li>
+        <li>{{ $t('docDocsConceptsRagembeddings.scalingItem3a') }}<code>probes</code>{{ $t('docDocsConceptsRagembeddings.scalingItem3b') }}<code>SET LOCAL ivfflat.probes = 10</code>.</li>
+        <li>{{ $t('docDocsConceptsRagembeddings.scalingItem4a') }}<code>pgvector</code>{{ $t('docDocsConceptsRagembeddings.scalingItem4b') }}<code>SET max_parallel_workers_per_gather = 4</code>.</li>
+        <li>{{ $t('docDocsConceptsRagembeddings.scalingItem5a') }}<code>VACUUM ANALYZE context_chunks</code>{{ $t('docDocsConceptsRagembeddings.scalingItem5b') }}</li>
       </ul>
     </section>
   </article>

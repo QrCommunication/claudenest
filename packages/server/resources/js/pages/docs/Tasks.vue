@@ -1,15 +1,14 @@
 <template>
   <DocsLayout>
     <div class="docs-page">
-      <h1>Tasks API</h1>
-      
+      <h1>{{ $t('docDocsTasks.title') }}</h1>
+
       <p class="lead">
-        Tasks enable work distribution across multiple Claude instances in a project. 
-        Tasks can be claimed, completed, and tracked through their entire lifecycle.
+        {{ $t('docDocsTasks.lead') }}
       </p>
 
       <div class="section">
-        <h2>Task Object</h2>
+        <h2>{{ $t('docDocsTasks.taskObjectHeading') }}</h2>
         <CodeBlock language="json" :code="taskObject" />
       </div>
 
@@ -17,7 +16,7 @@
       <EndpointCard
         method="GET"
         path="/projects/{project}/tasks"
-        description="List all tasks in a project with optional filtering."
+        :description="$t('docDocsTasks.listDescription')"
         :params="listParams"
         :curlExample="listCurl"
         :jsExample="listJs"
@@ -29,7 +28,7 @@
       <EndpointCard
         method="POST"
         path="/projects/{project}/tasks"
-        description="Create a new task in the project."
+        :description="$t('docDocsTasks.createDescription')"
         :params="createParams"
         :curlExample="createCurl"
         :jsExample="createJs"
@@ -41,7 +40,7 @@
       <EndpointCard
         method="GET"
         path="/tasks/{id}"
-        description="Get detailed information about a specific task."
+        :description="$t('docDocsTasks.getDescription')"
         :params="getParams"
         :curlExample="getCurl"
         :jsExample="getJs"
@@ -53,7 +52,7 @@
       <EndpointCard
         method="PATCH"
         path="/tasks/{id}"
-        description="Update task details."
+        :description="$t('docDocsTasks.updateDescription')"
         :params="updateParams"
         :curlExample="updateCurl"
         :jsExample="updateJs"
@@ -65,7 +64,7 @@
       <EndpointCard
         method="DELETE"
         path="/tasks/{id}"
-        description="Delete a task."
+        :description="$t('docDocsTasks.deleteDescription')"
         :params="deleteParams"
         :curlExample="deleteCurl"
         :jsExample="deleteJs"
@@ -77,7 +76,7 @@
       <EndpointCard
         method="POST"
         path="/tasks/{id}/claim"
-        description="Claim a task for an instance to work on."
+        :description="$t('docDocsTasks.claimDescription')"
         :params="claimParams"
         :curlExample="claimCurl"
         :jsExample="claimJs"
@@ -89,7 +88,7 @@
       <EndpointCard
         method="POST"
         path="/tasks/{id}/release"
-        description="Release a claimed task back to pending status."
+        :description="$t('docDocsTasks.releaseDescription')"
         :params="releaseParams"
         :curlExample="releaseCurl"
         :jsExample="releaseJs"
@@ -101,7 +100,7 @@
       <EndpointCard
         method="POST"
         path="/tasks/{id}/complete"
-        description="Mark a task as completed with a summary."
+        :description="$t('docDocsTasks.completeDescription')"
         :params="completeParams"
         :curlExample="completeCurl"
         :jsExample="completeJs"
@@ -113,7 +112,7 @@
       <EndpointCard
         method="GET"
         path="/projects/{project}/tasks/next-available"
-        description="Get the next available task that can be claimed (based on dependencies)."
+        :description="$t('docDocsTasks.nextDescription')"
         :params="nextParams"
         :curlExample="nextCurl"
         :jsExample="nextJs"
@@ -125,7 +124,7 @@
       <EndpointCard
         method="GET"
         path="/tasks/{id}/subtasks"
-        description="List all subtasks (children) of a given task."
+        :description="$t('docDocsTasks.subtasksDescription')"
         :params="subtasksParams"
         :curlExample="subtasksCurl"
         :jsExample="subtasksJs"
@@ -137,7 +136,7 @@
       <EndpointCard
         method="POST"
         path="/tasks/{id}/move"
-        description="Move a task to a different epic, sprint, or parent task. Useful for re-planning."
+        :description="$t('docDocsTasks.moveDescription')"
         :params="moveParams"
         :curlExample="moveCurl"
         :jsExample="moveJs"
@@ -146,84 +145,80 @@
       />
 
       <div class="section">
-        <h2>Extended Task Fields</h2>
+        <h2>{{ $t('docDocsTasks.extendedFieldsHeading') }}</h2>
         <p>
-          In addition to the base fields, every task response includes the following
-          planning and hierarchy fields:
+          {{ $t('docDocsTasks.extendedFieldsIntro') }}
         </p>
         <CodeBlock language="json" :code="extendedTaskObject" />
         <ul>
-          <li><code>epic_id</code> &mdash; UUID of the parent epic, or <code>null</code></li>
-          <li><code>sprint_id</code> &mdash; Identifier of the sprint this task belongs to, or <code>null</code></li>
-          <li><code>parent_id</code> &mdash; UUID of the parent task when this is a subtask, or <code>null</code></li>
-          <li><code>story_points</code> &mdash; Relative effort estimate (integer, typically 1–13)</li>
-          <li><code>due_date</code> &mdash; ISO 8601 deadline, or <code>null</code></li>
-          <li><code>sort_order</code> &mdash; Integer used to order tasks within a list or sprint board</li>
-          <li><code>labels</code> &mdash; Array of free-form string tags (e.g. <code>["backend", "stripe"]</code>)</li>
-          <li><code>has_subtasks</code> &mdash; Boolean, <code>true</code> when at least one child task exists</li>
-          <li><code>subtasks_count</code> &mdash; Total number of child tasks</li>
-          <li><code>completed_subtasks_count</code> &mdash; Number of child tasks with status <code>done</code></li>
+          <li><code>epic_id</code> &mdash; {{ $t('docDocsTasks.fieldEpicId') }} <code>null</code></li>
+          <li><code>sprint_id</code> &mdash; {{ $t('docDocsTasks.fieldSprintId') }} <code>null</code></li>
+          <li><code>parent_id</code> &mdash; {{ $t('docDocsTasks.fieldParentId') }} <code>null</code></li>
+          <li><code>story_points</code> &mdash; {{ $t('docDocsTasks.fieldStoryPoints') }}</li>
+          <li><code>due_date</code> &mdash; {{ $t('docDocsTasks.fieldDueDate') }} <code>null</code></li>
+          <li><code>sort_order</code> &mdash; {{ $t('docDocsTasks.fieldSortOrder') }}</li>
+          <li><code>labels</code> &mdash; {{ $t('docDocsTasks.fieldLabels') }} <code>["backend", "stripe"]</code>)</li>
+          <li><code>has_subtasks</code> &mdash; {{ $t('docDocsTasks.fieldHasSubtasksPre') }} <code>true</code> {{ $t('docDocsTasks.fieldHasSubtasksPost') }}</li>
+          <li><code>subtasks_count</code> &mdash; {{ $t('docDocsTasks.fieldSubtasksCount') }}</li>
+          <li><code>completed_subtasks_count</code> &mdash; {{ $t('docDocsTasks.fieldCompletedSubtasksCount') }} <code>done</code></li>
         </ul>
       </div>
 
       <div class="section">
-        <h2>Additional Filters</h2>
+        <h2>{{ $t('docDocsTasks.additionalFiltersHeading') }}</h2>
         <p>
-          The <code>GET /projects/{project}/tasks</code> endpoint accepts the following
-          extra query parameters beyond <code>status</code>, <code>priority</code>, and
+          {{ $t('docDocsTasks.additionalFiltersIntroPre') }} <code>GET /projects/{project}/tasks</code> {{ $t('docDocsTasks.additionalFiltersIntroMid') }} <code>status</code>, <code>priority</code>, {{ $t('docDocsTasks.additionalFiltersIntroAnd') }}
           <code>assigned_to</code>:
         </p>
         <ul>
-          <li><code>?epic_id=</code> &mdash; Return only tasks that belong to this epic</li>
-          <li><code>?sprint_id=</code> &mdash; Return only tasks scheduled in this sprint</li>
-          <li><code>?parent_id=</code> &mdash; Return only direct children of this parent task</li>
-          <li><code>?root_only=true</code> &mdash; Exclude subtasks and return only top-level tasks</li>
+          <li><code>?epic_id=</code> &mdash; {{ $t('docDocsTasks.filterEpicId') }}</li>
+          <li><code>?sprint_id=</code> &mdash; {{ $t('docDocsTasks.filterSprintId') }}</li>
+          <li><code>?parent_id=</code> &mdash; {{ $t('docDocsTasks.filterParentId') }}</li>
+          <li><code>?root_only=true</code> &mdash; {{ $t('docDocsTasks.filterRootOnly') }}</li>
         </ul>
       </div>
 
       <div class="section">
-        <h2>Task Statuses</h2>
+        <h2>{{ $t('docDocsTasks.statusesHeading') }}</h2>
         <ul>
-          <li><code>pending</code> - Task is waiting to be claimed</li>
-          <li><code>in_progress</code> - Task is currently being worked on</li>
-          <li><code>blocked</code> - Task is blocked by dependencies</li>
-          <li><code>review</code> - Task is completed and under review</li>
-          <li><code>done</code> - Task is completed</li>
+          <li><code>pending</code> - {{ $t('docDocsTasks.statusPending') }}</li>
+          <li><code>in_progress</code> - {{ $t('docDocsTasks.statusInProgress') }}</li>
+          <li><code>blocked</code> - {{ $t('docDocsTasks.statusBlocked') }}</li>
+          <li><code>review</code> - {{ $t('docDocsTasks.statusReview') }}</li>
+          <li><code>done</code> - {{ $t('docDocsTasks.statusDone') }}</li>
         </ul>
       </div>
 
       <div class="section">
-        <h2>Task Priorities</h2>
+        <h2>{{ $t('docDocsTasks.prioritiesHeading') }}</h2>
         <ul>
-          <li><code>low</code> - Low priority, can be done later</li>
-          <li><code>medium</code> - Normal priority (default)</li>
-          <li><code>high</code> - High priority, should be done soon</li>
-          <li><code>critical</code> - Critical priority, needs immediate attention</li>
+          <li><code>low</code> - {{ $t('docDocsTasks.priorityLow') }}</li>
+          <li><code>medium</code> - {{ $t('docDocsTasks.priorityMedium') }}</li>
+          <li><code>high</code> - {{ $t('docDocsTasks.priorityHigh') }}</li>
+          <li><code>critical</code> - {{ $t('docDocsTasks.priorityCritical') }}</li>
         </ul>
       </div>
 
       <div class="section">
-        <h2>Task Dependencies</h2>
+        <h2>{{ $t('docDocsTasks.dependenciesHeading') }}</h2>
         <p>
-          Tasks can have dependencies on other tasks. A task cannot be claimed until 
-          all its dependencies are completed. Use the <code>dependencies</code> array 
-          when creating a task to specify task IDs that must be completed first.
+          {{ $t('docDocsTasks.dependenciesIntroPre') }} <code>dependencies</code> {{ $t('docDocsTasks.dependenciesIntroPost') }}
         </p>
         <CodeBlock language="json" :code="dependenciesExample" />
       </div>
 
       <div class="section">
-        <h2>Task Lifecycle</h2>
+        <h2>{{ $t('docDocsTasks.lifecycleHeading') }}</h2>
         <p>
-          The typical task lifecycle:
+          {{ $t('docDocsTasks.lifecycleIntro') }}
         </p>
         <ol>
-          <li>Task is created with status <code>pending</code></li>
-          <li>An instance claims the task (status becomes <code>in_progress</code>)</li>
-          <li>The instance works on the task</li>
-          <li>If needed, the task can be released back to <code>pending</code></li>
-          <li>When done, the instance marks it as <code>done</code></li>
-          <li>A context chunk is created with the completion summary</li>
+          <li>{{ $t('docDocsTasks.lifecycle1Pre') }} <code>pending</code></li>
+          <li>{{ $t('docDocsTasks.lifecycle2Pre') }} <code>in_progress</code>{{ $t('docDocsTasks.lifecycle2Post') }}</li>
+          <li>{{ $t('docDocsTasks.lifecycle3') }}</li>
+          <li>{{ $t('docDocsTasks.lifecycle4Pre') }} <code>pending</code></li>
+          <li>{{ $t('docDocsTasks.lifecycle5Pre') }} <code>done</code></li>
+          <li>{{ $t('docDocsTasks.lifecycle6') }}</li>
         </ol>
       </div>
     </div>
