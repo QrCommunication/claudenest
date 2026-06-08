@@ -151,7 +151,9 @@ class ClaudeInstance extends Model
             return null;
         }
         $end = $this->disconnected_at ?? now();
-        return $this->connected_at->diffInSeconds($end);
+
+        // Carbon 3 diffInSeconds() returns float; accessor is typed ?int (strict_types).
+        return (int) $this->connected_at->diffInSeconds($end);
     }
 
     // ==================== HELPERS ====================

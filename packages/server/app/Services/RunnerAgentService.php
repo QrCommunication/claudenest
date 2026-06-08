@@ -88,7 +88,7 @@ class RunnerAgentService
                     'type' => 'task_stalled',
                     'id' => $task->id,
                     'title' => $task->title,
-                    'stalled_hours' => $task->claimed_at->diffInHours(now()),
+                    'stalled_hours' => (int) $task->claimed_at->diffInHours(now()),
                 ];
             });
 

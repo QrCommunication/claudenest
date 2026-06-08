@@ -108,6 +108,35 @@ class SessionApiTest extends TestCase
             ]);
     }
 
+    /**
+     * Non-regression: Carbon 3 diffInSeconds() returns float, and the
+     * Session::$duration accessor is typed ?int under strict_types. Before the
+     * fix this threw a TypeError ("Return value must be of type ?int, float
+     * returned") on every running session, producing a 500 on GET /sessions/{id}.
+     *
+     * @test
+     */
+    public function viewing_a_running_session_returns_integer_duration(): void
+    {
+        $user = User::factory()->create();
+        $machine = Machine::factory()->for($user)->create();
+        $session = Session::factory()->for($machine)->for($user)->create([
+            'status' => 'running',
+            'started_at' => now()->subMinutes(3)->subSeconds(7),
+            'completed_at' => null,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->getJson("/api/sessions/{$session->id}");
+
+        $response->assertOk();
+
+        $duration = $response->json('data.duration');
+        $this->assertIsInt($duration);
+        $this->assertGreaterThanOrEqual(180, $duration);
+        $this->assertIsString($response->json('data.formatted_duration'));
+    }
+
     /** @test */
     public function user_cannot_view_other_users_session(): void
     {

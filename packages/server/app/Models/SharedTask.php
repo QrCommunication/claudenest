@@ -269,7 +269,9 @@ class SharedTask extends Model
             return null;
         }
         $end = $this->completed_at ?? now();
-        return $this->claimed_at->diffInSeconds($end);
+
+        // Carbon 3 diffInSeconds() returns float; accessor is typed ?int (strict_types).
+        return (int) $this->claimed_at->diffInSeconds($end);
     }
 
     public function getPriorityWeightAttribute(): int

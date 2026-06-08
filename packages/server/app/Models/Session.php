@@ -159,7 +159,10 @@ class Session extends Model
             return null;
         }
         $end = $this->completed_at ?? now();
-        return $this->started_at->diffInSeconds($end);
+
+        // Carbon 3 diffInSeconds() returns a float; the accessor is typed ?int
+        // under strict_types, so PHP refuses the implicit float→int coercion.
+        return (int) $this->started_at->diffInSeconds($end);
     }
 
     public function getFormattedDurationAttribute(): string

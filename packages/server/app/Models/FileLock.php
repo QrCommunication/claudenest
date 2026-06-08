@@ -116,7 +116,8 @@ class FileLock extends Model
         if ($this->is_expired) {
             return 0;
         }
-        return $this->expires_at->diffInSeconds(now());
+        // Carbon 3 diffInSeconds() returns float; accessor is typed ?int (strict_types).
+        return (int) $this->expires_at->diffInSeconds(now());
     }
 
     // ==================== HELPERS ====================

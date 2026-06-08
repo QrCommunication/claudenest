@@ -213,7 +213,8 @@ class Sprint extends Model
             return [];
         }
 
-        $daysTotal = $startDate->diffInDays($endDate) + 1;
+        // Carbon 3 diffInDays() returns float; cast to int for day-count arithmetic.
+        $daysTotal = (int) $startDate->diffInDays($endDate) + 1;
         $dailyIdeal = $daysTotal > 1 ? $totalPoints / ($daysTotal - 1) : $totalPoints;
 
         $tasks = $this->tasks()
