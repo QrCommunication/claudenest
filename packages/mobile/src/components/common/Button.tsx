@@ -4,7 +4,7 @@
  * Tailles : sm (32h), md (40h), lg (48h)
  */
 
-import React, { memo, useCallback } from 'react';
+import React, { memo, useCallback } from "react";
 import {
   Text,
   StyleSheet,
@@ -13,18 +13,28 @@ import {
   Pressable,
   type ViewStyle,
   type TextStyle,
-} from 'react-native';
+} from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-} from 'react-native-reanimated';
-import { colors, borderRadius, typography } from '@/theme';
+} from "react-native-reanimated";
+import { colors, borderRadius, typography } from "@/theme";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
-type ButtonSize = 'sm' | 'md' | 'lg';
+type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+type CanonicalSize = "sm" | "md" | "lg";
+type ButtonSize = CanonicalSize | "small" | "medium" | "large";
+
+const SIZE_ALIAS: Record<ButtonSize, CanonicalSize> = {
+  sm: "sm",
+  md: "md",
+  lg: "lg",
+  small: "sm",
+  medium: "md",
+  large: "lg",
+};
 
 interface ButtonProps {
   title: string;
@@ -33,25 +43,26 @@ interface ButtonProps {
   size?: ButtonSize;
   loading?: boolean;
   disabled?: boolean;
+  leftIcon?: React.ReactNode;
   style?: ViewStyle;
   textStyle?: TextStyle;
   accessibilityLabel?: string;
   accessibilityHint?: string;
 }
 
-const HEIGHT: Record<ButtonSize, number> = {
+const HEIGHT: Record<CanonicalSize, number> = {
   sm: 32,
   md: 40,
   lg: 48,
 };
 
-const FONT_SIZE: Record<ButtonSize, number> = {
+const FONT_SIZE: Record<CanonicalSize, number> = {
   sm: typography.size.sm,
   md: typography.size.base,
   lg: typography.size.md,
 };
 
-const PADDING_H: Record<ButtonSize, number> = {
+const PADDING_H: Record<CanonicalSize, number> = {
   sm: 12,
   md: 16,
   lg: 20,
@@ -60,10 +71,11 @@ const PADDING_H: Record<ButtonSize, number> = {
 export const Button = memo(function Button({
   title,
   onPress,
-  variant = 'primary',
-  size = 'md',
+  variant = "primary",
+  size = "md",
   loading = false,
   disabled = false,
+  leftIcon,
   style,
   textStyle,
   accessibilityLabel,
@@ -71,6 +83,7 @@ export const Button = memo(function Button({
 }: ButtonProps) {
   const scale = useSharedValue(1);
   const isDisabled = disabled || loading;
+  const canonicalSize = SIZE_ALIAS[size];
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -87,17 +100,21 @@ export const Button = memo(function Button({
   }, [scale]);
 
   const containerStyle: ViewStyle = {
-    height: HEIGHT[size],
-    paddingHorizontal: PADDING_H[size],
+    height: HEIGHT[canonicalSize],
+    paddingHorizontal: PADDING_H[canonicalSize],
   };
 
   const textColor = (() => {
     if (isDisabled) return colors.text.disabled;
     switch (variant) {
-      case 'secondary': return colors.accent.purple;
-      case 'ghost': return colors.accent.purple;
-      case 'danger': return colors.text.primary;
-      default: return colors.text.primary;
+      case "secondary":
+        return colors.accent.purple;
+      case "ghost":
+        return colors.accent.purple;
+      case "danger":
+        return colors.text.primary;
+      default:
+        return colors.text.primary;
     }
   })();
 
@@ -122,15 +139,20 @@ export const Button = memo(function Button({
     >
       {loading ? (
         <ActivityIndicator
-          color={variant === 'primary' || variant === 'danger' ? colors.text.primary : colors.accent.purple}
+          color={
+            variant === "primary" || variant === "danger"
+              ? colors.text.primary
+              : colors.accent.purple
+          }
           size="small"
         />
       ) : (
         <View style={styles.content}>
+          {leftIcon}
           <Text
             style={[
               styles.text,
-              { color: textColor, fontSize: FONT_SIZE[size] },
+              { color: textColor, fontSize: FONT_SIZE[canonicalSize] },
               textStyle,
             ]}
             numberOfLines={1}
@@ -146,18 +168,18 @@ export const Button = memo(function Button({
 const styles = StyleSheet.create({
   base: {
     borderRadius: borderRadius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
   },
   content: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 6,
   },
   text: {
-    fontWeight: '600',
+    fontWeight: "600",
     letterSpacing: 0.1,
   },
   // Variants
@@ -165,12 +187,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent.purple,
   },
   secondary: {
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
     borderWidth: 1,
     borderColor: colors.accent.purple,
   },
   ghost: {
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
   },
   danger: {
     backgroundColor: colors.status.error,

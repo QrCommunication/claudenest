@@ -11,7 +11,7 @@ import React, {
   useMemo,
   useRef,
   memo,
-} from 'react';
+} from "react";
 import {
   View,
   Text,
@@ -20,35 +20,41 @@ import {
   TouchableOpacity,
   Alert,
   Animated,
-} from 'react-native';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-type IconName = React.ComponentProps<typeof MaterialIcons>['name'];
+} from "react-native";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+type IconName = React.ComponentProps<typeof MaterialIcons>["name"];
 const Icon = MaterialIcons;
 
-import { colors, spacing, borderRadius, typography } from '@/theme';
-import { useProjectsStore } from '@/stores/projectsStore';
-import { useEpicsStore } from '@/stores/epicsStore';
-import { useSprintsStore } from '@/stores/sprintsStore';
-import { Card, CardHeader, CardContent, LoadingSpinner } from '@/components/common';
-import { InstanceCard } from '@/components/multiagent';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { ProjectsStackParamList } from '@/navigation/types';
+import { colors, spacing, borderRadius, typography } from "@/theme";
+import { useProjectsStore } from "@/stores/projectsStore";
+import { useEpicsStore } from "@/stores/epicsStore";
+import { useSprintsStore } from "@/stores/sprintsStore";
+import {
+  Card,
+  CardHeader,
+  CardContent,
+  LoadingSpinner,
+} from "@/components/common";
+import { InstanceCard } from "@/components/multiagent";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type { ProjectsStackParamList } from "@/navigation/types";
+import type { SharedProject, ClaudeInstance } from "@/types";
 
-type Props = NativeStackScreenProps<ProjectsStackParamList, 'ProjectDetail'>;
+type Props = NativeStackScreenProps<ProjectsStackParamList, "ProjectDetail">;
 
 // ---------------------------------------------------------------------------
 // Tab configuration
 // ---------------------------------------------------------------------------
 
 type TabKey =
-  | 'overview'
-  | 'tasks'
-  | 'epics'
-  | 'sprints'
-  | 'context'
-  | 'locks'
-  | 'orchestration'
-  | 'planning';
+  | "overview"
+  | "tasks"
+  | "epics"
+  | "sprints"
+  | "context"
+  | "locks"
+  | "orchestration"
+  | "planning";
 
 interface TabConfig {
   key: TabKey;
@@ -57,14 +63,14 @@ interface TabConfig {
 }
 
 const TABS: TabConfig[] = [
-  { key: 'overview',      label: 'Overview',       icon: 'dashboard' },
-  { key: 'tasks',         label: 'Tasks',          icon: 'assignment' },
-  { key: 'epics',         label: 'Epics',          icon: 'flag' },
-  { key: 'sprints',       label: 'Sprints',        icon: 'loop' },
-  { key: 'context',       label: 'Context',        icon: 'description' },
-  { key: 'locks',         label: 'Locks',          icon: 'lock' },
-  { key: 'orchestration', label: 'Orchestration',  icon: 'account-tree' },
-  { key: 'planning',      label: 'Planning',       icon: 'chat' },
+  { key: "overview", label: "Overview", icon: "dashboard" },
+  { key: "tasks", label: "Tasks", icon: "assignment" },
+  { key: "epics", label: "Epics", icon: "flag" },
+  { key: "sprints", label: "Sprints", icon: "loop" },
+  { key: "context", label: "Context", icon: "description" },
+  { key: "locks", label: "Locks", icon: "lock" },
+  { key: "orchestration", label: "Orchestration", icon: "account-tree" },
+  { key: "planning", label: "Planning", icon: "chat" },
 ];
 
 // ---------------------------------------------------------------------------
@@ -76,13 +82,18 @@ interface TokenProgressBarProps {
   max: number;
 }
 
-const TokenProgressBar = memo(function TokenProgressBar({ used, max }: TokenProgressBarProps) {
+const TokenProgressBar = memo(function TokenProgressBar({
+  used,
+  max,
+}: TokenProgressBarProps) {
   const ratio = max > 0 ? Math.min(used / max, 1) : 0;
   const pct = Math.round(ratio * 100);
   const fillColor =
-    ratio > 0.85 ? colors.semantic.error :
-    ratio > 0.6  ? colors.semantic.warning :
-    colors.primary.purple;
+    ratio > 0.85
+      ? colors.semantic.error
+      : ratio > 0.6
+        ? colors.semantic.warning
+        : colors.primary.purple;
 
   return (
     <View style={progressStyles.container}>
@@ -93,7 +104,12 @@ const TokenProgressBar = memo(function TokenProgressBar({ used, max }: TokenProg
         </Text>
       </View>
       <View style={progressStyles.track}>
-        <View style={[progressStyles.fill, { width: `${pct}%`, backgroundColor: fillColor }]} />
+        <View
+          style={[
+            progressStyles.fill,
+            { width: `${pct}%`, backgroundColor: fillColor },
+          ]}
+        />
       </View>
     </View>
   );
@@ -108,31 +124,31 @@ const progressStyles = StyleSheet.create({
     borderBottomColor: colors.border.subtle,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: spacing.xs,
   },
   label: {
     fontSize: typography.size.xs,
     color: colors.text.muted,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 0.5,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   value: {
     fontSize: typography.size.xs,
     color: colors.text.secondary,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   track: {
     height: 4,
     backgroundColor: colors.background.dark4,
     borderRadius: borderRadius.full,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   fill: {
-    height: '100%',
+    height: "100%",
     borderRadius: borderRadius.full,
   },
 });
@@ -147,7 +163,11 @@ interface TabBarProps {
   onSelect: (tab: TabKey) => void;
 }
 
-const TabBar = memo(function TabBar({ activeTab, badges, onSelect }: TabBarProps) {
+const TabBar = memo(function TabBar({
+  activeTab,
+  badges,
+  onSelect,
+}: TabBarProps) {
   const indicatorX = useRef(new Animated.Value(0)).current;
   const tabWidths = useRef<Record<string, number>>({});
   const tabOffsets = useRef<Record<string, number>>({});
@@ -157,7 +177,7 @@ const TabBar = memo(function TabBar({ activeTab, badges, onSelect }: TabBarProps
       tabWidths.current[key] = width;
       tabOffsets.current[key] = x;
     },
-    []
+    [],
   );
 
   return (
@@ -178,7 +198,11 @@ const TabBar = memo(function TabBar({ activeTab, badges, onSelect }: TabBarProps
               onPress={() => onSelect(tab.key)}
               activeOpacity={0.7}
               onLayout={(e) =>
-                handleTabLayout(tab.key, e.nativeEvent.layout.x, e.nativeEvent.layout.width)
+                handleTabLayout(
+                  tab.key,
+                  e.nativeEvent.layout.x,
+                  e.nativeEvent.layout.width,
+                )
               }
             >
               <Icon
@@ -186,13 +210,22 @@ const TabBar = memo(function TabBar({ activeTab, badges, onSelect }: TabBarProps
                 size={16}
                 color={isActive ? colors.primary.purple : colors.text.muted}
               />
-              <Text style={[tabStyles.label, isActive && tabStyles.labelActive]}>
+              <Text
+                style={[tabStyles.label, isActive && tabStyles.labelActive]}
+              >
                 {tab.label}
               </Text>
               {badge !== undefined && badge > 0 && (
-                <View style={[tabStyles.badge, isActive && tabStyles.badgeActive]}>
-                  <Text style={[tabStyles.badgeText, isActive && tabStyles.badgeTextActive]}>
-                    {badge > 99 ? '99+' : badge}
+                <View
+                  style={[tabStyles.badge, isActive && tabStyles.badgeActive]}
+                >
+                  <Text
+                    style={[
+                      tabStyles.badgeText,
+                      isActive && tabStyles.badgeTextActive,
+                    ]}
+                  >
+                    {badge > 99 ? "99+" : badge}
                   </Text>
                 </View>
               )}
@@ -216,8 +249,8 @@ const tabStyles = StyleSheet.create({
     gap: spacing.xs,
   },
   tab: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.xs,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
@@ -225,32 +258,32 @@ const tabStyles = StyleSheet.create({
     borderRadius: borderRadius.base,
   },
   tabActive: {
-    backgroundColor: 'rgba(168,85,247,0.15)',
+    backgroundColor: "rgba(168,85,247,0.15)",
   },
   label: {
     fontSize: typography.size.sm,
-    fontWeight: '500',
+    fontWeight: "500",
     color: colors.text.muted,
   },
   labelActive: {
     color: colors.primary.purple,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   badge: {
     minWidth: 16,
     height: 16,
     borderRadius: borderRadius.full,
     backgroundColor: colors.background.dark4,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 3,
   },
   badgeActive: {
-    backgroundColor: 'rgba(168,85,247,0.3)',
+    backgroundColor: "rgba(168,85,247,0.3)",
   },
   badgeText: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.text.muted,
   },
   badgeTextActive: {
@@ -267,8 +300,8 @@ const tabStyles = StyleSheet.create({
 // ---------------------------------------------------------------------------
 
 interface OverviewTabProps {
-  project: ReturnType<ReturnType<typeof useProjectsStore>['getProjectById']>;
-  instances: ReturnType<ReturnType<typeof useProjectsStore>['getProjectInstances']>;
+  project: SharedProject | undefined;
+  instances: ClaudeInstance[];
   projectId: string;
   onBroadcast: () => void;
   isBroadcasting: boolean;
@@ -288,7 +321,11 @@ const OverviewTab = memo(function OverviewTab({
       <Card style={overviewStyles.infoCard}>
         <View style={overviewStyles.infoRow}>
           <View style={overviewStyles.iconBox}>
-            <Icon name="folder-shared" size={28} color={colors.primary.purple} />
+            <Icon
+              name="folder-shared"
+              size={28}
+              color={colors.primary.purple}
+            />
           </View>
           <View style={overviewStyles.infoText}>
             <Text style={overviewStyles.name}>{project.name}</Text>
@@ -301,14 +338,26 @@ const OverviewTab = memo(function OverviewTab({
 
       {/* Broadcast action */}
       <TouchableOpacity
-        style={[overviewStyles.broadcastButton, isBroadcasting && overviewStyles.broadcastButtonDisabled]}
+        style={[
+          overviewStyles.broadcastButton,
+          isBroadcasting && overviewStyles.broadcastButtonDisabled,
+        ]}
         onPress={onBroadcast}
         disabled={isBroadcasting}
         activeOpacity={0.75}
       >
-        <Icon name="campaign" size={20} color={isBroadcasting ? colors.text.muted : colors.semantic.success} />
-        <Text style={[overviewStyles.broadcastText, isBroadcasting && { color: colors.text.muted }]}>
-          {isBroadcasting ? 'Broadcasting...' : 'Broadcast to all instances'}
+        <Icon
+          name="campaign"
+          size={20}
+          color={isBroadcasting ? colors.text.muted : colors.semantic.success}
+        />
+        <Text
+          style={[
+            overviewStyles.broadcastText,
+            isBroadcasting && { color: colors.text.muted },
+          ]}
+        >
+          {isBroadcasting ? "Broadcasting..." : "Broadcast to all instances"}
         </Text>
       </TouchableOpacity>
 
@@ -372,17 +421,17 @@ const overviewStyles = StyleSheet.create({
   },
   infoCard: {},
   infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: spacing.md,
   },
   iconBox: {
     width: 52,
     height: 52,
     borderRadius: borderRadius.lg,
-    backgroundColor: 'rgba(168,85,247,0.12)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(168,85,247,0.12)",
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: spacing.md,
   },
   infoText: {
@@ -390,7 +439,7 @@ const overviewStyles = StyleSheet.create({
   },
   name: {
     fontSize: typography.size.xl,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.text.primary,
   },
   path: {
@@ -399,13 +448,13 @@ const overviewStyles = StyleSheet.create({
     marginTop: 2,
   },
   broadcastButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.sm,
-    backgroundColor: 'rgba(34,197,94,0.1)',
+    backgroundColor: "rgba(34,197,94,0.1)",
     borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: 'rgba(34,197,94,0.3)',
+    borderColor: "rgba(34,197,94,0.3)",
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
   },
@@ -414,7 +463,7 @@ const overviewStyles = StyleSheet.create({
   },
   broadcastText: {
     fontSize: typography.size.base,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.semantic.success,
   },
   sectionCard: {},
@@ -425,13 +474,13 @@ const overviewStyles = StyleSheet.create({
   },
   instanceCount: {
     fontSize: typography.size.md,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.primary.purple,
   },
   emptyText: {
     fontSize: typography.size.base,
     color: colors.text.muted,
-    textAlign: 'center',
+    textAlign: "center",
     paddingVertical: spacing.lg,
   },
 });
@@ -457,10 +506,19 @@ const PlaceholderTab = memo(function PlaceholderTab({
 }: PlaceholderTabProps) {
   return (
     <View style={placeholderStyles.container}>
-      <Icon name={icon} size={48} color={colors.primary.purple} style={{ opacity: 0.6 }} />
+      <Icon
+        name={icon}
+        size={48}
+        color={colors.primary.purple}
+        style={{ opacity: 0.6 }}
+      />
       <Text style={placeholderStyles.title}>{title}</Text>
       <Text style={placeholderStyles.description}>{description}</Text>
-      <TouchableOpacity style={placeholderStyles.button} onPress={onAction} activeOpacity={0.8}>
+      <TouchableOpacity
+        style={placeholderStyles.button}
+        onPress={onAction}
+        activeOpacity={0.8}
+      >
         <Text style={placeholderStyles.buttonText}>{actionLabel}</Text>
       </TouchableOpacity>
     </View>
@@ -470,27 +528,27 @@ const PlaceholderTab = memo(function PlaceholderTab({
 const placeholderStyles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: spacing.xl,
     gap: spacing.md,
   },
   title: {
     fontSize: typography.size.xl,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.text.primary,
-    textAlign: 'center',
+    textAlign: "center",
   },
   description: {
     fontSize: typography.size.base,
     color: colors.text.secondary,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 22,
   },
   button: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
-    backgroundColor: 'rgba(168,85,247,0.15)',
+    backgroundColor: "rgba(168,85,247,0.15)",
     borderRadius: borderRadius.full,
     borderWidth: 1,
     borderColor: colors.primary.purple,
@@ -498,7 +556,7 @@ const placeholderStyles = StyleSheet.create({
   },
   buttonText: {
     fontSize: typography.size.base,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.primary.purple,
   },
 });
@@ -525,11 +583,11 @@ export const ProjectScreen: React.FC<Props> = ({ route, navigation }) => {
   const { getEpicsByProject, fetchEpics } = useEpicsStore();
   const { getSprintsByProject, fetchSprints } = useSprintsStore();
 
-  const [activeTab, setActiveTab] = useState<TabKey>('overview');
+  const [activeTab, setActiveTab] = useState<TabKey>("overview");
   const [isBroadcasting, setIsBroadcasting] = useState(false);
 
   // Lazy-load tab data tracking
-  const loadedTabs = useRef<Set<TabKey>>(new Set(['overview']));
+  const loadedTabs = useRef<Set<TabKey>>(new Set(["overview"]));
 
   const project = getProjectById(projectId);
   const instances = getProjectInstances(projectId);
@@ -563,26 +621,26 @@ export const ProjectScreen: React.FC<Props> = ({ route, navigation }) => {
       loadedTabs.current.add(tab);
 
       switch (tab) {
-        case 'tasks':
+        case "tasks":
           fetchTasks(projectId);
           break;
-        case 'epics':
+        case "epics":
           fetchEpics(projectId);
           break;
-        case 'sprints':
+        case "sprints":
           fetchSprints(projectId);
           break;
-        case 'locks':
+        case "locks":
           fetchLocks(projectId);
           break;
-        case 'context':
+        case "context":
           // Context tab navigates to ContextScreen — no inline load needed
           break;
         default:
           break;
       }
     },
-    [projectId, fetchTasks, fetchEpics, fetchSprints, fetchLocks]
+    [projectId, fetchTasks, fetchEpics, fetchSprints, fetchLocks],
   );
 
   // ---------------------------------------------------------------------------
@@ -592,18 +650,18 @@ export const ProjectScreen: React.FC<Props> = ({ route, navigation }) => {
   const navigateToScreen = useCallback(
     (
       screen:
-        | 'Tasks'
-        | 'Context'
-        | 'Locks'
-        | 'Epics'
-        | 'Sprints'
-        | 'PlanningChat'
-        | 'Orchestration'
+        | "Tasks"
+        | "Context"
+        | "Locks"
+        | "Epics"
+        | "Sprints"
+        | "PlanningChat"
+        | "Orchestration",
     ) => {
       // All these screens receive { projectId }
       (navigation as any).navigate(screen, { projectId });
     },
-    [navigation, projectId]
+    [navigation, projectId],
   );
 
   // ---------------------------------------------------------------------------
@@ -612,20 +670,20 @@ export const ProjectScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const handleBroadcast = useCallback(() => {
     Alert.prompt(
-      'Broadcast Message',
-      'Send a message to all instances in this project:',
+      "Broadcast Message",
+      "Send a message to all instances in this project:",
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: "Cancel", style: "cancel" },
         {
-          text: 'Send',
+          text: "Send",
           onPress: async (message: string | undefined) => {
             if (message) {
               setIsBroadcasting(true);
               try {
                 await broadcast(projectId, message);
-                Alert.alert('Success', 'Message broadcasted to all instances');
+                Alert.alert("Success", "Message broadcasted to all instances");
               } catch {
-                Alert.alert('Error', 'Failed to broadcast message');
+                Alert.alert("Error", "Failed to broadcast message");
               } finally {
                 setIsBroadcasting(false);
               }
@@ -633,7 +691,7 @@ export const ProjectScreen: React.FC<Props> = ({ route, navigation }) => {
           },
         },
       ],
-      'plain-text'
+      "plain-text",
     );
   }, [projectId, broadcast]);
 
@@ -643,13 +701,13 @@ export const ProjectScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const badges = useMemo<Partial<Record<TabKey, number>>>(
     () => ({
-      tasks: tasks.filter((t) => t.status !== 'done').length,
-      epics: epics.filter((e) => e.status !== 'done').length,
+      tasks: tasks.filter((t) => t.status !== "done").length,
+      epics: epics.filter((e) => e.status !== "done").length,
       sprints: sprints.length,
       locks: locks.length,
       orchestration: instances.length,
     }),
-    [tasks, epics, sprints, locks, instances]
+    [tasks, epics, sprints, locks, instances],
   );
 
   // ---------------------------------------------------------------------------
@@ -658,7 +716,7 @@ export const ProjectScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'overview':
+      case "overview":
         return (
           <OverviewTab
             project={project}
@@ -669,80 +727,80 @@ export const ProjectScreen: React.FC<Props> = ({ route, navigation }) => {
           />
         );
 
-      case 'tasks':
+      case "tasks":
         return (
           <PlaceholderTab
             icon="assignment"
             title="Tasks"
-            description={`${tasks.length} task${tasks.length !== 1 ? 's' : ''} in this project`}
+            description={`${tasks.length} task${tasks.length !== 1 ? "s" : ""} in this project`}
             actionLabel="Open Tasks"
-            onAction={() => navigateToScreen('Tasks')}
+            onAction={() => navigateToScreen("Tasks")}
           />
         );
 
-      case 'epics':
+      case "epics":
         return (
           <PlaceholderTab
             icon="flag"
             title="Epics"
-            description={`${epics.length} epic${epics.length !== 1 ? 's' : ''} defined`}
+            description={`${epics.length} epic${epics.length !== 1 ? "s" : ""} defined`}
             actionLabel="Open Epics"
-            onAction={() => navigateToScreen('Epics')}
+            onAction={() => navigateToScreen("Epics")}
           />
         );
 
-      case 'sprints':
+      case "sprints":
         return (
           <PlaceholderTab
-            icon="sprint"
+            icon="loop"
             title="Sprints"
-            description={`${sprints.length} sprint${sprints.length !== 1 ? 's' : ''} planned`}
+            description={`${sprints.length} sprint${sprints.length !== 1 ? "s" : ""} planned`}
             actionLabel="Open Sprints"
-            onAction={() => navigateToScreen('Sprints')}
+            onAction={() => navigateToScreen("Sprints")}
           />
         );
 
-      case 'context':
+      case "context":
         return (
           <PlaceholderTab
             icon="description"
             title="Context"
             description="RAG-powered shared context for all agents"
             actionLabel="Open Context"
-            onAction={() => navigateToScreen('Context')}
+            onAction={() => navigateToScreen("Context")}
           />
         );
 
-      case 'locks':
+      case "locks":
         return (
           <PlaceholderTab
             icon="lock"
             title="File Locks"
-            description={`${locks.length} active lock${locks.length !== 1 ? 's' : ''}`}
+            description={`${locks.length} active lock${locks.length !== 1 ? "s" : ""}`}
             actionLabel="Open Locks"
-            onAction={() => navigateToScreen('Locks')}
+            onAction={() => navigateToScreen("Locks")}
           />
         );
 
-      case 'orchestration':
+      case "orchestration":
         return (
           <PlaceholderTab
             icon="account-tree"
             title="Orchestration"
-            description={`${instances.length} active instance${instances.length !== 1 ? 's' : ''}`}
+            description={`${instances.length} active instance${instances.length !== 1 ? "s" : ""}`}
             actionLabel="Open Orchestration"
-            onAction={() => navigateToScreen('Orchestration')}
+            onAction={() => navigateToScreen("Orchestration")}
           />
         );
 
-      case 'planning':
+      case "planning":
         return (
           <PlaceholderTab
             icon="chat"
             title="Planning Chat"
             description="AI-assisted project planning and sprint creation"
             actionLabel="Open Planning"
-            onAction={() => navigateToScreen('PlanningChat')}
+            onAction={() => navigateToScreen("PlanningChat")}
           />
         );
 
@@ -771,7 +829,11 @@ export const ProjectScreen: React.FC<Props> = ({ route, navigation }) => {
       )}
 
       {/* Tab bar */}
-      <TabBar activeTab={activeTab} badges={badges} onSelect={handleTabSelect} />
+      <TabBar
+        activeTab={activeTab}
+        badges={badges}
+        onSelect={handleTabSelect}
+      />
 
       {/* Tab content */}
       <View style={styles.content}>{renderTabContent()}</View>

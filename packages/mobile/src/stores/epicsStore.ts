@@ -3,17 +3,17 @@
  * Manages project epics state
  */
 
-import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { Epic } from '@/types';
-import { epicsApi } from '@/services/api';
+import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import type { Epic, TaskPriority } from "@/types";
+import { epicsApi } from "@/services/api";
 
 interface CreateEpicData {
   title: string;
   description?: string;
   color?: string;
-  priority?: string;
+  priority?: TaskPriority;
 }
 
 interface EpicsState {
@@ -46,8 +46,7 @@ export const useEpicsStore = create<EpicsState>()(
       getEpicsByProject: (projectId: string) =>
         get().epics.filter((e) => e.project_id === projectId),
 
-      getEpicById: (epicId: string) =>
-        get().epics.find((e) => e.id === epicId),
+      getEpicById: (epicId: string) => get().epics.find((e) => e.id === epicId),
 
       // Actions
       fetchEpics: async (projectId: string) => {
@@ -64,7 +63,7 @@ export const useEpicsStore = create<EpicsState>()(
           }));
         } catch (err) {
           const message =
-            err instanceof Error ? err.message : 'Failed to fetch epics';
+            err instanceof Error ? err.message : "Failed to fetch epics";
           set({ isLoading: false, error: message });
           throw err;
         }
@@ -88,7 +87,7 @@ export const useEpicsStore = create<EpicsState>()(
           return epic;
         } catch (err) {
           const message =
-            err instanceof Error ? err.message : 'Failed to create epic';
+            err instanceof Error ? err.message : "Failed to create epic";
           set({ isLoading: false, error: message });
           throw err;
         }
@@ -104,7 +103,7 @@ export const useEpicsStore = create<EpicsState>()(
           }));
         } catch (err) {
           const message =
-            err instanceof Error ? err.message : 'Failed to update epic';
+            err instanceof Error ? err.message : "Failed to update epic";
           set({ error: message });
           throw err;
         }
@@ -119,7 +118,7 @@ export const useEpicsStore = create<EpicsState>()(
           }));
         } catch (err) {
           const message =
-            err instanceof Error ? err.message : 'Failed to delete epic';
+            err instanceof Error ? err.message : "Failed to delete epic";
           set({ error: message });
           throw err;
         }
@@ -128,11 +127,11 @@ export const useEpicsStore = create<EpicsState>()(
       clearError: () => set({ error: null }),
     }),
     {
-      name: 'epics-storage',
+      name: "epics-storage",
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         epics: state.epics,
       }),
-    }
-  )
+    },
+  ),
 );
