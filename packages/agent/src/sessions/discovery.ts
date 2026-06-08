@@ -63,6 +63,8 @@ export class ClaudeSessionDiscovery extends EventEmitter {
   /** Cache cwd+preview per transcript, keyed by path, invalidated on mtime change.
    *  Avoids re-reading hundreds of unchanged historical transcripts every scan. */
   private readonly metaCache = new Map<string, { mtimeMs: number; cwd: string; preview: string | null }>();
+  /** Structural signature of the last emitted set — skip emit when unchanged. */
+  private lastSignature = '';
 
   constructor(options: DiscoveryOptions) {
     super();
@@ -76,7 +78,7 @@ export class ClaudeSessionDiscovery extends EventEmitter {
 
   /** Build the full list of discovered sessions (live always, history opt-in). */
   async discoverAll(includeHistory = true): Promise<DiscoveredSession[]> {
-    const running = this.scanRunningClaude();
+    const running = await this.scanRunningClaude();
     const liveBySlug = new Map<string, RunningClaude[]>();
     for (const proc of running) {
       const arr = liveBySlug.get(proc.slug) ?? [];
@@ -210,11 +212,19 @@ export class ClaudeSessionDiscovery extends EventEmitter {
     return null;
   }
 
-  /** Periodically re-scan and emit 'discovered' with the fresh list. */
+  /** Periodically re-scan and emit 'discovered' only when the set actually changes. */
   startAutoDiscovery(intervalMs = 30_000, includeHistory = true): void {
     const run = () => {
       this.discoverAll(includeHistory)
-        .then((sessions) => this.emit('discovered', sessions))
+        .then((sessions) => {
+          // Structural signature (which sessions exist + their liveness). Avoids
+          // re-broadcasting hundreds of unchanged rows every cycle; live content
+          // is streamed separately via the transcript tailer.
+          const signature = sessions.map((s) => `${s.sessionId}:${s.isLive ? 1 : 0}`).join('|');
+          if (signature === this.lastSignature) return;
+          this.lastSignature = signature;
+          this.emit('discovered', sessions);
+        })
         .catch((err) => this.logger.warn({ err }, 'Auto-discovery failed'));
     };
     run();
@@ -287,39 +297,45 @@ export class ClaudeSessionDiscovery extends EventEmitter {
   }
 
   /** Enumerate running `claude` processes with their cwd (Linux /proc, then lsof). */
-  private scanRunningClaude(): RunningClaude[] {
+  private async scanRunningClaude(): Promise<RunningClaude[]> {
     if (process.platform === 'linux') return this.scanRunningClaudeProc();
     return this.scanRunningClaudeLsof();
   }
 
-  private scanRunningClaudeProc(): RunningClaude[] {
+  /**
+   * FULLY ASYNC /proc scan. Synchronous readFileSync over hundreds of pids would
+   * block the single Node event loop, starving the tmux terminal I/O (input
+   * freeze). Every read here yields the loop so terminals stay responsive.
+   * `comm` (cheap) is read first to filter; heavy reads only run for candidates.
+   */
+  private async scanRunningClaudeProc(): Promise<RunningClaude[]> {
     const result: RunningClaude[] = [];
-    const bootMs = this.readBootTimeMs();
+    const bootMs = await this.readBootTimeMs();
     const clkTck = 100; // getconf CLK_TCK; 100 on all mainstream Linux.
 
     let pids: string[];
     try {
-      pids = fs.readdirSync('/proc').filter((p) => /^\d+$/.test(p));
+      pids = (await fsp.readdir('/proc')).filter((p) => /^\d+$/.test(p));
     } catch {
       return result;
     }
 
     for (const pid of pids) {
       try {
-        const comm = fs.readFileSync(`/proc/${pid}/comm`, 'utf-8').trim();
+        const comm = (await fsp.readFile(`/proc/${pid}/comm`, 'utf-8')).trim();
         if (comm !== 'claude' && comm !== 'node') continue;
 
         // Confirm it's the Claude CLI (argv0 basename === 'claude'),
         // not a child wrapper or unrelated node process.
-        const cmdline = fs.readFileSync(`/proc/${pid}/cmdline`, 'utf-8').split('\0');
+        const cmdline = (await fsp.readFile(`/proc/${pid}/cmdline`, 'utf-8')).split('\0');
         const argv0 = cmdline[0] ?? '';
         if (path.basename(argv0) !== 'claude') continue;
 
-        const cwd = fs.readlinkSync(`/proc/${pid}/cwd`);
+        const cwd = await fsp.readlink(`/proc/${pid}/cwd`);
 
         let startedAt: string | undefined;
         try {
-          const stat = fs.readFileSync(`/proc/${pid}/stat`, 'utf-8');
+          const stat = await fsp.readFile(`/proc/${pid}/stat`, 'utf-8');
           // Field 22 (starttime) lives after the comm field in parens.
           const afterComm = stat.slice(stat.lastIndexOf(')') + 2).split(' ');
           const startTicks = Number(afterComm[19]); // 22nd field, 0-based here
@@ -332,7 +348,7 @@ export class ClaudeSessionDiscovery extends EventEmitter {
 
         let tty: string | undefined;
         try {
-          tty = fs.readlinkSync(`/proc/${pid}/fd/0`);
+          tty = await fsp.readlink(`/proc/${pid}/fd/0`);
           if (!tty.includes('pts') && !tty.includes('tty')) tty = undefined;
         } catch {
           // optional
@@ -346,9 +362,9 @@ export class ClaudeSessionDiscovery extends EventEmitter {
     return result;
   }
 
-  private readBootTimeMs(): number | null {
+  private async readBootTimeMs(): Promise<number | null> {
     try {
-      const stat = fs.readFileSync('/proc/stat', 'utf-8');
+      const stat = await fsp.readFile('/proc/stat', 'utf-8');
       const match = stat.match(/^btime\s+(\d+)/m);
       return match ? Number(match[1]) * 1000 : null;
     } catch {
