@@ -1,8 +1,23 @@
 # Plan de mise à jour vers les dernières majeures
 
 > Établi le 2026-06-08. Inventaire via `composer outdated --direct --major-only`
-> et `npm outdated` sur les 4 packages. **Aucune de ces mises à jour n'est
-> exécutée ici** — ce document est le plan d'exécution.
+> et `npm outdated` sur les 4 packages.
+
+## Statut d'exécution (2026-06-08)
+
+| Lot | Statut | Détail |
+|---|---|---|
+| **Agent** (zod 4, eslint 10 flat, TS 6, pino 10, commander 15, @types/node 25, vitest 4) | ✅ **Fait** | typecheck + build verts |
+| **Server PHP** (PHPUnit 12, tinker 3, predis 3) | ✅ **Fait & déployé** | suite 101 tests verte, composer audit clean |
+| **Server frontend** (vue-router 5, pinia 3, @xterm 6, TS 6, vitest 4, lucide 1, jsdom 29) | ✅ **Fait & déployé** | typecheck + 37 tests + build verts |
+| **Mobile** (Expo SDK 56, RN 0.85, @expo/vector-icons, TS6 baseUrl, dette de typage corrigée) | ⚠️ **Fait, validation EAS requise** | `tsc --noEmit` vert ; build natif iOS/Android non validé localement |
+| **Laravel 12 → 13** | ⛔ **Bloqué (écosystème)** | `nunomaduro/collision 9` n'existe pas encore et `spatie/laravel-ignition` ne supporte pas `illuminate/support 13`. À refaire dès que ces dev-tools publient leurs versions L13. |
+| **l5-swagger 8 → 11 (swagger-php 6)** | ⛔ **Reporté (coût)** | swagger-php 6 abandonne les annotations doc-comment `@OA\` → migration de **toutes** les annotations OpenAPI vers attributs `#[OA\]` (+ corriger les `$ref` cassés type schéma `Command`). Élimine `doctrine/annotations` (abandonné, non-vuln). Chantier dédié. |
+
+Le `composer.json`/`package.json` **racine** restent des reliquats non déployés
+(cf. Phase 0) — non touchés.
+
+---
 
 ## Principes
 
