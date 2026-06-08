@@ -29,8 +29,8 @@ done
 
 # Check Node version
 NODE_VERSION=$(node -v | cut -d'v' -f2 | cut -d'.' -f1)
-if [ "$NODE_VERSION" -lt 20 ]; then
-    echo -e "${YELLOW}⚠️  Node.js 20+ required${NC}"
+if [ "$NODE_VERSION" -lt 24 ]; then
+    echo -e "${YELLOW}⚠️  Node.js 24+ required${NC}"
     exit 1
 fi
 echo -e "${GREEN}✓ Node.js $(node -v)${NC}"
@@ -59,7 +59,7 @@ if [ ! -f "package.json" ]; then
     "turbo": "^1.11.0"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=24.0.0"
   }
 }
 EOF

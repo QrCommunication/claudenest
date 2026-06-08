@@ -48,3 +48,16 @@ yarn-error.log
 
 # OS files
 Thumbs.db
+
+# Android SDK (accidentally installed in repo root by RN/Expo tooling)
+/build-tools/
+/platform-tools/
+/platforms/
+/licenses/
+/cmdline-tools/
+/emulator/
+/system-images/
+/ndk/
+
+# Playwright MCP cache
+.playwright-mcp/

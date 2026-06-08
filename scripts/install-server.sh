@@ -247,9 +247,9 @@ EOF
 
 # Install Node.js
 install_node() {
-    log_info "Installing Node.js 20..."
+    log_info "Installing Node.js 24..."
 
-    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+    curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
     apt-get install -y nodejs
 
     npm install -g pm2

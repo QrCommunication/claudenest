@@ -26,7 +26,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $PACKAGE_NAME = "@claudenest/agent"
-$MIN_NODE_VERSION = 20
+$MIN_NODE_VERSION = 24
 
 # ============================================
 # Helpers

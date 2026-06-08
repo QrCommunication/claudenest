@@ -14,7 +14,7 @@ set -euo pipefail
 # Configuration
 # ============================================
 PACKAGE_NAME="@claudenest/agent"
-MIN_NODE_VERSION=20
+MIN_NODE_VERSION=24
 DEFAULT_SERVER_URL="https://api.claudenest.io"
 SERVER_URL="$DEFAULT_SERVER_URL"
 
