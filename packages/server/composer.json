@@ -12,10 +12,10 @@
         "laravel/reverb": "^1.0",
         "laravel/sanctum": "^4.0",
         "laravel/socialite": "^5.12",
-        "laravel/tinker": "^2.9",
+        "laravel/tinker": "^3",
         "nesbot/carbon": "^3.0",
         "pbmedia/laravel-ffmpeg": "^8.5",
-        "predis/predis": "^2.2",
+        "predis/predis": "^3",
         "react/http": "^1.11",
         "symfony/process": "^7.0"
     },
