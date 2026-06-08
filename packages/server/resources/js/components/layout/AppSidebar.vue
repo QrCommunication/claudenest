@@ -47,7 +47,7 @@
           :class="['nav-item', { active: isActive(item.path) }]"
           :title="collapsed ? item.name : ''"
         >
-          <component :is="item.iconComponent" class="nav-icon" />
+          <component :is="item.icon" class="nav-icon" />
           <span v-if="!collapsed" class="nav-label">{{ item.name }}</span>
           <div v-if="isActive(item.path)" class="active-indicator" />
         </router-link>
@@ -66,7 +66,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, type Component } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import { useTheme } from '@/composables/useTheme';
@@ -101,24 +101,10 @@ const route = useRoute();
 const router = useRouter();
 const { isDark } = useTheme();
 
-const iconMap = {
-  HomeIcon,
-  CommandLineIcon,
-  ServerIcon,
-  FolderIcon,
-  CheckCircleIcon,
-  KeyIcon,
-  SparklesIcon,
-  CubeIcon,
-  Squares2X2Icon,
-  Cog6ToothIcon,
-  EyeIcon,
-};
-
 interface NavItem {
   name: string;
   path: string;
-  iconName: keyof typeof iconMap;
+  icon: Component;
 }
 
 interface NavGroup {
@@ -126,54 +112,47 @@ interface NavGroup {
   items: NavItem[];
 }
 
-const navGroupsConfig: NavGroup[] = [
+// Built inside a computed so t() is re-evaluated whenever the locale changes.
+// Calling t() in a plain top-level const snapshots the current language for the
+// component's lifetime, which is why the menu never updated on language switch.
+const navGroups = computed<NavGroup[]>(() => [
   {
     label: '',
     items: [
-      { name: t('layoutAppsidebar.dashboard'), path: '/dashboard', iconName: 'HomeIcon' },
+      { name: t('layoutAppsidebar.dashboard'), path: '/dashboard', icon: HomeIcon },
     ],
   },
   {
     label: t('layoutAppsidebar.infrastructure'),
     items: [
-      { name: t('layoutAppsidebar.machines'), path: '/machines', iconName: 'ServerIcon' },
-      { name: t('layoutAppsidebar.sessions'), path: '/sessions', iconName: 'CommandLineIcon' },
-      { name: t('layoutAppsidebar.claudeSessions'), path: '/claude-sessions', iconName: 'EyeIcon' },
+      { name: t('layoutAppsidebar.machines'), path: '/machines', icon: ServerIcon },
+      { name: t('layoutAppsidebar.sessions'), path: '/sessions', icon: CommandLineIcon },
+      { name: t('layoutAppsidebar.claudeSessions'), path: '/claude-sessions', icon: EyeIcon },
     ],
   },
   {
     label: t('layoutAppsidebar.multiAgent'),
     items: [
-      { name: t('layoutAppsidebar.projects'), path: '/projects', iconName: 'FolderIcon' },
-      { name: t('layoutAppsidebar.tasks'), path: '/tasks', iconName: 'CheckCircleIcon' },
+      { name: t('layoutAppsidebar.projects'), path: '/projects', icon: FolderIcon },
+      { name: t('layoutAppsidebar.tasks'), path: '/tasks', icon: CheckCircleIcon },
     ],
   },
   {
     label: t('layoutAppsidebar.configuration'),
     items: [
-      { name: t('layoutAppsidebar.credentials'), path: '/credentials', iconName: 'KeyIcon' },
-      { name: t('layoutAppsidebar.skills'), path: '/skills', iconName: 'SparklesIcon' },
-      { name: t('layoutAppsidebar.mcp'), path: '/mcp', iconName: 'CubeIcon' },
-      { name: t('layoutAppsidebar.commands'), path: '/commands', iconName: 'Squares2X2Icon' },
+      { name: t('layoutAppsidebar.credentials'), path: '/credentials', icon: KeyIcon },
+      { name: t('layoutAppsidebar.skills'), path: '/skills', icon: SparklesIcon },
+      { name: t('layoutAppsidebar.mcp'), path: '/mcp', icon: CubeIcon },
+      { name: t('layoutAppsidebar.commands'), path: '/commands', icon: Squares2X2Icon },
     ],
   },
   {
     label: '',
     items: [
-      { name: t('layoutAppsidebar.settings'), path: '/settings', iconName: 'Cog6ToothIcon' },
+      { name: t('layoutAppsidebar.settings'), path: '/settings', icon: Cog6ToothIcon },
     ],
   },
-];
-
-const navGroups = computed(() => {
-  return navGroupsConfig.map((group) => ({
-    ...group,
-    items: group.items.map((item) => ({
-      ...item,
-      iconComponent: iconMap[item.iconName],
-    })),
-  }));
-});
+]);
 
 const isActive = (path: string) => {
   if (path === '/dashboard') {

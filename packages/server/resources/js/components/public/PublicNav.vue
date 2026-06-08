@@ -21,6 +21,7 @@
       </nav>
 
       <div class="nav-right">
+        <LanguageSwitcher variant="ghost" :show-label="false" />
         <ThemeToggle variant="ghost" />
         <router-link to="/login" class="nav-link hidden md:inline-flex">
           {{ t('common.login') }}
@@ -78,6 +79,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import Logo from '@/components/common/Logo.vue';
 import ThemeToggle from '@/components/common/ThemeToggle.vue';
+import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue';
 
 const { t } = useI18n();
 
