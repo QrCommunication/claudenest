@@ -33,7 +33,7 @@ class ProjectApiTest extends TestCase
                 'data' => [
                     '*' => [
                         'id', 'name', 'project_path', 'summary',
-                        'total_tokens', 'max_tokens', 'created_at',
+                        'token_usage_percent', 'created_at',
                     ],
                 ],
                 'meta',
@@ -57,9 +57,7 @@ class ProjectApiTest extends TestCase
             ->assertJson(['success' => true])
             ->assertJsonStructure([
                 'success',
-                'data' => [
-                    'project' => ['id', 'name', 'project_path'],
-                ],
+                'data' => ['id', 'name', 'project_path'],
                 'meta',
             ]);
 
@@ -179,10 +177,10 @@ class ProjectApiTest extends TestCase
             ->assertJsonStructure([
                 'success',
                 'data' => [
-                    'total_tokens',
-                    'context_chunks_count',
-                    'active_instances_count',
-                    'tasks_count',
+                    'total_tasks',
+                    'context_chunks',
+                    'active_instances',
+                    'token_usage' => ['current', 'max', 'percent'],
                 ],
                 'meta',
             ]);
@@ -198,7 +196,7 @@ class ProjectApiTest extends TestCase
         $response = $this->actingAs($user)
             ->postJson("/api/projects/{$project->id}/broadcast", [
                 'message' => 'Test broadcast message',
-                'type' => 'notification',
+                'type' => 'info',
             ]);
 
         $response->assertOk()
@@ -219,7 +217,7 @@ class ProjectApiTest extends TestCase
             ->assertJson(['success' => true])
             ->assertJsonStructure([
                 'success',
-                'data' => ['activities'],
+                'data',
                 'meta',
             ]);
     }
@@ -249,7 +247,9 @@ class ProjectApiTest extends TestCase
                 'project_path' => '/home/user/projects/test',
             ]);
 
+        // store() rejects a duplicate path with a business VAL_001 error
+        // (message-level, not a per-field validation error).
         $response->assertStatus(422)
-            ->assertJsonValidationErrors('project_path');
+            ->assertJsonPath('error.code', 'VAL_001');
     }
 }

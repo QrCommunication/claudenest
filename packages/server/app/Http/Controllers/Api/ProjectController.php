@@ -492,7 +492,7 @@ class ProjectController extends Controller
 
         $validated = $request->validate([
             'message' => 'required|string',
-            'type' => 'string|in:info,warning,error,success|default:info',
+            'type' => 'sometimes|string|in:info,warning,error,success',
             'target_instances' => 'array',
         ]);
 
