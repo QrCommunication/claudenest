@@ -11,6 +11,7 @@
 
 import { EventEmitter } from 'events';
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import { execFileSync, spawn, type ChildProcess } from 'child_process';
 import { TmuxOutputParser, type TmuxOutputEvent } from './tmux-parser.js';
@@ -271,6 +272,12 @@ export class TmuxSession extends EventEmitter {
     fs.mkdirSync(configDir, { recursive: true, mode: 0o700 });
     this.isolatedConfigDir = configDir;
 
+    // Isolating CLAUDE_CONFIG_DIR also hides the user's skills, plugins,
+    // settings and CLAUDE.md (all under the real ~/.claude). Symlink them into
+    // the isolated dir so the session keeps full functionality — only the
+    // credentials stay isolated (we write our own .credentials.json below).
+    this.linkUserConfigInto(configDir);
+
     // For OAuth: write .credentials.json in Claude Code's native format
     if (hasOAuth) {
       const credsFile = path.join(configDir, '.credentials.json');
@@ -291,6 +298,36 @@ export class TmuxSession extends EventEmitter {
       { configDir, hasApiKey, hasOAuth },
       'Credential isolation: created isolated config dir',
     );
+  }
+
+  /**
+   * Symlink the user's real Claude config (skills, plugins, settings, CLAUDE.md,
+   * statsig, etc.) into an isolated config dir, EXCEPT `.credentials.json` which
+   * stays isolated. Symlinks (not copies) keep it cheap and always up to date;
+   * cleanup removes the links only, never the real config.
+   */
+  private linkUserConfigInto(configDir: string): void {
+    const sourceHome =
+      process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude');
+    if (path.resolve(sourceHome) === path.resolve(configDir)) return;
+
+    let entries: string[];
+    try {
+      entries = fs.readdirSync(sourceHome);
+    } catch {
+      return; // no user config to share
+    }
+
+    for (const entry of entries) {
+      if (entry === '.credentials.json') continue; // keep credentials isolated
+      const dest = path.join(configDir, entry);
+      if (fs.existsSync(dest)) continue; // don't clobber anything we wrote
+      try {
+        fs.symlinkSync(path.join(sourceHome, entry), dest);
+      } catch (error) {
+        this.logger.debug({ err: error, entry }, 'Could not link config entry');
+      }
+    }
   }
 
   private attachControlMode(): void {
