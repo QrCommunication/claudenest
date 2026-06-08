@@ -19,7 +19,7 @@ class TaskApiTest extends TestCase
         $user = User::factory()->create();
         $machine = Machine::factory()->for($user)->create();
         $project = SharedProject::factory()->for($user)->for($machine)->create();
-        $tasks = SharedTask::factory()->count(3)->for($project)->create();
+        $tasks = SharedTask::factory()->count(3)->for($project, 'project')->create();
 
         // Other project's tasks
         SharedTask::factory()->count(2)->create();
@@ -62,9 +62,7 @@ class TaskApiTest extends TestCase
             ->assertJson(['success' => true])
             ->assertJsonStructure([
                 'success',
-                'data' => [
-                    'task' => ['id', 'title', 'status', 'priority'],
-                ],
+                'data' => ['id', 'title', 'status', 'priority'],
                 'meta',
             ]);
 
@@ -88,8 +86,10 @@ class TaskApiTest extends TestCase
                 'priority' => 'invalid-priority',
             ]);
 
+        // Custom validation error envelope (error.code = VAL_001, error.details).
         $response->assertStatus(422)
-            ->assertJsonValidationErrors('priority');
+            ->assertJsonPath('error.code', 'VAL_001')
+            ->assertJsonStructure(['error' => ['details' => ['priority']]]);
     }
 
     /** @test */
@@ -98,7 +98,7 @@ class TaskApiTest extends TestCase
         $user = User::factory()->create();
         $machine = Machine::factory()->for($user)->create();
         $project = SharedProject::factory()->for($user)->for($machine)->create();
-        $task = SharedTask::factory()->for($project)->create();
+        $task = SharedTask::factory()->for($project, 'project')->create();
 
         $response = $this->actingAs($user)
             ->getJson("/api/tasks/{$task->id}");
@@ -131,7 +131,7 @@ class TaskApiTest extends TestCase
         $user = User::factory()->create();
         $machine = Machine::factory()->for($user)->create();
         $project = SharedProject::factory()->for($user)->for($machine)->create();
-        $task = SharedTask::factory()->for($project)->create([
+        $task = SharedTask::factory()->for($project, 'project')->create([
             'priority' => 'low',
         ]);
 
@@ -162,7 +162,7 @@ class TaskApiTest extends TestCase
         $user = User::factory()->create();
         $machine = Machine::factory()->for($user)->create();
         $project = SharedProject::factory()->for($user)->for($machine)->create();
-        $task = SharedTask::factory()->for($project)->create();
+        $task = SharedTask::factory()->for($project, 'project')->create();
 
         $response = $this->actingAs($user)
             ->deleteJson("/api/tasks/{$task->id}");
@@ -181,7 +181,7 @@ class TaskApiTest extends TestCase
         $user = User::factory()->create();
         $machine = Machine::factory()->for($user)->create();
         $project = SharedProject::factory()->for($user)->for($machine)->create();
-        $task = SharedTask::factory()->for($project)->create(['status' => 'pending']);
+        $task = SharedTask::factory()->for($project, 'project')->create(['status' => 'pending']);
 
         $response = $this->actingAs($user)
             ->postJson("/api/tasks/{$task->id}/claim", [
@@ -209,7 +209,7 @@ class TaskApiTest extends TestCase
         $user = User::factory()->create();
         $machine = Machine::factory()->for($user)->create();
         $project = SharedProject::factory()->for($user)->for($machine)->create();
-        $task = SharedTask::factory()->for($project)->claimed()->create();
+        $task = SharedTask::factory()->for($project, 'project')->claimed()->create();
 
         $response = $this->actingAs($user)
             ->postJson("/api/tasks/{$task->id}/claim", [
@@ -226,7 +226,7 @@ class TaskApiTest extends TestCase
         $user = User::factory()->create();
         $machine = Machine::factory()->for($user)->create();
         $project = SharedProject::factory()->for($user)->for($machine)->create();
-        $task = SharedTask::factory()->for($project)->claimed()->create([
+        $task = SharedTask::factory()->for($project, 'project')->claimed()->create([
             'assigned_to' => 'instance-abc123',
         ]);
 
@@ -249,14 +249,14 @@ class TaskApiTest extends TestCase
         $user = User::factory()->create();
         $machine = Machine::factory()->for($user)->create();
         $project = SharedProject::factory()->for($user)->for($machine)->create();
-        $task = SharedTask::factory()->for($project)->claimed()->create([
+        $task = SharedTask::factory()->for($project, 'project')->claimed()->create([
             'assigned_to' => 'instance-abc123',
         ]);
 
         $response = $this->actingAs($user)
             ->postJson("/api/tasks/{$task->id}/complete", [
                 'instance_id' => 'instance-abc123',
-                'completion_summary' => 'Successfully implemented authentication',
+                'summary' => 'Successfully implemented authentication',
                 'files_modified' => ['src/auth.ts'],
             ]);
 
@@ -280,8 +280,8 @@ class TaskApiTest extends TestCase
         $machine = Machine::factory()->for($user)->create();
         $project = SharedProject::factory()->for($user)->for($machine)->create();
         
-        SharedTask::factory()->for($project)->create(['status' => 'pending', 'priority' => 'low']);
-        $highPriorityTask = SharedTask::factory()->for($project)->create(['status' => 'pending', 'priority' => 'high']);
+        SharedTask::factory()->for($project, 'project')->create(['status' => 'pending', 'priority' => 'low']);
+        $highPriorityTask = SharedTask::factory()->for($project, 'project')->create(['status' => 'pending', 'priority' => 'high']);
 
         $response = $this->actingAs($user)
             ->getJson("/api/projects/{$project->id}/tasks/next-available");
@@ -303,9 +303,9 @@ class TaskApiTest extends TestCase
         $machine = Machine::factory()->for($user)->create();
         $project = SharedProject::factory()->for($user)->for($machine)->create();
         
-        SharedTask::factory()->for($project)->create(['status' => 'pending']);
-        SharedTask::factory()->for($project)->create(['status' => 'pending']);
-        SharedTask::factory()->for($project)->completed()->create();
+        SharedTask::factory()->for($project, 'project')->create(['status' => 'pending']);
+        SharedTask::factory()->for($project, 'project')->create(['status' => 'pending']);
+        SharedTask::factory()->for($project, 'project')->completed()->create();
 
         $response = $this->actingAs($user)
             ->getJson("/api/projects/{$project->id}/tasks?status=pending");

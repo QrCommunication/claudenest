@@ -29,6 +29,13 @@ class ContextChunk extends Model
     protected $table = 'context_chunks';
 
     /**
+     * The context_chunks table has created_at but no updated_at column, so
+     * disable updated_at management to avoid "column updated_at does not exist"
+     * on insert/update.
+     */
+    public const UPDATED_AT = null;
+
+    /**
      * The attributes that are mass assignable.
      */
     protected $fillable = [
