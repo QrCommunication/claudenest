@@ -6,9 +6,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\DiscoveredSessionResource;
+use App\Http\Resources\SessionResource;
 use App\Models\DiscoveredSession;
 use App\Models\Machine;
 use App\Services\AgentGateway;
+use App\Services\CredentialService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -142,36 +144,67 @@ class ClaudeSessionController extends Controller
      */
     public function adopt(Request $request, Machine $machine, string $sessionId): JsonResponse
     {
-        $session = $this->resolveSession($request, $machine, $sessionId);
-        if ($session instanceof JsonResponse) {
-            return $session;
+        $discovered = $this->resolveSession($request, $machine, $sessionId);
+        if ($discovered instanceof JsonResponse) {
+            return $discovered;
         }
         if ($machine->status !== 'online') {
             return $this->errorResponse('MACHINE_OFFLINE', 'Machine is not online', 422);
         }
 
+        $validated = $request->validate([
+            'credential_id' => 'nullable|uuid|exists:claude_credentials,id',
+        ]);
+
+        // Create the Session row first so the resumed tmux session's output is
+        // bound to a terminal the dashboard can attach to (onSessionOutput
+        // resolves Session::find($agentSessionId)).
+        $session = $machine->sessions()->create([
+            'user_id' => $request->user()->id,
+            'mode' => 'interactive',
+            'project_path' => $discovered->cwd,
+            'credential_id' => $validated['credential_id'] ?? null,
+            'status' => 'created',
+            'pty_size' => ['cols' => 120, 'rows' => 40],
+        ]);
+
+        $credentialEnv = [];
+        if ($session->credential_id) {
+            $credential = $request->user()->credentials()->find($session->credential_id);
+            if ($credential) {
+                $credentialEnv = app(CredentialService::class)->getSessionEnv($credential);
+            }
+        }
+
         $result = AgentGateway::sendAndWait($machine->id, 'claude_sessions:adopt', [
-            'sessionId' => $sessionId,
-            'cwd' => $session->cwd,
+            'sessionId' => $sessionId,           // Claude session to resume
+            'agentSessionId' => $session->id,    // server-owned id for terminal I/O
+            'cwd' => $discovered->cwd,
+            'credentialEnv' => $credentialEnv,
         ], 20);
 
         if ($result === null) {
+            $session->delete();
             return $this->errorResponse('AGENT_TIMEOUT', 'Machine did not respond in time', 504);
         }
         if (!empty($result['error'])) {
+            $session->delete();
             return $this->errorResponse('ADOPT_ERROR', $result['error'], 422);
         }
 
-        $session->update([
+        $discovered->update([
             'adopted' => true,
-            'agent_session_id' => $result['agentSessionId'] ?? null,
+            'agent_session_id' => $session->id,
         ]);
+
+        broadcast(new \App\Events\SessionCreated($session))->toOthers();
 
         return response()->json([
             'success' => true,
             'data' => [
                 'session_id' => $sessionId,
-                'agent_session_id' => $result['agentSessionId'] ?? null,
+                'agent_session_id' => $session->id,
+                'session' => new SessionResource($session),
             ],
             'meta' => $this->meta($request),
         ]);

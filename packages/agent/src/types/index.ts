@@ -636,6 +636,8 @@ export interface ClaudeSessionAdoptRequest {
   requestId: string;
   sessionId: string;
   cwd: string;
+  /** Server-owned Session id to bind the resumed tmux session to (terminal I/O). */
+  agentSessionId?: string;
   credentialEnv?: Record<string, string>;
 }
 

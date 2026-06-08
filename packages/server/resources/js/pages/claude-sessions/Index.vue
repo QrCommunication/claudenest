@@ -157,6 +157,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { useMachinesStore } from '@/stores/machines';
@@ -165,6 +166,7 @@ import { useToast } from '@/composables/useToast';
 import type { DiscoveredSession } from '@/types/claudeSessions';
 
 const { t } = useI18n();
+const router = useRouter();
 const toast = useToast();
 const machinesStore = useMachinesStore();
 const { onlineMachines } = storeToRefs(machinesStore);
@@ -241,8 +243,12 @@ async function handleClose(): Promise<void> {
 async function handleAdopt(s: DiscoveredSession): Promise<void> {
   adopting.value = s.session_id;
   try {
-    await store.adopt(selectedMachineId.value, s.session_id);
+    const agentSessionId = await store.adopt(selectedMachineId.value, s.session_id);
     toast.success(t('claudeSessions.toasts.adopted'));
+    if (agentSessionId) {
+      // The resumed session is now a live terminal — open it.
+      router.push({ name: 'session.terminal', params: { id: agentSessionId } });
+    }
   } catch {
     toast.error(t('claudeSessions.toasts.adoptFailed'));
   } finally {

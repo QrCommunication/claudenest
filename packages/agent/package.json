@@ -1,6 +1,6 @@
 {
   "name": "@claudenest/agent",
-  "version": "2.6.0",
+  "version": "2.6.1",
   "description": "ClaudeNest Agent - Local daemon for remote orchestration of Claude Code instances",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -66,7 +66,7 @@
     "eslint": "^9.16.0",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
-    "vitest": "^2.1.6"
+    "vitest": "^3.2.6"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8",

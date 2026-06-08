@@ -81,7 +81,10 @@ export function createDiscoveryHandlers(context: HandlerContext) {
     try {
       // Relaunch the existing session under the agent's tmux so it becomes
       // fully interactive online. `claude --resume <id>` preserves history.
-      const agentSessionId = `adopt-${sessionId.slice(0, 8)}-${Date.now().toString(36)}`;
+      // The server provides the Session id so terminal I/O binds to a row it
+      // can find in onSessionOutput (falls back to a synthetic id otherwise).
+      const agentSessionId =
+        payload.agentSessionId ?? `adopt-${sessionId.slice(0, 8)}-${Date.now().toString(36)}`;
       await sessionManager.createSession(agentSessionId, {
         projectPath: cwd,
         mode: 'interactive',
