@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Api;
 
+use PHPUnit\Framework\Attributes\Test;
+
 use App\Models\Machine;
 use App\Models\Session;
 use App\Models\User;
@@ -12,7 +14,7 @@ class SessionApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function user_can_list_sessions_for_their_machine(): void
     {
         $user = User::factory()->create();
@@ -40,7 +42,7 @@ class SessionApiTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_create_session(): void
     {
         $user = User::factory()->create();
@@ -72,7 +74,7 @@ class SessionApiTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function session_creation_validates_mode(): void
     {
         $user = User::factory()->create();
@@ -94,7 +96,7 @@ class SessionApiTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_view_their_session(): void
     {
         $user = User::factory()->create();
@@ -120,8 +122,8 @@ class SessionApiTest extends TestCase
      * fix this threw a TypeError ("Return value must be of type ?int, float
      * returned") on every running session, producing a 500 on GET /sessions/{id}.
      *
-     * @test
      */
+    #[Test]
     public function viewing_a_running_session_returns_integer_duration(): void
     {
         $user = User::factory()->create();
@@ -143,7 +145,7 @@ class SessionApiTest extends TestCase
         $this->assertIsString($response->json('data.formatted_duration'));
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_view_other_users_session(): void
     {
         $user = User::factory()->create();
@@ -155,7 +157,7 @@ class SessionApiTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_terminate_their_session(): void
     {
         $user = User::factory()->create();
@@ -172,7 +174,7 @@ class SessionApiTest extends TestCase
         $this->assertEquals('terminated', $session->status);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_terminate_other_users_session(): void
     {
         $user = User::factory()->create();
@@ -187,7 +189,7 @@ class SessionApiTest extends TestCase
         $this->assertEquals('running', $otherSession->status);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_send_input_to_session(): void
     {
         $user = User::factory()->create();
@@ -203,7 +205,7 @@ class SessionApiTest extends TestCase
             ->assertJson(['success' => true]);
     }
 
-    /** @test */
+    #[Test]
     public function cannot_send_input_to_terminated_session(): void
     {
         $user = User::factory()->create();
@@ -220,7 +222,7 @@ class SessionApiTest extends TestCase
         $response->assertStatus(404);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_resize_session_pty(): void
     {
         $user = User::factory()->create();
@@ -237,7 +239,7 @@ class SessionApiTest extends TestCase
             ->assertJson(['success' => true]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_get_session_logs(): void
     {
         $user = User::factory()->create();
@@ -258,7 +260,7 @@ class SessionApiTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function can_filter_sessions_by_status(): void
     {
         $user = User::factory()->create();
@@ -274,7 +276,7 @@ class SessionApiTest extends TestCase
             ->assertJsonCount(2, 'data');
     }
 
-    /** @test */
+    #[Test]
     public function unauthenticated_user_cannot_access_sessions(): void
     {
         $machine = Machine::factory()->create();

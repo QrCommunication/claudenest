@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Api;
 
+use PHPUnit\Framework\Attributes\Test;
+
 use App\Models\FileLock;
 use App\Models\Machine;
 use App\Models\SharedProject;
@@ -13,7 +15,7 @@ class FileLockApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function user_can_list_locks_for_their_project(): void
     {
         $user = User::factory()->create();
@@ -42,7 +44,7 @@ class FileLockApiTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function instance_can_lock_file(): void
     {
         $user = User::factory()->create();
@@ -72,7 +74,7 @@ class FileLockApiTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function cannot_lock_already_locked_file(): void
     {
         $user = User::factory()->create();
@@ -94,7 +96,7 @@ class FileLockApiTest extends TestCase
             ->assertJson(['success' => false]);
     }
 
-    /** @test */
+    #[Test]
     public function can_lock_expired_file_lock(): void
     {
         $user = User::factory()->create();
@@ -116,7 +118,7 @@ class FileLockApiTest extends TestCase
             ->assertJson(['success' => true]);
     }
 
-    /** @test */
+    #[Test]
     public function instance_can_check_if_file_is_locked(): void
     {
         $user = User::factory()->create();
@@ -143,7 +145,7 @@ class FileLockApiTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function instance_can_extend_lock_duration(): void
     {
         $user = User::factory()->create();
@@ -172,7 +174,7 @@ class FileLockApiTest extends TestCase
         $this->assertTrue($lock->expires_at->greaterThan($oldExpiresAt));
     }
 
-    /** @test */
+    #[Test]
     public function instance_can_release_lock(): void
     {
         $user = User::factory()->create();
@@ -198,7 +200,7 @@ class FileLockApiTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function cannot_release_lock_held_by_another_instance(): void
     {
         $user = User::factory()->create();
@@ -221,7 +223,7 @@ class FileLockApiTest extends TestCase
         $response->assertStatus(404);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_force_release_lock(): void
     {
         $user = User::factory()->create();
@@ -246,7 +248,7 @@ class FileLockApiTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function instance_can_lock_multiple_files(): void
     {
         $user = User::factory()->create();
@@ -273,7 +275,7 @@ class FileLockApiTest extends TestCase
         $this->assertDatabaseCount('file_locks', 3);
     }
 
-    /** @test */
+    #[Test]
     public function instance_can_release_all_its_locks(): void
     {
         $user = User::factory()->create();
@@ -301,7 +303,7 @@ class FileLockApiTest extends TestCase
         $this->assertDatabaseCount('file_locks', 1);
     }
 
-    /** @test */
+    #[Test]
     public function unauthenticated_user_cannot_access_locks(): void
     {
         $project = SharedProject::factory()->create();

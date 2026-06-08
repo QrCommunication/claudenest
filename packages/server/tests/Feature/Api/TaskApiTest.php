@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Api;
 
+use PHPUnit\Framework\Attributes\Test;
+
 use App\Models\Machine;
 use App\Models\SharedProject;
 use App\Models\SharedTask;
@@ -13,7 +15,7 @@ class TaskApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function user_can_list_tasks_for_their_project(): void
     {
         $user = User::factory()->create();
@@ -42,7 +44,7 @@ class TaskApiTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_create_task(): void
     {
         $user = User::factory()->create();
@@ -73,7 +75,7 @@ class TaskApiTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function task_creation_validates_priority(): void
     {
         $user = User::factory()->create();
@@ -92,7 +94,7 @@ class TaskApiTest extends TestCase
             ->assertJsonStructure(['error' => ['details' => ['priority']]]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_view_task(): void
     {
         $user = User::factory()->create();
@@ -113,7 +115,7 @@ class TaskApiTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_view_task_from_other_users_project(): void
     {
         $user = User::factory()->create();
@@ -125,7 +127,7 @@ class TaskApiTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_update_task(): void
     {
         $user = User::factory()->create();
@@ -156,7 +158,7 @@ class TaskApiTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_delete_task(): void
     {
         $user = User::factory()->create();
@@ -175,7 +177,7 @@ class TaskApiTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function instance_can_claim_pending_task(): void
     {
         $user = User::factory()->create();
@@ -203,7 +205,7 @@ class TaskApiTest extends TestCase
         $this->assertNotNull($task->claimed_at);
     }
 
-    /** @test */
+    #[Test]
     public function cannot_claim_already_claimed_task(): void
     {
         $user = User::factory()->create();
@@ -220,7 +222,7 @@ class TaskApiTest extends TestCase
             ->assertJson(['success' => false]);
     }
 
-    /** @test */
+    #[Test]
     public function instance_can_release_task(): void
     {
         $user = User::factory()->create();
@@ -243,7 +245,7 @@ class TaskApiTest extends TestCase
         $this->assertNull($task->assigned_to);
     }
 
-    /** @test */
+    #[Test]
     public function instance_can_complete_task(): void
     {
         $user = User::factory()->create();
@@ -273,7 +275,7 @@ class TaskApiTest extends TestCase
         $this->assertNotNull($task->completed_at);
     }
 
-    /** @test */
+    #[Test]
     public function can_get_next_available_task(): void
     {
         $user = User::factory()->create();
@@ -296,7 +298,7 @@ class TaskApiTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function can_filter_tasks_by_status(): void
     {
         $user = User::factory()->create();
@@ -314,7 +316,7 @@ class TaskApiTest extends TestCase
             ->assertJsonCount(2, 'data');
     }
 
-    /** @test */
+    #[Test]
     public function unauthenticated_user_cannot_access_tasks(): void
     {
         $project = SharedProject::factory()->create();

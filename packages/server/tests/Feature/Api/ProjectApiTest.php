@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Api;
 
+use PHPUnit\Framework\Attributes\Test;
+
 use App\Models\Machine;
 use App\Models\SharedProject;
 use App\Models\User;
@@ -12,7 +14,7 @@ class ProjectApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function user_can_list_their_projects(): void
     {
         $user = User::factory()->create();
@@ -40,7 +42,7 @@ class ProjectApiTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_create_project(): void
     {
         $user = User::factory()->create();
@@ -68,7 +70,7 @@ class ProjectApiTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_view_their_project(): void
     {
         $user = User::factory()->create();
@@ -88,7 +90,7 @@ class ProjectApiTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_view_other_users_project(): void
     {
         $user = User::factory()->create();
@@ -100,7 +102,7 @@ class ProjectApiTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_update_their_project(): void
     {
         $user = User::factory()->create();
@@ -130,7 +132,7 @@ class ProjectApiTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_update_other_users_project(): void
     {
         $user = User::factory()->create();
@@ -144,7 +146,7 @@ class ProjectApiTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_delete_their_project(): void
     {
         $user = User::factory()->create();
@@ -162,7 +164,7 @@ class ProjectApiTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_get_project_statistics(): void
     {
         $user = User::factory()->create();
@@ -186,7 +188,7 @@ class ProjectApiTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_broadcast_message_to_project_instances(): void
     {
         $user = User::factory()->create();
@@ -203,7 +205,7 @@ class ProjectApiTest extends TestCase
             ->assertJson(['success' => true]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_get_project_activity_log(): void
     {
         $user = User::factory()->create();
@@ -222,7 +224,7 @@ class ProjectApiTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function unauthenticated_user_cannot_access_projects(): void
     {
         $machine = Machine::factory()->create();
@@ -232,7 +234,7 @@ class ProjectApiTest extends TestCase
         $response->assertStatus(401);
     }
 
-    /** @test */
+    #[Test]
     public function project_path_must_be_unique_per_machine(): void
     {
         $user = User::factory()->create();

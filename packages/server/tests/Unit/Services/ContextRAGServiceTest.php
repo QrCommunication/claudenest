@@ -2,6 +2,8 @@
 
 namespace Tests\Unit\Services;
 
+use PHPUnit\Framework\Attributes\Test;
+
 use App\Models\ContextChunk;
 use App\Models\SharedProject;
 use App\Services\ContextRAGService;
@@ -32,7 +34,7 @@ class ContextRAGServiceTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function can_add_context_chunk_with_embedding(): void
     {
         $project = SharedProject::factory()->create();
@@ -64,7 +66,7 @@ class ContextRAGServiceTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function can_add_context_without_embedding_when_service_unavailable(): void
     {
         $project = SharedProject::factory()->create();
@@ -87,7 +89,7 @@ class ContextRAGServiceTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function search_returns_array_of_results(): void
     {
         $project = SharedProject::factory()->create();
@@ -109,7 +111,7 @@ class ContextRAGServiceTest extends TestCase
         $this->assertLessThanOrEqual(3, count($results));
     }
 
-    /** @test */
+    #[Test]
     public function search_returns_empty_when_no_matching_context(): void
     {
         $project = SharedProject::factory()->create();
@@ -128,7 +130,7 @@ class ContextRAGServiceTest extends TestCase
         $this->assertEmpty($results);
     }
 
-    /** @test */
+    #[Test]
     public function can_compile_context_for_instance(): void
     {
         $project = SharedProject::factory()->create();
@@ -144,7 +146,7 @@ class ContextRAGServiceTest extends TestCase
         $this->assertNotEmpty($compiled);
     }
 
-    /** @test */
+    #[Test]
     public function compiled_context_respects_token_limit(): void
     {
         $project = SharedProject::factory()->create(['max_tokens' => 1000]);
@@ -160,7 +162,7 @@ class ContextRAGServiceTest extends TestCase
         $this->assertLessThan(600, $estimatedTokens);
     }
 
-    /** @test */
+    #[Test]
     public function can_prune_expired_context(): void
     {
         $project = SharedProject::factory()->create();
@@ -179,7 +181,7 @@ class ContextRAGServiceTest extends TestCase
         $this->assertDatabaseCount('context_chunks', 2);
     }
 
-    /** @test */
+    #[Test]
     public function can_update_context_importance_scores(): void
     {
         $project = SharedProject::factory()->create();
@@ -194,7 +196,7 @@ class ContextRAGServiceTest extends TestCase
         $this->assertEquals(0.9, $chunk->importance_score);
     }
 
-    /** @test */
+    #[Test]
     public function can_get_context_statistics(): void
     {
         $project = SharedProject::factory()->create();

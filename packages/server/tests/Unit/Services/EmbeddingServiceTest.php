@@ -2,6 +2,8 @@
 
 namespace Tests\Unit\Services;
 
+use PHPUnit\Framework\Attributes\Test;
+
 use App\Services\EmbeddingService;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -17,7 +19,7 @@ class EmbeddingServiceTest extends TestCase
         $this->service = new EmbeddingService();
     }
 
-    /** @test */
+    #[Test]
     public function can_generate_embedding_from_text(): void
     {
         Http::fake([
@@ -34,7 +36,7 @@ class EmbeddingServiceTest extends TestCase
         $this->assertIsFloat($embedding[0]);
     }
 
-    /** @test */
+    #[Test]
     public function returns_null_when_ollama_unavailable(): void
     {
         Http::fake([
@@ -47,7 +49,7 @@ class EmbeddingServiceTest extends TestCase
         $this->assertNull($embedding);
     }
 
-    /** @test */
+    #[Test]
     public function can_check_if_service_is_available(): void
     {
         Http::fake([
@@ -59,7 +61,7 @@ class EmbeddingServiceTest extends TestCase
         $this->assertTrue($isAvailable);
     }
 
-    /** @test */
+    #[Test]
     public function service_unavailable_when_ollama_not_running(): void
     {
         Http::fake([
@@ -71,7 +73,7 @@ class EmbeddingServiceTest extends TestCase
         $this->assertFalse($isAvailable);
     }
 
-    /** @test */
+    #[Test]
     public function truncates_long_text_before_embedding(): void
     {
         Http::fake([
@@ -87,7 +89,7 @@ class EmbeddingServiceTest extends TestCase
         $this->assertCount(384, $embedding);
     }
 
-    /** @test */
+    #[Test]
     public function handles_empty_text(): void
     {
         $embedding = $this->service->generate('');
@@ -95,7 +97,7 @@ class EmbeddingServiceTest extends TestCase
         $this->assertNull($embedding);
     }
 
-    /** @test */
+    #[Test]
     public function can_batch_generate_embeddings(): void
     {
         Http::fake([
@@ -117,7 +119,7 @@ class EmbeddingServiceTest extends TestCase
         $this->assertCount(384, $embeddings[0]);
     }
 
-    /** @test */
+    #[Test]
     public function normalizes_embedding_vectors(): void
     {
         Http::fake([

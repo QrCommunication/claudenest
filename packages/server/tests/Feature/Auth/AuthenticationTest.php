@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Auth;
 
+use PHPUnit\Framework\Attributes\Test;
+
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -10,7 +12,7 @@ class AuthenticationTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function user_can_register_with_valid_credentials(): void
     {
         $response = $this->postJson('/api/auth/register', [
@@ -36,7 +38,7 @@ class AuthenticationTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function registration_fails_with_invalid_email(): void
     {
         $response = $this->postJson('/api/auth/register', [
@@ -52,7 +54,7 @@ class AuthenticationTest extends TestCase
             ->assertJsonStructure(['error' => ['details' => ['email']]]);
     }
 
-    /** @test */
+    #[Test]
     public function registration_fails_with_mismatched_passwords(): void
     {
         $response = $this->postJson('/api/auth/register', [
@@ -68,7 +70,7 @@ class AuthenticationTest extends TestCase
             ->assertJsonStructure(['error' => ['details' => ['password']]]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_login_with_valid_credentials(): void
     {
         $user = User::factory()->create([
@@ -93,7 +95,7 @@ class AuthenticationTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function login_fails_with_invalid_credentials(): void
     {
         User::factory()->create([
@@ -110,7 +112,7 @@ class AuthenticationTest extends TestCase
             ->assertJson(['success' => false]);
     }
 
-    /** @test */
+    #[Test]
     public function login_fails_with_nonexistent_user(): void
     {
         $response = $this->postJson('/api/auth/login', [
@@ -122,7 +124,7 @@ class AuthenticationTest extends TestCase
             ->assertJson(['success' => false]);
     }
 
-    /** @test */
+    #[Test]
     public function authenticated_user_can_get_their_profile(): void
     {
         $user = User::factory()->create();
@@ -144,7 +146,7 @@ class AuthenticationTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function unauthenticated_user_cannot_access_profile(): void
     {
         $response = $this->getJson('/api/auth/me');
@@ -152,7 +154,7 @@ class AuthenticationTest extends TestCase
         $response->assertStatus(401);
     }
 
-    /** @test */
+    #[Test]
     public function authenticated_user_can_logout(): void
     {
         $user = User::factory()->create();
@@ -164,7 +166,7 @@ class AuthenticationTest extends TestCase
             ->assertJson(['success' => true]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_refresh_token(): void
     {
         $user = User::factory()->create();

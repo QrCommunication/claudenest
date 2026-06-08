@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Api;
 
+use PHPUnit\Framework\Attributes\Test;
+
 use App\Models\Machine;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -11,7 +13,7 @@ class MachineApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function user_can_list_their_machines(): void
     {
         $user = User::factory()->create();
@@ -40,7 +42,7 @@ class MachineApiTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_create_machine(): void
     {
         $user = User::factory()->create();
@@ -70,7 +72,7 @@ class MachineApiTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function machine_creation_validates_platform(): void
     {
         $user = User::factory()->create();
@@ -88,7 +90,7 @@ class MachineApiTest extends TestCase
             ->assertJsonStructure(['error' => ['details' => ['platform']]]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_view_their_machine(): void
     {
         $user = User::factory()->create();
@@ -107,7 +109,7 @@ class MachineApiTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_view_other_users_machine(): void
     {
         $user = User::factory()->create();
@@ -119,7 +121,7 @@ class MachineApiTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_update_their_machine(): void
     {
         $user = User::factory()->create();
@@ -144,7 +146,7 @@ class MachineApiTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_update_other_users_machine(): void
     {
         $user = User::factory()->create();
@@ -158,7 +160,7 @@ class MachineApiTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_delete_their_machine(): void
     {
         $user = User::factory()->create();
@@ -175,7 +177,7 @@ class MachineApiTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_delete_other_users_machine(): void
     {
         $user = User::factory()->create();
@@ -191,7 +193,7 @@ class MachineApiTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_regenerate_machine_token(): void
     {
         $user = User::factory()->create();
@@ -213,7 +215,7 @@ class MachineApiTest extends TestCase
         $this->assertNotEquals($oldTokenHash, $machine->token_hash);
     }
 
-    /** @test */
+    #[Test]
     public function unauthenticated_user_cannot_access_machines(): void
     {
         $response = $this->getJson('/api/machines');
@@ -221,7 +223,7 @@ class MachineApiTest extends TestCase
         $response->assertStatus(401);
     }
 
-    /** @test */
+    #[Test]
     public function can_filter_machines_by_status(): void
     {
         $user = User::factory()->create();

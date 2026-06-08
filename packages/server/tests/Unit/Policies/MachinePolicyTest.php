@@ -2,6 +2,8 @@
 
 namespace Tests\Unit\Policies;
 
+use PHPUnit\Framework\Attributes\Test;
+
 use App\Models\Machine;
 use App\Models\User;
 use App\Policies\MachinePolicy;
@@ -21,7 +23,7 @@ class MachinePolicyTest extends TestCase
         $this->policy = new MachinePolicy();
     }
 
-    /** @test */
+    #[Test]
     public function user_can_view_any_of_their_machines(): void
     {
         $user = User::factory()->create();
@@ -31,7 +33,7 @@ class MachinePolicyTest extends TestCase
         $this->assertTrue($canViewAny);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_view_their_own_machine(): void
     {
         $user = User::factory()->create();
@@ -42,7 +44,7 @@ class MachinePolicyTest extends TestCase
         $this->assertTrue($canView);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_view_other_users_machine(): void
     {
         $user = User::factory()->create();
@@ -53,7 +55,7 @@ class MachinePolicyTest extends TestCase
         $this->assertFalse($canView);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_create_machine(): void
     {
         $user = User::factory()->create();
@@ -63,7 +65,7 @@ class MachinePolicyTest extends TestCase
         $this->assertTrue($canCreate);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_update_their_own_machine(): void
     {
         $user = User::factory()->create();
@@ -74,7 +76,7 @@ class MachinePolicyTest extends TestCase
         $this->assertTrue($canUpdate);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_update_other_users_machine(): void
     {
         $user = User::factory()->create();
@@ -85,7 +87,7 @@ class MachinePolicyTest extends TestCase
         $this->assertFalse($canUpdate);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_delete_their_own_machine(): void
     {
         $user = User::factory()->create();
@@ -96,7 +98,7 @@ class MachinePolicyTest extends TestCase
         $this->assertTrue($canDelete);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_delete_other_users_machine(): void
     {
         $user = User::factory()->create();
@@ -107,7 +109,7 @@ class MachinePolicyTest extends TestCase
         $this->assertFalse($canDelete);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_regenerate_token_for_their_machine(): void
     {
         $user = User::factory()->create();
@@ -118,7 +120,7 @@ class MachinePolicyTest extends TestCase
         $this->assertTrue($canRegenerate);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_regenerate_token_for_other_users_machine(): void
     {
         $user = User::factory()->create();
