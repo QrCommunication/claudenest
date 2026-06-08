@@ -110,7 +110,7 @@ class EmbeddingServiceTest extends TestCase
             'Third text',
         ];
 
-        $embeddings = $this->service->generateBatch($texts);
+        $embeddings = $this->service->batchGenerate($texts);
 
         $this->assertIsArray($embeddings);
         $this->assertCount(3, $embeddings);

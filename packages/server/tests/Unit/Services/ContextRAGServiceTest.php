@@ -25,7 +25,7 @@ class ContextRAGServiceTest extends TestCase
 
         $this->embeddingService = Mockery::mock(EmbeddingService::class);
         $this->summarizationService = Mockery::mock(SummarizationService::class);
-        
+
         $this->service = new ContextRAGService(
             $this->embeddingService,
             $this->summarizationService
@@ -36,12 +36,12 @@ class ContextRAGServiceTest extends TestCase
     public function can_add_context_chunk_with_embedding(): void
     {
         $project = SharedProject::factory()->create();
-        
+
         $this->embeddingService
             ->shouldReceive('isAvailable')
             ->once()
             ->andReturn(true);
-        
+
         $this->embeddingService
             ->shouldReceive('generate')
             ->once()
@@ -50,13 +50,13 @@ class ContextRAGServiceTest extends TestCase
         $chunk = $this->service->addContext(
             $project,
             'This is test context content',
-            'code',
+            'context_update',
             ['instance_id' => 'test-instance']
         );
 
         $this->assertNotNull($chunk);
         $this->assertEquals('This is test context content', $chunk->content);
-        $this->assertEquals('code', $chunk->type);
+        $this->assertEquals('context_update', $chunk->type);
         $this->assertEquals('test-instance', $chunk->instance_id);
         $this->assertDatabaseHas('context_chunks', [
             'id' => $chunk->id,
@@ -68,7 +68,7 @@ class ContextRAGServiceTest extends TestCase
     public function can_add_context_without_embedding_when_service_unavailable(): void
     {
         $project = SharedProject::factory()->create();
-        
+
         $this->embeddingService
             ->shouldReceive('isAvailable')
             ->once()
@@ -77,7 +77,7 @@ class ContextRAGServiceTest extends TestCase
         $chunk = $this->service->addContext(
             $project,
             'Test content',
-            'documentation'
+            'decision'
         );
 
         $this->assertNotNull($chunk);
@@ -88,36 +88,41 @@ class ContextRAGServiceTest extends TestCase
     }
 
     /** @test */
-    public function can_query_similar_context(): void
+    public function search_returns_array_of_results(): void
     {
         $project = SharedProject::factory()->create();
-        
-        // Create some context chunks
-        ContextChunk::factory()->count(5)->for($project)->create();
-        
+
+        ContextChunk::factory()->count(5)->for($project, 'project')->create();
+
+        $this->embeddingService
+            ->shouldReceive('isAvailable')
+            ->andReturn(true);
+
         $this->embeddingService
             ->shouldReceive('generate')
-            ->once()
             ->with('authentication')
             ->andReturn(array_fill(0, 384, 0.1));
 
-        $results = $this->service->query($project, 'authentication', limit: 3);
+        $results = $this->service->search($project->id, 'authentication', 3);
 
         $this->assertIsArray($results);
         $this->assertLessThanOrEqual(3, count($results));
     }
 
     /** @test */
-    public function query_returns_empty_when_no_matching_context(): void
+    public function search_returns_empty_when_no_matching_context(): void
     {
         $project = SharedProject::factory()->create();
-        
+
+        $this->embeddingService
+            ->shouldReceive('isAvailable')
+            ->andReturn(true);
+
         $this->embeddingService
             ->shouldReceive('generate')
-            ->once()
             ->andReturn(array_fill(0, 384, 0.1));
 
-        $results = $this->service->query($project, 'nonexistent topic');
+        $results = $this->service->search($project->id, 'nonexistent topic');
 
         $this->assertIsArray($results);
         $this->assertEmpty($results);
@@ -127,9 +132,9 @@ class ContextRAGServiceTest extends TestCase
     public function can_compile_context_for_instance(): void
     {
         $project = SharedProject::factory()->create();
-        
-        ContextChunk::factory()->count(3)->for($project)->create([
-            'type' => 'architecture',
+
+        ContextChunk::factory()->count(3)->for($project, 'project')->create([
+            'type' => 'summary',
             'importance_score' => 0.9,
         ]);
 
@@ -143,9 +148,8 @@ class ContextRAGServiceTest extends TestCase
     public function compiled_context_respects_token_limit(): void
     {
         $project = SharedProject::factory()->create(['max_tokens' => 1000]);
-        
-        // Create many large chunks
-        ContextChunk::factory()->count(50)->for($project)->create([
+
+        ContextChunk::factory()->count(50)->for($project, 'project')->create([
             'content' => str_repeat('Lorem ipsum ', 100),
         ]);
 
@@ -160,18 +164,16 @@ class ContextRAGServiceTest extends TestCase
     public function can_prune_expired_context(): void
     {
         $project = SharedProject::factory()->create();
-        
-        // Create expired chunks
-        ContextChunk::factory()->count(3)->for($project)->create([
+
+        ContextChunk::factory()->count(3)->for($project, 'project')->create([
             'expires_at' => now()->subDays(1),
         ]);
 
-        // Create valid chunks
-        ContextChunk::factory()->count(2)->for($project)->create([
+        ContextChunk::factory()->count(2)->for($project, 'project')->create([
             'expires_at' => now()->addDays(1),
         ]);
 
-        $pruned = $this->service->pruneExpiredContext($project);
+        $pruned = $this->service->cleanup();
 
         $this->assertEquals(3, $pruned);
         $this->assertDatabaseCount('context_chunks', 2);
@@ -181,8 +183,8 @@ class ContextRAGServiceTest extends TestCase
     public function can_update_context_importance_scores(): void
     {
         $project = SharedProject::factory()->create();
-        
-        $chunk = ContextChunk::factory()->for($project)->create([
+
+        $chunk = ContextChunk::factory()->for($project, 'project')->create([
             'importance_score' => 0.5,
         ]);
 
@@ -196,9 +198,9 @@ class ContextRAGServiceTest extends TestCase
     public function can_get_context_statistics(): void
     {
         $project = SharedProject::factory()->create();
-        
-        ContextChunk::factory()->count(5)->for($project)->create(['type' => 'code']);
-        ContextChunk::factory()->count(3)->for($project)->create(['type' => 'documentation']);
+
+        ContextChunk::factory()->count(5)->for($project, 'project')->create(['type' => 'decision']);
+        ContextChunk::factory()->count(3)->for($project, 'project')->create(['type' => 'summary']);
 
         $stats = $this->service->getStatistics($project);
 

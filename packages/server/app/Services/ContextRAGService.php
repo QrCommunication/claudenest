@@ -59,7 +59,7 @@ class ContextRAGService
         }
 
         // Update project token count
-        $estimatedTokens = ceil(strlen($content) / 4);
+        $estimatedTokens = (int) ceil(strlen($content) / 4);
         $project->addTokens($estimatedTokens);
 
         return $chunk;
@@ -200,5 +200,36 @@ class ContextRAGService
     public function cleanup(): int
     {
         return ContextChunk::cleanupExpired();
+    }
+
+    /**
+     * Update the importance score of a single context chunk.
+     */
+    public function updateImportanceScore(ContextChunk $chunk, float $score): ContextChunk
+    {
+        $chunk->update(['importance_score' => $score]);
+
+        return $chunk;
+    }
+
+    /**
+     * Aggregate statistics for a project's context chunks.
+     *
+     * @return array{total_chunks: int, by_type: array<string, int>}
+     */
+    public function getStatistics(SharedProject $project): array
+    {
+        $byType = $project->contextChunks()
+            ->toBase()
+            ->selectRaw('type, count(*) as aggregate_count')
+            ->groupBy('type')
+            ->pluck('aggregate_count', 'type')
+            ->map(fn ($count) => (int) $count)
+            ->all();
+
+        return [
+            'total_chunks' => array_sum($byType),
+            'by_type' => $byType,
+        ];
     }
 }

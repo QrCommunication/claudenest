@@ -163,7 +163,9 @@ class ContextChunk extends Model
             ->limit($limit);
 
         if ($minSimilarity !== null) {
-            $query->having('similarity', '>=', $minSimilarity);
+            // PostgreSQL cannot reference the SELECT alias `similarity` in HAVING
+            // without a GROUP BY, so repeat the expression in a WHERE clause.
+            $query->whereRaw("1 - (embedding <=> '{$embeddingStr}'::vector) >= ?", [$minSimilarity]);
         }
 
         return $query->get();
