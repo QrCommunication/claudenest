@@ -80,6 +80,7 @@ import {
   CubeIcon,
   Squares2X2Icon,
   Cog6ToothIcon,
+  EyeIcon,
 } from '@heroicons/vue/24/outline';
 
 interface Props {
@@ -109,6 +110,7 @@ const iconMap = {
   CubeIcon,
   Squares2X2Icon,
   Cog6ToothIcon,
+  EyeIcon,
 };
 
 interface NavItem {
@@ -134,6 +136,7 @@ const navGroupsConfig: NavGroup[] = [
     items: [
       { name: 'Machines', path: '/machines', iconName: 'ServerIcon' },
       { name: 'Sessions', path: '/sessions', iconName: 'CommandLineIcon' },
+      { name: 'Claude Sessions', path: '/claude-sessions', iconName: 'EyeIcon' },
     ],
   },
   {
