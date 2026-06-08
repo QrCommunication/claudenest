@@ -38,6 +38,14 @@ Schedule::call(function () {
         ->update(['status' => 'offline']);
 })->everyMinute();
 
+// Proactively refresh OAuth credentials nearing expiration (< 24h) and
+// reconnect their active Claude sessions, so long-running sessions never
+// hit an expired token mid-task.
+Schedule::command('claudenest:refresh-credentials --hours=24')
+    ->hourly()
+    ->withoutOverlapping()
+    ->runInBackground();
+
 // Artisan command for manual cleanup
 Artisan::command('claudenest:cleanup', function () {
     $this->info('Running ClaudeNest cleanup...');

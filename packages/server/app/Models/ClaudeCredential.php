@@ -107,6 +107,20 @@ class ClaudeCredential extends Model
         return $query->where('auth_type', 'oauth');
     }
 
+    /**
+     * OAuth credentials whose access token expires within the next $hours and
+     * that have a refresh token available (i.e. are renewable). Includes
+     * already-expired credentials so a missed window is still recovered.
+     */
+    public function scopeExpiringWithin($query, int $hours = 24)
+    {
+        return $query->where('auth_type', 'oauth')
+            ->whereNotNull('access_token_enc')
+            ->whereNotNull('refresh_token_enc')
+            ->whereNotNull('expires_at')
+            ->where('expires_at', '<=', now()->addHours($hours));
+    }
+
     // ==================== ACCESSORS ====================
 
     public function getMaskedKeyAttribute(): ?string
