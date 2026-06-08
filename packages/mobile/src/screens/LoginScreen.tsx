@@ -48,7 +48,7 @@ export function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       className="flex-1 bg-bg1"
     >
-      <StatusBar style="light" backgroundColor="#0f0f1a" />
+      <StatusBar style="light" />
 
       <ScrollView
         className="flex-1"

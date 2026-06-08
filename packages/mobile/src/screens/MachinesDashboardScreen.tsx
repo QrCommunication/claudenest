@@ -183,7 +183,7 @@ export function MachinesDashboardScreen() {
 
   return (
     <View className="flex-1 bg-bg1">
-      <StatusBar style="light" backgroundColor="#1a1b26" />
+      <StatusBar style="light" />
 
       {/* ── Custom header ── */}
       <View className="bg-bg2 px-5 pt-14 pb-4 border-b border-bg4">
