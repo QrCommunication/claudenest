@@ -20,8 +20,9 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
-        // Disable broadcasting during tests
-        $this->withoutBroadcasting();
+        // Broadcasting is disabled in tests via BROADCAST_CONNECTION=null
+        // (phpunit.xml); the old withoutBroadcasting() helper no longer exists
+        // and ran after boot anyway, too late to prevent driver resolution.
     }
 
     /**

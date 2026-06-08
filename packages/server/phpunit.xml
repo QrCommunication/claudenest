@@ -20,9 +20,16 @@
     <php>
         <env name="APP_ENV" value="testing"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="BROADCAST_CONNECTION" value="null" force="true"/>
         <env name="CACHE_DRIVER" value="array"/>
-        <env name="DB_CONNECTION" value="sqlite"/>
-        <env name="DB_DATABASE" value=":memory:"/>
+        <!-- This project is PostgreSQL-only (pgvector, uuid-ossp, RLS-style triggers);
+             tests cannot run on SQLite. Point them at a local Postgres test DB. -->
+        <env name="DB_CONNECTION" value="pgsql" force="true"/>
+        <env name="DB_HOST" value="/var/run/postgresql" force="true"/>
+        <env name="DB_PORT" value="5432" force="true"/>
+        <env name="DB_DATABASE" value="claudenest_test" force="true"/>
+        <env name="DB_USERNAME" value="rony" force="true"/>
+        <env name="DB_PASSWORD" value="" force="true"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="QUEUE_CONNECTION" value="sync"/>

@@ -58,17 +58,17 @@ class SessionApiTest extends TestCase
             ->assertJson(['success' => true])
             ->assertJsonStructure([
                 'success',
-                'data' => [
-                    'session' => ['id', 'mode', 'status'],
-                ],
+                'data' => ['id', 'mode', 'status'],
                 'meta',
             ]);
 
-        $this->assertDatabaseHas('sessions', [
+        // The Session model maps to `claude_sessions`; `sessions` is Laravel's
+        // built-in HTTP session table (id, user_id, ip_address, ...).
+        $this->assertDatabaseHas('claude_sessions', [
             'user_id' => $user->id,
             'machine_id' => $machine->id,
             'mode' => 'interactive',
-            'status' => 'pending',
+            'status' => 'created',
         ]);
     }
 
@@ -84,8 +84,14 @@ class SessionApiTest extends TestCase
                 'project_path' => '/home/user/projects/test',
             ]);
 
+        // This API returns a custom error envelope for validation failures
+        // (error.code = VAL_001, error.details keyed by field), not Laravel's
+        // default { errors: {...} } shape.
         $response->assertStatus(422)
-            ->assertJsonValidationErrors('mode');
+            ->assertJsonPath('error.code', 'VAL_001')
+            ->assertJsonStructure([
+                'error' => ['details' => ['mode']],
+            ]);
     }
 
     /** @test */
@@ -209,7 +215,9 @@ class SessionApiTest extends TestCase
                 'data' => 'ls -la',
             ]);
 
-        $response->assertStatus(400);
+        // input() scopes to active statuses (running/waiting_input) before
+        // findOrFail, so a terminated session is not found -> 404.
+        $response->assertStatus(404);
     }
 
     /** @test */
@@ -239,12 +247,14 @@ class SessionApiTest extends TestCase
         $response = $this->actingAs($user)
             ->getJson("/api/sessions/{$session->id}/logs");
 
+        // logs() returns the paginated log collection directly under `data`
+        // (an array of log entries), with pagination under meta.
         $response->assertOk()
             ->assertJson(['success' => true])
             ->assertJsonStructure([
                 'success',
-                'data' => ['logs'],
-                'meta',
+                'data',
+                'meta' => ['pagination' => ['current_page', 'per_page', 'total', 'last_page']],
             ]);
     }
 
