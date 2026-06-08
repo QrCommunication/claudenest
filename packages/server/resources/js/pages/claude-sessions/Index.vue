@@ -17,11 +17,11 @@
           class="rounded-md px-3 py-2 text-sm"
           style="background: var(--bg-card, #24283b); color: var(--text-primary, #e5e7eb); border: 1px solid var(--border, #374151)"
         >
-          <option v-if="onlineMachines.length === 0" :value="''">
+          <option v-if="machines.length === 0" :value="''">
             {{ t('claudeSessions.noMachine') }}
           </option>
-          <option v-for="m in onlineMachines" :key="m.id" :value="m.id">
-            {{ m.name }}
+          <option v-for="m in machines" :key="m.id" :value="m.id">
+            {{ m.status === 'online' ? '🟢' : '⚪' }} {{ m.name }}
           </option>
         </select>
 
@@ -33,7 +33,8 @@
         <button
           class="rounded-md px-3 py-2 text-sm font-medium disabled:opacity-50"
           style="background: var(--accent-purple, #a855f7); color: white"
-          :disabled="!selectedMachineId || store.isLoading"
+          :disabled="!selectedMachineId || store.isLoading || !selectedMachineOnline"
+          :title="!selectedMachineOnline ? t('claudeSessions.offlineHint') : ''"
           @click="handleRefresh"
         >
           {{ store.isLoading ? t('claudeSessions.scanning') : t('claudeSessions.refresh') }}
@@ -97,9 +98,10 @@
             </button>
             <button
               v-if="s.is_live && !s.adopted"
-              class="text-xs font-medium px-2 py-1 rounded"
+              class="text-xs font-medium px-2 py-1 rounded disabled:opacity-50"
               style="background: var(--accent-cyan, #22d3ee); color: #052e3a"
-              :disabled="adopting === s.session_id"
+              :disabled="adopting === s.session_id || !selectedMachineOnline"
+              :title="!selectedMachineOnline ? t('claudeSessions.offlineHint') : ''"
               @click="handleAdopt(s)"
             >
               {{ adopting === s.session_id ? t('claudeSessions.adopting') : t('claudeSessions.adopt') }}
@@ -169,7 +171,7 @@ const { t } = useI18n();
 const router = useRouter();
 const toast = useToast();
 const machinesStore = useMachinesStore();
-const { onlineMachines } = storeToRefs(machinesStore);
+const { machines } = storeToRefs(machinesStore);
 const store = useClaudeSessionsStore();
 
 const selectedMachineId = ref<string>('');
@@ -179,6 +181,12 @@ const scrollEl = ref<HTMLElement | null>(null);
 
 const displayedSessions = computed(() =>
   liveOnly.value ? store.sessions.filter((s) => s.is_live) : store.sessions,
+);
+
+// Persisted sessions are viewable even when the machine is offline (DB-backed);
+// only live actions (rescan/adopt) require an online agent.
+const selectedMachineOnline = computed(
+  () => machines.value.find((m) => m.id === selectedMachineId.value)?.status === 'online',
 );
 
 function cardStyle(s: DiscoveredSession): Record<string, string> {
@@ -271,8 +279,11 @@ onMounted(async () => {
   if (machinesStore.machines.length === 0) {
     await machinesStore.fetchMachines();
   }
-  if (!selectedMachineId.value && onlineMachines.value.length > 0) {
-    selectedMachineId.value = onlineMachines.value[0].id;
+  // Prefer an online machine, but fall back to any machine so persisted
+  // sessions are shown even when the agent is currently offline.
+  if (!selectedMachineId.value && machines.value.length > 0) {
+    const online = machines.value.find((m) => m.status === 'online');
+    selectedMachineId.value = (online ?? machines.value[0]).id;
   }
 });
 

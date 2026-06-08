@@ -880,6 +880,7 @@
       "openFailed": "Could not open the session",
       "adopted": "Session adopted — now controllable remotely",
       "adoptFailed": "Adoption failed"
-    }
+    },
+    "offlineHint": "Machine offline — live actions disabled"
   }
 }

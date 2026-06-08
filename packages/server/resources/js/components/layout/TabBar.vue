@@ -35,6 +35,7 @@
 
     <!-- User Menu -->
     <div class="tab-bar-user">
+      <LanguageSwitcher variant="ghost" :show-label="false" />
       <UserMenu :user="authStore.user" />
     </div>
   </div>
@@ -46,6 +47,7 @@ import { useRouter } from 'vue-router';
 import { useTabs } from '@/composables/useTabs';
 import { useAuthStore } from '@/stores/auth';
 import UserMenu from '@/components/layout/UserMenu.vue';
+import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue';
 import {
   HomeIcon,
   CommandLineIcon,
@@ -244,6 +246,7 @@ const handleNewSession = () => {
 .tab-bar-user {
   display: flex;
   align-items: center;
+  gap: 4px;
   padding: 0 8px;
   border-left: 1px solid var(--border-color);
   height: 100%;

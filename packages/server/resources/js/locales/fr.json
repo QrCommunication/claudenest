@@ -880,6 +880,7 @@
       "openFailed": "Impossible d'ouvrir la session",
       "adopted": "Session adoptée — pilotable à distance",
       "adoptFailed": "Échec de l'adoption"
-    }
+    },
+    "offlineHint": "Machine hors-ligne — actions live désactivées"
   }
 }

@@ -4,20 +4,21 @@ import fr from '@/locales/fr.json';
 
 export type SupportedLocale = 'en' | 'fr';
 
-// Get saved locale from localStorage or detect from browser
+const LOCALE_STORAGE_KEY = 'claudenest-locale';
+
+// Default to the user's explicit choice (saved via the language selector),
+// otherwise fall back to the browser language, otherwise English.
 function getDefaultLocale(): SupportedLocale {
-  // Check localStorage first
-  const saved = localStorage.getItem('claudenest-locale');
+  const saved = localStorage.getItem(LOCALE_STORAGE_KEY);
   if (saved && ['en', 'fr'].includes(saved)) {
     return saved as SupportedLocale;
   }
-  
-  // Detect from browser
+
   const browserLang = navigator.language.split('-')[0];
   if (browserLang === 'fr') {
     return 'fr';
   }
-  
+
   return 'en';
 }
 
@@ -37,7 +38,7 @@ export const i18n = createI18n({
 // Helper to change locale
 export function setLocale(locale: SupportedLocale): void {
   i18n.global.locale.value = locale;
-  localStorage.setItem('claudenest-locale', locale);
+  localStorage.setItem(LOCALE_STORAGE_KEY, locale);
   document.documentElement.setAttribute('lang', locale);
 }
 
