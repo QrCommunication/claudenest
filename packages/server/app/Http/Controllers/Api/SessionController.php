@@ -12,6 +12,7 @@ use App\Services\AgentGateway;
 use App\Services\CredentialService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class SessionController extends Controller
 {
@@ -126,7 +127,11 @@ class SessionController extends Controller
             'mode' => 'sometimes|string|in:interactive,headless,oneshot,bash',
             'project_path' => 'nullable|string|max:512',
             'initial_prompt' => 'nullable|string',
-            'credential_id' => 'nullable|uuid|exists:claude_credentials,id',
+            'credential_id' => [
+                'nullable',
+                'uuid',
+                Rule::exists('claude_credentials', 'id')->where('user_id', $request->user()->id),
+            ],
             'pty_size' => 'array',
             'pty_size.cols' => 'integer|min:20|max:500',
             'pty_size.rows' => 'integer|min:10|max:200',

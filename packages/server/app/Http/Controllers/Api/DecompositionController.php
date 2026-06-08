@@ -10,6 +10,7 @@ use App\Services\CredentialService;
 use App\Services\DecompositionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class DecompositionController extends Controller
 {
@@ -31,7 +32,11 @@ class DecompositionController extends Controller
 
         $validated = $request->validate([
             'prd' => 'required|string|min:20|max:50000',
-            'credential_id' => 'required|uuid|exists:claude_credentials,id',
+            'credential_id' => [
+                'required',
+                'uuid',
+                Rule::exists('claude_credentials', 'id')->where('user_id', $request->user()->id),
+            ],
         ]);
 
         // Resolve credential
