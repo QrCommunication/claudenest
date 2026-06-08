@@ -102,6 +102,8 @@ export interface SessionConfig {
   ptySize?: PTYSize;
   env?: Record<string, string>;
   credentialEnv?: Record<string, string>;
+  /** Resume an existing Claude session by id (`claude --resume <id>`). */
+  resumeSessionId?: string;
 }
 
 export type SessionStatus = 
@@ -168,6 +170,10 @@ export type IncomingMessageType =
   | 'file:browse'
   | 'project:scan'
   | 'decompose:start'
+  | 'claude_sessions:discover'
+  | 'claude_sessions:open'
+  | 'claude_sessions:close'
+  | 'claude_sessions:adopt'
   | OrchestratorIncomingMessage
   | 'ping';
 
@@ -187,6 +193,11 @@ export type OutgoingMessageType =
   | 'project:scan_result'
   | 'decompose:progress'
   | 'decompose:result'
+  | 'claude_sessions:discovered'
+  | 'claude_sessions:discover_result'
+  | 'claude_sessions:transcript'
+  | 'claude_sessions:open_result'
+  | 'claude_sessions:adopted'
   | OrchestratorOutgoingMessage
   | 'pong'
   | 'error';
@@ -540,6 +551,108 @@ export interface MasterPlanTask {
   files: string[];
   estimated_tokens?: number;
   depends_on: string[];
+}
+
+// ============================================
+// Claude Session Discovery (scanned, not agent-spawned)
+// ============================================
+
+/**
+ * A Claude Code session discovered on the machine. The session IS its
+ * transcript; a running `claude` process only marks it as live.
+ */
+export interface DiscoveredSession {
+  /** Claude session UUID (= transcript filename without extension). */
+  sessionId: string;
+  /** Project directory slug under ~/.claude/projects. */
+  projectSlug: string;
+  /** Working directory (read reliably from the transcript). */
+  cwd: string;
+  /** basename(cwd) for display. */
+  projectName: string;
+  /** Absolute path to the JSONL transcript. */
+  transcriptPath: string;
+  /** A running claude process owns this cwd and the transcript is fresh. */
+  isLive: boolean;
+  /** PID of the live process, when correlated. */
+  pid?: number;
+  /** Controlling tty of the live process (e.g. /dev/pts/3). */
+  tty?: string;
+  /** ISO start time of the live process. */
+  startedAt?: string;
+  /** ISO last transcript modification time. */
+  lastActivityAt: string;
+  /** Transcript size in bytes. */
+  sizeBytes: number;
+  /** Redacted preview of the last meaningful message. */
+  lastPreview?: string;
+  /** True once relaunched under the agent's tmux for remote control. */
+  adopted: boolean;
+}
+
+/** A single redacted transcript event surfaced to the dashboard. */
+export interface TranscriptEvent {
+  sessionId: string;
+  /** Monotonic sequence (line index) for ordering. */
+  seq: number;
+  /** Raw JSONL event type (user, assistant, tool_result, …). */
+  type: string;
+  role?: 'user' | 'assistant' | 'system' | 'tool';
+  /** Redacted flattened text content, when present. */
+  text?: string;
+  timestamp?: string;
+}
+
+export interface ClaudeSessionsDiscoverRequest {
+  requestId: string;
+  includeHistory?: boolean;
+}
+
+export interface ClaudeSessionsDiscoverResult {
+  requestId: string;
+  sessions: DiscoveredSession[];
+  error?: string;
+}
+
+export interface ClaudeSessionOpenRequest {
+  requestId: string;
+  sessionId: string;
+  transcriptPath?: string;
+  historyLimit?: number;
+}
+
+export interface ClaudeSessionOpenResult {
+  requestId: string;
+  sessionId: string;
+  history: TranscriptEvent[];
+  error?: string;
+}
+
+export interface ClaudeSessionCloseRequest {
+  sessionId: string;
+}
+
+export interface ClaudeSessionAdoptRequest {
+  requestId: string;
+  sessionId: string;
+  cwd: string;
+  credentialEnv?: Record<string, string>;
+}
+
+export interface ClaudeSessionAdoptResult {
+  requestId: string;
+  sessionId: string;
+  /** New agent-managed session id (tmux-backed) once adopted. */
+  agentSessionId?: string;
+  error?: string;
+}
+
+/** Live transcript batch pushed to the server as a session is mirrored. */
+export interface TranscriptBatch {
+  sessionId: string;
+  events: TranscriptEvent[];
+  /** When true, replace the client buffer (initial history load). */
+  replace?: boolean;
 }
 
 // ============================================

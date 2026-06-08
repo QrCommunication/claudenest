@@ -5,6 +5,7 @@
 import { EventEmitter } from 'events';
 import { WebSocketClient } from './websocket/client.js';
 import { SessionManager } from './sessions/manager.js';
+import { ClaudeSessionDiscovery } from './sessions/discovery.js';
 import { SkillsDiscovery } from './discovery/skills.js';
 import { MCPManager } from './discovery/mcp.js';
 import { ContextClient } from './context/client.js';
@@ -21,12 +22,15 @@ import {
   createScanHandlers,
   createDecomposeHandlers,
   createOAuthHandlers,
+  createDiscoveryHandlers,
 } from './handlers/index.js';
 import type {
   AgentConfig,
   Logger,
   MachineInfo,
-  SessionOutput
+  SessionOutput,
+  DiscoveredSession,
+  TranscriptBatch,
 } from './types/index.js';
 import { 
   generateId, 
@@ -49,6 +53,7 @@ export class ClaudeNestAgent extends EventEmitter {
   
   private wsClient!: WebSocketClient;
   private sessionManager!: SessionManager;
+  private claudeSessionDiscovery!: ClaudeSessionDiscovery;
   private skillsDiscovery!: SkillsDiscovery;
   private mcpManager!: MCPManager;
   private contextClient!: ContextClient;
@@ -88,6 +93,11 @@ export class ClaudeNestAgent extends EventEmitter {
     this.sessionManager = new SessionManager({
       claudePath: this.config.claudePath,
       maxSessions: this.config.sessions?.maxSessions,
+      logger: this.logger,
+    });
+
+    // Initialize Claude session discovery (scans the user's own sessions)
+    this.claudeSessionDiscovery = new ClaudeSessionDiscovery({
       logger: this.logger,
     });
 
@@ -177,6 +187,9 @@ export class ClaudeNestAgent extends EventEmitter {
       await this.syncService.fullSync();
       this.syncService.startPeriodicSync();
 
+      // Start scanning the user's own Claude sessions and push them online
+      this.claudeSessionDiscovery.startAutoDiscovery(30_000, true);
+
       this.isRunning = true;
       this.emit('started');
 
@@ -202,6 +215,9 @@ export class ClaudeNestAgent extends EventEmitter {
       if (this.orchestrator.isRunning()) {
         await this.orchestrator.stop();
       }
+
+      // Stop Claude session discovery (transcript tailers + rescans)
+      this.claudeSessionDiscovery.stop();
 
       // Terminate remaining sessions
       await this.sessionManager.terminateAll();
@@ -327,6 +343,15 @@ export class ClaudeNestAgent extends EventEmitter {
       this.wsClient.send('session:recovered', data);
     });
 
+    // Claude session discovery events (scanned, not agent-spawned)
+    this.claudeSessionDiscovery.on('discovered', (sessions: DiscoveredSession[]) => {
+      this.wsClient.send('claude_sessions:discovered', { sessions });
+    });
+
+    this.claudeSessionDiscovery.on('transcript', (batch: TranscriptBatch) => {
+      this.wsClient.send('claude_sessions:transcript', batch);
+    });
+
     // Context client events
     this.contextClient.on('synced', () => {
       this.logger.debug('Context synced');
@@ -410,6 +435,14 @@ export class ClaudeNestAgent extends EventEmitter {
       logger: this.logger,
     });
 
+    // Claude session discovery handlers
+    const discoveryHandlers = createDiscoveryHandlers({
+      discovery: this.claudeSessionDiscovery,
+      sessionManager: this.sessionManager,
+      wsClient: this.wsClient,
+      logger: this.logger,
+    });
+
     // Register all handlers
     for (const [type, handler] of Object.entries(sessionHandlers)) {
       this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
@@ -433,6 +466,9 @@ export class ClaudeNestAgent extends EventEmitter {
       this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
     }
     for (const [type, handler] of Object.entries(oauthHandlers)) {
+      this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
+    }
+    for (const [type, handler] of Object.entries(discoveryHandlers)) {
       this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
     }
 

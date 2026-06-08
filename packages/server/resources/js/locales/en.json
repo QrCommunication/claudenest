@@ -592,10 +592,10 @@
       "pricing": "Pricing"
     },
     "hero": {
-      "badge": "Open Source \u00b7 Self-Hosted \u00b7 Free",
+      "badge": "Open Source · Self-Hosted · Free",
       "title": "Your AI Agents,",
       "title_highlight": "Orchestrated.",
-      "subtitle": "Run multiple Claude Code instances on the same project with shared context, file locking, and real-time control \u2014 from any device.",
+      "subtitle": "Run multiple Claude Code instances on the same project with shared context, file locking, and real-time control — from any device.",
       "cta_primary": "Get Started Free",
       "cta_secondary": "Read the Docs",
       "micro_copy": "No credit card. Self-hosted. MIT License.",
@@ -628,7 +628,7 @@
       "subtitle": "ClaudeNest gives your Claude Code instances shared understanding, conflict prevention, and a unified command center.",
       "pillar_1": {
         "title": "Shared Intelligence",
-        "description": "pgvector RAG means your agents build on each other's knowledge \u2014 not start from scratch."
+        "description": "pgvector RAG means your agents build on each other's knowledge — not start from scratch."
       },
       "pillar_2": {
         "title": "Conflict Prevention",
@@ -636,7 +636,7 @@
       },
       "pillar_3": {
         "title": "Total Visibility",
-        "description": "See every agent, every task, every keystroke \u2014 from your browser or your phone."
+        "description": "See every agent, every task, every keystroke — from your browser or your phone."
       }
     },
     "features": {
@@ -658,7 +658,7 @@
       },
       "real_time": {
         "title": "Every keystroke, live",
-        "description": "Laravel Reverb WebSocket channels relay terminal output in real-time. Watch your agents work from anywhere \u2014 even your phone."
+        "description": "Laravel Reverb WebSocket channels relay terminal output in real-time. Watch your agents work from anywhere — even your phone."
       },
       "file_locking": {
         "title": "Zero merge conflicts",
@@ -680,7 +680,7 @@
       },
       "step_2": {
         "title": "Start a Session",
-        "description": "Launch Claude Code remotely from any device \u2014 web, mobile, or CLI.",
+        "description": "Launch Claude Code remotely from any device — web, mobile, or CLI.",
         "visual": "Session active"
       },
       "step_3": {
@@ -798,11 +798,11 @@
         },
         "2": {
           "question": "How does the RAG context system work?",
-          "answer": "When an agent learns something, we generate a 384-dimensional vector embedding using BGE-small-en and store it in PostgreSQL with pgvector. Other agents search by semantic similarity \u2014 meaning, not keywords. The result: agents build on each other's understanding."
+          "answer": "When an agent learns something, we generate a 384-dimensional vector embedding using BGE-small-en and store it in PostgreSQL with pgvector. Other agents search by semantic similarity — meaning, not keywords. The result: agents build on each other's understanding."
         },
         "3": {
           "question": "Can multiple agents really work on the same files?",
-          "answer": "Not at the same time \u2014 that's the point. Our file locking system prevents two agents from editing the same file simultaneously. Locks have expiration, force-release, and bulk operations. Zero merge conflicts."
+          "answer": "Not at the same time — that's the point. Our file locking system prevents two agents from editing the same file simultaneously. Locks have expiration, force-release, and bulk operations. Zero merge conflicts."
         },
         "4": {
           "question": "What infrastructure do I need?",
@@ -814,7 +814,7 @@
         },
         "6": {
           "question": "How does it compare to Claude-Flow?",
-          "answer": "Claude-Flow focuses on swarm intelligence with 60+ agents but has no web dashboard and no mobile app. ClaudeNest provides a complete platform: web dashboard, mobile app, pgvector RAG, and file locking \u2014 all purpose-built for Claude Code."
+          "answer": "Claude-Flow focuses on swarm intelligence with 60+ agents but has no web dashboard and no mobile app. ClaudeNest provides a complete platform: web dashboard, mobile app, pgvector RAG, and file locking — all purpose-built for Claude Code."
         },
         "7": {
           "question": "Can I contribute?",
@@ -845,12 +845,41 @@
       "api_reference": "API Reference",
       "status": "Status",
       "built_with": "Built with",
-      "copyright": "\u00a9 {year} QR Communication SAS \u2014 SIREN 940\u202f163\u202f496. All rights reserved.",
+      "copyright": "© {year} QR Communication SAS — SIREN 940 163 496. All rights reserved.",
       "mentions_legales": "Legal Notice",
       "cookies": "Cookies",
       "contact_email": "contact@qrcommunication.com",
       "contact_phone": "+33 1 88 83 34 51",
       "contact_address": "23 rue de Richelieu, 75001 Paris"
+    }
+  },
+  "claudeSessions": {
+    "title": "Claude Sessions",
+    "subtitle": "Your own Claude Code sessions running on this machine, mirrored live and read-only.",
+    "noMachine": "No online machine",
+    "selectMachine": "Select an online machine to view its Claude sessions.",
+    "liveOnly": "Live only",
+    "scanning": "Scanning…",
+    "refresh": "Rescan",
+    "empty": "No Claude session found on this machine.",
+    "live": "live",
+    "adopted": "adopted",
+    "view": "View",
+    "viewing": "Viewing",
+    "adopt": "Adopt",
+    "adopting": "Adopting…",
+    "transcript": "Live transcript",
+    "noTranscript": "No session open",
+    "openHint": "Open a session to mirror its transcript live.",
+    "close": "Close",
+    "loading": "Loading history…",
+    "toasts": {
+      "loadFailed": "Failed to load Claude sessions",
+      "refreshed": "Sessions rescanned",
+      "refreshFailed": "Rescan failed",
+      "openFailed": "Could not open the session",
+      "adopted": "Session adopted — now controllable remotely",
+      "adoptFailed": "Adoption failed"
     }
   }
 }

@@ -592,10 +592,10 @@
       "pricing": "Tarifs"
     },
     "hero": {
-      "badge": "Open Source \u00b7 Auto-heberge \u00b7 Gratuit",
+      "badge": "Open Source · Auto-heberge · Gratuit",
       "title": "Vos agents IA,",
       "title_highlight": "Orchestres.",
-      "subtitle": "Executez plusieurs instances Claude Code sur le meme projet avec contexte partage, verrouillage de fichiers et controle en temps reel \u2014 depuis n'importe quel appareil.",
+      "subtitle": "Executez plusieurs instances Claude Code sur le meme projet avec contexte partage, verrouillage de fichiers et controle en temps reel — depuis n'importe quel appareil.",
       "cta_primary": "Commencer gratuitement",
       "cta_secondary": "Lire la documentation",
       "micro_copy": "Sans carte bancaire. Auto-heberge. Licence MIT.",
@@ -628,7 +628,7 @@
       "subtitle": "ClaudeNest offre a vos instances Claude Code une comprehension partagee, la prevention des conflits et un centre de commande unifie.",
       "pillar_1": {
         "title": "Intelligence partagee",
-        "description": "Le RAG pgvector permet a vos agents de construire sur les connaissances des autres \u2014 au lieu de repartir de zero."
+        "description": "Le RAG pgvector permet a vos agents de construire sur les connaissances des autres — au lieu de repartir de zero."
       },
       "pillar_2": {
         "title": "Prevention des conflits",
@@ -636,7 +636,7 @@
       },
       "pillar_3": {
         "title": "Visibilite totale",
-        "description": "Voyez chaque agent, chaque tache, chaque frappe \u2014 depuis votre navigateur ou votre telephone."
+        "description": "Voyez chaque agent, chaque tache, chaque frappe — depuis votre navigateur ou votre telephone."
       }
     },
     "features": {
@@ -658,7 +658,7 @@
       },
       "real_time": {
         "title": "Chaque frappe, en direct",
-        "description": "Les canaux WebSocket Laravel Reverb relaient la sortie du terminal en temps reel. Observez vos agents travailler de partout \u2014 meme depuis votre telephone."
+        "description": "Les canaux WebSocket Laravel Reverb relaient la sortie du terminal en temps reel. Observez vos agents travailler de partout — meme depuis votre telephone."
       },
       "file_locking": {
         "title": "Zero conflits de merge",
@@ -680,7 +680,7 @@
       },
       "step_2": {
         "title": "Demarrez une session",
-        "description": "Lancez Claude Code a distance depuis n'importe quel appareil \u2014 web, mobile ou CLI.",
+        "description": "Lancez Claude Code a distance depuis n'importe quel appareil — web, mobile ou CLI.",
         "visual": "Session active"
       },
       "step_3": {
@@ -752,7 +752,7 @@
         },
         "pro": {
           "name": "Pro",
-          "price": "29\u20ac",
+          "price": "29€",
           "period": "/mois",
           "target": "Pour les equipes et utilisateurs avances",
           "features": {
@@ -798,15 +798,15 @@
         },
         "2": {
           "question": "Comment fonctionne le systeme de contexte RAG ?",
-          "answer": "Quand un agent apprend quelque chose, nous generons un embedding vectoriel 384D avec BGE-small-en et le stockons dans PostgreSQL avec pgvector. Les autres agents cherchent par similarite semantique \u2014 le sens, pas les mots-cles. Resultat : les agents construisent sur la comprehension des autres."
+          "answer": "Quand un agent apprend quelque chose, nous generons un embedding vectoriel 384D avec BGE-small-en et le stockons dans PostgreSQL avec pgvector. Les autres agents cherchent par similarite semantique — le sens, pas les mots-cles. Resultat : les agents construisent sur la comprehension des autres."
         },
         "3": {
           "question": "Plusieurs agents peuvent-ils vraiment travailler sur les memes fichiers ?",
-          "answer": "Pas en meme temps \u2014 c'est justement le but. Notre systeme de verrouillage de fichiers empeche deux agents de modifier le meme fichier simultanement. Les verrous ont une expiration, une liberation forcee et des operations en masse. Zero conflits de merge."
+          "answer": "Pas en meme temps — c'est justement le but. Notre systeme de verrouillage de fichiers empeche deux agents de modifier le meme fichier simultanement. Les verrous ont une expiration, une liberation forcee et des operations en masse. Zero conflits de merge."
         },
         "4": {
           "question": "Quelle infrastructure me faut-il ?",
-          "answer": "Un serveur Linux avec PHP 8.3+, PostgreSQL 16 (avec pgvector), Redis et Node.js 20. Un VPS standard a 20\u20ac/mois suffit pour la plupart des configurations. Docker Compose rend l'installation en une seule commande."
+          "answer": "Un serveur Linux avec PHP 8.3+, PostgreSQL 16 (avec pgvector), Redis et Node.js 20. Un VPS standard a 20€/mois suffit pour la plupart des configurations. Docker Compose rend l'installation en une seule commande."
         },
         "5": {
           "question": "Mon code est-il envoye a vos serveurs ?",
@@ -814,7 +814,7 @@
         },
         "6": {
           "question": "Comment ca se compare a Claude-Flow ?",
-          "answer": "Claude-Flow se concentre sur l'intelligence en essaim avec 60+ agents mais n'a pas de tableau de bord web ni d'application mobile. ClaudeNest fournit une plateforme complete : tableau de bord web, application mobile, RAG pgvector et verrouillage de fichiers \u2014 le tout construit specifiquement pour Claude Code."
+          "answer": "Claude-Flow se concentre sur l'intelligence en essaim avec 60+ agents mais n'a pas de tableau de bord web ni d'application mobile. ClaudeNest fournit une plateforme complete : tableau de bord web, application mobile, RAG pgvector et verrouillage de fichiers — le tout construit specifiquement pour Claude Code."
         },
         "7": {
           "question": "Puis-je contribuer ?",
@@ -845,12 +845,41 @@
       "api_reference": "Reference API",
       "status": "Statut",
       "built_with": "Construit avec",
-      "copyright": "\u00a9 {year} QR Communication SAS \u2014 SIREN 940\u202f163\u202f496. Tous droits r\u00e9serv\u00e9s.",
-      "mentions_legales": "Mentions l\u00e9gales",
+      "copyright": "© {year} QR Communication SAS — SIREN 940 163 496. Tous droits réservés.",
+      "mentions_legales": "Mentions légales",
       "cookies": "Cookies",
       "contact_email": "contact@qrcommunication.com",
       "contact_phone": "+33 1 88 83 34 51",
       "contact_address": "23 rue de Richelieu, 75001 Paris"
+    }
+  },
+  "claudeSessions": {
+    "title": "Sessions Claude",
+    "subtitle": "Tes propres sessions Claude Code en cours sur cette machine, miroir en temps réel (lecture seule).",
+    "noMachine": "Aucune machine en ligne",
+    "selectMachine": "Sélectionne une machine en ligne pour voir ses sessions Claude.",
+    "liveOnly": "Live seulement",
+    "scanning": "Scan en cours…",
+    "refresh": "Rescanner",
+    "empty": "Aucune session Claude trouvée sur cette machine.",
+    "live": "live",
+    "adopted": "adoptée",
+    "view": "Voir",
+    "viewing": "Affichée",
+    "adopt": "Adopter",
+    "adopting": "Adoption…",
+    "transcript": "Transcript en direct",
+    "noTranscript": "Aucune session ouverte",
+    "openHint": "Ouvre une session pour suivre son transcript en temps réel.",
+    "close": "Fermer",
+    "loading": "Chargement de l'historique…",
+    "toasts": {
+      "loadFailed": "Échec du chargement des sessions Claude",
+      "refreshed": "Sessions rescannées",
+      "refreshFailed": "Échec du rescan",
+      "openFailed": "Impossible d'ouvrir la session",
+      "adopted": "Session adoptée — pilotable à distance",
+      "adoptFailed": "Échec de l'adoption"
     }
   }
 }

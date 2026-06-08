@@ -17,6 +17,14 @@ import {
   findExecutable,
 } from './utils/index.js';
 import { checkForUpdate, promptAutoUpdate } from './utils/update-checker.js';
+import { pingServer } from './utils/ping.js';
+import {
+  installService,
+  startService,
+  stopService,
+  uninstallService,
+  serviceStatus,
+} from './service/installer.js';
 import type { AgentConfig } from './types/index.js';
 import fs from 'fs/promises';
 import path from 'path';
@@ -89,7 +97,87 @@ async function main(): Promise<void> {
     .option('-n, --lines <number>', 'Number of lines to show', '50')
     .action(handleLogs);
 
+  program
+    .command('ping')
+    .description('Ping the remote ClaudeNest server and report latency')
+    .option('-s, --server <url>', 'ClaudeNest server URL')
+    .option('-c, --count <number>', 'Number of pings to send', '4')
+    .option('--timeout <ms>', 'Per-request timeout in milliseconds', '5000')
+    .action(handlePing);
+
+  program
+    .command('install-service')
+    .description('Install the agent as an auto-starting system service')
+    .option('-s, --server <url>', 'ClaudeNest server URL')
+    .option('-l, --log-level <level>', 'Log level for the service')
+    .option('--system', 'Linux: install a system-wide unit (requires root)', false)
+    .action(handleInstallService);
+
+  program
+    .command('start-service')
+    .description('Start the installed agent service')
+    .action(() => startService());
+
+  program
+    .command('stop-service')
+    .description('Stop the installed agent service')
+    .action(() => stopService());
+
+  program
+    .command('restart-service')
+    .description('Restart the installed agent service')
+    .action(() => {
+      stopService();
+      startService();
+    });
+
+  program
+    .command('uninstall-service')
+    .description('Remove the agent service')
+    .action(() => uninstallService());
+
+  program
+    .command('service-status')
+    .description('Show the agent service status')
+    .action(() => serviceStatus());
+
   await program.parseAsync(process.argv);
+}
+
+async function handlePing(options: { server?: string; count: string; timeout: string }): Promise<void> {
+  const serverUrl = options.server || (await readConfigValue('serverUrl')) || DEFAULT_SERVER_URL;
+  const count = Math.max(1, parseInt(options.count, 10) || 4);
+  const timeout = Math.max(500, parseInt(options.timeout, 10) || 5000);
+  const code = await pingServer(serverUrl, count, timeout);
+  process.exit(code);
+}
+
+async function handleInstallService(options: {
+  server?: string;
+  logLevel?: string;
+  system?: boolean;
+}): Promise<void> {
+  const serverUrl = options.server || (await readConfigValue('serverUrl')) || DEFAULT_SERVER_URL;
+
+  // Bake the paired token into the service env (keychain is unreliable headless).
+  let token: string | null = null;
+  try {
+    token = await keytar.getPassword(SERVICE_NAME, 'machine-token');
+  } catch {
+    token = process.env.CLAUDENEST_TOKEN || null;
+  }
+
+  if (!token) {
+    console.error('✗ No machine token found. Run "claudenest-agent pair" first.');
+    process.exit(1);
+  }
+
+  installService({
+    serverUrl,
+    token,
+    ...(options.system ? { system: true } : {}),
+    ...(options.logLevel ? { logLevel: options.logLevel } : {}),
+  });
 }
 
 async function handleStart(options: CLIOptions): Promise<void> {
@@ -500,6 +588,18 @@ async function handleLogs(options: { follow: boolean; lines: string }): Promise<
 
 function collect(value: string, previous: string[]): string[] {
   return previous.concat([value]);
+}
+
+async function readConfigValue(key: string): Promise<string | null> {
+  const configPath = path.join(getConfigDir(), 'config.json');
+  try {
+    const content = await fs.readFile(configPath, 'utf-8');
+    const config = JSON.parse(content) as Record<string, unknown>;
+    const value = config[key];
+    return typeof value === 'string' ? value : null;
+  } catch {
+    return null;
+  }
 }
 
 async function loadConfig(options: CLIOptions): Promise<AgentConfig> {

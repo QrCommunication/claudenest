@@ -65,7 +65,38 @@ claudenest-agent config --set logLevel=debug
 
 # Logs
 claudenest-agent logs --follow --lines 100
+
+# Tester la connectivité au serveur distant (latence)
+claudenest-agent ping
+claudenest-agent ping --server https://api.claudenest.io --count 8
 ```
+
+### Exécution en tant que service (démarrage automatique)
+
+L'agent peut s'installer comme service système et démarrer seul au boot
+(systemd user sous Linux, launchd sous macOS, Scheduled Task sous Windows).
+Le token d'appairage est injecté de façon sécurisée (EnvironmentFile `0600`
+sous Linux), donc **appairer d'abord** (`claudenest-agent pair`).
+
+```bash
+# Installer + activer le service (auto-start au démarrage)
+claudenest-agent install-service
+
+# Linux : unité système au lieu de --user (nécessite root)
+sudo claudenest-agent install-service --system
+
+# Contrôler le service
+claudenest-agent start-service
+claudenest-agent stop-service
+claudenest-agent restart-service
+claudenest-agent service-status
+
+# Désinstaller le service
+claudenest-agent uninstall-service
+```
+
+> Sous Linux user-service, `loginctl enable-linger <user>` est tenté
+> automatiquement pour que l'agent tourne même sans session ouverte.
 
 ### Options de démarrage
 

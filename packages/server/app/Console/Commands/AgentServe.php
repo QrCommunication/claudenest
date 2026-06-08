@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\ClaudeCredential;
+use App\Models\DiscoveredSession;
 use App\Models\Machine;
 use App\Models\PersonalAccessToken;
 use App\Models\Session;
@@ -351,6 +352,11 @@ class AgentServe extends Command
                 'orchestrator:error' => $this->onRequestResponse($data),
                 'decompose:progress' => $this->onDecomposeProgress($data),
                 'decompose:result' => $this->onDecomposeResult($data),
+                'claude_sessions:discovered' => $this->onClaudeSessionsDiscovered($machineId, $data),
+                'claude_sessions:transcript' => $this->onClaudeSessionTranscript($data),
+                'claude_sessions:discover_result' => $this->onRequestResponse($data),
+                'claude_sessions:open_result' => $this->onRequestResponse($data),
+                'claude_sessions:adopted' => $this->onRequestResponse($data),
                 'oauth:auth-url' => $this->onOAuthAuthUrl($data),
                 'oauth:tokens' => $this->onOAuthTokens($data),
                 'oauth:error' => $this->onOAuthError($data),
@@ -527,6 +533,76 @@ class AgentServe extends Command
         $key = "agent:response:{$requestId}";
         Redis::rpush($key, json_encode($data));
         Redis::expire($key, 30);
+    }
+
+    /**
+     * The agent reported the full set of discovered Claude sessions for a machine.
+     * Upsert the rows (replacing stale ones) and broadcast to the dashboard.
+     */
+    private function onClaudeSessionsDiscovered(string $machineId, array $data): void
+    {
+        $sessions = $data['sessions'] ?? [];
+        if (!is_array($sessions)) return;
+
+        $machine = Machine::find($machineId);
+        if (!$machine) return;
+
+        $seen = [];
+        foreach ($sessions as $s) {
+            $sessionId = $s['sessionId'] ?? null;
+            if (!$sessionId) continue;
+            $seen[] = $sessionId;
+
+            DiscoveredSession::updateOrCreate(
+                ['machine_id' => $machineId, 'session_id' => $sessionId],
+                [
+                    'project_slug' => $s['projectSlug'] ?? '',
+                    'cwd' => $s['cwd'] ?? '',
+                    'project_name' => $s['projectName'] ?? '',
+                    'transcript_path' => $s['transcriptPath'] ?? '',
+                    'is_live' => (bool) ($s['isLive'] ?? false),
+                    'pid' => $s['pid'] ?? null,
+                    'tty' => $s['tty'] ?? null,
+                    'started_at' => $s['startedAt'] ?? null,
+                    'last_activity_at' => $s['lastActivityAt'] ?? null,
+                    'size_bytes' => $s['sizeBytes'] ?? 0,
+                    'last_preview' => $s['lastPreview'] ?? null,
+                ]
+            );
+        }
+
+        // Drop rows that the agent no longer reports (transcripts deleted, etc.).
+        DiscoveredSession::forMachine($machineId)
+            ->when($seen, fn ($q) => $q->whereNotIn('session_id', $seen))
+            ->delete();
+
+        // Broadcast the normalized (snake_case) rows so the dashboard receives the
+        // same shape as the REST endpoint, not the agent's raw camelCase payload.
+        $rows = DiscoveredSession::forMachine($machineId)
+            ->orderByDesc('is_live')
+            ->orderByDesc('last_activity_at')
+            ->get();
+
+        broadcast(new \App\Events\ClaudeSessionsDiscovered(
+            $machineId,
+            \App\Http\Resources\DiscoveredSessionResource::collection($rows)->resolve(),
+        ));
+    }
+
+    /**
+     * A live batch of redacted transcript events for a mirrored session.
+     * Relay straight to the dashboard channel (already redacted by the agent).
+     */
+    private function onClaudeSessionTranscript(array $data): void
+    {
+        $sessionId = $data['sessionId'] ?? null;
+        if (!$sessionId) return;
+
+        broadcast(new \App\Events\ClaudeSessionTranscript(
+            $sessionId,
+            $data['events'] ?? [],
+            (bool) ($data['replace'] ?? false),
+        ));
     }
 
     private function onDecomposeProgress(array $data): void

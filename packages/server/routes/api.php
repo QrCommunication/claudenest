@@ -87,6 +87,14 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     // ==================== SESSIONS ====================
     Route::get('machines/{machine}/sessions', [Api\SessionController::class, 'index']);
     Route::post('machines/{machine}/sessions', [Api\SessionController::class, 'store']);
+
+    // Discovered Claude sessions (the user's own running/historical sessions)
+    Route::get('machines/{machine}/claude-sessions', [Api\ClaudeSessionController::class, 'index']);
+    Route::post('machines/{machine}/claude-sessions/refresh', [Api\ClaudeSessionController::class, 'refresh']);
+    Route::post('machines/{machine}/claude-sessions/{sessionId}/open', [Api\ClaudeSessionController::class, 'open']);
+    Route::post('machines/{machine}/claude-sessions/{sessionId}/close', [Api\ClaudeSessionController::class, 'close']);
+    Route::post('machines/{machine}/claude-sessions/{sessionId}/adopt', [Api\ClaudeSessionController::class, 'adopt']);
+
     Route::get('sessions/{session}', [Api\SessionController::class, 'show']);
     Route::delete('sessions/{session}', [Api\SessionController::class, 'destroy']);
     Route::get('sessions/{session}/logs', [Api\SessionController::class, 'logs']);

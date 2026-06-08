@@ -6,8 +6,9 @@ import type {
   CreateSessionPayload, 
   ResizeSessionPayload, 
   SessionInputPayload,
-  WebSocketConfig 
+  WebSocketConfig
 } from '@/types';
+import type { DiscoveredSession, TranscriptEvent } from '@/types/claudeSessions';
 
 // Helper to extract data from response
 function extractData<T>(response: { data: ApiResponse<T> }): T {
@@ -128,6 +129,50 @@ export const machinesApi = {
   async get(machineId: string): Promise<MachineApi> {
     const response = await api.get<ApiResponse<MachineApi>>(`/machines/${machineId}`);
     return extractData(response);
+  },
+};
+
+// ============================================================================
+// Claude Sessions API (the user's own discovered sessions)
+// ============================================================================
+
+export const claudeSessionsApi = {
+  /** List discovered Claude sessions for a machine. */
+  async list(machineId: string, liveOnly = false): Promise<DiscoveredSession[]> {
+    const response = await api.get<ApiResponse<DiscoveredSession[]>>(
+      `/machines/${machineId}/claude-sessions`,
+      { params: { live_only: liveOnly ? 1 : 0 } },
+    );
+    return extractData(response);
+  },
+
+  /** Trigger an immediate re-scan on the agent and return the fresh list. */
+  async refresh(machineId: string): Promise<DiscoveredSession[]> {
+    const response = await api.post<ApiResponse<DiscoveredSession[]>>(
+      `/machines/${machineId}/claude-sessions/refresh`,
+    );
+    return extractData(response);
+  },
+
+  /** Start mirroring a session; returns its redacted history. */
+  async open(machineId: string, sessionId: string): Promise<TranscriptEvent[]> {
+    const response = await api.post<ApiResponse<{ session_id: string; history: TranscriptEvent[] }>>(
+      `/machines/${machineId}/claude-sessions/${sessionId}/open`,
+    );
+    return extractData(response).history;
+  },
+
+  /** Stop mirroring a session. */
+  async close(machineId: string, sessionId: string): Promise<void> {
+    await api.post(`/machines/${machineId}/claude-sessions/${sessionId}/close`);
+  },
+
+  /** Adopt a session into the agent's tmux for remote control. */
+  async adopt(machineId: string, sessionId: string): Promise<string | null> {
+    const response = await api.post<ApiResponse<{ agent_session_id: string | null }>>(
+      `/machines/${machineId}/claude-sessions/${sessionId}/adopt`,
+    );
+    return extractData(response).agent_session_id;
   },
 };
 

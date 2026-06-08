@@ -118,6 +118,7 @@ import {
   Squares2X2Icon,
   KeyIcon,
   Cog6ToothIcon,
+  EyeIcon,
 } from '@heroicons/vue/24/outline';
 import type { NavItem } from '@/types';
 
@@ -146,12 +147,14 @@ const iconMap = {
   Squares2X2Icon,
   KeyIcon,
   Cog6ToothIcon,
+  EyeIcon,
 };
 
 const navItemsConfig: Array<NavItem & { iconName: keyof typeof iconMap }> = [
   { name: 'Dashboard', path: '/dashboard', icon: 'home', iconName: 'HomeIcon' },
   { name: 'Machines', path: '/machines', icon: 'server', iconName: 'ServerIcon' },
   { name: 'Sessions', path: '/sessions', icon: 'terminal', iconName: 'CommandLineIcon' },
+  { name: 'Claude Sessions', path: '/claude-sessions', icon: 'eye', iconName: 'EyeIcon' },
   { name: 'Projects', path: '/projects', icon: 'folder', iconName: 'FolderIcon' },
   { name: 'Tasks', path: '/tasks', icon: 'checklist', iconName: 'CheckCircleIcon' },
   { name: 'Skills', path: '/skills', icon: 'sparkles', iconName: 'SparklesIcon' },

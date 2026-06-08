@@ -389,6 +389,11 @@ export class TmuxSession extends EventEmitter {
       args.push('--oneshot');
     }
 
+    // Adopt an existing Claude session by resuming it (preserves history).
+    if (this.options.resumeSessionId) {
+      args.push('--resume', this.options.resumeSessionId);
+    }
+
     if (this.options.initialPrompt) {
       args.push('--prompt', this.options.initialPrompt);
     }

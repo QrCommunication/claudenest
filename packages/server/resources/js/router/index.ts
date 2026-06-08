@@ -107,6 +107,17 @@ const routes: RouteRecordRaw[] = [
                 },
             },
             {
+                path: 'claude-sessions',
+                name: 'claude-sessions',
+                component: () => import('@/pages/claude-sessions/Index.vue'),
+                meta: {
+                    requiresAuth: true,
+                    breadcrumb: [
+                        { label: 'Claude Sessions' },
+                    ],
+                },
+            },
+            {
                 path: 'sessions/new',
                 name: 'sessions.new',
                 component: () => import('@/pages/sessions/New.vue'),

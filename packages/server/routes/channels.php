@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\DiscoveredSession;
 use App\Models\Session;
 use App\Models\SharedProject;
 use Illuminate\Support\Facades\Broadcast;
@@ -24,6 +25,13 @@ Broadcast::channel('machines.{machineId}', function ($user, $machineId) {
 Broadcast::channel('sessions.{sessionId}', function ($user, $sessionId) {
     $session = Session::forUser($user->id)->find($sessionId);
     return !is_null($session);
+});
+
+// Discovered Claude session channel (live transcript mirror)
+Broadcast::channel('claude-sessions.{sessionId}', function ($user, $sessionId) {
+    return DiscoveredSession::where('session_id', $sessionId)
+        ->whereHas('machine', fn ($q) => $q->where('user_id', $user->id))
+        ->exists();
 });
 
 // Project channel (for multi-agent coordination)
