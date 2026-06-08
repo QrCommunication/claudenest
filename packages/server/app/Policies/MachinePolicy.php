@@ -46,4 +46,12 @@ class MachinePolicy
     {
         return $machine->user_id === $user->id;
     }
+
+    /**
+     * Determine whether the user can regenerate the machine's auth token.
+     */
+    public function regenerateToken(User $user, Machine $machine): bool
+    {
+        return $machine->user_id === $user->id;
+    }
 }

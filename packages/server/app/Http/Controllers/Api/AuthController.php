@@ -219,9 +219,12 @@ class AuthController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
-        // Revoke current token
-        if ($request->user()->currentAccessToken()) {
-            $request->user()->currentAccessToken()->delete();
+        // Revoke current token. currentAccessToken() returns a TransientToken
+        // (no delete()) for session-cookie / actingAs auth, so only delete a
+        // real persisted PersonalAccessToken to avoid a 500.
+        $currentToken = $request->user()->currentAccessToken();
+        if ($currentToken instanceof \Laravel\Sanctum\PersonalAccessToken) {
+            $currentToken->delete();
         }
 
         return response()->json([
@@ -754,9 +757,12 @@ class AuthController extends Controller
     {
         $user = $request->user();
 
-        // Revoke current token
-        if ($request->user()->currentAccessToken()) {
-            $request->user()->currentAccessToken()->delete();
+        // Revoke current token. currentAccessToken() returns a TransientToken
+        // (no delete()) for session-cookie / actingAs auth, so only delete a
+        // real persisted PersonalAccessToken to avoid a 500.
+        $currentToken = $request->user()->currentAccessToken();
+        if ($currentToken instanceof \Laravel\Sanctum\PersonalAccessToken) {
+            $currentToken->delete();
         }
 
         // Create new token

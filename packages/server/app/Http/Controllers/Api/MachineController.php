@@ -431,7 +431,7 @@ class MachineController extends Controller
     public function regenerateToken(Request $request, string $id): JsonResponse
     {
         $machine = Machine::findOrFail($id);
-        $this->authorize('update', $machine);
+        $this->authorize('regenerateToken', $machine);
 
         $token = $machine->generateToken();
 

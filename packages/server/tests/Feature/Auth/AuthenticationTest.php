@@ -46,8 +46,10 @@ class AuthenticationTest extends TestCase
             'password_confirmation' => 'SecurePassword123!',
         ]);
 
+        // Custom validation error envelope (error.code = VAL_001, error.details).
         $response->assertStatus(422)
-            ->assertJsonValidationErrors('email');
+            ->assertJsonPath('error.code', 'VAL_001')
+            ->assertJsonStructure(['error' => ['details' => ['email']]]);
     }
 
     /** @test */
@@ -60,8 +62,10 @@ class AuthenticationTest extends TestCase
             'password_confirmation' => 'DifferentPassword456!',
         ]);
 
+        // Custom validation error envelope (error.code = VAL_001, error.details).
         $response->assertStatus(422)
-            ->assertJsonValidationErrors('password');
+            ->assertJsonPath('error.code', 'VAL_001')
+            ->assertJsonStructure(['error' => ['details' => ['password']]]);
     }
 
     /** @test */
@@ -126,13 +130,16 @@ class AuthenticationTest extends TestCase
         $response = $this->actingAs($user)
             ->getJson('/api/auth/me');
 
+        // me() nests the profile under data.user (formatUser()).
         $response->assertOk()
             ->assertJson([
                 'success' => true,
                 'data' => [
-                    'id' => $user->id,
-                    'email' => $user->email,
-                    'name' => $user->name,
+                    'user' => [
+                        'id' => $user->id,
+                        'email' => $user->email,
+                        'name' => $user->name,
+                    ],
                 ],
             ]);
     }

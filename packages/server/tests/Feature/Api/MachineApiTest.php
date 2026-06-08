@@ -82,8 +82,10 @@ class MachineApiTest extends TestCase
                 'hostname' => 'test-host',
             ]);
 
+        // Custom validation error envelope (error.code = VAL_001, error.details).
         $response->assertStatus(422)
-            ->assertJsonValidationErrors('platform');
+            ->assertJsonPath('error.code', 'VAL_001')
+            ->assertJsonStructure(['error' => ['details' => ['platform']]]);
     }
 
     /** @test */
