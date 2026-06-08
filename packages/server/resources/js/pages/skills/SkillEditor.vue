@@ -5,42 +5,42 @@
       <div class="flex items-center gap-4">
         <Button variant="ghost" @click="goBack">
           <ArrowLeftIcon class="w-4 h-4" />
-          Back
+          {{ t('skillsSkilleditor.back') }}
         </Button>
         <div>
           <h1 class="text-2xl font-bold text-skin-primary">
-            {{ isEditing ? 'Edit Skill' : 'Create Skill' }}
+            {{ isEditing ? t('skillsSkilleditor.editSkill') : t('skillsSkilleditor.createSkill') }}
           </h1>
           <p class="text-skin-secondary mt-1">
-            {{ isEditing ? 'Modify your skill content and metadata' : 'Create a new skill with markdown content' }}
+            {{ isEditing ? t('skillsSkilleditor.editSubtitle') : t('skillsSkilleditor.createSubtitle') }}
           </p>
         </div>
       </div>
       <div class="flex items-center gap-3">
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           @click="togglePreview"
           :class="{ 'bg-brand-purple/20 text-brand-purple': showPreview }"
         >
           <EyeIcon class="w-4 h-4" />
-          {{ showPreview ? 'Hide Preview' : 'Show Preview' }}
+          {{ showPreview ? t('skillsSkilleditor.hidePreview') : t('skillsSkilleditor.showPreview') }}
         </Button>
-        <Button 
-          variant="error" 
+        <Button
+          variant="error"
           v-if="isEditing"
           :loading="skillsStore.isDeleting"
           @click="confirmDelete"
         >
           <TrashIcon class="w-4 h-4" />
-          Delete
+          {{ t('skillsSkilleditor.delete') }}
         </Button>
-        <Button 
-          variant="primary" 
+        <Button
+          variant="primary"
           :loading="isSaving"
           @click="saveSkill"
         >
           <SaveIcon class="w-4 h-4" />
-          Save
+          {{ t('skillsSkilleditor.save') }}
         </Button>
       </div>
     </div>
@@ -49,74 +49,74 @@
       <!-- Editor -->
       <div class="space-y-4">
         <!-- Frontmatter Fields -->
-        <Card title="Skill Metadata">
+        <Card :title="t('skillsSkilleditor.skillMetadata')">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               v-model="skillForm.name"
-              label="Name"
+              :label="t('skillsSkilleditor.name')"
               placeholder="my-skill-name"
               required
             />
             <Input
               v-model="skillForm.display_name"
-              label="Display Name"
-              placeholder="My Skill"
+              :label="t('skillsSkilleditor.displayName')"
+              :placeholder="t('skillsSkilleditor.displayNamePlaceholder')"
             />
             <Input
               v-model="skillForm.version"
-              label="Version"
+              :label="t('skillsSkilleditor.version')"
               placeholder="1.0.0"
             />
             <Select
               v-model="skillForm.category"
-              label="Category"
+              :label="t('skillsSkilleditor.category')"
               :options="categoryOptions"
               required
             />
             <Input
               v-model="skillForm.author"
-              label="Author"
-              placeholder="Your name"
+              :label="t('skillsSkilleditor.author')"
+              :placeholder="t('skillsSkilleditor.authorPlaceholder')"
             />
             <Input
               v-model="skillForm.path"
-              label="File Path"
+              :label="t('skillsSkilleditor.filePath')"
               placeholder="path/to/skill.md"
               required
               :disabled="isEditing"
             />
           </div>
           <div class="mt-4">
-            <label class="block text-sm font-medium text-skin-primary mb-2">Description</label>
+            <label class="block text-sm font-medium text-skin-primary mb-2">{{ t('skillsSkilleditor.description') }}</label>
             <textarea
               v-model="skillForm.description"
               rows="2"
-              placeholder="Brief description of what this skill does..."
+              :placeholder="t('skillsSkilleditor.descriptionPlaceholder')"
               class="w-full bg-surface-1 border border-skin rounded-lg px-3 py-2 text-skin-primary text-sm focus:outline-none focus:border-brand-purple resize-none"
             />
           </div>
           <div class="mt-4">
-            <label class="block text-sm font-medium text-skin-primary mb-2">Tags (comma-separated)</label>
+            <label class="block text-sm font-medium text-skin-primary mb-2">{{ t('skillsSkilleditor.tagsLabel') }}</label>
             <Input
               v-model="tagsInput"
-              placeholder="tag1, tag2, tag3"
+              :placeholder="t('skillsSkilleditor.tagsPlaceholder')"
             />
           </div>
         </Card>
 
         <!-- Content Editor -->
-        <Card title="Content" class-name="flex-1">
+        <Card :title="t('skillsSkilleditor.content')" class-name="flex-1">
           <MarkdownEditor
             v-model="skillForm.content"
             :rows="24"
-            placeholder="Write your skill content in Markdown..."
+            :placeholder="t('skillsSkilleditor.contentPlaceholder')"
           />
         </Card>
       </div>
 
       <!-- Preview -->
       <div v-if="showPreview" class="space-y-4">
-        <Card title="Preview" class-name="h-full">
+        <Card :title="t('skillsSkilleditor.preview')" class-name="h-full">
           <SkillPreview
             :name="skillForm.name"
             :display-name="skillForm.display_name"
@@ -136,26 +136,26 @@
       <template #title>
         <div class="flex items-center gap-2 text-red-400">
           <AlertTriangleIcon class="w-5 h-5" />
-          Delete Skill
+          {{ t('skillsSkilleditor.deleteSkill') }}
         </div>
       </template>
 
       <p class="text-skin-secondary">
-        Are you sure you want to delete <strong class="text-skin-primary">{{ skillForm.name }}</strong>? 
-        This action cannot be undone.
+        {{ t('skillsSkilleditor.deleteConfirmPrefix') }} <strong class="text-skin-primary">{{ skillForm.name }}</strong>{{ t('skillsSkilleditor.deleteConfirmSuffix') }}
+        {{ t('skillsSkilleditor.deleteConfirmUndo') }}
       </p>
 
       <template #footer>
         <div class="flex justify-end gap-3">
           <Button variant="ghost" @click="showDeleteModal = false">
-            Cancel
+            {{ t('skillsSkilleditor.cancel') }}
           </Button>
-          <Button 
-            variant="error" 
+          <Button
+            variant="error"
             :loading="skillsStore.isDeleting"
             @click="deleteSkill"
           >
-            Delete Skill
+            {{ t('skillsSkilleditor.deleteSkill') }}
           </Button>
         </div>
       </template>
@@ -166,6 +166,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useSkillsStore } from '@/stores/skills';
 import { useMachinesStore } from '@/stores/machines';
 import { useToast } from '@/composables/useToast';
@@ -187,6 +188,7 @@ import type { SkillCategory } from '@/types';
 
 const route = useRoute();
 const router = useRouter();
+const { t } = useI18n();
 const skillsStore = useSkillsStore();
 const machinesStore = useMachinesStore();
 const toast = useToast();
@@ -240,12 +242,12 @@ onMounted(() => {
 
 async function loadSkill(): Promise<void> {
   if (!currentMachineId.value || !route.params.id) return;
-  
+
   const path = decodeURIComponent(route.params.id as string);
-  
+
   try {
     const skill = await skillsStore.fetchSkill(currentMachineId.value, path);
-    
+
     skillForm.value = {
       name: skill.name,
       display_name: skill.display_name || skill.name,
@@ -256,12 +258,12 @@ async function loadSkill(): Promise<void> {
       path: skill.path,
       content: (skill.config?.content as string) || '',
     };
-    
+
     if (skill.tags?.length) {
       tagsInput.value = skill.tags.join(', ');
     }
   } catch {
-    toast.error('Failed to load skill');
+    toast.error(t('skillsSkilleditor.toastLoadFailed'));
     goBack();
   }
 }
@@ -277,12 +279,12 @@ function togglePreview(): void {
 
 async function saveSkill(): Promise<void> {
   if (!currentMachineId.value) {
-    toast.error('No machine selected');
+    toast.error(t('skillsSkilleditor.toastNoMachine'));
     return;
   }
 
   if (!skillForm.value.name || !skillForm.value.path) {
-    toast.error('Name and path are required');
+    toast.error(t('skillsSkilleditor.toastNameAndPathRequired'));
     return;
   }
 
@@ -305,7 +307,7 @@ async function saveSkill(): Promise<void> {
           },
         }
       );
-      toast.success('Skill updated successfully');
+      toast.success(t('skillsSkilleditor.toastUpdated'));
     } else {
       await skillsStore.createSkill(currentMachineId.value, {
         name: skillForm.value.name,
@@ -318,12 +320,12 @@ async function saveSkill(): Promise<void> {
         tags: parsedTags.value,
         examples: [],
       });
-      toast.success('Skill created successfully');
+      toast.success(t('skillsSkilleditor.toastCreated'));
     }
-    
+
     goBack();
   } catch {
-    toast.error(isEditing.value ? 'Failed to update skill' : 'Failed to create skill');
+    toast.error(isEditing.value ? t('skillsSkilleditor.toastUpdateFailed') : t('skillsSkilleditor.toastCreateFailed'));
   } finally {
     isSaving.value = false;
   }
@@ -335,14 +337,14 @@ function confirmDelete(): void {
 
 async function deleteSkill(): Promise<void> {
   if (!currentMachineId.value || !isEditing.value) return;
-  
+
   try {
     await skillsStore.deleteSkill(currentMachineId.value, skillForm.value.path);
-    toast.success('Skill deleted successfully');
+    toast.success(t('skillsSkilleditor.toastDeleted'));
     showDeleteModal.value = false;
     goBack();
   } catch {
-    toast.error('Failed to delete skill');
+    toast.error(t('skillsSkilleditor.toastDeleteFailed'));
   }
 }
 

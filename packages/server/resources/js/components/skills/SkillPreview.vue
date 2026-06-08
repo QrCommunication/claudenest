@@ -11,11 +11,11 @@
         <component :is="categoryIcon" :class="`w-7 h-7 text-${categoryColor}-400`" />
       </div>
       <div class="flex-1 min-w-0">
-        <h1 class="text-xl font-bold text-white">{{ displayName || name || 'Untitled Skill' }}</h1>
+        <h1 class="text-xl font-bold text-white">{{ displayName || name || t('skillsSkillpreview.untitledSkill') }}</h1>
         <div class="flex items-center gap-2 mt-1 flex-wrap">
           <Badge variant="default" size="sm">v{{ version }}</Badge>
           <Badge :variant="categoryVariant" size="sm">{{ category }}</Badge>
-          <span v-if="author" class="text-sm text-skin-secondary">by {{ author }}</span>
+          <span v-if="author" class="text-sm text-skin-secondary">{{ t('skillsSkillpreview.by') }} {{ author }}</span>
         </div>
       </div>
     </div>
@@ -47,13 +47,14 @@
     
     <div v-else class="text-center py-12 bg-surface-1 rounded-lg">
       <FileTextIcon class="w-8 h-8 text-skin-secondary mx-auto mb-2" />
-      <p class="text-sm text-skin-secondary">No content yet</p>
+      <p class="text-sm text-skin-secondary">{{ t('skillsSkillpreview.noContentYet') }}</p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Badge from '@/components/common/Badge.vue';
 import {
   ShieldIcon,
@@ -80,6 +81,8 @@ interface Props {
   tags?: string[];
   content?: string;
 }
+
+const { t } = useI18n();
 
 const props = withDefaults(defineProps<Props>(), {
   name: '',

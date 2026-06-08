@@ -3,13 +3,13 @@
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-skin-primary">Skills</h1>
-        <p class="text-skin-secondary mt-1">Manage discovered skills and their configurations</p>
+        <h1 class="text-2xl font-bold text-skin-primary">{{ t('skillsIndex.title') }}</h1>
+        <p class="text-skin-secondary mt-1">{{ t('skillsIndex.subtitle') }}</p>
       </div>
       <div class="flex items-center gap-3">
         <MachineSelector />
         <Badge variant="info" size="md">
-          {{ skillsStore.pagination.total }} total
+          {{ t('skillsIndex.totalCount', { count: skillsStore.pagination.total }) }}
         </Badge>
         <Button
           variant="ghost"
@@ -17,14 +17,14 @@
           :loading="skillsStore.isLoading"
         >
           <RefreshCwIcon class="w-4 h-4" />
-          Refresh
+          {{ t('skillsIndex.refresh') }}
         </Button>
         <Button
           variant="primary"
           @click="createSkill"
         >
           <PlusIcon class="w-4 h-4" />
-          New Skill
+          {{ t('skillsIndex.newSkill') }}
         </Button>
       </div>
     </div>
@@ -35,7 +35,7 @@
         <Input
           v-model="searchQuery"
           type="text"
-          placeholder="Search skills..."
+          :placeholder="t('skillsIndex.searchPlaceholder')"
           class="w-full"
         >
           <template #left-icon>
@@ -46,13 +46,13 @@
       <Select
         v-model="selectedCategory"
         :options="categoryOptions"
-        placeholder="All Categories"
+        :placeholder="t('skillsIndex.allCategories')"
         class="w-full sm:w-48"
       />
       <Select
         v-model="selectedStatus"
         :options="statusOptions"
-        placeholder="All Status"
+        :placeholder="t('skillsIndex.allStatus')"
         class="w-full sm:w-40"
       />
     </div>
@@ -82,13 +82,13 @@
 
     <div v-else-if="filteredSkills.length === 0" class="text-center py-12">
       <ZapIcon class="w-12 h-12 text-skin-secondary mx-auto mb-4" />
-      <h3 class="text-lg font-medium text-skin-primary mb-2">No skills found</h3>
+      <h3 class="text-lg font-medium text-skin-primary mb-2">{{ t('skillsIndex.noSkillsFound') }}</h3>
       <p class="text-skin-secondary mb-4">
-        {{ searchQuery ? 'Try adjusting your search filters' : 'Create your first skill to get started' }}
+        {{ searchQuery ? t('skillsIndex.adjustFilters') : t('skillsIndex.createFirstSkill') }}
       </p>
       <Button variant="primary" @click="createSkill">
         <PlusIcon class="w-4 h-4" />
-        Create Skill
+        {{ t('skillsIndex.createSkill') }}
       </Button>
     </div>
 
@@ -117,7 +117,7 @@
           <ChevronLeftIcon class="w-4 h-4" />
         </Button>
         <span class="text-sm text-skin-secondary">
-          Page {{ skillsStore.pagination.currentPage }} of {{ skillsStore.pagination.lastPage }}
+          {{ t('skillsIndex.pageOf', { current: skillsStore.pagination.currentPage, last: skillsStore.pagination.lastPage }) }}
         </span>
         <Button
           variant="ghost"
@@ -135,7 +135,7 @@
       <template #title>
         <div class="flex items-center gap-2">
           <EyeIcon class="w-5 h-5 text-brand-purple" />
-          Skill Preview
+          {{ t('skillsIndex.skillPreview') }}
         </div>
       </template>
       
@@ -154,14 +154,14 @@
       <template #footer>
         <div class="flex justify-end gap-3">
           <Button variant="ghost" @click="showPreviewModal = false">
-            Close
+            {{ t('skillsIndex.close') }}
           </Button>
           <Button 
             variant="primary" 
             @click="editSkill(previewingSkill!)"
           >
             <EditIcon class="w-4 h-4" />
-            Edit
+            {{ t('skillsIndex.edit') }}
           </Button>
         </div>
       </template>
@@ -172,26 +172,25 @@
       <template #title>
         <div class="flex items-center gap-2 text-red-400">
           <AlertTriangleIcon class="w-5 h-5" />
-          Delete Skill
+          {{ t('skillsIndex.deleteSkill') }}
         </div>
       </template>
-      
+
       <p class="text-skin-secondary">
-        Are you sure you want to delete <strong class="text-skin-primary">{{ skillToDelete?.display_name }}</strong>? 
-        This action cannot be undone.
+        {{ t('skillsIndex.deleteConfirmPrefix') }} <strong class="text-skin-primary">{{ skillToDelete?.display_name }}</strong>{{ t('skillsIndex.deleteConfirmSuffix') }}
       </p>
       
       <template #footer>
         <div class="flex justify-end gap-3">
           <Button variant="ghost" @click="showDeleteModal = false">
-            Cancel
+            {{ t('skillsIndex.cancel') }}
           </Button>
-          <Button 
-            variant="error" 
+          <Button
+            variant="error"
             :loading="skillsStore.isDeleting"
             @click="deleteSkill"
           >
-            Delete
+            {{ t('skillsIndex.delete') }}
           </Button>
         </div>
       </template>
@@ -201,6 +200,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useSkillsStore } from '@/stores/skills';
 import { useMachinesStore } from '@/stores/machines';
@@ -227,6 +227,7 @@ import {
 } from 'lucide-vue-next';
 import type { Skill } from '@/types';
 
+const { t } = useI18n();
 const router = useRouter();
 const skillsStore = useSkillsStore();
 const machinesStore = useMachinesStore();
@@ -242,15 +243,15 @@ const skillToDelete = ref<Skill | null>(null);
 const isDeleting = ref<string | null>(null);
 
 const categoryOptions = computed(() => [
-  { value: '', label: 'All Categories' },
+  { value: '', label: t('skillsIndex.allCategories') },
   ...skillsStore.categories.map(cat => ({ value: cat, label: cat })),
 ]);
 
-const statusOptions = [
-  { value: 'all', label: 'All Status' },
-  { value: 'enabled', label: 'Enabled' },
-  { value: 'disabled', label: 'Disabled' },
-];
+const statusOptions = computed(() => [
+  { value: 'all', label: t('skillsIndex.allStatus') },
+  { value: 'enabled', label: t('skillsIndex.statusEnabled') },
+  { value: 'disabled', label: t('skillsIndex.statusDisabled') },
+]);
 
 const categoryStats = computed(() => {
   return Object.entries(skillsStore.categoryCounts)
@@ -302,13 +303,13 @@ async function loadSkills(): Promise<void> {
   try {
     await skillsStore.fetchSkills(currentMachineId.value);
   } catch {
-    toast.error('Failed to load skills');
+    toast.error(t('skillsIndex.loadFailed'));
   }
 }
 
 async function refreshSkills(): Promise<void> {
   await loadSkills();
-  toast.success('Skills refreshed');
+  toast.success(t('skillsIndex.refreshed'));
 }
 
 function createSkill(): void {
@@ -329,9 +330,9 @@ async function toggleSkill(skill: Skill): Promise<void> {
   
   try {
     await skillsStore.toggleSkill(currentMachineId.value, skill.path);
-    toast.success(`Skill ${skill.enabled ? 'disabled' : 'enabled'}`);
+    toast.success(skill.enabled ? t('skillsIndex.skillDisabled') : t('skillsIndex.skillEnabled'));
   } catch {
-    toast.error('Failed to toggle skill');
+    toast.error(t('skillsIndex.toggleFailed'));
   }
 }
 
@@ -347,10 +348,10 @@ async function deleteSkill(): Promise<void> {
   
   try {
     await skillsStore.deleteSkill(currentMachineId.value, skillToDelete.value.path);
-    toast.success('Skill deleted successfully');
+    toast.success(t('skillsIndex.deleteSuccess'));
     showDeleteModal.value = false;
   } catch {
-    toast.error('Failed to delete skill');
+    toast.error(t('skillsIndex.deleteFailed'));
   } finally {
     isDeleting.value = null;
     skillToDelete.value = null;

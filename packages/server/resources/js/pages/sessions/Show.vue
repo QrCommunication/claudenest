@@ -6,14 +6,20 @@
           <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
         </svg>
       </button>
-      <h1>Session Details</h1>
+      <h1>{{ t('sessionsShow.sessionDetails') }}</h1>
     </div>
     <div class="placeholder">
-      <p>Session detail view coming soon</p>
-      <p class="session-id">Session ID: {{ $route.params.id }}</p>
+      <p>{{ t('sessionsShow.comingSoon') }}</p>
+      <p class="session-id">{{ t('sessionsShow.sessionIdLabel') }} {{ $route.params.id }}</p>
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
+</script>
 
 <style scoped>
 @reference "../../../css/tailwind.css";

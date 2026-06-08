@@ -4,25 +4,25 @@
       <div class="header-stats">
         <div class="stat-box">
           <span class="stat-number">{{ locksStore.activeLocks.length }}</span>
-          <span class="stat-label">Active Locks</span>
+          <span class="stat-label">{{ t('projectsLocks.activeLocks') }}</span>
         </div>
         <div class="stat-box">
           <span class="stat-number">{{ uniqueInstances.length }}</span>
-          <span class="stat-label">Instances</span>
+          <span class="stat-label">{{ t('projectsLocks.instances') }}</span>
         </div>
       </div>
       <Button variant="primary" @click="showLockModal = true">
         <svg viewBox="0 0 24 24" fill="currentColor">
           <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
         </svg>
-        Lock File
+        {{ t('projectsLocks.lockFile') }}
       </Button>
     </div>
 
     <!-- Loading State -->
     <div v-if="locksStore.isLoading" class="loading-state">
       <div class="spinner" />
-      <p>Loading locks...</p>
+      <p>{{ t('projectsLocks.loadingLocks') }}</p>
     </div>
 
     <!-- Empty State -->
@@ -30,14 +30,14 @@
       <svg viewBox="0 0 24 24" fill="currentColor">
         <path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM12 6c1.1 0 2 .9 2 2v2h-4V8c0-1.1.9-2 2-2z"/>
       </svg>
-      <h3>No Active Locks</h3>
-      <p>Files can be locked to prevent conflicts between instances.</p>
+      <h3>{{ t('projectsLocks.noActiveLocks') }}</h3>
+      <p>{{ t('projectsLocks.noActiveLocksDescription') }}</p>
     </div>
 
     <!-- Locks List -->
     <div v-else class="locks-layout">
       <!-- Tree View -->
-      <Card title="Lock Map" class="tree-card">
+      <Card :title="t('projectsLocks.lockMap')" class="tree-card">
         <div class="lock-tree">
           <div 
             v-for="(locks, dir) in locksByDirectory" 
@@ -52,7 +52,7 @@
               >
                 <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
               </svg>
-              <span>{{ dir || 'Root' }}</span>
+              <span>{{ dir || t('projectsLocks.root') }}</span>
               <span class="dir-count">{{ locks.length }}</span>
             </div>
             <div v-if="expandedDirs.includes(dir)" class="tree-files">
@@ -76,16 +76,16 @@
       </Card>
 
       <!-- Locks Table -->
-      <Card title="Active Locks" class="table-card">
+      <Card :title="t('projectsLocks.activeLocks')" class="table-card">
         <div class="locks-table-container">
           <table class="locks-table">
             <thead>
               <tr>
-                <th>File</th>
-                <th>Locked By</th>
-                <th>Reason</th>
-                <th>Time Remaining</th>
-                <th>Actions</th>
+                <th>{{ t('projectsLocks.file') }}</th>
+                <th>{{ t('projectsLocks.lockedBy') }}</th>
+                <th>{{ t('projectsLocks.reason') }}</th>
+                <th>{{ t('projectsLocks.timeRemaining') }}</th>
+                <th>{{ t('projectsLocks.actions') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -107,7 +107,7 @@
                   <code>{{ lock.locked_by.slice(0, 12) }}...</code>
                 </td>
                 <td class="reason-cell">
-                  {{ lock.reason || 'No reason provided' }}
+                  {{ lock.reason || t('projectsLocks.noReasonProvided') }}
                 </td>
                 <td class="time-cell">
                   <span :class="{ 'is-expiring': lock.remaining_seconds < 300 }">
@@ -115,27 +115,27 @@
                   </span>
                 </td>
                 <td class="actions-cell">
-                  <button 
+                  <button
                     class="action-btn extend"
-                    title="Extend lock"
+                    :title="t('projectsLocks.extendLockTitle')"
                     @click.stop="extendLock(lock)"
                   >
                     <svg viewBox="0 0 24 24" fill="currentColor">
                       <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
                     </svg>
                   </button>
-                  <button 
+                  <button
                     class="action-btn unlock"
-                    title="Unlock"
+                    :title="t('projectsLocks.unlockTitle')"
                     @click.stop="unlockFile(lock)"
                   >
                     <svg viewBox="0 0 24 24" fill="currentColor">
                       <path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6h1.9c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm0 12H6V10h12v10z"/>
                     </svg>
                   </button>
-                  <button 
+                  <button
                     class="action-btn force"
-                    title="Force unlock"
+                    :title="t('projectsLocks.forceUnlockTitle')"
                     @click.stop="forceUnlock(lock)"
                   >
                     <svg viewBox="0 0 24 24" fill="currentColor">
@@ -151,30 +151,30 @@
     </div>
 
     <!-- Lock Detail Panel -->
-    <Card v-if="selectedLock" title="Lock Details" class="detail-card">
+    <Card v-if="selectedLock" :title="t('projectsLocks.lockDetails')" class="detail-card">
       <div class="lock-detail">
         <div class="detail-row">
-          <span class="detail-label">Path</span>
+          <span class="detail-label">{{ t('projectsLocks.path') }}</span>
           <code class="detail-value">{{ selectedLock.path }}</code>
         </div>
         <div class="detail-row">
-          <span class="detail-label">Locked By</span>
+          <span class="detail-label">{{ t('projectsLocks.lockedBy') }}</span>
           <code class="detail-value">{{ selectedLock.locked_by }}</code>
         </div>
         <div class="detail-row">
-          <span class="detail-label">Reason</span>
-          <span class="detail-value">{{ selectedLock.reason || 'No reason provided' }}</span>
+          <span class="detail-label">{{ t('projectsLocks.reason') }}</span>
+          <span class="detail-value">{{ selectedLock.reason || t('projectsLocks.noReasonProvided') }}</span>
         </div>
         <div class="detail-row">
-          <span class="detail-label">Locked At</span>
+          <span class="detail-label">{{ t('projectsLocks.lockedAt') }}</span>
           <span class="detail-value">{{ formatDate(selectedLock.locked_at) }}</span>
         </div>
         <div class="detail-row">
-          <span class="detail-label">Expires At</span>
+          <span class="detail-label">{{ t('projectsLocks.expiresAt') }}</span>
           <span class="detail-value">{{ formatDate(selectedLock.expires_at) }}</span>
         </div>
         <div class="detail-row">
-          <span class="detail-label">Remaining</span>
+          <span class="detail-label">{{ t('projectsLocks.remaining') }}</span>
           <span class="detail-value" :class="{ 'is-expiring': selectedLock.remaining_seconds < 300 }">
             {{ formatRemaining(selectedLock.remaining_seconds) }}
           </span>
@@ -183,21 +183,21 @@
     </Card>
 
     <!-- Lock File Modal -->
-    <Modal v-model="showLockModal" title="Lock File">
+    <Modal v-model="showLockModal" :title="t('projectsLocks.lockFile')">
       <form @submit.prevent="lockFile" class="lock-form">
         <div class="form-group">
-          <label>File Path</label>
-          <input 
-            v-model="lockForm.path" 
-            type="text" 
+          <label>{{ t('projectsLocks.filePath') }}</label>
+          <input
+            v-model="lockForm.path"
+            type="text"
             placeholder="/path/to/file"
             required
           />
         </div>
         <div class="form-group">
-          <label>Instance ID</label>
+          <label>{{ t('projectsLocks.instanceId') }}</label>
           <select v-model="lockForm.instance_id" required>
-            <option value="">Select an instance</option>
+            <option value="">{{ t('projectsLocks.selectAnInstance') }}</option>
             <option 
               v-for="instance in projectsStore.instances" 
               :key="instance.id" 
@@ -208,15 +208,15 @@
           </select>
         </div>
         <div class="form-group">
-          <label>Reason (optional)</label>
-          <input 
-            v-model="lockForm.reason" 
-            type="text" 
-            placeholder="Why are you locking this file?"
+          <label>{{ t('projectsLocks.reasonOptional') }}</label>
+          <input
+            v-model="lockForm.reason"
+            type="text"
+            :placeholder="t('projectsLocks.reasonPlaceholder')"
           />
         </div>
         <div class="form-group">
-          <label>Duration (minutes)</label>
+          <label>{{ t('projectsLocks.durationMinutes') }}</label>
           <input 
             v-model.number="lockForm.duration_minutes" 
             type="number" 
@@ -227,14 +227,14 @@
         </div>
         <div class="form-actions">
           <Button type="button" variant="secondary" @click="showLockModal = false">
-            Cancel
+            {{ t('projectsLocks.cancel') }}
           </Button>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             variant="primary"
             :loading="locksStore.isCreating"
           >
-            Lock File
+            {{ t('projectsLocks.lockFile') }}
           </Button>
         </div>
       </form>
@@ -244,6 +244,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 import { useLocksStore } from '@/stores/locks';
 import { useProjectsStore } from '@/stores/projects';
@@ -258,6 +259,7 @@ const props = defineProps<{
   projectId?: string;
 }>();
 
+const { t } = useI18n();
 const route = useRoute();
 const locksStore = useLocksStore();
 const projectsStore = useProjectsStore();
@@ -332,7 +334,7 @@ async function loadLocks() {
   try {
     await locksStore.fetchLocks(projectId.value);
   } catch (err) {
-    toast.error('Failed to load locks');
+    toast.error(t('projectsLocks.failedToLoadLocks'));
   }
 }
 
@@ -350,7 +352,7 @@ function getFileName(path: string): string {
 }
 
 function formatRemaining(seconds: number): string {
-  if (seconds <= 0) return 'Expired';
+  if (seconds <= 0) return t('projectsLocks.expired');
   
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
@@ -381,9 +383,9 @@ async function lockFile() {
     await locksStore.lockFile(projectId.value, lockForm.value);
     showLockModal.value = false;
     resetLockForm();
-    toast.success('File locked successfully');
+    toast.success(t('projectsLocks.fileLockedSuccessfully'));
   } catch (err) {
-    toast.error('Failed to lock file');
+    toast.error(t('projectsLocks.failedToLockFile'));
   }
 }
 
@@ -401,21 +403,21 @@ async function unlockFile(lock: FileLock) {
   
   try {
     await locksStore.unlockFile(projectId.value, lock.path, lock.locked_by);
-    toast.success('File unlocked');
+    toast.success(t('projectsLocks.fileUnlocked'));
   } catch (err) {
-    toast.error('Failed to unlock file');
+    toast.error(t('projectsLocks.failedToUnlockFile'));
   }
 }
 
 async function forceUnlock(lock: FileLock) {
   if (!projectId.value) return;
-  if (!confirm('Force unlock this file? This may cause conflicts.')) return;
-  
+  if (!confirm(t('projectsLocks.forceUnlockConfirm'))) return;
+
   try {
     await locksStore.forceUnlock(projectId.value, lock.path);
-    toast.success('File force unlocked');
+    toast.success(t('projectsLocks.fileForceUnlocked'));
   } catch (err) {
-    toast.error('Failed to force unlock');
+    toast.error(t('projectsLocks.failedToForceUnlock'));
   }
 }
 
@@ -424,9 +426,9 @@ async function extendLock(lock: FileLock) {
   
   try {
     await locksStore.extendLock(projectId.value, lock.path, lock.locked_by, 30);
-    toast.success('Lock extended by 30 minutes');
+    toast.success(t('projectsLocks.lockExtended'));
   } catch (err) {
-    toast.error('Failed to extend lock');
+    toast.error(t('projectsLocks.failedToExtendLock'));
   }
 }
 </script>

@@ -23,7 +23,7 @@
           class="refresh-btn"
           :disabled="isRefreshing"
           @click="refreshAll"
-          aria-label="Refresh dashboard data"
+          :aria-label="t('dashboard.refreshAriaLabel')"
         >
           <svg class="refresh-icon" :class="{ spinning: isRefreshing }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="23 4 23 10 17 10" />
@@ -37,7 +37,7 @@
     <!-- ================================================================ -->
     <!-- BENTO GRID                                                        -->
     <!-- ================================================================ -->
-    <section class="bento" aria-label="Dashboard overview">
+    <section class="bento" :aria-label="t('dashboard.overviewAriaLabel')">
       <!-- ROW 1: Primary KPI cards -->
       <div class="bento-kpis">
         <button
@@ -113,7 +113,7 @@
         <!-- LEFT: Quick Actions (large card) -->
         <div class="bento-card bento-card--actions">
           <div class="bento-card-head">
-            <h2 class="bento-card-title">Quick Actions</h2>
+            <h2 class="bento-card-title">{{ t('dashboard.quickActions') }}</h2>
           </div>
           <div class="actions-grid">
             <button
@@ -140,7 +140,7 @@
         <!-- RIGHT: System Health + Uptime -->
         <div class="bento-card bento-card--health">
           <div class="bento-card-head">
-            <h2 class="bento-card-title">System Health</h2>
+            <h2 class="bento-card-title">{{ t('dashboard.systemHealth') }}</h2>
           </div>
           <div class="health-list">
             <div
@@ -160,11 +160,11 @@
           <div class="health-divider" />
           <div class="health-meta">
             <div class="health-meta-row">
-              <span class="health-meta-lbl">Last sync</span>
+              <span class="health-meta-lbl">{{ t('dashboard.lastSync') }}</span>
               <span class="health-meta-val">{{ lastRefreshLabel }}</span>
             </div>
             <div class="health-meta-row">
-              <span class="health-meta-lbl">Uptime</span>
+              <span class="health-meta-lbl">{{ t('dashboard.uptime') }}</span>
               <span class="health-meta-val">{{ uptimeLabel }}</span>
             </div>
           </div>
@@ -174,8 +174,8 @@
       <!-- ROW 4: Activity feed (full width) -->
       <div class="bento-card bento-card--activity">
         <div class="bento-card-head">
-          <h2 class="bento-card-title">Recent Activity</h2>
-          <span class="bento-card-badge">{{ activityFeed.length }} events</span>
+          <h2 class="bento-card-title">{{ t('dashboard.recentActivity') }}</h2>
+          <span class="bento-card-badge">{{ t('dashboard.eventsCount', { count: activityFeed.length }) }}</span>
         </div>
 
         <!-- Empty State -->
@@ -184,8 +184,8 @@
             <circle cx="12" cy="12" r="10" />
             <polyline points="12 6 12 12 16 14" />
           </svg>
-          <p class="empty-title">No recent activity</p>
-          <p class="empty-sub">Activity will appear here as machines connect and sessions run.</p>
+          <p class="empty-title">{{ t('dashboard.emptyTitle') }}</p>
+          <p class="empty-sub">{{ t('dashboard.emptySub') }}</p>
         </div>
 
         <!-- Activity Timeline -->
@@ -248,6 +248,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, h, type FunctionalComponent } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useMachinesStore } from '@/stores/machines';
 import { useProjectsStore } from '@/stores/projects';
 import SparkLine from '@/components/common/SparkLine.vue';
@@ -257,6 +258,7 @@ import { fetchDashboardStats, type DashboardStats } from '@/services/dashboard';
 // Stores & Router
 // ============================================================================
 
+const { t } = useI18n();
 const router = useRouter();
 const machinesStore = useMachinesStore();
 const projectsStore = useProjectsStore();
@@ -269,7 +271,7 @@ const isRefreshing = ref(false);
 const isLoadingStats = ref(false);
 const isLoadingProjects = ref(false);
 const lastRefreshTime = ref<Date>(new Date());
-const lastRefreshLabel = ref('just now');
+const lastRefreshLabel = ref(t('dashboard.justNow'));
 const pageLoadTime = Date.now();
 const uptimeTick = ref(0);
 const dashStats = ref<DashboardStats | null>(null);
@@ -295,10 +297,10 @@ const systemHealth = ref({
 
 const greetingText = computed(() => {
   const h = new Date().getHours();
-  if (h < 6) return 'Good night';
-  if (h < 12) return 'Good morning';
-  if (h < 18) return 'Good afternoon';
-  return 'Good evening';
+  if (h < 6) return t('dashboard.greetingNight');
+  if (h < 12) return t('dashboard.greetingMorning');
+  if (h < 18) return t('dashboard.greetingAfternoon');
+  return t('dashboard.greetingEvening');
 });
 
 // ============================================================================
@@ -314,7 +316,7 @@ const overallHealthClass = computed(() =>
 );
 
 const overallHealthLabel = computed(() =>
-  overallHealthy.value ? 'All systems operational' : 'Issues detected'
+  overallHealthy.value ? t('dashboard.allSystemsOperational') : t('dashboard.issuesDetected')
 );
 
 // ============================================================================
@@ -397,8 +399,8 @@ const primaryKpis = computed(() => {
       key: 'machines',
       icon: ServerSvg,
       value: s ? s.machines.online : machinesStore.onlineMachines.length,
-      label: 'Machines Online',
-      sub: `/ ${s ? s.machines.total : machinesStore.machines.length} total`,
+      label: t('dashboard.machinesOnline'),
+      sub: t('dashboard.machinesTotal', { total: s ? s.machines.total : machinesStore.machines.length }),
       color: 'purple',
       route: '/machines',
       sparkData: null as number[] | null,
@@ -408,8 +410,8 @@ const primaryKpis = computed(() => {
       key: 'sessions',
       icon: TerminalSvg,
       value: s ? s.sessions.active : machinesStore.totalActiveSessions,
-      label: 'Active Sessions',
-      sub: s ? `${s.sessions.total_today} today` : null,
+      label: t('dashboard.activeSessions'),
+      sub: s ? t('dashboard.countToday', { count: s.sessions.total_today }) : null,
       color: 'cyan',
       route: '/sessions',
       sparkData: s?.sparklines.sessions_7d ?? null,
@@ -419,8 +421,8 @@ const primaryKpis = computed(() => {
       key: 'projects',
       icon: FolderSvg,
       value: s ? s.projects.total : totalProjects.value,
-      label: 'Projects',
-      sub: s ? `${s.projects.active} active` : null,
+      label: t('dashboard.projects'),
+      sub: s ? t('dashboard.countActive', { count: s.projects.active }) : null,
       color: 'indigo',
       route: '/projects',
       sparkData: null as number[] | null,
@@ -430,8 +432,8 @@ const primaryKpis = computed(() => {
       key: 'tasks',
       icon: CheckSvg,
       value: s ? s.tasks.pending : totalPendingTasks.value,
-      label: 'Tasks Pending',
-      sub: s ? `${s.tasks.in_progress} in progress` : null,
+      label: t('dashboard.tasksPending'),
+      sub: s ? t('dashboard.countInProgress', { count: s.tasks.in_progress }) : null,
       color: 'warning',
       route: '/tasks',
       sparkData: null as number[] | null,
@@ -447,8 +449,8 @@ const secondaryKpis = computed(() => {
       key: 'tokens',
       icon: ChartBarSvg,
       value: s ? formatNumber(s.tokens.total) : '0',
-      label: 'Tokens Used',
-      sub: s ? `${formatNumber(s.tokens.today)} today` : null,
+      label: t('dashboard.tokensUsed'),
+      sub: s ? t('dashboard.amountToday', { amount: formatNumber(s.tokens.today) }) : null,
       color: 'purple',
       route: '/sessions',
       sparkData: s?.sparklines.tokens_7d ?? null,
@@ -458,8 +460,8 @@ const secondaryKpis = computed(() => {
       key: 'cost',
       icon: CurrencySvg,
       value: s ? `$${s.cost.total.toFixed(2)}` : '$0.00',
-      label: 'Estimated Cost',
-      sub: s ? `$${s.cost.today.toFixed(2)} today` : null,
+      label: t('dashboard.estimatedCost'),
+      sub: s ? t('dashboard.amountToday', { amount: `$${s.cost.today.toFixed(2)}` }) : null,
       color: 'cyan',
       route: '/sessions',
       sparkData: null as number[] | null,
@@ -469,7 +471,7 @@ const secondaryKpis = computed(() => {
       key: 'locks',
       icon: LockSvg,
       value: s ? s.locks.active : 0,
-      label: 'Active Locks',
+      label: t('dashboard.activeLocks'),
       sub: null,
       color: 'warning',
       route: '/projects',
@@ -480,7 +482,7 @@ const secondaryKpis = computed(() => {
       key: 'activity',
       icon: ClockSvg,
       value: s ? s.activity_24h : 0,
-      label: 'Activity 24h',
+      label: t('dashboard.activity24h'),
       sub: null,
       color: 'green',
       route: '/projects',
@@ -495,10 +497,10 @@ const secondaryKpis = computed(() => {
 // ============================================================================
 
 const quickActions = computed(() => [
-  { name: 'New Session', desc: 'Start a Claude Code session', icon: TerminalSvg, route: '/sessions/new', color: 'purple', primary: true },
-  { name: 'Connect Machine', desc: 'Register a new machine', icon: ServerSvg, route: '/machines', color: 'cyan', primary: false },
-  { name: 'Create Project', desc: 'Set up multi-agent project', icon: FolderPlusSvg, route: '/projects', color: 'indigo', primary: false },
-  { name: 'View Docs', desc: 'API reference & guides', icon: DocSvg, route: '/docs', color: 'gray', primary: false },
+  { name: t('dashboard.actionNewSession'), desc: t('dashboard.actionNewSessionDesc'), icon: TerminalSvg, route: '/sessions/new', color: 'purple', primary: true },
+  { name: t('dashboard.actionConnectMachine'), desc: t('dashboard.actionConnectMachineDesc'), icon: ServerSvg, route: '/machines', color: 'cyan', primary: false },
+  { name: t('dashboard.actionCreateProject'), desc: t('dashboard.actionCreateProjectDesc'), icon: FolderPlusSvg, route: '/projects', color: 'indigo', primary: false },
+  { name: t('dashboard.actionViewDocs'), desc: t('dashboard.actionViewDocsDesc'), icon: DocSvg, route: '/docs', color: 'gray', primary: false },
 ]);
 
 // ============================================================================
@@ -507,21 +509,21 @@ const quickActions = computed(() => [
 
 const healthServices = computed(() => [
   {
-    name: 'API Server',
+    name: t('dashboard.apiServer'),
     dotClass: systemHealth.value.api ? 'dot--ok' : 'dot--error',
-    statusLabel: systemHealth.value.api ? 'Operational' : 'Unreachable',
+    statusLabel: systemHealth.value.api ? t('dashboard.operational') : t('dashboard.unreachable'),
     statusClass: systemHealth.value.api ? 'st--ok' : 'st--error',
   },
   {
-    name: 'WebSocket',
+    name: t('dashboard.webSocket'),
     dotClass: systemHealth.value.websocket ? 'dot--ok' : 'dot--warn',
-    statusLabel: systemHealth.value.websocket ? 'Connected' : 'Checking...',
+    statusLabel: systemHealth.value.websocket ? t('dashboard.connected') : t('dashboard.checking'),
     statusClass: systemHealth.value.websocket ? 'st--ok' : 'st--warn',
   },
   {
-    name: 'Database',
+    name: t('dashboard.database'),
     dotClass: systemHealth.value.database ? 'dot--ok' : 'dot--error',
-    statusLabel: systemHealth.value.database ? 'Healthy' : 'Unknown',
+    statusLabel: systemHealth.value.database ? t('dashboard.healthy') : t('dashboard.unknown'),
     statusClass: systemHealth.value.database ? 'st--ok' : 'st--error',
   },
 ]);
@@ -532,34 +534,34 @@ const healthServices = computed(() => [
 
 const resources = computed(() => [
   {
-    title: 'Machines',
-    desc: 'Manage your connected machines and agents',
+    title: t('dashboard.resMachinesTitle'),
+    desc: t('dashboard.resMachinesDesc'),
     icon: ServerSvg,
     route: '/machines',
     color: 'purple',
-    badge: machinesStore.onlineMachines.length > 0 ? `${machinesStore.onlineMachines.length} online` : null,
+    badge: machinesStore.onlineMachines.length > 0 ? t('dashboard.countOnline', { count: machinesStore.onlineMachines.length }) : null,
     badgeColor: 'purple',
-    count: `${machinesStore.machines.length} registered`,
+    count: t('dashboard.countRegistered', { count: machinesStore.machines.length }),
   },
   {
-    title: 'Sessions',
-    desc: 'View and manage Claude Code sessions',
+    title: t('dashboard.resSessionsTitle'),
+    desc: t('dashboard.resSessionsDesc'),
     icon: TerminalSvg,
     route: '/sessions',
     color: 'cyan',
-    badge: machinesStore.totalActiveSessions > 0 ? `${machinesStore.totalActiveSessions} active` : null,
+    badge: machinesStore.totalActiveSessions > 0 ? t('dashboard.countActive', { count: machinesStore.totalActiveSessions }) : null,
     badgeColor: 'cyan',
-    count: `${machinesStore.totalActiveSessions} running`,
+    count: t('dashboard.countRunning', { count: machinesStore.totalActiveSessions }),
   },
   {
-    title: 'Projects',
-    desc: 'Multi-agent coordination and task management',
+    title: t('dashboard.resProjectsTitle'),
+    desc: t('dashboard.resProjectsDesc'),
     icon: FolderSvg,
     route: '/projects',
     color: 'indigo',
-    badge: totalPendingTasks.value > 0 ? `${totalPendingTasks.value} tasks` : null,
+    badge: totalPendingTasks.value > 0 ? t('dashboard.countTasks', { count: totalPendingTasks.value }) : null,
     badgeColor: 'warning',
-    count: `${totalProjects.value} projects`,
+    count: t('dashboard.countProjects', { count: totalProjects.value }),
   },
 ]);
 
@@ -605,11 +607,11 @@ function formatTimeAgo(timestamp: string): string {
   const diffMin = Math.floor(diffSec / 60);
   const diffHour = Math.floor(diffMin / 60);
   const diffDay = Math.floor(diffHour / 24);
-  if (diffSec < 10) return 'just now';
-  if (diffSec < 60) return `${diffSec}s ago`;
-  if (diffMin < 60) return `${diffMin}m ago`;
-  if (diffHour < 24) return `${diffHour}h ago`;
-  return `${diffDay}d ago`;
+  if (diffSec < 10) return t('dashboard.justNow');
+  if (diffSec < 60) return t('dashboard.secondsAgo', { count: diffSec });
+  if (diffMin < 60) return t('dashboard.minutesAgo', { count: diffMin });
+  if (diffHour < 24) return t('dashboard.hoursAgo', { count: diffHour });
+  return t('dashboard.daysAgo', { count: diffDay });
 }
 
 function updateRefreshLabel(): void {
@@ -655,14 +657,14 @@ function activityBadgeClass(type: ActivityEvent['type']): string {
 
 function activityBadgeLabel(type: ActivityEvent['type']): string {
   const map: Record<ActivityEvent['type'], string> = {
-    session_start: 'Session',
-    session_end: 'Session',
-    machine_connect: 'Machine',
-    machine_disconnect: 'Machine',
-    task_complete: 'Task',
-    file_lock: 'Lock',
+    session_start: t('dashboard.badgeSession'),
+    session_end: t('dashboard.badgeSession'),
+    machine_connect: t('dashboard.badgeMachine'),
+    machine_disconnect: t('dashboard.badgeMachine'),
+    task_complete: t('dashboard.badgeTask'),
+    file_lock: t('dashboard.badgeLock'),
   };
-  return map[type] || 'Event';
+  return map[type] || t('dashboard.badgeEvent');
 }
 
 function activityIconComponent(type: ActivityEvent['type']): FunctionalComponent {
@@ -685,14 +687,14 @@ function buildActivityFeed(): void {
       events.push({
         id: `mc-${machine.id}`,
         type: 'machine_connect',
-        description: `${machine.display_name || machine.name} connected`,
+        description: t('dashboard.machineConnected', { name: machine.display_name || machine.name }),
         timestamp: machine.connected_at,
       });
     } else if (machine.status === 'offline' && machine.last_seen_at) {
       events.push({
         id: `md-${machine.id}`,
         type: 'machine_disconnect',
-        description: `${machine.display_name || machine.name} went offline`,
+        description: t('dashboard.machineWentOffline', { name: machine.display_name || machine.name }),
         timestamp: machine.last_seen_at,
       });
     }
@@ -702,7 +704,7 @@ function buildActivityFeed(): void {
       events.push({
         id: `pa-${project.id}`,
         type: 'session_start',
-        description: `${project.name}: ${project.active_instances_count} active instance(s)`,
+        description: t('dashboard.projectActiveInstances', { name: project.name, count: project.active_instances_count }),
         timestamp: project.updated_at,
       });
     }

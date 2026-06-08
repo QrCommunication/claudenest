@@ -5,7 +5,7 @@
       <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
         <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
       </svg>
-      <span v-if="!isOpen">Planning</span>
+      <span v-if="!isOpen">{{ t('multiagentPlanningchat.planning') }}</span>
     </button>
 
     <!-- Chat panel -->
@@ -14,7 +14,7 @@
       <div class="chat-header">
         <div class="chat-header-info">
           <div class="agent-indicator" />
-          <span class="chat-title">Planning Agent</span>
+          <span class="chat-title">{{ t('multiagentPlanningchat.planningAgent') }}</span>
         </div>
         <button class="chat-close" @click="isOpen = false">
           <svg viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5">
@@ -27,7 +27,7 @@
       <div class="chat-messages" ref="messagesContainer">
         <!-- Welcome message -->
         <div v-if="messages.length === 0" class="chat-welcome">
-          <p class="text-white/50 text-sm">Ask me to plan your project.</p>
+          <p class="text-white/50 text-sm">{{ t('multiagentPlanningchat.askToPlan') }}</p>
           <div class="suggestions">
             <button v-for="s in suggestions" :key="s" class="suggestion-chip" @click="sendMessage(s)">
               {{ s }}
@@ -43,7 +43,7 @@
           :class="msg.role"
         >
           <div class="message-header">
-            <span class="message-author">{{ msg.role === 'user' ? 'You' : 'Planning Agent' }}</span>
+            <span class="message-author">{{ msg.role === 'user' ? t('multiagentPlanningchat.you') : t('multiagentPlanningchat.planningAgent') }}</span>
             <span class="message-time">{{ formatTime(msg.timestamp) }}</span>
           </div>
           <div class="message-content">{{ msg.content }}</div>
@@ -56,10 +56,10 @@
             </div>
             <div class="action-buttons">
               <button class="btn-approve" @click="$emit('approve-actions', msg.actions)">
-                Apply
+                {{ t('multiagentPlanningchat.apply') }}
               </button>
               <button class="btn-reject" @click="$emit('reject-actions', msg.id)">
-                Dismiss
+                {{ t('multiagentPlanningchat.dismiss') }}
               </button>
             </div>
           </div>
@@ -76,7 +76,7 @@
         <textarea
           ref="inputRef"
           v-model="inputText"
-          placeholder="Plan your sprint, create epics..."
+          :placeholder="t('multiagentPlanningchat.inputPlaceholder')"
           rows="1"
           @keydown.enter.exact.prevent="handleSend"
           @input="autoResize"
@@ -97,6 +97,7 @@
 
 <script setup lang="ts">
 import { ref, nextTick } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 interface ChatMessage {
   id: string;
@@ -128,6 +129,8 @@ const emit = defineEmits<{
   'reject-actions': [messageId: string];
 }>();
 
+const { t } = useI18n();
+
 const isOpen = ref(false);
 const inputText = ref('');
 const messages = ref<ChatMessage[]>([]);
@@ -136,10 +139,10 @@ const messagesContainer = ref<HTMLElement | null>(null);
 const inputRef = ref<HTMLTextAreaElement | null>(null);
 
 const suggestions = [
-  'Create a new epic for authentication',
-  'Plan the next sprint',
-  'Decompose this task into subtasks',
-  'Show project progress',
+  t('multiagentPlanningchat.suggestionCreateEpic'),
+  t('multiagentPlanningchat.suggestionPlanSprint'),
+  t('multiagentPlanningchat.suggestionDecomposeTask'),
+  t('multiagentPlanningchat.suggestionShowProgress'),
 ];
 
 function handleSend() {

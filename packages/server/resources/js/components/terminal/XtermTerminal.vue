@@ -9,7 +9,7 @@
         <span class="status-text">{{ statusText }}</span>
       </div>
       <button v-if="canReconnect" class="reconnect-btn" @click="handleReconnect">
-        Reconnect
+        {{ t('terminalXtermterminal.reconnect') }}
       </button>
     </div>
     
@@ -21,7 +21,7 @@
             ref="searchInput"
             v-model="searchQuery"
             type="text"
-            placeholder="Search..."
+            :placeholder="t('terminalXtermterminal.search')"
             class="search-input"
             @keydown.enter="handleSearch"
             @keydown.esc="closeSearch"
@@ -33,17 +33,17 @@
           </button>
         </div>
         <div class="search-actions">
-          <button class="action-btn" @click="() => findPrevious(searchQuery)" title="Previous">
+          <button class="action-btn" @click="() => findPrevious(searchQuery)" :title="t('terminalXtermterminal.previous')">
             <svg class="icon" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
             </svg>
           </button>
-          <button class="action-btn" @click="() => findNext(searchQuery)" title="Next">
+          <button class="action-btn" @click="() => findNext(searchQuery)" :title="t('terminalXtermterminal.next')">
             <svg class="icon" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
             </svg>
           </button>
-          <button class="action-btn close" @click="closeSearch" title="Close">
+          <button class="action-btn close" @click="closeSearch" :title="t('terminalXtermterminal.close')">
             <svg class="icon" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
             </svg>
@@ -56,8 +56,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useTerminal } from '@/composables/useTerminal';
 import type { ConnectionStatus } from '@/types';
+
+const { t } = useI18n();
 
 // ============================================================================
 // Props & Emits
@@ -127,11 +130,11 @@ const canReconnect = computed(() => {
 
 const statusText = computed(() => {
   const texts: Record<ConnectionStatus, string> = {
-    connecting: 'Connecting...',
-    connected: 'Connected',
-    disconnected: 'Disconnected',
-    reconnecting: 'Reconnecting...',
-    error: 'Connection Error',
+    connecting: t('terminalXtermterminal.connecting'),
+    connected: t('terminalXtermterminal.connected'),
+    disconnected: t('terminalXtermterminal.disconnected'),
+    reconnecting: t('terminalXtermterminal.reconnecting'),
+    error: t('terminalXtermterminal.connectionError'),
   };
   return texts[connectionStatus.value];
 });

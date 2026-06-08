@@ -56,7 +56,7 @@
 
     <!-- Expand Button (Collapsed State) -->
     <div v-if="collapsed" class="sidebar-footer">
-      <button class="expand-btn" @click="$emit('toggle')" title="Expand Sidebar">
+      <button class="expand-btn" @click="$emit('toggle')" :title="t('layoutAppsidebar.expandSidebar')">
         <svg class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
         </svg>
@@ -67,6 +67,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import { useTheme } from '@/composables/useTheme';
 import {
@@ -95,6 +96,7 @@ defineEmits<{
   toggle: [];
 }>();
 
+const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const { isDark } = useTheme();
@@ -128,37 +130,37 @@ const navGroupsConfig: NavGroup[] = [
   {
     label: '',
     items: [
-      { name: 'Dashboard', path: '/dashboard', iconName: 'HomeIcon' },
+      { name: t('layoutAppsidebar.dashboard'), path: '/dashboard', iconName: 'HomeIcon' },
     ],
   },
   {
-    label: 'Infrastructure',
+    label: t('layoutAppsidebar.infrastructure'),
     items: [
-      { name: 'Machines', path: '/machines', iconName: 'ServerIcon' },
-      { name: 'Sessions', path: '/sessions', iconName: 'CommandLineIcon' },
-      { name: 'Claude Sessions', path: '/claude-sessions', iconName: 'EyeIcon' },
+      { name: t('layoutAppsidebar.machines'), path: '/machines', iconName: 'ServerIcon' },
+      { name: t('layoutAppsidebar.sessions'), path: '/sessions', iconName: 'CommandLineIcon' },
+      { name: t('layoutAppsidebar.claudeSessions'), path: '/claude-sessions', iconName: 'EyeIcon' },
     ],
   },
   {
-    label: 'Multi-Agent',
+    label: t('layoutAppsidebar.multiAgent'),
     items: [
-      { name: 'Projects', path: '/projects', iconName: 'FolderIcon' },
-      { name: 'Tasks', path: '/tasks', iconName: 'CheckCircleIcon' },
+      { name: t('layoutAppsidebar.projects'), path: '/projects', iconName: 'FolderIcon' },
+      { name: t('layoutAppsidebar.tasks'), path: '/tasks', iconName: 'CheckCircleIcon' },
     ],
   },
   {
-    label: 'Configuration',
+    label: t('layoutAppsidebar.configuration'),
     items: [
-      { name: 'Credentials', path: '/credentials', iconName: 'KeyIcon' },
-      { name: 'Skills', path: '/skills', iconName: 'SparklesIcon' },
-      { name: 'MCP', path: '/mcp', iconName: 'CubeIcon' },
-      { name: 'Commands', path: '/commands', iconName: 'Squares2X2Icon' },
+      { name: t('layoutAppsidebar.credentials'), path: '/credentials', iconName: 'KeyIcon' },
+      { name: t('layoutAppsidebar.skills'), path: '/skills', iconName: 'SparklesIcon' },
+      { name: t('layoutAppsidebar.mcp'), path: '/mcp', iconName: 'CubeIcon' },
+      { name: t('layoutAppsidebar.commands'), path: '/commands', iconName: 'Squares2X2Icon' },
     ],
   },
   {
     label: '',
     items: [
-      { name: 'Settings', path: '/settings', iconName: 'Cog6ToothIcon' },
+      { name: t('layoutAppsidebar.settings'), path: '/settings', iconName: 'Cog6ToothIcon' },
     ],
   },
 ];

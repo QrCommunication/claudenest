@@ -12,7 +12,7 @@
               ref="inputRef"
               v-model="searchQuery"
               type="text"
-              placeholder="Search documentation..."
+              :placeholder="t('docsSearchmodal.searchPlaceholder')"
               class="search-input"
               @keydown.down.prevent="navigateDown"
               @keydown.up.prevent="navigateUp"
@@ -26,16 +26,16 @@
           <div class="search-results">
             <div v-if="!searchQuery" class="search-placeholder">
               <div class="placeholder-section">
-                <h4>Quick Navigation</h4>
+                <h4>{{ t('docsSearchmodal.quickNavigation') }}</h4>
                 <div class="quick-links">
-                  <router-link to="/docs" @click="close">Introduction</router-link>
-                  <router-link to="/docs/quickstart" @click="close">Quickstart</router-link>
-                  <router-link to="/docs/api/authentication" @click="close">Authentication</router-link>
-                  <router-link to="/docs/api/machines" @click="close">Machines API</router-link>
+                  <router-link to="/docs" @click="close">{{ t('docsSearchmodal.introduction') }}</router-link>
+                  <router-link to="/docs/quickstart" @click="close">{{ t('docsSearchmodal.quickstart') }}</router-link>
+                  <router-link to="/docs/api/authentication" @click="close">{{ t('docsSearchmodal.authentication') }}</router-link>
+                  <router-link to="/docs/api/machines" @click="close">{{ t('docsSearchmodal.machinesApi') }}</router-link>
                 </div>
               </div>
               <div class="placeholder-section">
-                <h4>Popular Endpoints</h4>
+                <h4>{{ t('docsSearchmodal.popularEndpoints') }}</h4>
                 <div class="quick-links">
                   <router-link to="/docs/api/sessions" @click="close">POST /api/machines/{id}/sessions</router-link>
                   <router-link to="/docs/api/sessions" @click="close">POST /api/sessions/{id}/attach</router-link>
@@ -84,9 +84,9 @@
                 </div>
               </div>
               <div class="results-footer">
-                <span>{{ searchResults.length }} results</span>
+                <span>{{ t('docsSearchmodal.resultsCount', { count: searchResults.length }) }}</span>
                 <span class="nav-hint">
-                  <kbd>↑</kbd> <kbd>↓</kbd> to navigate, <kbd>↵</kbd> to select
+                  <kbd>↑</kbd> <kbd>↓</kbd> {{ t('docsSearchmodal.toNavigate') }}, <kbd>↵</kbd> {{ t('docsSearchmodal.toSelect') }}
                 </span>
               </div>
             </template>
@@ -95,8 +95,8 @@
               <svg viewBox="0 0 24 24" fill="currentColor">
                 <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
               </svg>
-              <p>No results found for "{{ searchQuery }}"</p>
-              <span>Try different keywords or check your spelling</span>
+              <p>{{ t('docsSearchmodal.noResultsFor', { query: searchQuery }) }}</p>
+              <span>{{ t('docsSearchmodal.noResultsHint') }}</span>
             </div>
           </div>
         </div>
@@ -108,6 +108,7 @@
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useDocs } from '@/composables/useDocs';
 
 const props = defineProps<{
@@ -119,6 +120,7 @@ const emit = defineEmits<{
 }>();
 
 const router = useRouter();
+const { t } = useI18n();
 const { searchQuery, searchResults, performSearch, getMethodColor, navigateToResult } = useDocs();
 
 const inputRef = ref<HTMLInputElement>();

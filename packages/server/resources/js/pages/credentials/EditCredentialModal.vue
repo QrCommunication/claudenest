@@ -2,7 +2,7 @@
   <div class="modal-overlay" @click.self="$emit('close')">
     <div class="modal-card">
       <div class="modal-header">
-        <h2>Edit Credential</h2>
+        <h2>{{ t('credentialsEditcredentialmodal.editCredential') }}</h2>
         <button class="close-btn" @click="$emit('close')">
           <svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
             <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
@@ -15,7 +15,7 @@
           <!-- Name Input -->
           <div class="form-group">
             <label for="edit-name" class="form-label">
-              Name
+              {{ t('credentialsEditcredentialmodal.name') }}
               <span class="required">*</span>
             </label>
             <input
@@ -25,73 +25,73 @@
               class="form-input"
               placeholder="my-credential"
               pattern="[a-z0-9\-]+"
-              title="Only lowercase letters, numbers, and dashes allowed"
+              :title="t('credentialsEditcredentialmodal.nameTitle')"
               required
             />
-            <p class="form-hint">Use lowercase letters, numbers, and dashes only</p>
+            <p class="form-hint">{{ t('credentialsEditcredentialmodal.nameHint') }}</p>
           </div>
 
           <!-- Auth Type (read-only display) -->
           <div class="form-group">
-            <label class="form-label">Authentication Type</label>
+            <label class="form-label">{{ t('credentialsEditcredentialmodal.authenticationType') }}</label>
             <span :class="authTypeBadgeClass">
-              {{ credential.auth_type === 'api_key' ? 'API Key' : 'OAuth' }}
+              {{ credential.auth_type === 'api_key' ? t('credentialsEditcredentialmodal.apiKey') : t('credentialsEditcredentialmodal.oauth') }}
             </span>
           </div>
 
           <!-- API Key Input (only for api_key type) -->
           <div v-if="credential.auth_type === 'api_key'" class="form-group">
-            <label for="edit-api-key" class="form-label">API Key</label>
+            <label for="edit-api-key" class="form-label">{{ t('credentialsEditcredentialmodal.apiKey') }}</label>
             <input
               id="edit-api-key"
               v-model="form.api_key"
               type="password"
               class="form-input font-mono"
-              placeholder="Leave empty to keep current key"
+              :placeholder="t('credentialsEditcredentialmodal.leaveEmptyKeepKey')"
             />
-            <p class="form-hint">Leave empty to keep the existing key unchanged</p>
+            <p class="form-hint">{{ t('credentialsEditcredentialmodal.leaveEmptyKeepKeyHint') }}</p>
           </div>
 
           <!-- OAuth Token Inputs -->
           <div v-if="credential.auth_type === 'oauth'" class="form-group">
-            <label for="edit-access-token" class="form-label">Access Token</label>
+            <label for="edit-access-token" class="form-label">{{ t('credentialsEditcredentialmodal.accessToken') }}</label>
             <input
               id="edit-access-token"
               v-model="form.access_token"
               type="password"
               class="form-input font-mono text-sm"
-              placeholder="Leave empty to keep current token"
+              :placeholder="t('credentialsEditcredentialmodal.leaveEmptyKeepToken')"
             />
           </div>
 
           <div v-if="credential.auth_type === 'oauth'" class="form-group">
-            <label for="edit-refresh-token" class="form-label">Refresh Token</label>
+            <label for="edit-refresh-token" class="form-label">{{ t('credentialsEditcredentialmodal.refreshToken') }}</label>
             <input
               id="edit-refresh-token"
               v-model="form.refresh_token"
               type="password"
               class="form-input font-mono text-sm"
-              placeholder="Leave empty to keep current token"
+              :placeholder="t('credentialsEditcredentialmodal.leaveEmptyKeepToken')"
             />
           </div>
 
           <!-- Claude Dir Mode -->
           <div class="form-group">
-            <label class="form-label">Claude Directory Mode</label>
+            <label class="form-label">{{ t('credentialsEditcredentialmodal.claudeDirectoryMode') }}</label>
             <div class="toggle-group">
               <button
                 type="button"
                 :class="['toggle-btn', { 'toggle-btn-active': form.claude_dir_mode === 'shared' }]"
                 @click="form.claude_dir_mode = 'shared'"
               >
-                Shared
+                {{ t('credentialsEditcredentialmodal.shared') }}
               </button>
               <button
                 type="button"
                 :class="['toggle-btn', { 'toggle-btn-active': form.claude_dir_mode === 'isolated' }]"
                 @click="form.claude_dir_mode = 'isolated'"
               >
-                Isolated
+                {{ t('credentialsEditcredentialmodal.isolated') }}
               </button>
             </div>
           </div>
@@ -104,7 +104,7 @@
               @click="$emit('close')"
               :disabled="isSubmitting"
             >
-              Cancel
+              {{ t('credentialsEditcredentialmodal.cancel') }}
             </button>
             <button
               type="submit"
@@ -112,7 +112,7 @@
               :disabled="isSubmitting || !hasChanges"
             >
               <div v-if="isSubmitting" class="spinner"></div>
-              <span v-else>Save Changes</span>
+              <span v-else>{{ t('credentialsEditcredentialmodal.saveChanges') }}</span>
             </button>
           </div>
         </form>
@@ -123,6 +123,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useCredentialsStore } from '@/stores/credentials';
 import { useToast } from '@/composables/useToast';
 import { getErrorMessage } from '@/utils/api';
@@ -139,6 +140,7 @@ const emit = defineEmits<{
   (e: 'updated'): void;
 }>();
 
+const { t } = useI18n();
 const store = useCredentialsStore();
 const toast = useToast();
 const isSubmitting = ref(false);
@@ -172,7 +174,7 @@ async function handleSubmit(): Promise<void> {
 
   try {
     if (!/^[a-z0-9-]+$/.test(form.name)) {
-      toast.error('Invalid name format', 'Use only lowercase letters, numbers, and dashes');
+      toast.error(t('credentialsEditcredentialmodal.invalidNameFormat'), t('credentialsEditcredentialmodal.invalidNameFormatBody'));
       return;
     }
 
@@ -197,7 +199,7 @@ async function handleSubmit(): Promise<void> {
     await store.updateCredential(props.credential.id, payload);
     emit('updated');
   } catch (error: unknown) {
-    toast.error('Failed to update credential', getErrorMessage(error));
+    toast.error(t('credentialsEditcredentialmodal.failedToUpdate'), getErrorMessage(error));
   } finally {
     isSubmitting.value = false;
   }

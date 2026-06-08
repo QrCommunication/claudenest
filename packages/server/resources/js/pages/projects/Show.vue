@@ -3,7 +3,7 @@
     <!-- Loading State -->
     <div v-if="projectsStore.isLoading" class="loading-state">
       <div class="spinner" />
-      <p>Loading project...</p>
+      <p>{{ t('projectsShow.loadingProject') }}</p>
     </div>
 
     <template v-else-if="project">
@@ -15,14 +15,14 @@
               <svg viewBox="0 0 24 24" fill="currentColor">
                 <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
               </svg>
-              Projects
+              {{ t('projectsShow.projects') }}
             </router-link>
             <h1>{{ project.name }}</h1>
             <p class="project-path">{{ project.project_path }}</p>
           </div>
           <div class="header-actions">
             <div class="token-usage">
-              <span class="token-label">Token Usage</span>
+              <span class="token-label">{{ t('projectsShow.tokenUsage') }}</span>
               <div class="token-bar">
                 <div
                   class="token-progress"
@@ -60,59 +60,59 @@
         <!-- Overview Tab -->
         <div v-if="activeTab === 'overview'" class="tab-panel">
           <div class="overview-grid">
-            <Card title="Project Info" class="info-card">
+            <Card :title="t('projectsShow.projectInfo')" class="info-card">
               <div class="info-list">
                 <div class="info-item">
-                  <span class="info-label">Machine</span>
+                  <span class="info-label">{{ t('projectsShow.machine') }}</span>
                   <span class="info-value">{{ machineName }}</span>
                 </div>
                 <div class="info-item">
-                  <span class="info-label">Path</span>
+                  <span class="info-label">{{ t('projectsShow.path') }}</span>
                   <span class="info-value">{{ project.project_path }}</span>
                 </div>
                 <div class="info-item">
-                  <span class="info-label">Created</span>
+                  <span class="info-label">{{ t('projectsShow.created') }}</span>
                   <span class="info-value">{{ formatDate(project.created_at) }}</span>
                 </div>
                 <div class="info-item">
-                  <span class="info-label">Updated</span>
+                  <span class="info-label">{{ t('projectsShow.updated') }}</span>
                   <span class="info-value">{{ formatDate(project.updated_at) }}</span>
                 </div>
               </div>
             </Card>
 
-            <Card title="Statistics" class="stats-card">
+            <Card :title="t('projectsShow.statistics')" class="stats-card">
               <div class="stats-grid">
                 <div class="stat-item">
                   <span class="stat-number">{{ projectStats?.total_tasks ?? 0 }}</span>
-                  <span class="stat-label">Total Tasks</span>
+                  <span class="stat-label">{{ t('projectsShow.totalTasks') }}</span>
                 </div>
                 <div class="stat-item">
                   <span class="stat-number">{{ projectStats?.pending_tasks ?? 0 }}</span>
-                  <span class="stat-label">Pending</span>
+                  <span class="stat-label">{{ t('projectsShow.pending') }}</span>
                 </div>
                 <div class="stat-item">
                   <span class="stat-number">{{ projectStats?.completed_tasks ?? 0 }}</span>
-                  <span class="stat-label">Completed</span>
+                  <span class="stat-label">{{ t('projectsShow.completed') }}</span>
                 </div>
                 <div class="stat-item">
                   <span class="stat-number">{{ projectStats?.active_instances ?? 0 }}</span>
-                  <span class="stat-label">Instances</span>
+                  <span class="stat-label">{{ t('projectsShow.instances') }}</span>
                 </div>
                 <div class="stat-item">
                   <span class="stat-number">{{ projectStats?.active_locks ?? 0 }}</span>
-                  <span class="stat-label">File Locks</span>
+                  <span class="stat-label">{{ t('projectsShow.fileLocks') }}</span>
                 </div>
                 <div class="stat-item">
                   <span class="stat-number">{{ projectStats?.activity_last_24h ?? 0 }}</span>
-                  <span class="stat-label">Activity (24h)</span>
+                  <span class="stat-label">{{ t('projectsShow.activity24h') }}</span>
                 </div>
               </div>
             </Card>
 
-            <Card title="Active Instances" class="instances-card">
+            <Card :title="t('projectsShow.activeInstances')" class="instances-card">
               <div v-if="instances.length === 0" class="empty-instances">
-                No active instances
+                {{ t('projectsShow.noActiveInstances') }}
               </div>
               <div v-else class="instances-list">
                 <div 
@@ -133,9 +133,9 @@
               </div>
             </Card>
 
-            <Card title="Recent Activity" class="activity-card">
+            <Card :title="t('projectsShow.recentActivity')" class="activity-card">
               <div v-if="activityLogs.length === 0" class="empty-activity">
-                No recent activity
+                {{ t('projectsShow.noRecentActivity') }}
               </div>
               <div v-else class="activity-list">
                 <div 
@@ -152,13 +152,13 @@
           </div>
 
           <!-- Quick Context Preview -->
-          <Card title="Current Focus" class="focus-card mt-6">
+          <Card :title="t('projectsShow.currentFocus')" class="focus-card mt-6">
             <div v-if="project.current_focus" class="context-preview">
               {{ project.current_focus }}
             </div>
             <div v-else class="empty-context">
-              No current focus set. 
-              <button @click="activeTab = 'context'">Update context</button>
+              {{ t('projectsShow.noCurrentFocus') }}
+              <button @click="activeTab = 'context'">{{ t('projectsShow.updateContext') }}</button>
             </div>
           </Card>
         </div>
@@ -167,13 +167,13 @@
         <div v-else-if="activeTab === 'tasks'" class="tab-panel">
           <div class="tasks-filters">
             <select v-model="epicFilter" class="filter-select">
-              <option value="">All Epics</option>
+              <option value="">{{ t('projectsShow.allEpics') }}</option>
               <option v-for="epic in epicsStore.epics" :key="epic.id" :value="epic.id">
                 {{ epic.title }}
               </option>
             </select>
             <select v-model="sprintFilter" class="filter-select">
-              <option value="">All Sprints</option>
+              <option value="">{{ t('projectsShow.allSprints') }}</option>
               <option v-for="sprint in sprintsStore.sprints" :key="sprint.id" :value="sprint.id">
                 {{ sprint.name }}
               </option>
@@ -232,11 +232,11 @@
                 </div>
                 <div class="instance-metrics">
                   <div class="metric">
-                    <span class="metric-label">Status</span>
+                    <span class="metric-label">{{ t('projectsShow.status') }}</span>
                     <span class="metric-value" :class="instance.status">{{ instance.status }}</span>
                   </div>
                   <div class="metric">
-                    <span class="metric-label">Context Usage</span>
+                    <span class="metric-label">{{ t('projectsShow.contextUsage') }}</span>
                     <div class="metric-bar">
                       <div 
                         class="metric-progress" 
@@ -246,11 +246,11 @@
                     <span class="metric-value">{{ Math.round(instance.context_usage_percent) }}%</span>
                   </div>
                   <div class="metric">
-                    <span class="metric-label">Tasks Completed</span>
+                    <span class="metric-label">{{ t('projectsShow.tasksCompleted') }}</span>
                     <span class="metric-value">{{ instance.tasks_completed }}</span>
                   </div>
                   <div class="metric" v-if="instance.current_task">
-                    <span class="metric-label">Current Task</span>
+                    <span class="metric-label">{{ t('projectsShow.currentTask') }}</span>
                     <router-link 
                       :to="{ name: 'projects.tasks', params: { id: projectId }, query: { task: instance.current_task.id } }"
                       class="task-link"
@@ -266,9 +266,9 @@
 
         <!-- Activity Tab -->
         <div v-else-if="activeTab === 'activity'" class="tab-panel">
-          <Card title="Activity Log">
+          <Card :title="t('projectsShow.activityLog')">
             <div v-if="activityLogs.length === 0" class="empty-activity">
-              No activity recorded yet
+              {{ t('projectsShow.noActivityRecorded') }}
             </div>
             <div v-else class="full-activity-list">
               <div 
@@ -309,9 +309,9 @@
 
     <!-- Not Found -->
     <div v-else class="not-found">
-      <h2>Project not found</h2>
+      <h2>{{ t('projectsShow.projectNotFound') }}</h2>
       <router-link to="/projects" class="btn-primary">
-        Back to Projects
+        {{ t('projectsShow.backToProjects') }}
       </router-link>
     </div>
   </div>
@@ -320,6 +320,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useProjectsStore } from '@/stores/projects';
 import { useMachinesStore } from '@/stores/machines';
 import { useEpicsStore } from '@/stores/epics';
@@ -336,6 +337,7 @@ import SprintBoard from '@/components/multiagent/SprintBoard.vue';
 import BurndownChart from '@/components/multiagent/BurndownChart.vue';
 import PlanningChat from '@/components/multiagent/PlanningChat.vue';
 
+const { t } = useI18n();
 const route = useRoute();
 const projectsStore = useProjectsStore();
 const machinesStore = useMachinesStore();
@@ -356,20 +358,20 @@ const showCreateEpicModal = ref(false);
 const planningChatRef = ref<InstanceType<typeof PlanningChat> | null>(null);
 
 const tabs = computed(() => [
-  { id: 'overview', label: 'Overview', icon: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z' },
-  { id: 'tasks', label: 'Tasks', icon: 'M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z', count: projectStats.value?.total_tasks },
-  { id: 'epics', label: 'Epics', icon: 'M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z', count: epicsStore.epics.length },
-  { id: 'sprints', label: 'Sprints', icon: 'M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z', count: sprintsStore.sprints.length },
-  { id: 'context', label: 'Context', icon: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z' },
-  { id: 'orchestration', label: 'Orchestration', icon: 'M22 11V3h-7v3H9V3H2v8h7V8h2v10h4v3h7v-8h-7v3h-2V8h2v3h7zM7 9H4V5h3v4zm10 6h3v4h-3v-4zm0-10h3v4h-3V5z' },
-  { id: 'instances', label: 'Instances', icon: 'M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z' },
-  { id: 'activity', label: 'Activity', icon: 'M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z' },
+  { id: 'overview', label: t('projectsShow.tabOverview'), icon: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z' },
+  { id: 'tasks', label: t('projectsShow.tabTasks'), icon: 'M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z', count: projectStats.value?.total_tasks },
+  { id: 'epics', label: t('projectsShow.tabEpics'), icon: 'M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z', count: epicsStore.epics.length },
+  { id: 'sprints', label: t('projectsShow.tabSprints'), icon: 'M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z', count: sprintsStore.sprints.length },
+  { id: 'context', label: t('projectsShow.tabContext'), icon: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z' },
+  { id: 'orchestration', label: t('projectsShow.tabOrchestration'), icon: 'M22 11V3h-7v3H9V3H2v8h7V8h2v10h4v3h7v-8h-7v3h-2V8h2v3h7zM7 9H4V5h3v4zm10 6h3v4h-3v-4zm0-10h3v4h-3V5z' },
+  { id: 'instances', label: t('projectsShow.tabInstances'), icon: 'M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z' },
+  { id: 'activity', label: t('projectsShow.tabActivity'), icon: 'M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z' },
 ]);
 
 const machineName = computed(() => {
-  if (!project.value) return 'Unknown';
+  if (!project.value) return t('projectsShow.unknown');
   const machine = machinesStore.machines.find(m => m.id === project.value?.machine_id);
-  return machine?.name || 'Unknown';
+  return machine?.name || t('projectsShow.unknown');
 });
 
 onMounted(async () => {
@@ -398,7 +400,7 @@ async function loadProject() {
       await sprintsStore.fetchBurndown(sprintsStore.currentSprint.id);
     }
   } catch (err) {
-    toast.error('Failed to load project');
+    toast.error(t('projectsShow.failedToLoadProject'));
   }
 }
 
@@ -409,10 +411,13 @@ async function handlePlanningMessage(message: string) {
     // The actual LLM call would happen here via backend
     // For now, return context summary as placeholder
     planningChatRef.value?.receiveMessage(
-      `I've analyzed the project context. There are ${response.data.data.stats.total_tasks} tasks across ${response.data.data.epics.length} epics. How can I help you plan?`
+      t('projectsShow.planningContextAnalyzed', {
+        taskCount: response.data.data.stats.total_tasks,
+        epicCount: response.data.data.epics.length,
+      })
     );
   } catch {
-    planningChatRef.value?.receiveMessage('Failed to load project context. Please try again.');
+    planningChatRef.value?.receiveMessage(t('projectsShow.planningContextFailed'));
   }
 }
 
@@ -421,12 +426,12 @@ async function handleApproveActions(actions: Array<{ type: string; data: Record<
     const response = await api.post(`/projects/${projectId.value}/planning/execute`, { actions });
     const results = response.data.data.results;
     const successCount = results.filter((r: { success: boolean }) => r.success).length;
-    toast.success(`${successCount} action(s) applied successfully`);
+    toast.success(t('projectsShow.actionsApplied', { count: successCount }));
 
     // Refresh data
     await loadProject();
   } catch {
-    toast.error('Failed to execute planning actions');
+    toast.error(t('projectsShow.failedToExecuteActions'));
   }
 }
 

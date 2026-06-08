@@ -27,7 +27,7 @@
     </div>
 
     <!-- New Session Button -->
-    <button class="new-tab-btn" @click="handleNewSession" title="New Session">
+    <button class="new-tab-btn" @click="handleNewSession" :title="t('layoutTabbar.newSession')">
       <svg class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
       </svg>
@@ -44,6 +44,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useTabs } from '@/composables/useTabs';
 import { useAuthStore } from '@/stores/auth';
 import UserMenu from '@/components/layout/UserMenu.vue';
@@ -63,6 +64,7 @@ import {
 
 const router = useRouter();
 const authStore = useAuthStore();
+const { t } = useI18n();
 const { tabs, activeTabId, setActiveTab, closeTab, openTab } = useTabs();
 
 const tabsContainer = ref<HTMLElement | null>(null);
@@ -105,7 +107,7 @@ const handleNewSession = () => {
   // Optionally open as tab
   openTab({
     type: 'session',
-    label: 'New Session',
+    label: t('layoutTabbar.newSession'),
     icon: 'terminal',
     path: '/sessions/new',
     closable: true,

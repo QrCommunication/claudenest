@@ -8,19 +8,19 @@
           viewBox="0 0 24 24"
           fill="currentColor"
           class="default-star"
-          title="Default credential"
+          :title="t('credentialsCredentialcard.defaultCredential')"
         >
           <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
         </svg>
       </div>
       <span :class="authTypeBadgeClass">
-        {{ credential.auth_type === 'api_key' ? 'API Key' : 'OAuth' }}
+        {{ credential.auth_type === 'api_key' ? t('credentialsCredentialcard.apiKey') : t('credentialsCredentialcard.oauth') }}
       </span>
     </div>
 
     <div class="card-body">
       <div class="info-row">
-        <span class="info-label">Status</span>
+        <span class="info-label">{{ t('credentialsCredentialcard.status') }}</span>
         <div class="flex items-center gap-2">
           <span :class="statusDotClass"></span>
           <span :class="statusTextClass">{{ tokenStatusText }}</span>
@@ -28,33 +28,33 @@
       </div>
 
       <div v-if="credential.auth_type === 'api_key'" class="info-row">
-        <span class="info-label">API Key</span>
+        <span class="info-label">{{ t('credentialsCredentialcard.apiKey') }}</span>
         <code class="masked-key">{{ maskedKey }}</code>
       </div>
 
       <div v-if="credential.claude_dir_mode" class="info-row">
-        <span class="info-label">Claude Dir</span>
+        <span class="info-label">{{ t('credentialsCredentialcard.claudeDir') }}</span>
         <span :class="modeBadgeClass">
           {{ credential.claude_dir_mode }}
         </span>
       </div>
 
       <div v-if="credential.auth_type === 'oauth' && expiresText" class="info-row">
-        <span class="info-label">Token Expiry</span>
+        <span class="info-label">{{ t('credentialsCredentialcard.tokenExpiry') }}</span>
         <span :class="['info-value', credential.is_expired ? 'status-text-error' : 'status-text-success']">
           {{ expiresText }}
         </span>
       </div>
 
       <div v-if="credential.auth_type === 'oauth'" class="info-row">
-        <span class="info-label">Refresh Token</span>
+        <span class="info-label">{{ t('credentialsCredentialcard.refreshToken') }}</span>
         <span :class="['info-value', credential.has_refresh_token ? 'status-text-success' : 'status-text-warning']">
-          {{ credential.has_refresh_token ? 'Available' : 'Not set' }}
+          {{ credential.has_refresh_token ? t('credentialsCredentialcard.available') : t('credentialsCredentialcard.notSet') }}
         </span>
       </div>
 
       <div v-if="credential.last_used_at" class="info-row">
-        <span class="info-label">Last Used</span>
+        <span class="info-label">{{ t('credentialsCredentialcard.lastUsed') }}</span>
         <span class="info-value">{{ lastUsedText }}</span>
       </div>
     </div>
@@ -63,24 +63,24 @@
       <button
         class="action-btn"
         @click="$emit('test', credential.id)"
-        title="Test credential"
+        :title="t('credentialsCredentialcard.testCredential')"
       >
         <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
           <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
         </svg>
-        Test
+        {{ t('credentialsCredentialcard.test') }}
       </button>
 
       <button
         v-if="credential.auth_type === 'oauth' && credential.has_refresh_token && !needsReconnect"
         class="action-btn"
         @click="$emit('refresh', credential.id)"
-        title="Refresh OAuth token"
+        :title="t('credentialsCredentialcard.refreshOauthToken')"
       >
         <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
           <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
         </svg>
-        Refresh
+        {{ t('credentialsCredentialcard.refresh') }}
       </button>
 
       <!-- Connect button: shown when missing tokens or needs re-auth -->
@@ -88,58 +88,58 @@
         v-if="credential.auth_type === 'oauth' && needsReconnect"
         class="action-btn action-btn-connect"
         @click="$emit('connect', credential.id)"
-        title="Connect with your Claude account"
+        :title="t('credentialsCredentialcard.connectWithClaudeAccount')"
       >
         <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
         </svg>
-        Connect
+        {{ t('credentialsCredentialcard.connect') }}
       </button>
 
       <button
         v-if="credential.auth_type === 'oauth'"
         class="action-btn"
         @click="$emit('capture', credential.id)"
-        title="Capture OAuth tokens manually"
+        :title="t('credentialsCredentialcard.captureOauthTokensManually')"
       >
         <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
           <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
         </svg>
-        Capture
+        {{ t('credentialsCredentialcard.capture') }}
       </button>
 
       <button
         class="action-btn"
         @click="$emit('edit', credential)"
-        title="Edit credential"
+        :title="t('credentialsCredentialcard.editCredential')"
       >
         <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
           <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
         </svg>
-        Edit
+        {{ t('credentialsCredentialcard.edit') }}
       </button>
 
       <button
         v-if="!credential.is_default"
         class="action-btn"
         @click="$emit('set-default', credential.id)"
-        title="Set as default"
+        :title="t('credentialsCredentialcard.setAsDefault')"
       >
         <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
           <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
         </svg>
-        Default
+        {{ t('credentialsCredentialcard.default') }}
       </button>
 
       <button
         class="action-btn action-btn-danger"
         @click="$emit('delete', credential.id)"
-        title="Delete credential"
+        :title="t('credentialsCredentialcard.deleteCredential')"
       >
         <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
           <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
         </svg>
-        Delete
+        {{ t('credentialsCredentialcard.delete') }}
       </button>
     </div>
   </div>
@@ -147,6 +147,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { Credential } from '@/types';
 
 interface Props {
@@ -154,6 +155,8 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+const { t } = useI18n();
 
 defineEmits<{
   (e: 'test', id: string): void;
@@ -179,13 +182,13 @@ const authTypeBadgeClass = computed(() => {
 
 const tokenStatusText = computed(() => {
   const status = props.credential.token_status;
-  if (!status) return 'Unknown';
+  if (!status) return t('credentialsCredentialcard.unknown');
 
   const statusMap: Record<string, string> = {
-    'ok': 'Active',
-    'expired': 'Expired',
-    'missing': 'Missing',
-    'needs_login': 'Needs Login',
+    'ok': t('credentialsCredentialcard.active'),
+    'expired': t('credentialsCredentialcard.expired'),
+    'missing': t('credentialsCredentialcard.missing'),
+    'needs_login': t('credentialsCredentialcard.needsLogin'),
   };
 
   return statusMap[status] || status;
@@ -230,15 +233,15 @@ const expiresText = computed(() => {
   const now = new Date();
   const diffMs = expires.getTime() - now.getTime();
 
-  if (diffMs <= 0) return 'Expired';
+  if (diffMs <= 0) return t('credentialsCredentialcard.expired');
 
   const diffMins = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 60) return `${diffMins}m remaining`;
-  if (diffHours < 48) return `${diffHours}h remaining`;
-  return `${diffDays}d remaining`;
+  if (diffMins < 60) return t('credentialsCredentialcard.minutesRemaining', { count: diffMins });
+  if (diffHours < 48) return t('credentialsCredentialcard.hoursRemaining', { count: diffHours });
+  return t('credentialsCredentialcard.daysRemaining', { count: diffDays });
 });
 
 const modeBadgeClass = computed(() => {
@@ -248,7 +251,7 @@ const modeBadgeClass = computed(() => {
 });
 
 const lastUsedText = computed(() => {
-  if (!props.credential.last_used_at) return 'Never';
+  if (!props.credential.last_used_at) return t('credentialsCredentialcard.never');
 
   const date = new Date(props.credential.last_used_at);
   const now = new Date();
@@ -257,10 +260,10 @@ const lastUsedText = computed(() => {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 1) return 'Just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffMins < 1) return t('credentialsCredentialcard.justNow');
+  if (diffMins < 60) return t('credentialsCredentialcard.minutesAgo', { count: diffMins });
+  if (diffHours < 24) return t('credentialsCredentialcard.hoursAgo', { count: diffHours });
+  if (diffDays < 7) return t('credentialsCredentialcard.daysAgo', { count: diffDays });
 
   return date.toLocaleDateString();
 });

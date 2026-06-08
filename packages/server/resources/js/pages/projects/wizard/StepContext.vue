@@ -1,7 +1,7 @@
 <template>
   <div class="step-context">
-    <h2 class="step-title">Project Context</h2>
-    <p class="step-desc">Generate or edit the project context. This helps agents understand the codebase.</p>
+    <h2 class="step-title">{{ t('projectsWizardStepcontext.projectContext') }}</h2>
+    <p class="step-desc">{{ t('projectsWizardStepcontext.description') }}</p>
 
     <!-- Generate Button -->
     <button
@@ -13,7 +13,7 @@
       <svg v-else viewBox="0 0 24 24" fill="currentColor" class="btn-icon">
         <path d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"/>
       </svg>
-      {{ isGenerating ? 'Generating with AI...' : 'Generate with AI' }}
+      {{ isGenerating ? t('projectsWizardStepcontext.generatingWithAi') : t('projectsWizardStepcontext.generateWithAi') }}
     </button>
 
     <div class="generate-error" v-if="generateError">
@@ -23,32 +23,32 @@
     <!-- Context Fields -->
     <div class="context-fields">
       <div class="field">
-        <label class="field-label">Summary</label>
+        <label class="field-label">{{ t('projectsWizardStepcontext.summary') }}</label>
         <textarea
           v-model="state.context.summary"
           class="field-textarea"
           rows="4"
-          placeholder="Brief description of the project..."
+          :placeholder="t('projectsWizardStepcontext.summaryPlaceholder')"
         ></textarea>
       </div>
 
       <div class="field">
-        <label class="field-label">Architecture</label>
+        <label class="field-label">{{ t('projectsWizardStepcontext.architecture') }}</label>
         <textarea
           v-model="state.context.architecture"
           class="field-textarea"
           rows="4"
-          placeholder="Architecture overview, key components..."
+          :placeholder="t('projectsWizardStepcontext.architecturePlaceholder')"
         ></textarea>
       </div>
 
       <div class="field">
-        <label class="field-label">Conventions</label>
+        <label class="field-label">{{ t('projectsWizardStepcontext.conventions') }}</label>
         <textarea
           v-model="state.context.conventions"
           class="field-textarea"
           rows="3"
-          placeholder="Coding conventions, patterns to follow..."
+          :placeholder="t('projectsWizardStepcontext.conventionsPlaceholder')"
         ></textarea>
       </div>
     </div>
@@ -56,9 +56,12 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import { useProjectScan } from '@/composables/useProjectScan';
 import type { WizardState } from '@/composables/useProjectWizard';
 import type { GeneratedContext } from '@/composables/useProjectScan';
+
+const { t } = useI18n();
 
 interface Props {
   state: WizardState;

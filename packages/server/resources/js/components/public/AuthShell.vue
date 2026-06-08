@@ -39,7 +39,7 @@
               <span class="stat-label">{{ t(`landing.hero.stats.${s.key}`) }}</span>
             </div>
           </div>
-          <p class="aside-mit">MIT License · Self-hosted · No telemetry</p>
+          <p class="aside-mit">{{ t('publicAuthshell.mitLicense') }}</p>
         </footer>
       </div>
 

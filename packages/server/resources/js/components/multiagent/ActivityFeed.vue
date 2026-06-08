@@ -5,14 +5,14 @@
         <svg viewBox="0 0 24 24" fill="currentColor">
           <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
         </svg>
-        Activity Feed
+        {{ t('multiagentActivityfeed.activityFeed') }}
       </h3>
       <div class="feed-actions">
-        <button 
+        <button
           class="refresh-btn"
           :class="{ 'is-loading': isLoading }"
           @click="$emit('refresh')"
-          title="Refresh"
+          :title="t('multiagentActivityfeed.refresh')"
         >
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
@@ -22,11 +22,11 @@
           v-model="selectedFilter"
           class="filter-select"
         >
-          <option value="">All Activities</option>
-          <option value="task_claimed">Tasks Claimed</option>
-          <option value="task_completed">Tasks Completed</option>
-          <option value="file_locked">File Locks</option>
-          <option value="broadcast">Broadcasts</option>
+          <option value="">{{ t('multiagentActivityfeed.allActivities') }}</option>
+          <option value="task_claimed">{{ t('multiagentActivityfeed.tasksClaimed') }}</option>
+          <option value="task_completed">{{ t('multiagentActivityfeed.tasksCompleted') }}</option>
+          <option value="file_locked">{{ t('multiagentActivityfeed.fileLocks') }}</option>
+          <option value="broadcast">{{ t('multiagentActivityfeed.broadcasts') }}</option>
         </select>
       </div>
     </div>
@@ -34,14 +34,14 @@
     <div class="feed-content" ref="feedContainer">
       <div v-if="isLoading && activities.length === 0" class="feed-loading">
         <div class="spinner" />
-        <p>Loading activity...</p>
+        <p>{{ t('multiagentActivityfeed.loadingActivity') }}</p>
       </div>
 
       <div v-else-if="filteredActivities.length === 0" class="feed-empty">
         <svg viewBox="0 0 24 24" fill="currentColor">
           <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
         </svg>
-        <p>{{ selectedFilter ? 'No matching activities' : 'No activity recorded yet' }}</p>
+        <p>{{ selectedFilter ? t('multiagentActivityfeed.noMatchingActivities') : t('multiagentActivityfeed.noActivityRecordedYet') }}</p>
       </div>
 
       <div v-else class="feed-list">
@@ -65,7 +65,7 @@
             
             <div v-if="activity.instance_id" class="activity-meta">
               <span class="instance-badge">
-                Instance: {{ activity.instance_id.slice(0, 8) }}...
+                {{ t('multiagentActivityfeed.instance', { id: activity.instance_id.slice(0, 8) }) }}
               </span>
             </div>
             
@@ -75,7 +75,7 @@
                 class="details-toggle"
                 @click="toggleDetails(activity.id)"
               >
-                {{ expandedActivities.has(activity.id) ? 'Hide details' : 'Show details' }}
+                {{ expandedActivities.has(activity.id) ? t('multiagentActivityfeed.hideDetails') : t('multiagentActivityfeed.showDetails') }}
               </button>
               
               <div v-if="expandedActivities.has(activity.id)" class="details-content">
@@ -93,7 +93,7 @@
           :disabled="isLoading"
           @click="$emit('load-more')"
         >
-          {{ isLoading ? 'Loading...' : 'Load more' }}
+          {{ isLoading ? t('multiagentActivityfeed.loading') : t('multiagentActivityfeed.loadMore') }}
         </button>
       </div>
     </div>
@@ -102,7 +102,10 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { ActivityLog, ActivityType } from '@/types';
+
+const { t } = useI18n();
 
 interface Props {
   activities: ActivityLog[];

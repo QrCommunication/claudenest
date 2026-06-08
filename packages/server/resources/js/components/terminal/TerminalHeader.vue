@@ -2,7 +2,7 @@
   <header class="terminal-header">
     <div class="header-left">
       <!-- Back Button -->
-      <button class="icon-btn" @click="handleBack" title="Back to Sessions">
+      <button class="icon-btn" @click="handleBack" :title="t('terminalTerminalheader.backToSessions')">
         <svg class="icon" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
         </svg>
@@ -11,7 +11,7 @@
       <!-- Session Info -->
       <div class="session-info">
         <h1 class="session-title">
-          Session {{ shortId }}
+          {{ t('terminalTerminalheader.session') }} {{ shortId }}
         </h1>
         <div class="session-meta">
           <span v-if="machineName" class="machine-badge">
@@ -48,7 +48,7 @@
           class="action-btn" 
           :class="{ active: props.searchActive }"
           @click="emit('toggleSearch')"
-          title="Search"
+          :title="t('terminalTerminalheader.search')"
         >
           <svg class="icon" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
@@ -58,7 +58,7 @@
         <button 
           class="action-btn" 
           @click="emit('fit')"
-          title="Fit to Window"
+          :title="t('terminalTerminalheader.fitToWindow')"
         >
           <svg class="icon" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 11-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15 13.586V12a1 1 0 011-1z" clip-rule="evenodd" />
@@ -69,7 +69,7 @@
           class="action-btn danger" 
           :disabled="!canTerminate"
           @click="handleTerminate"
-          title="Terminate Session"
+          :title="t('terminalTerminalheader.terminateSession')"
         >
           <svg class="icon" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
@@ -79,7 +79,7 @@
         <button 
           class="action-btn" 
           @click="handleDisconnect"
-          title="Disconnect"
+          :title="t('terminalTerminalheader.disconnect')"
         >
           <svg class="icon" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd" />
@@ -92,7 +92,10 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { SessionMode, SessionStatus } from '@/types';
+
+const { t } = useI18n();
 
 // ============================================================================
 // Props & Emits
@@ -140,23 +143,23 @@ const statusClass = computed(() => {
 
 const statusLabel = computed(() => {
   const labels: Record<SessionStatus, string> = {
-    created: 'Created',
-    starting: 'Starting',
-    running: 'Running',
-    waiting_input: 'Waiting',
-    completed: 'Completed',
-    error: 'Error',
-    terminated: 'Terminated',
+    created: t('terminalTerminalheader.statusCreated'),
+    starting: t('terminalTerminalheader.statusStarting'),
+    running: t('terminalTerminalheader.statusRunning'),
+    waiting_input: t('terminalTerminalheader.statusWaiting'),
+    completed: t('terminalTerminalheader.statusCompleted'),
+    error: t('terminalTerminalheader.statusError'),
+    terminated: t('terminalTerminalheader.statusTerminated'),
   };
   return labels[props.status] || props.status;
 });
 
 const modeLabel = computed(() => {
   const labels: Record<SessionMode, string> = {
-    interactive: 'Interactive',
-    headless: 'Headless',
-    oneshot: 'One-shot',
-    bash: 'Bash',
+    interactive: t('terminalTerminalheader.modeInteractive'),
+    headless: t('terminalTerminalheader.modeHeadless'),
+    oneshot: t('terminalTerminalheader.modeOneshot'),
+    bash: t('terminalTerminalheader.modeBash'),
   };
   return labels[props.mode] || props.mode;
 });
@@ -174,7 +177,7 @@ function handleBack(): void {
 }
 
 function handleTerminate(): void {
-  if (canTerminate.value && confirm('Are you sure you want to terminate this session?')) {
+  if (canTerminate.value && confirm(t('terminalTerminalheader.terminateConfirm'))) {
     emit('terminate');
   }
 }

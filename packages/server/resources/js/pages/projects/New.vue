@@ -2,8 +2,8 @@
   <div class="wizard-page">
     <!-- Header -->
     <div class="wizard-header">
-      <h1 class="wizard-title">New Project</h1>
-      <p class="wizard-subtitle">Set up a multi-agent project in {{ totalSteps }} steps</p>
+      <h1 class="wizard-title">{{ t('projectsNew.title') }}</h1>
+      <p class="wizard-subtitle">{{ t('projectsNew.subtitle', { count: totalSteps }) }}</p>
     </div>
 
     <!-- Stepper -->
@@ -52,14 +52,14 @@
             :class="{ 'mode-btn-active': isPrdMode }"
             @click="handleModeSwitch('prd')"
           >
-            PRD / Feature
+            {{ t('projectsNew.modePrd') }}
           </button>
           <button
             class="mode-btn"
             :class="{ 'mode-btn-active': !isPrdMode }"
             @click="handleModeSwitch('manual')"
           >
-            Manual Context
+            {{ t('projectsNew.modeManual') }}
           </button>
         </div>
 
@@ -82,8 +82,10 @@
               <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
             </svg>
             <span class="text-sm text-green-400">
-              Master Plan generated — {{ state.masterPlan.waves.length }} waves,
-              {{ state.masterPlan.waves.reduce((s, w) => s + w.tasks.length, 0) }} tasks
+              {{ t('projectsNew.masterPlanGenerated', {
+                waves: state.masterPlan.waves.length,
+                tasks: state.masterPlan.waves.reduce((s, w) => s + w.tasks.length, 0),
+              }) }}
             </span>
           </div>
         </div>
@@ -133,7 +135,7 @@
         :disabled="!canGoPrev"
         @click="prevStep"
       >
-        Previous
+        {{ t('projectsNew.previous') }}
       </button>
       <div class="nav-spacer"></div>
       <button
@@ -142,7 +144,7 @@
         :disabled="!canGoNext"
         @click="nextStep"
       >
-        Next
+        {{ t('projectsNew.next') }}
       </button>
       <button
         v-else
@@ -150,7 +152,7 @@
         :disabled="isSubmitting"
         @click="submit"
       >
-        {{ isSubmitting ? 'Creating...' : 'Create Project' }}
+        {{ isSubmitting ? t('projectsNew.creating') : t('projectsNew.createProject') }}
       </button>
     </div>
   </div>
@@ -158,6 +160,7 @@
 
 <script setup lang="ts">
 import { computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useProjectWizard } from '@/composables/useProjectWizard';
 import { useDecomposition } from '@/composables/useDecomposition';
 import StepMachine from './wizard/StepMachine.vue';
@@ -170,6 +173,8 @@ import DecompositionProgress from '@/components/projects/DecompositionProgress.v
 import MasterPlanEditor from '@/components/projects/MasterPlanEditor.vue';
 import type { WizardMode } from '@/composables/useProjectWizard';
 import type { MasterPlan } from '@/composables/useDecomposition';
+
+const { t } = useI18n();
 
 const {
   state,
@@ -204,11 +209,11 @@ const {
 const isPrdMode = computed(() => state.wizardMode === 'prd');
 
 const steps = computed(() => [
-  { number: 1, label: 'Machine' },
-  { number: 2, label: 'Path' },
-  { number: 3, label: isPrdMode.value ? 'PRD' : 'Context' },
-  { number: 4, label: isPrdMode.value ? 'Plan' : 'Tasks' },
-  { number: 5, label: 'Launch' },
+  { number: 1, label: t('projectsNew.stepMachine') },
+  { number: 2, label: t('projectsNew.stepPath') },
+  { number: 3, label: isPrdMode.value ? t('projectsNew.stepPrd') : t('projectsNew.stepContext') },
+  { number: 4, label: isPrdMode.value ? t('projectsNew.stepPlan') : t('projectsNew.stepTasks') },
+  { number: 5, label: t('projectsNew.stepLaunch') },
 ]);
 
 function handleModeSwitch(mode: WizardMode): void {

@@ -1,33 +1,33 @@
 <template>
   <Modal :model-value="show" @close="$emit('close')" size="md">
     <template #header>
-      <h3 class="text-lg font-semibold text-skin-primary">Add MCP Server</h3>
-      <p class="mt-1 text-sm text-skin-secondary">Register a new Model Context Protocol server</p>
+      <h3 class="text-lg font-semibold text-skin-primary">{{ t('mcpAddservermodal.title') }}</h3>
+      <p class="mt-1 text-sm text-skin-secondary">{{ t('mcpAddservermodal.subtitle') }}</p>
     </template>
 
     <form @submit.prevent="handleSubmit" class="space-y-4">
       <div>
-        <label class="block text-sm font-medium text-skin-primary mb-1">Name</label>
-        <Input v-model="form.name" placeholder="server-name" required />
+        <label class="block text-sm font-medium text-skin-primary mb-1">{{ t('mcpAddservermodal.name') }}</label>
+        <Input v-model="form.name" :placeholder="t('mcpAddservermodal.namePlaceholder')" required />
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-skin-primary mb-1">Display Name</label>
-        <Input v-model="form.display_name" placeholder="My MCP Server" />
+        <label class="block text-sm font-medium text-skin-primary mb-1">{{ t('mcpAddservermodal.displayName') }}</label>
+        <Input v-model="form.display_name" :placeholder="t('mcpAddservermodal.displayNamePlaceholder')" />
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-skin-primary mb-1">Description</label>
+        <label class="block text-sm font-medium text-skin-primary mb-1">{{ t('mcpAddservermodal.description') }}</label>
         <textarea
           v-model="form.description"
           rows="2"
-          placeholder="What does this server do?"
+          :placeholder="t('mcpAddservermodal.descriptionPlaceholder')"
           class="w-full bg-surface-1 border border-skin rounded-lg px-3 py-2 text-skin-primary text-sm focus:outline-none focus:border-brand-purple resize-none"
         />
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-skin-primary mb-1">Transport</label>
+        <label class="block text-sm font-medium text-skin-primary mb-1">{{ t('mcpAddservermodal.transport') }}</label>
         <select
           v-model="form.transport"
           class="w-full bg-surface-1 border border-skin rounded-lg px-3 py-2 text-skin-primary text-sm focus:outline-none focus:border-brand-purple appearance-none"
@@ -39,21 +39,21 @@
       </div>
 
       <div v-if="form.transport === 'stdio'">
-        <label class="block text-sm font-medium text-skin-primary mb-1">Command</label>
+        <label class="block text-sm font-medium text-skin-primary mb-1">{{ t('mcpAddservermodal.command') }}</label>
         <Input v-model="form.command" placeholder="npx -y @modelcontextprotocol/server" />
       </div>
 
       <div v-else>
-        <label class="block text-sm font-medium text-skin-primary mb-1">URL</label>
+        <label class="block text-sm font-medium text-skin-primary mb-1">{{ t('mcpAddservermodal.url') }}</label>
         <Input v-model="form.url" placeholder="http://localhost:3000/mcp" />
       </div>
     </form>
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <Button variant="ghost" @click="$emit('close')">Cancel</Button>
+        <Button variant="ghost" @click="$emit('close')">{{ t('mcpAddservermodal.cancel') }}</Button>
         <Button variant="primary" :loading="isSubmitting" @click="handleSubmit">
-          Add Server
+          {{ t('mcpAddservermodal.addServer') }}
         </Button>
       </div>
     </template>
@@ -62,10 +62,13 @@
 
 <script setup lang="ts">
 import { reactive, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Modal from '@/components/common/Modal.vue';
 import Input from '@/components/common/Input.vue';
 import Button from '@/components/common/Button.vue';
 import type { CreateMCPServerPayload, MCPTransport } from '@/types';
+
+const { t } = useI18n();
 
 interface Props {
   show: boolean;

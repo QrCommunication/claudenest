@@ -1,6 +1,6 @@
 <template>
   <div class="toc">
-    <h3 class="toc-title">On this page</h3>
+    <h3 class="toc-title">{{ t('docsToc.onThisPage') }}</h3>
     <nav class="toc-nav">
       <a
         v-for="heading in headings"
@@ -22,6 +22,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 
 interface Heading {
   id: string;
@@ -29,6 +30,7 @@ interface Heading {
   level: number;
 }
 
+const { t } = useI18n();
 const route = useRoute();
 const headings = ref<Heading[]>([]);
 const activeHeading = ref<string>('');

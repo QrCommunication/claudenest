@@ -4,7 +4,7 @@
       <div class="flex items-center justify-between w-full">
         <div class="flex items-center gap-2">
           <ScrollTextIcon class="w-5 h-5 text-brand-purple" />
-          <span class="font-medium text-white">Server Logs</span>
+          <span class="font-medium text-white">{{ t('skillsServerlogviewer.serverLogs') }}</span>
           <Badge v-if="serverName" variant="default" size="sm">
             {{ serverName }}
           </Badge>
@@ -35,7 +35,7 @@
     >
       <div v-if="logs.length === 0" class="text-skin-secondary text-center py-8">
         <TerminalIcon class="w-8 h-8 mx-auto mb-2 opacity-50" />
-        <p>No logs available</p>
+        <p>{{ t('skillsServerlogviewer.noLogsAvailable') }}</p>
       </div>
       
       <div v-else class="space-y-1">
@@ -66,14 +66,15 @@
     </div>
 
     <div class="flex items-center justify-between mt-3 text-xs text-skin-secondary">
-      <span>{{ logs.length }} entries</span>
-      <span v-if="lastUpdated">Last updated: {{ lastUpdated }}</span>
+      <span>{{ t('skillsServerlogviewer.entries', { count: logs.length }) }}</span>
+      <span v-if="lastUpdated">{{ t('skillsServerlogviewer.lastUpdated', { time: lastUpdated }) }}</span>
     </div>
   </Card>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Card from '@/components/common/Card.vue';
 import Badge from '@/components/common/Badge.vue';
 import Button from '@/components/common/Button.vue';
@@ -106,6 +107,8 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   refresh: [];
 }>();
+
+const { t } = useI18n();
 
 const logContainerRef = ref<HTMLElement>();
 const autoScroll = ref(true);

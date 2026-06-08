@@ -9,7 +9,7 @@
         class="copy-btn"
         :class="{ copied: copied }"
         @click="copyCode"
-        :aria-label="copied ? 'Copied' : 'Copy code'"
+        :aria-label="copied ? t('docsCodeblock.copied') : t('docsCodeblock.copyCode')"
       >
         <svg v-if="!copied" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
           <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
@@ -18,7 +18,7 @@
         <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="20 6 9 17 4 12"/>
         </svg>
-        <span class="copy-label">{{ copied ? 'Copied!' : 'Copy' }}</span>
+        <span class="copy-label">{{ copied ? t('docsCodeblock.copiedExclaim') : t('docsCodeblock.copy') }}</span>
       </button>
     </div>
     <pre :class="`language-${language}`"><code ref="codeRef">{{ code }}</code></pre>
@@ -27,6 +27,9 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface Props {
   code: string;

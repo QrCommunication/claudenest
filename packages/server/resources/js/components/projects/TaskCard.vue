@@ -9,17 +9,17 @@
     <div class="task-header">
       <span class="task-priority" :class="task.priority">{{ task.priority }}</span>
       <div class="task-badges">
-        <span v-if="task.is_claimed" class="badge claimed" title="Claimed">
+        <span v-if="task.is_claimed" class="badge claimed" :title="t('projectsTaskcard.claimed')">
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
           </svg>
         </span>
-        <span v-if="task.is_blocked" class="badge blocked" title="Blocked">
+        <span v-if="task.is_blocked" class="badge blocked" :title="t('projectsTaskcard.blocked')">
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8 0-1.85.63-3.55 1.69-4.9L16.9 18.31C15.55 19.37 13.85 20 12 20zm6.31-3.1L7.1 5.69C8.45 4.63 10.15 4 12 4c4.42 0 8 3.58 8 8 0 1.85-.63 3.55-1.69 4.9z"/>
           </svg>
         </span>
-        <span v-if="task.files?.length" class="badge files" title="Has files">
+        <span v-if="task.files?.length" class="badge files" :title="t('projectsTaskcard.hasFiles')">
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
           </svg>
@@ -39,7 +39,7 @@
         <InstanceBadge :instance-id="task.assigned_to" size="sm" />
       </div>
       <div v-else-if="task.status === 'pending'" class="task-unclaimed">
-        Unclaimed
+        {{ t('projectsTaskcard.unclaimed') }}
       </div>
       
       <div class="task-actions" @click.stop>
@@ -47,7 +47,7 @@
           v-if="!task.is_claimed && task.status === 'pending'"
           class="action-btn claim"
           @click="$emit('claim', task.id)"
-          title="Claim task"
+          :title="t('projectsTaskcard.claimTask')"
         >
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
@@ -57,7 +57,7 @@
           v-if="task.is_claimed && !task.is_completed"
           class="action-btn release"
           @click="$emit('release', task.id)"
-          title="Release task"
+          :title="t('projectsTaskcard.releaseTask')"
         >
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
@@ -67,7 +67,7 @@
           v-if="task.is_claimed && !task.is_completed"
           class="action-btn complete"
           @click="$emit('complete', task.id)"
-          title="Complete task"
+          :title="t('projectsTaskcard.completeTask')"
         >
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
@@ -90,8 +90,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import InstanceBadge from './InstanceBadge.vue';
 import type { SharedTask } from '@/types';
+
+const { t } = useI18n();
 
 interface Props {
   task: SharedTask;

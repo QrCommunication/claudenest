@@ -2,7 +2,7 @@
   <div class="epic-board">
     <!-- Header avec bouton d'ajout -->
     <div class="epic-board-header">
-      <h3 class="text-sm font-medium text-white/70">Epics</h3>
+      <h3 class="text-sm font-medium text-white/70">{{ t('multiagentEpicboard.epics') }}</h3>
       <button class="add-epic-btn" @click="$emit('create')">
         <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
           <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
@@ -46,9 +46,9 @@
 
       <!-- Empty state -->
       <div v-if="epics.length === 0" class="epic-empty">
-        <p class="text-white/40 text-sm">No epics yet</p>
+        <p class="text-white/40 text-sm">{{ t('multiagentEpicboard.noEpicsYet') }}</p>
         <button class="text-purple-400 text-sm hover:text-purple-300" @click="$emit('create')">
-          Create your first epic
+          {{ t('multiagentEpicboard.createFirstEpic') }}
         </button>
       </div>
     </div>
@@ -57,7 +57,10 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { Epic } from '@/types/multiagent';
+
+const { t } = useI18n();
 
 interface Props {
   epics: Epic[];

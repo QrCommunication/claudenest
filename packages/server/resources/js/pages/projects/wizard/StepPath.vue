@@ -1,7 +1,7 @@
 <template>
   <div class="step-path">
-    <h2 class="step-title">Project Path</h2>
-    <p class="step-desc">Enter the project path on the remote machine, then scan to detect the tech stack.</p>
+    <h2 class="step-title">{{ t('projectsWizardSteppath.projectPath') }}</h2>
+    <p class="step-desc">{{ t('projectsWizardSteppath.description') }}</p>
 
     <!-- Path Input -->
     <div class="path-input-row">
@@ -9,7 +9,7 @@
         v-model="state.path"
         type="text"
         class="path-input"
-        placeholder="/home/user/my-project"
+        :placeholder="t('projectsWizardSteppath.pathPlaceholder')"
         @keyup.enter="handleScan"
       />
       <button
@@ -18,7 +18,7 @@
         @click="handleScan"
       >
         <div class="spinner" v-if="isScanning"></div>
-        {{ isScanning ? 'Scanning...' : 'Scan' }}
+        {{ isScanning ? t('projectsWizardSteppath.scanning') : t('projectsWizardSteppath.scan') }}
       </button>
     </div>
 
@@ -27,7 +27,7 @@
       <svg viewBox="0 0 24 24" fill="currentColor" class="browse-icon">
         <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
       </svg>
-      {{ showBrowser ? 'Hide Browser' : 'Browse Files' }}
+      {{ showBrowser ? t('projectsWizardSteppath.hideBrowser') : t('projectsWizardSteppath.browseFiles') }}
     </button>
 
     <!-- Remote File Tree -->
@@ -55,7 +55,7 @@
 
       <!-- Tech Stack -->
       <div class="tech-stack" v-if="state.scanResult.tech_stack.length > 0">
-        <span class="stack-label">Detected Stack:</span>
+        <span class="stack-label">{{ t('projectsWizardSteppath.detectedStack') }}</span>
         <div class="stack-badges">
           <span
             v-for="tech in state.scanResult.tech_stack"
@@ -69,19 +69,19 @@
 
       <!-- Structure Preview -->
       <div class="structure-preview" v-if="state.scanResult.structure.length > 0">
-        <span class="stack-label">Structure:</span>
+        <span class="stack-label">{{ t('projectsWizardSteppath.structure') }}</span>
         <pre class="structure-code">{{ state.scanResult.structure.slice(0, 15).join('\n') }}<template v-if="state.scanResult.structure.length > 15">
-...and {{ state.scanResult.structure.length - 15 }} more</template></pre>
+{{ t('projectsWizardSteppath.andMore', { count: state.scanResult.structure.length - 15 }) }}</template></pre>
       </div>
 
       <!-- Project Name Override -->
       <div class="name-override">
-        <label class="field-label">Project Name</label>
+        <label class="field-label">{{ t('projectsWizardSteppath.projectName') }}</label>
         <input
           v-model="state.projectName"
           type="text"
           class="field-input"
-          placeholder="My Project"
+          :placeholder="t('projectsWizardSteppath.projectNamePlaceholder')"
         />
       </div>
     </div>
@@ -90,6 +90,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useProjectScan } from '@/composables/useProjectScan';
 import RemoteFileTree from '@/components/sessions/RemoteFileTree.vue';
 import type { WizardState } from '@/composables/useProjectWizard';
@@ -104,6 +105,7 @@ const emit = defineEmits<{
   (e: 'scanned', result: ScanResult): void;
 }>();
 
+const { t } = useI18n();
 const showBrowser = ref(false);
 const { isScanning, scanError, scanProject } = useProjectScan();
 

@@ -1,7 +1,7 @@
 <template>
   <div class="step-machine">
-    <h2 class="step-title">Select a Machine</h2>
-    <p class="step-desc">Choose the machine where this project is located.</p>
+    <h2 class="step-title">{{ t('projectsWizardStepmachine.selectAMachine') }}</h2>
+    <p class="step-desc">{{ t('projectsWizardStepmachine.chooseTheMachineWhereThisProjectIsLocated') }}</p>
 
     <div class="machines-grid" v-if="machines.length > 0">
       <div
@@ -23,25 +23,26 @@
           <span class="meta-item" v-if="machine.hostname">{{ machine.hostname }}</span>
         </div>
         <div class="machine-sessions" v-if="machine.active_sessions_count > 0">
-          {{ machine.active_sessions_count }} active session(s)
+          {{ t('projectsWizardStepmachine.activeSessionsCount', { count: machine.active_sessions_count }) }}
         </div>
       </div>
     </div>
 
     <div class="empty-state" v-else-if="!isLoading">
-      <p>No machines registered.</p>
-      <router-link to="/machines" class="link">Add a machine first</router-link>
+      <p>{{ t('projectsWizardStepmachine.noMachinesRegistered') }}</p>
+      <router-link to="/machines" class="link">{{ t('projectsWizardStepmachine.addAMachineFirst') }}</router-link>
     </div>
 
     <div class="loading-state" v-if="isLoading">
       <div class="spinner"></div>
-      <span>Loading machines...</span>
+      <span>{{ t('projectsWizardStepmachine.loadingMachines') }}</span>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useMachinesStore } from '@/stores/machines';
 import { storeToRefs } from 'pinia';
 import type { WizardState } from '@/composables/useProjectWizard';
@@ -51,6 +52,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+const { t } = useI18n();
 const machinesStore = useMachinesStore();
 const { machines, isLoading } = storeToRefs(machinesStore);
 

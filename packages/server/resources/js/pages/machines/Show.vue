@@ -3,7 +3,7 @@
     <!-- Loading State -->
     <div v-if="isLoading" class="loading-state">
       <div class="spinner"></div>
-      <p>Loading machine details...</p>
+      <p>{{ t('machinesShow.loadingDetails') }}</p>
     </div>
 
     <!-- Error State -->
@@ -11,8 +11,8 @@
       <svg viewBox="0 0 24 24" fill="currentColor">
         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
       </svg>
-      <p>{{ error || 'Machine not found' }}</p>
-      <button class="btn-secondary" @click="goBack">Go Back</button>
+      <p>{{ error || t('machinesShow.machineNotFound') }}</p>
+      <button class="btn-secondary" @click="goBack">{{ t('machinesShow.goBack') }}</button>
     </div>
 
     <template v-else>
@@ -29,7 +29,7 @@
               <StatusDot :status="machine.status" />
               <h1>{{ machine.display_name }}</h1>
             </div>
-            <p class="subtitle">{{ machine.hostname || 'No hostname' }} • {{ platformLabel }}</p>
+            <p class="subtitle">{{ machine.hostname || t('machinesShow.noHostname') }} • {{ platformLabel }}</p>
           </div>
         </div>
         <div class="header-actions">
@@ -42,7 +42,7 @@
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path d="M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83z"/>
             </svg>
-            {{ isWaking ? 'Waking...' : 'Wake' }}
+            {{ isWaking ? t('machinesShow.waking') : t('machinesShow.wake') }}
           </button>
           <button
             class="btn-action connect"
@@ -52,13 +52,13 @@
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
             </svg>
-            New Session
+            {{ t('machinesShow.newSession') }}
           </button>
           <button class="btn-action edit" @click="showEditModal = true">
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
             </svg>
-            Edit
+            {{ t('machinesShow.edit') }}
           </button>
         </div>
       </div>
@@ -69,35 +69,35 @@
         <div class="main-column">
           <!-- Info Card -->
           <div class="card">
-            <h2 class="card-title">System Information</h2>
+            <h2 class="card-title">{{ t('machinesShow.systemInformation') }}</h2>
             <div class="info-grid">
               <div class="info-item">
-                <span class="info-label">Platform</span>
+                <span class="info-label">{{ t('machinesShow.platform') }}</span>
                 <div class="info-value platform">
                   <PlatformIcon :platform="machine.platform" />
                   <span>{{ platformLabel }}</span>
                 </div>
               </div>
               <div class="info-item">
-                <span class="info-label">Architecture</span>
-                <span class="info-value">{{ machine.arch || 'Unknown' }}</span>
+                <span class="info-label">{{ t('machinesShow.architecture') }}</span>
+                <span class="info-value">{{ machine.arch || t('machinesShow.unknown') }}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">Agent Version</span>
-                <span class="info-value">{{ machine.agent_version || 'Unknown' }}</span>
+                <span class="info-label">{{ t('machinesShow.agentVersion') }}</span>
+                <span class="info-value">{{ machine.agent_version || t('machinesShow.unknown') }}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">Node Version</span>
-                <span class="info-value">{{ machine.node_version || 'Unknown' }}</span>
+                <span class="info-label">{{ t('machinesShow.nodeVersion') }}</span>
+                <span class="info-value">{{ machine.node_version || t('machinesShow.unknown') }}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">Claude Version</span>
-                <span class="info-value">{{ machine.claude_version || 'Unknown' }}</span>
+                <span class="info-label">{{ t('machinesShow.claudeVersion') }}</span>
+                <span class="info-value">{{ machine.claude_version || t('machinesShow.unknown') }}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">Claude Path</span>
+                <span class="info-label">{{ t('machinesShow.claudePath') }}</span>
                 <span class="info-value path" :title="machine.claude_path || ''">
-                  {{ machine.claude_path || 'Unknown' }}
+                  {{ machine.claude_path || t('machinesShow.unknown') }}
                 </span>
               </div>
             </div>
@@ -105,7 +105,7 @@
 
           <!-- Capabilities Card -->
           <div class="card">
-            <h2 class="card-title">Capabilities</h2>
+            <h2 class="card-title">{{ t('machinesShow.capabilities') }}</h2>
             <div v-if="machine.capabilities?.length" class="capabilities-list">
               <span
                 v-for="cap in machine.capabilities"
@@ -115,14 +115,14 @@
                 {{ formatCapability(cap) }}
               </span>
             </div>
-            <p v-else class="empty-text">No capabilities configured</p>
+            <p v-else class="empty-text">{{ t('machinesShow.noCapabilities') }}</p>
           </div>
 
           <!-- Sessions Section -->
           <div class="card">
             <div class="card-header">
               <h2 class="card-title">
-                Active Sessions
+                {{ t('machinesShow.activeSessions') }}
                 <span class="session-count">{{ machine.active_sessions_count }}</span>
               </h2>
               <button
@@ -130,7 +130,7 @@
                 class="btn-sm"
                 @click="startNewSession"
               >
-                Start New
+                {{ t('machinesShow.startNew') }}
               </button>
             </div>
 
@@ -142,13 +142,13 @@
               <svg viewBox="0 0 24 24" fill="currentColor">
                 <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
               </svg>
-              <p>No active sessions</p>
+              <p>{{ t('machinesShow.noActiveSessions') }}</p>
               <button
                 v-if="machine.status === 'online'"
                 class="btn-sm"
                 @click="startNewSession"
               >
-                Start a session
+                {{ t('machinesShow.startASession') }}
               </button>
             </div>
 
@@ -182,7 +182,7 @@
 
           <!-- Activity Timeline -->
           <div class="card">
-            <h2 class="card-title">Activity</h2>
+            <h2 class="card-title">{{ t('machinesShow.activity') }}</h2>
             <div class="activity-list">
               <div class="activity-item">
                 <div class="activity-icon connected">
@@ -191,8 +191,8 @@
                   </svg>
                 </div>
                 <div class="activity-content">
-                  <p class="activity-text">Machine connected</p>
-                  <p class="activity-time">{{ machine.connected_at_human || 'Unknown' }}</p>
+                  <p class="activity-text">{{ t('machinesShow.machineConnected') }}</p>
+                  <p class="activity-time">{{ machine.connected_at_human || t('machinesShow.unknown') }}</p>
                 </div>
               </div>
               <div class="activity-item">
@@ -202,8 +202,8 @@
                   </svg>
                 </div>
                 <div class="activity-content">
-                  <p class="activity-text">Last seen</p>
-                  <p class="activity-time">{{ machine.last_seen_human || 'Never' }}</p>
+                  <p class="activity-text">{{ t('machinesShow.lastSeen') }}</p>
+                  <p class="activity-time">{{ machine.last_seen_human || t('machinesShow.never') }}</p>
                 </div>
               </div>
               <div class="activity-item">
@@ -213,7 +213,7 @@
                   </svg>
                 </div>
                 <div class="activity-content">
-                  <p class="activity-text">Machine added</p>
+                  <p class="activity-text">{{ t('machinesShow.machineAdded') }}</p>
                   <p class="activity-time">{{ machine.created_at_human }}</p>
                 </div>
               </div>
@@ -225,19 +225,19 @@
         <div class="side-column">
           <!-- Settings Card -->
           <div class="card">
-            <h2 class="card-title">Settings</h2>
+            <h2 class="card-title">{{ t('machinesShow.settings') }}</h2>
             <div class="settings-list">
               <div class="setting-item">
                 <div class="setting-info">
-                  <span class="setting-name">Maximum Sessions</span>
-                  <span class="setting-desc">Concurrent Claude sessions allowed</span>
+                  <span class="setting-name">{{ t('machinesShow.maximumSessions') }}</span>
+                  <span class="setting-desc">{{ t('machinesShow.maximumSessionsDesc') }}</span>
                 </div>
                 <span class="setting-value">{{ machine.max_sessions }}</span>
               </div>
               <div class="setting-item">
                 <div class="setting-info">
-                  <span class="setting-name">Active Sessions</span>
-                  <span class="setting-desc">Currently running sessions</span>
+                  <span class="setting-name">{{ t('machinesShow.activeSessionsSetting') }}</span>
+                  <span class="setting-desc">{{ t('machinesShow.activeSessionsDesc') }}</span>
                 </div>
                 <span class="setting-value" :class="{ 'at-limit': !machine.can_accept_more_sessions }">
                   {{ machine.active_sessions_count }} / {{ machine.max_sessions }}
@@ -248,28 +248,28 @@
 
           <!-- Token Management -->
           <div class="card">
-            <h2 class="card-title">Authentication</h2>
-            <p class="card-desc">Regenerate the machine token if you need to reconfigure the agent.</p>
+            <h2 class="card-title">{{ t('machinesShow.authentication') }}</h2>
+            <p class="card-desc">{{ t('machinesShow.authenticationDesc') }}</p>
             <button
               class="btn-secondary"
               @click="regenerateToken"
               :disabled="isRegeneratingToken"
             >
               <span v-if="isRegeneratingToken" class="spinner-sm"></span>
-              {{ isRegeneratingToken ? 'Regenerating...' : 'Regenerate Token' }}
+              {{ isRegeneratingToken ? t('machinesShow.regenerating') : t('machinesShow.regenerateToken') }}
             </button>
           </div>
 
           <!-- Danger Zone -->
           <div class="card danger">
-            <h2 class="card-title">Danger Zone</h2>
+            <h2 class="card-title">{{ t('machinesShow.dangerZone') }}</h2>
             <div class="danger-item">
               <div class="danger-info">
-                <span class="danger-name">Delete Machine</span>
-                <span class="danger-desc">This will permanently remove the machine and terminate all sessions.</span>
+                <span class="danger-name">{{ t('machinesShow.deleteMachine') }}</span>
+                <span class="danger-desc">{{ t('machinesShow.deleteMachineDesc') }}</span>
               </div>
               <button class="btn-danger" @click="showDeleteModal = true">
-                Delete
+                {{ t('machinesShow.delete') }}
               </button>
             </div>
           </div>
@@ -293,23 +293,24 @@
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
               </svg>
             </div>
-            <h3>Delete Machine</h3>
+            <h3>{{ t('machinesShow.deleteMachine') }}</h3>
           </div>
           <p class="confirm-text">
-            Are you sure you want to delete <strong>{{ machine.name }}</strong>?
-            This will terminate all active sessions and cannot be undone.
+            <i18n-t keypath="machinesShow.deleteConfirmText" tag="span">
+              <template #name><strong>{{ machine.name }}</strong></template>
+            </i18n-t>
           </p>
           <div class="confirm-actions">
             <button class="btn-secondary" @click="showDeleteModal = false">
-              Cancel
+              {{ t('machinesShow.cancel') }}
             </button>
-            <button 
+            <button
               class="btn-danger"
               :disabled="isDeleting"
               @click="executeDelete"
             >
               <span v-if="isDeleting" class="spinner"></span>
-              {{ isDeleting ? 'Deleting...' : 'Delete Machine' }}
+              {{ isDeleting ? t('machinesShow.deleting') : t('machinesShow.deleteMachine') }}
             </button>
           </div>
         </div>
@@ -324,10 +325,10 @@
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
               </svg>
             </div>
-            <h3>Token Regenerated</h3>
+            <h3>{{ t('machinesShow.tokenRegenerated') }}</h3>
           </div>
           <p class="confirm-text">
-            Copy this token and update your machine configuration. This token will only be shown once.
+            {{ t('machinesShow.tokenRegeneratedText') }}
           </p>
           <div class="token-display">
             <code>{{ newToken }}</code>
@@ -339,7 +340,7 @@
           </div>
           <div class="confirm-actions">
             <button class="btn-primary" @click="newToken = ''">
-              Done
+              {{ t('machinesShow.done') }}
             </button>
           </div>
         </div>
@@ -350,6 +351,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter, useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useMachinesStore } from '@/stores/machines';
@@ -358,6 +360,7 @@ import PlatformIcon from '@/components/machines/PlatformIcon.vue';
 import MachineForm from '@/components/machines/MachineForm.vue';
 import type { Machine, Session, UpdateMachineForm, MachinePlatform } from '@/types';
 
+const { t } = useI18n();
 const router = useRouter();
 const route = useRoute();
 const machinesStore = useMachinesStore();

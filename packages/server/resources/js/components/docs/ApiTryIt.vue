@@ -1,13 +1,13 @@
 <template>
   <div class="api-try-it">
     <div class="try-it-header">
-      <h4>Try It</h4>
+      <h4>{{ t('docsApitryit.tryIt') }}</h4>
       <div class="auth-input">
-        <label>Authorization</label>
+        <label>{{ t('docsApitryit.authorization') }}</label>
         <input
           v-model="authToken"
           type="text"
-          placeholder="Bearer token..."
+          :placeholder="t('docsApitryit.bearerTokenPlaceholder')"
         />
       </div>
     </div>
@@ -22,14 +22,14 @@
 
       <!-- Path Parameters -->
       <div v-if="pathParams.length" class="param-section">
-        <h5>Path Parameters</h5>
+        <h5>{{ t('docsApitryit.pathParameters') }}</h5>
         <div class="param-list">
           <div v-for="param in pathParams" :key="param.name" class="param-input">
             <label>{{ param.name }}</label>
             <input
               v-model="paramValues[param.name]"
               type="text"
-              :placeholder="`Enter ${param.name}`"
+              :placeholder="t('docsApitryit.enterParam', { name: param.name })"
             />
           </div>
         </div>
@@ -37,7 +37,7 @@
 
       <!-- Query Parameters -->
       <div v-if="endpoint.query?.length" class="param-section">
-        <h5>Query Parameters</h5>
+        <h5>{{ t('docsApitryit.queryParameters') }}</h5>
         <div class="param-list">
           <div v-for="param in endpoint.query" :key="param.name" class="param-input">
             <label>
@@ -55,13 +55,13 @@
 
       <!-- Request Body -->
       <div v-if="endpoint.body" class="param-section">
-        <h5>Request Body</h5>
+        <h5>{{ t('docsApitryit.requestBody') }}</h5>
         <textarea
           v-model="requestBody"
           class="body-editor"
           spellcheck="false"
         />
-        <div v-if="!isValidJson" class="json-error">Invalid JSON</div>
+        <div v-if="!isValidJson" class="json-error">{{ t('docsApitryit.invalidJson') }}</div>
       </div>
 
       <!-- Execute Button -->
@@ -73,14 +73,14 @@
         <svg v-if="isLoading" class="spinner" viewBox="0 0 24 24">
           <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="60" stroke-dashoffset="20"/>
         </svg>
-        <span v-else>Send Request</span>
+        <span v-else>{{ t('docsApitryit.sendRequest') }}</span>
       </button>
     </div>
 
     <!-- Response -->
     <div v-if="response" class="response-section">
       <div class="response-header">
-        <h5>Response</h5>
+        <h5>{{ t('docsApitryit.response') }}</h5>
         <span 
           class="status-badge" 
           :class="{ success: isSuccess, error: !isSuccess }"
@@ -95,6 +95,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useDocs } from '@/composables/useDocs';
 import type { ApiEndpoint } from '@/data/api-endpoints';
 
@@ -102,6 +103,7 @@ const props = defineProps<{
   endpoint: ApiEndpoint;
 }>();
 
+const { t } = useI18n();
 const { getMethodColor } = useDocs();
 
 const authToken = ref(localStorage.getItem('docs_auth_token') || '');
@@ -221,7 +223,7 @@ const executeRequest = async () => {
     response.value = data || { status: res.statusText };
   } catch (error) {
     responseStatus.value = 0;
-    response.value = { error: 'Network error or CORS issue' };
+    response.value = { error: t('docsApitryit.networkError') };
   } finally {
     isLoading.value = false;
   }

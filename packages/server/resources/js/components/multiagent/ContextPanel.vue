@@ -5,34 +5,34 @@
         <svg viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>
         </svg>
-        Project Context
+        {{ t('multiagentContextpanel.projectContext') }}
       </h3>
       <div class="panel-actions">
-        <button 
+        <button
           v-if="!isEditing"
           class="action-btn"
           @click="startEditing"
-          title="Edit context"
+          :title="t('multiagentContextpanel.editContext')"
         >
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
           </svg>
         </button>
         <template v-else>
-          <button 
+          <button
             class="action-btn success"
             @click="saveChanges"
             :disabled="isSaving"
-            title="Save changes"
+            :title="t('multiagentContextpanel.saveChanges')"
           >
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
             </svg>
           </button>
-          <button 
+          <button
             class="action-btn danger"
             @click="cancelEditing"
-            title="Cancel"
+            :title="t('multiagentContextpanel.cancel')"
           >
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
@@ -52,7 +52,7 @@
           :class="{ active: activeTab === tab.id }"
           @click="activeTab = tab.id"
         >
-          {{ tab.label }}
+          {{ t(tab.label) }}
         </button>
       </div>
 
@@ -62,14 +62,14 @@
         <div v-if="activeTab === 'summary'" class="tab-panel">
           <div v-if="!isEditing" class="context-display">
             <p v-if="context.summary" class="context-text">{{ context.summary }}</p>
-            <p v-else class="context-empty">No summary set</p>
+            <p v-else class="context-empty">{{ t('multiagentContextpanel.noSummarySet') }}</p>
           </div>
-          <textarea 
+          <textarea
             v-else
             v-model="editForm.summary"
             class="context-editor"
             rows="12"
-            placeholder="Enter project summary..."
+            :placeholder="t('multiagentContextpanel.enterProjectSummary')"
           />
         </div>
 
@@ -77,14 +77,14 @@
         <div v-else-if="activeTab === 'architecture'" class="tab-panel">
           <div v-if="!isEditing" class="context-display">
             <pre v-if="context.architecture" class="context-pre">{{ context.architecture }}</pre>
-            <p v-else class="context-empty">No architecture defined</p>
+            <p v-else class="context-empty">{{ t('multiagentContextpanel.noArchitectureDefined') }}</p>
           </div>
-          <textarea 
+          <textarea
             v-else
             v-model="editForm.architecture"
             class="context-editor"
             rows="12"
-            placeholder="Describe the system architecture..."
+            :placeholder="t('multiagentContextpanel.describeArchitecture')"
           />
         </div>
 
@@ -92,14 +92,14 @@
         <div v-else-if="activeTab === 'conventions'" class="tab-panel">
           <div v-if="!isEditing" class="context-display">
             <pre v-if="context.conventions" class="context-pre">{{ context.conventions }}</pre>
-            <p v-else class="context-empty">No conventions defined</p>
+            <p v-else class="context-empty">{{ t('multiagentContextpanel.noConventionsDefined') }}</p>
           </div>
-          <textarea 
+          <textarea
             v-else
             v-model="editForm.conventions"
             class="context-editor"
             rows="12"
-            placeholder="Define coding conventions..."
+            :placeholder="t('multiagentContextpanel.defineConventions')"
           />
         </div>
 
@@ -107,14 +107,14 @@
         <div v-else-if="activeTab === 'current_focus'" class="tab-panel">
           <div v-if="!isEditing" class="context-display">
             <p v-if="context.current_focus" class="context-text">{{ context.current_focus }}</p>
-            <p v-else class="context-empty">No current focus set</p>
+            <p v-else class="context-empty">{{ t('multiagentContextpanel.noCurrentFocusSet') }}</p>
           </div>
-          <textarea 
+          <textarea
             v-else
             v-model="editForm.current_focus"
             class="context-editor"
             rows="12"
-            placeholder="What is the team currently working on?..."
+            :placeholder="t('multiagentContextpanel.whatIsTeamWorkingOn')"
           />
         </div>
       </div>
@@ -123,7 +123,7 @@
     <!-- Token Usage Footer -->
     <div class="panel-footer">
       <div class="token-usage">
-        <span class="token-label">Context Usage</span>
+        <span class="token-label">{{ t('multiagentContextpanel.contextUsage') }}</span>
         <div class="token-bar">
           <div 
             class="token-progress" 
@@ -134,7 +134,7 @@
         <span class="token-value">{{ Math.round(context.token_usage_percent) }}%</span>
       </div>
       <span class="token-detail">
-        {{ context.total_tokens?.toLocaleString() }} / {{ context.max_tokens?.toLocaleString() }} tokens
+        {{ context.total_tokens?.toLocaleString() }} / {{ context.max_tokens?.toLocaleString() }} {{ t('multiagentContextpanel.tokens') }}
       </span>
     </div>
   </div>
@@ -142,7 +142,10 @@
 
 <script setup lang="ts">
 import { ref, reactive, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { ProjectContext, UpdateContextForm } from '@/types';
+
+const { t } = useI18n();
 
 interface Props {
   context: ProjectContext;
@@ -158,10 +161,10 @@ const emit = defineEmits<{
 }>();
 
 const tabs = [
-  { id: 'summary', label: 'Summary' },
-  { id: 'architecture', label: 'Architecture' },
-  { id: 'conventions', label: 'Conventions' },
-  { id: 'current_focus', label: 'Current Focus' },
+  { id: 'summary', label: 'multiagentContextpanel.summary' },
+  { id: 'architecture', label: 'multiagentContextpanel.architecture' },
+  { id: 'conventions', label: 'multiagentContextpanel.conventions' },
+  { id: 'current_focus', label: 'multiagentContextpanel.currentFocus' },
 ] as const;
 
 type TabId = typeof tabs[number]['id'];

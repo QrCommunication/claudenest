@@ -10,7 +10,7 @@
                 <path d="M6 8l4 4-4 4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M12 16h6" stroke-width="2" stroke-linecap="round"/>
               </svg>
-              New Session
+              {{ t('terminalNewsessionmodal.newSession') }}
             </h2>
             <button class="close-btn" @click="handleClose">
               <svg class="icon" viewBox="0 0 20 20" fill="currentColor">
@@ -23,7 +23,7 @@
             <!-- Machine Selection -->
             <div class="form-group">
               <label class="form-label">
-                Machine
+                {{ t('terminalNewsessionmodal.machine') }}
                 <span class="required">*</span>
               </label>
               <select 
@@ -32,14 +32,14 @@
                 :class="{ 'is-invalid': errors.machineId }"
                 required
               >
-                <option value="" disabled>Select a machine</option>
+                <option value="" disabled>{{ t('terminalNewsessionmodal.selectAMachine') }}</option>
                 <option 
                   v-for="machine in machines" 
                   :key="machine.id" 
                   :value="machine.id"
                   :disabled="machine.status !== 'online'"
                 >
-                  {{ machine.name }} {{ machine.status !== 'online' ? '(Offline)' : '' }}
+                  {{ machine.name }} {{ machine.status !== 'online' ? t('terminalNewsessionmodal.offline') : '' }}
                 </option>
               </select>
               <span v-if="errors.machineId" class="error-text">{{ errors.machineId }}</span>
@@ -47,7 +47,7 @@
             
             <!-- Project Path -->
             <div class="form-group">
-              <label class="form-label">Project Path</label>
+              <label class="form-label">{{ t('terminalNewsessionmodal.projectPath') }}</label>
               <div class="input-wrapper">
                 <svg class="input-icon" viewBox="0 0 20 20" fill="currentColor">
                   <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
@@ -59,13 +59,13 @@
                   placeholder="/path/to/project"
                 />
               </div>
-              <span class="help-text">Leave empty to use default working directory</span>
+              <span class="help-text">{{ t('terminalNewsessionmodal.leaveEmptyDefaultDir') }}</span>
             </div>
             
             <!-- Mode Selection -->
             <div class="form-group">
               <label class="form-label">
-                Mode
+                {{ t('terminalNewsessionmodal.mode') }}
                 <span class="required">*</span>
               </label>
               <div class="mode-options">
@@ -92,22 +92,22 @@
             
             <!-- Initial Prompt -->
             <div class="form-group">
-              <label class="form-label">Initial Prompt</label>
+              <label class="form-label">{{ t('terminalNewsessionmodal.initialPrompt') }}</label>
               <textarea
                 v-model="form.initialPrompt"
                 class="form-textarea"
                 rows="3"
-                placeholder="Enter initial prompt or instructions (optional)..."
+                :placeholder="t('terminalNewsessionmodal.initialPromptPlaceholder')"
               ></textarea>
-              <span class="help-text">Optional prompt to send when the session starts</span>
+              <span class="help-text">{{ t('terminalNewsessionmodal.initialPromptHelp') }}</span>
             </div>
             
             <!-- Terminal Size -->
             <div class="form-group">
-              <label class="form-label">Terminal Size</label>
+              <label class="form-label">{{ t('terminalNewsessionmodal.terminalSize') }}</label>
               <div class="size-inputs">
                 <div class="size-input-group">
-                  <label class="size-label">Columns</label>
+                  <label class="size-label">{{ t('terminalNewsessionmodal.columns') }}</label>
                   <input
                     v-model.number="form.ptySize.cols"
                     type="number"
@@ -118,7 +118,7 @@
                 </div>
                 <span class="size-separator">×</span>
                 <div class="size-input-group">
-                  <label class="size-label">Rows</label>
+                  <label class="size-label">{{ t('terminalNewsessionmodal.rows') }}</label>
                   <input
                     v-model.number="form.ptySize.rows"
                     type="number"
@@ -133,7 +133,7 @@
           
           <div class="modal-footer">
             <button class="btn btn-secondary" @click="handleClose">
-              Cancel
+              {{ t('terminalNewsessionmodal.cancel') }}
             </button>
             <button 
               class="btn btn-primary" 
@@ -141,7 +141,7 @@
               @click="handleSubmit"
             >
               <span v-if="isSubmitting" class="spinner"></span>
-              <span v-else>Create Session</span>
+              <span v-else>{{ t('terminalNewsessionmodal.createSession') }}</span>
             </button>
           </div>
         </div>
@@ -152,7 +152,10 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { SessionMode, Machine } from '@/types';
+
+const { t } = useI18n();
 
 // ============================================================================
 // Props & Emits
@@ -204,26 +207,26 @@ const isSubmitting = ref(false);
 // Mode Options
 // ============================================================================
 
-const modes = [
+const modes = computed(() => [
   {
     value: 'interactive' as SessionMode,
-    label: 'Interactive',
+    label: t('terminalNewsessionmodal.modeInteractive'),
     icon: '⌨️',
-    description: 'Full terminal with user input',
+    description: t('terminalNewsessionmodal.modeInteractiveDesc'),
   },
   {
     value: 'headless' as SessionMode,
-    label: 'Headless',
+    label: t('terminalNewsessionmodal.modeHeadless'),
     icon: '⚙️',
-    description: 'Background session, no input needed',
+    description: t('terminalNewsessionmodal.modeHeadlessDesc'),
   },
   {
     value: 'oneshot' as SessionMode,
-    label: 'One-shot',
+    label: t('terminalNewsessionmodal.modeOneshot'),
     icon: '⚡',
-    description: 'Single command execution',
+    description: t('terminalNewsessionmodal.modeOneshotDesc'),
   },
-];
+]);
 
 // ============================================================================
 // Computed

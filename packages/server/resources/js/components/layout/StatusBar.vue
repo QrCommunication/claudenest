@@ -3,32 +3,32 @@
     <!-- Left Section -->
     <div class="status-section left">
       <!-- Credential Status -->
-      <div class="status-item" title="Active Credential">
+      <div class="status-item" :title="t('layoutStatusbar.activeCredential')">
         <KeyIcon class="status-icon" />
-        <span class="status-text">{{ activeCredentialName || 'No credential' }}</span>
+        <span class="status-text">{{ activeCredentialName || t('layoutStatusbar.noCredential') }}</span>
       </div>
 
       <!-- Machine Status -->
-      <div class="status-item" title="Connected Machine">
+      <div class="status-item" :title="t('layoutStatusbar.connectedMachine')">
         <ServerIcon class="status-icon" />
-        <span class="status-text">{{ connectedMachine || 'No machine' }}</span>
+        <span class="status-text">{{ connectedMachine || t('layoutStatusbar.noMachine') }}</span>
         <span
           :class="['status-dot', machineStatus]"
-          :title="machineStatus === 'online' ? 'Online' : 'Offline'"
+          :title="machineStatus === 'online' ? t('layoutStatusbar.online') : t('layoutStatusbar.offline')"
         />
       </div>
 
       <!-- Session Count -->
-      <div class="status-item" title="Active Sessions">
+      <div class="status-item" :title="t('layoutStatusbar.activeSessions')">
         <CommandLineIcon class="status-icon" />
-        <span class="status-text">{{ sessionCount }} session{{ sessionCount !== 1 ? 's' : '' }}</span>
+        <span class="status-text">{{ sessionCount }} {{ sessionCount !== 1 ? t('layoutStatusbar.sessions') : t('layoutStatusbar.session') }}</span>
       </div>
     </div>
 
     <!-- Right Section -->
     <div class="status-section right">
       <!-- Language Toggle -->
-      <button class="status-btn" @click="toggleLanguage" title="Change Language">
+      <button class="status-btn" @click="toggleLanguage" :title="t('layoutStatusbar.changeLanguage')">
         <span class="status-text">{{ currentLanguage }}</span>
       </button>
 
@@ -38,7 +38,7 @@
       </button>
 
       <!-- Settings Link -->
-      <button class="status-btn" @click="navigateToSettings" title="Settings">
+      <button class="status-btn" @click="navigateToSettings" :title="t('layoutStatusbar.settings')">
         <Cog6ToothIcon class="status-icon" />
       </button>
     </div>
@@ -65,7 +65,7 @@ import {
 
 const router = useRouter();
 const { theme, toggleTheme } = useTheme();
-const { locale } = useI18n();
+const { locale, t } = useI18n();
 const machinesStore = useMachinesStore();
 const credentialsStore = useCredentialsStore();
 
@@ -94,9 +94,9 @@ const themeIcon = computed(() => {
 });
 
 const themeTooltip = computed(() => {
-  if (theme.value === 'dark') return 'Dark Mode';
-  if (theme.value === 'light') return 'Light Mode';
-  return 'System Theme';
+  if (theme.value === 'dark') return t('layoutStatusbar.darkMode');
+  if (theme.value === 'light') return t('layoutStatusbar.lightMode');
+  return t('layoutStatusbar.systemTheme');
 });
 
 const handleToggleTheme = () => {

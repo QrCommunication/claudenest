@@ -2,7 +2,7 @@
   <div class="modal-overlay" @click.self="$emit('close')">
     <div class="modal-card">
       <div class="modal-header">
-        <h2>Capture OAuth Tokens</h2>
+        <h2>{{ t('credentialsCaptureoauthmodal.captureOauthTokens') }}</h2>
         <button class="close-btn" @click="$emit('close')">
           <svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
             <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
@@ -13,7 +13,7 @@
       <div class="modal-body">
         <!-- Mode Toggle -->
         <div class="form-group">
-          <label class="form-label">Input Mode</label>
+          <label class="form-label">{{ t('credentialsCaptureoauthmodal.inputMode') }}</label>
           <div class="tabs">
             <button
               type="button"
@@ -23,7 +23,7 @@
               <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
                 <path d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
               </svg>
-              Paste Tokens
+              {{ t('credentialsCaptureoauthmodal.pasteTokens') }}
             </button>
             <button
               type="button"
@@ -33,7 +33,7 @@
               <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
                 <path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/>
               </svg>
-              Paste JSON
+              {{ t('credentialsCaptureoauthmodal.pasteJson') }}
             </button>
           </div>
         </div>
@@ -42,7 +42,7 @@
         <form v-if="mode === 'tokens'" @submit.prevent="handleSubmitTokens">
           <div class="form-group">
             <label for="access_token" class="form-label">
-              Access Token
+              {{ t('credentialsCaptureoauthmodal.accessToken') }}
               <span class="text-red-400">*</span>
             </label>
             <input
@@ -53,11 +53,11 @@
               placeholder="oat01-..."
               required
             />
-            <p class="form-hint">From claudeAiOauth.accessToken in ~/.claude/.credentials.json</p>
+            <p class="form-hint">{{ t('credentialsCaptureoauthmodal.accessTokenHint') }}</p>
           </div>
 
           <div class="form-group">
-            <label for="refresh_token" class="form-label">Refresh Token</label>
+            <label for="refresh_token" class="form-label">{{ t('credentialsCaptureoauthmodal.refreshToken') }}</label>
             <input
               id="refresh_token"
               v-model="tokens.refresh_token"
@@ -65,14 +65,14 @@
               class="form-input font-mono text-sm"
               placeholder="ort01-..."
             />
-            <p class="form-hint">From claudeAiOauth.refreshToken (recommended for auto-refresh)</p>
+            <p class="form-hint">{{ t('credentialsCaptureoauthmodal.refreshTokenHint') }}</p>
           </div>
 
           <div class="modal-footer">
-            <button type="button" class="btn-secondary" @click="$emit('close')" :disabled="isSubmitting">Cancel</button>
+            <button type="button" class="btn-secondary" @click="$emit('close')" :disabled="isSubmitting">{{ t('credentialsCaptureoauthmodal.cancel') }}</button>
             <button type="submit" class="btn-primary" :disabled="isSubmitting || !tokens.access_token.trim()">
               <div v-if="isSubmitting" class="spinner"></div>
-              <span v-else>Capture Tokens</span>
+              <span v-else>{{ t('credentialsCaptureoauthmodal.captureTokens') }}</span>
             </button>
           </div>
         </form>
@@ -84,14 +84,13 @@
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
             </svg>
             <p class="info-text">
-              Copy the entire content of <code>~/.claude/.credentials.json</code> from the machine
-              where Claude Code is authenticated, then paste it below.
+              {{ t('credentialsCaptureoauthmodal.infoTextBefore') }} <code>~/.claude/.credentials.json</code> {{ t('credentialsCaptureoauthmodal.infoTextAfter') }}
             </p>
           </div>
 
           <div class="form-group">
             <label for="credentials_json" class="form-label">
-              Credentials JSON
+              {{ t('credentialsCaptureoauthmodal.credentialsJson') }}
               <span class="text-red-400">*</span>
             </label>
             <textarea
@@ -102,14 +101,14 @@
               placeholder='{ "claudeAiOauth": { "accessToken": "oat01-...", ... } }'
               required
             ></textarea>
-            <p class="form-hint">The full JSON content of your credentials file</p>
+            <p class="form-hint">{{ t('credentialsCaptureoauthmodal.credentialsJsonHint') }}</p>
           </div>
 
           <div class="modal-footer">
-            <button type="button" class="btn-secondary" @click="$emit('close')" :disabled="isSubmitting">Cancel</button>
+            <button type="button" class="btn-secondary" @click="$emit('close')" :disabled="isSubmitting">{{ t('credentialsCaptureoauthmodal.cancel') }}</button>
             <button type="submit" class="btn-primary" :disabled="isSubmitting || !jsonContent.trim()">
               <div v-if="isSubmitting" class="spinner"></div>
-              <span v-else>Capture from JSON</span>
+              <span v-else>{{ t('credentialsCaptureoauthmodal.captureFromJson') }}</span>
             </button>
           </div>
         </form>
@@ -120,6 +119,7 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useCredentialsStore } from '@/stores/credentials';
 import { useToast } from '@/composables/useToast';
 import { getErrorMessage } from '@/utils/api';
@@ -134,6 +134,7 @@ const emit = defineEmits<{
   (e: 'captured'): void;
 }>();
 
+const { t } = useI18n();
 const store = useCredentialsStore();
 const toast = useToast();
 
@@ -152,10 +153,10 @@ async function handleSubmitTokens(): Promise<void> {
       access_token: tokens.access_token,
       refresh_token: tokens.refresh_token || undefined,
     });
-    toast.success('OAuth tokens captured successfully');
+    toast.success(t('credentialsCaptureoauthmodal.toastTokensCaptured'));
     emit('captured');
   } catch (error: unknown) {
-    toast.error('Capture failed', getErrorMessage(error));
+    toast.error(t('credentialsCaptureoauthmodal.toastCaptureFailed'), getErrorMessage(error));
   } finally {
     isSubmitting.value = false;
   }
@@ -167,20 +168,20 @@ async function handleSubmitJson(): Promise<void> {
     // Validate JSON locally first
     const parsed = JSON.parse(jsonContent.value);
     if (!parsed.claudeAiOauth?.accessToken) {
-      toast.error('Invalid JSON', 'Missing claudeAiOauth.accessToken field');
+      toast.error(t('credentialsCaptureoauthmodal.toastInvalidJson'), t('credentialsCaptureoauthmodal.toastMissingAccessToken'));
       return;
     }
 
     await store.captureOAuth(props.credentialId, {
       credentials_json: jsonContent.value,
     });
-    toast.success('OAuth tokens captured from JSON');
+    toast.success(t('credentialsCaptureoauthmodal.toastTokensCapturedFromJson'));
     emit('captured');
   } catch (error: unknown) {
     if (error instanceof SyntaxError) {
-      toast.error('Invalid JSON format', 'Please paste valid JSON content');
+      toast.error(t('credentialsCaptureoauthmodal.toastInvalidJsonFormat'), t('credentialsCaptureoauthmodal.toastPasteValidJson'));
     } else {
-      toast.error('Capture failed', getErrorMessage(error));
+      toast.error(t('credentialsCaptureoauthmodal.toastCaptureFailed'), getErrorMessage(error));
     }
   } finally {
     isSubmitting.value = false;

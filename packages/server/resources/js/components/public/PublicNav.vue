@@ -9,7 +9,7 @@
         <Logo :to="'/'" variant="full" size="sm" />
       </div>
 
-      <nav class="nav-center" aria-label="Primary">
+      <nav class="nav-center" :aria-label="t('publicPublicnav.primary')">
         <router-link
           v-for="item in navItems"
           :key="item.to"
@@ -35,7 +35,7 @@
           type="button"
           class="nav-burger md:hidden"
           :aria-expanded="mobileOpen"
-          aria-label="Toggle menu"
+          :aria-label="t('publicPublicnav.toggleMenu')"
           @click="mobileOpen = !mobileOpen"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round">

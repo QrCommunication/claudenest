@@ -14,7 +14,7 @@
             <span class="metric-value">{{ sprint.completed_story_points }}</span>
             <span class="metric-separator">/</span>
             <span class="metric-total">{{ sprint.total_story_points }}</span>
-            <span class="metric-label">pts</span>
+            <span class="metric-label">{{ t('multiagentSprintboard.pts') }}</span>
           </div>
         </div>
 
@@ -24,7 +24,7 @@
             class="metric-value"
             :class="{ 'overdue': sprint.is_overdue }"
           >{{ sprint.remaining_days ?? '—' }}</span>
-          <span class="metric-label">days left</span>
+          <span class="metric-label">{{ t('multiagentSprintboard.daysLeft') }}</span>
         </div>
 
         <!-- Progress ring -->
@@ -57,7 +57,7 @@
           class="complete-sprint-btn"
           @click="$emit('complete-sprint')"
         >
-          Complete sprint
+          {{ t('multiagentSprintboard.completeSprint') }}
         </button>
       </div>
     </div>
@@ -70,9 +70,9 @@
         <line x1="8" y1="2" x2="8" y2="6" />
         <line x1="3" y1="10" x2="21" y2="10" />
       </svg>
-      <p class="no-sprint-text">No active sprint</p>
+      <p class="no-sprint-text">{{ t('multiagentSprintboard.noActiveSprint') }}</p>
       <button class="start-sprint-btn" @click="$emit('create-sprint')">
-        Start a new sprint
+        {{ t('multiagentSprintboard.startNewSprint') }}
       </button>
     </div>
 
@@ -84,7 +84,10 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import type { Sprint } from '@/types';
+
+const { t } = useI18n();
 
 interface Props {
   sprint: Sprint | null;

@@ -10,14 +10,14 @@
         <svg viewBox="0 0 24 24" fill="currentColor">
           <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
         </svg>
-        Summarize
+        {{ t('projectsContext.summarize') }}
       </Button>
     </div>
 
     <!-- Search Results -->
     <div v-if="contextStore.queryResults.length > 0" class="search-results">
       <div class="results-header">
-        <h3>Search Results</h3>
+        <h3>{{ t('projectsContext.searchResults') }}</h3>
         <button class="close-btn" @click="contextStore.clearQueryResults">
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
@@ -33,12 +33,12 @@
           <div class="result-header">
             <span class="result-type" :class="result.type">{{ result.type }}</span>
             <span class="result-score" v-if="result.similarity">
-              {{ Math.round(result.similarity * 100) }}% match
+              {{ t('projectsContext.percentMatch', { percent: Math.round(result.similarity * 100) }) }}
             </span>
           </div>
           <p class="result-content">{{ result.content }}</p>
           <div class="result-meta">
-            <span v-if="result.files?.length">{{ result.files.length }} files</span>
+            <span v-if="result.files?.length">{{ t('projectsContext.filesCount', { count: result.files.length }) }}</span>
             <span>{{ formatRelativeTime(result.created_at) }}</span>
           </div>
         </div>
@@ -48,95 +48,95 @@
     <!-- Context Editor -->
     <div class="context-layout">
       <div class="context-main">
-        <Card title="Project Context" class="context-card">
+        <Card :title="t('projectsContext.projectContext')" class="context-card">
           <div class="context-sections">
             <!-- Summary -->
             <div class="context-section">
               <div class="section-header">
-                <h4>Summary</h4>
-                <button 
+                <h4>{{ t('projectsContext.summary') }}</h4>
+                <button
                   class="edit-btn"
                   @click="toggleEdit('summary')"
                 >
-                  {{ editing.summary ? 'Done' : 'Edit' }}
+                  {{ editing.summary ? t('projectsContext.done') : t('projectsContext.edit') }}
                 </button>
               </div>
               <ContextEditor
                 v-model="contextForm.summary"
                 :editable="editing.summary"
-                placeholder="Project summary..."
+                :placeholder="t('projectsContext.summaryPlaceholder')"
               />
             </div>
 
             <!-- Architecture -->
             <div class="context-section">
               <div class="section-header">
-                <h4>Architecture</h4>
-                <button 
+                <h4>{{ t('projectsContext.architecture') }}</h4>
+                <button
                   class="edit-btn"
                   @click="toggleEdit('architecture')"
                 >
-                  {{ editing.architecture ? 'Done' : 'Edit' }}
+                  {{ editing.architecture ? t('projectsContext.done') : t('projectsContext.edit') }}
                 </button>
               </div>
               <ContextEditor
                 v-model="contextForm.architecture"
                 :editable="editing.architecture"
-                placeholder="System architecture..."
+                :placeholder="t('projectsContext.architecturePlaceholder')"
               />
             </div>
 
             <!-- Conventions -->
             <div class="context-section">
               <div class="section-header">
-                <h4>Conventions</h4>
-                <button 
+                <h4>{{ t('projectsContext.conventions') }}</h4>
+                <button
                   class="edit-btn"
                   @click="toggleEdit('conventions')"
                 >
-                  {{ editing.conventions ? 'Done' : 'Edit' }}
+                  {{ editing.conventions ? t('projectsContext.done') : t('projectsContext.edit') }}
                 </button>
               </div>
               <ContextEditor
                 v-model="contextForm.conventions"
                 :editable="editing.conventions"
-                placeholder="Coding conventions..."
+                :placeholder="t('projectsContext.conventionsPlaceholder')"
               />
             </div>
 
             <!-- Current Focus -->
             <div class="context-section">
               <div class="section-header">
-                <h4>Current Focus</h4>
-                <button 
+                <h4>{{ t('projectsContext.currentFocus') }}</h4>
+                <button
                   class="edit-btn"
                   @click="toggleEdit('current_focus')"
                 >
-                  {{ editing.current_focus ? 'Done' : 'Edit' }}
+                  {{ editing.current_focus ? t('projectsContext.done') : t('projectsContext.edit') }}
                 </button>
               </div>
               <ContextEditor
                 v-model="contextForm.current_focus"
                 :editable="editing.current_focus"
-                placeholder="What the team is currently working on..."
+                :placeholder="t('projectsContext.currentFocusPlaceholder')"
               />
             </div>
 
             <!-- Recent Changes -->
             <div class="context-section">
               <div class="section-header">
-                <h4>Recent Changes</h4>
-                <button 
+                <h4>{{ t('projectsContext.recentChanges') }}</h4>
+                <button
                   class="edit-btn"
                   @click="toggleEdit('recent_changes')"
                 >
-                  {{ editing.recent_changes ? 'Done' : 'Edit' }}
+                  {{ editing.recent_changes ? t('projectsContext.done') : t('projectsContext.edit') }}
                 </button>
               </div>
               <ContextEditor
                 v-model="contextForm.recent_changes"
                 :editable="editing.recent_changes"
-                placeholder="Recent updates and changes..."
+                :placeholder="t('projectsContext.recentChangesPlaceholder')"
               />
             </div>
           </div>
@@ -147,7 +147,7 @@
               :loading="contextStore.isLoading"
               @click="saveContext"
             >
-              Save Changes
+              {{ t('projectsContext.saveChanges') }}
             </Button>
           </div>
         </Card>
@@ -155,7 +155,7 @@
 
       <div class="context-sidebar">
         <!-- Token Usage -->
-        <Card title="Token Usage" class="token-card">
+        <Card :title="t('projectsContext.tokenUsage')" class="token-card">
           <div class="token-display">
             <div class="token-circle">
               <svg viewBox="0 0 36 36">
@@ -174,23 +174,23 @@
             <div class="token-stats">
               <div class="token-stat">
                 <span class="token-value">{{ contextStore.projectContext?.total_tokens?.toLocaleString() ?? 0 }}</span>
-                <span class="token-label">Used</span>
+                <span class="token-label">{{ t('projectsContext.used') }}</span>
               </div>
               <div class="token-stat">
                 <span class="token-value">{{ contextStore.projectContext?.max_tokens?.toLocaleString() ?? 0 }}</span>
-                <span class="token-label">Max</span>
+                <span class="token-label">{{ t('projectsContext.max') }}</span>
               </div>
             </div>
           </div>
         </Card>
 
         <!-- Recent Chunks -->
-        <Card title="Recent Context Chunks" class="chunks-card">
+        <Card :title="t('projectsContext.recentContextChunks')" class="chunks-card">
           <div v-if="contextStore.isLoading" class="loading-small">
             <div class="spinner-small" />
           </div>
           <div v-else-if="contextStore.contextChunks.length === 0" class="empty-chunks">
-            No context chunks yet
+            {{ t('projectsContext.noChunks') }}
           </div>
           <div v-else class="chunks-list">
             <div 
@@ -204,7 +204,7 @@
               </div>
               <p class="chunk-preview">{{ truncate(chunk.content, 100) }}</p>
               <div class="chunk-meta">
-                <span v-if="chunk.files?.length">{{ chunk.files.length }} files</span>
+                <span v-if="chunk.files?.length">{{ t('projectsContext.filesCount', { count: chunk.files.length }) }}</span>
                 <span>{{ formatRelativeTime(chunk.created_at) }}</span>
               </div>
             </div>
@@ -217,6 +217,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 import { useContextStore } from '@/stores/context';
 import { useToast } from '@/composables/useToast';
@@ -229,6 +230,7 @@ const props = defineProps<{
   projectId?: string;
 }>();
 
+const { t } = useI18n();
 const route = useRoute();
 const contextStore = useContextStore();
 const toast = useToast();
@@ -284,7 +286,7 @@ async function loadContext() {
       contextStore.fetchChunks(projectId.value, { limit: 10 }),
     ]);
   } catch (err) {
-    toast.error('Failed to load context');
+    toast.error(t('projectsContext.loadFailed'));
   }
 }
 
@@ -303,9 +305,9 @@ async function saveContext() {
       editing.value[key as keyof typeof editing.value] = false;
     });
     
-    toast.success('Context updated successfully');
+    toast.success(t('projectsContext.updateSuccess'));
   } catch (err) {
-    toast.error('Failed to update context');
+    toast.error(t('projectsContext.updateFailed'));
   }
 }
 
@@ -314,9 +316,9 @@ async function summarizeContext() {
   
   try {
     await contextStore.summarizeContext(projectId.value);
-    toast.success('Context summarized successfully');
+    toast.success(t('projectsContext.summarizeSuccess'));
   } catch (err) {
-    toast.error('Failed to summarize context');
+    toast.error(t('projectsContext.summarizeFailed'));
   }
 }
 
@@ -338,10 +340,10 @@ function formatRelativeTime(date: string): string {
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
 
-  if (days > 0) return `${days}d ago`;
-  if (hours > 0) return `${hours}h ago`;
-  if (minutes > 0) return `${minutes}m ago`;
-  return 'just now';
+  if (days > 0) return t('projectsContext.daysAgo', { count: days });
+  if (hours > 0) return t('projectsContext.hoursAgo', { count: hours });
+  if (minutes > 0) return t('projectsContext.minutesAgo', { count: minutes });
+  return t('projectsContext.justNow');
 }
 </script>
 

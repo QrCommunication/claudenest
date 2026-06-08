@@ -3,14 +3,14 @@
     <!-- Header -->
     <div class="page-header">
       <div class="header-content">
-        <h1>Sessions</h1>
-        <p class="subtitle">Manage your Claude sessions across machines</p>
+        <h1>{{ t('sessionsIndex.title') }}</h1>
+        <p class="subtitle">{{ t('sessionsIndex.subtitle') }}</p>
       </div>
       <router-link to="/sessions/new" class="btn-add">
         <svg viewBox="0 0 24 24" fill="currentColor">
           <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
         </svg>
-        New Session
+        {{ t('sessionsIndex.newSession') }}
       </router-link>
     </div>
 
@@ -24,7 +24,7 @@
         </div>
         <div class="stat-info">
           <span class="stat-value">{{ sessions.length }}</span>
-          <span class="stat-label">Total Sessions</span>
+          <span class="stat-label">{{ t('sessionsIndex.totalSessions') }}</span>
         </div>
       </div>
       <div class="stat-card">
@@ -35,7 +35,7 @@
         </div>
         <div class="stat-info">
           <span class="stat-value">{{ runningSessions.length }}</span>
-          <span class="stat-label">Running</span>
+          <span class="stat-label">{{ t('sessionsIndex.running') }}</span>
         </div>
       </div>
       <div class="stat-card">
@@ -46,7 +46,7 @@
         </div>
         <div class="stat-info">
           <span class="stat-value">{{ completedSessions.length }}</span>
-          <span class="stat-label">Completed</span>
+          <span class="stat-label">{{ t('sessionsIndex.completed') }}</span>
         </div>
       </div>
       <div class="stat-card">
@@ -57,7 +57,7 @@
         </div>
         <div class="stat-info">
           <span class="stat-value">{{ errorSessions.length }}</span>
-          <span class="stat-label">Errors</span>
+          <span class="stat-label">{{ t('sessionsIndex.errors') }}</span>
         </div>
       </div>
     </div>
@@ -67,8 +67,8 @@
       <Select
         v-model="selectedMachineId"
         :options="machineOptions"
-        label="Machine"
-        placeholder="Select a machine to view sessions"
+        :label="t('sessionsIndex.machine')"
+        :placeholder="t('sessionsIndex.selectMachinePlaceholder')"
         size="md"
         @change="handleMachineChange"
       />
@@ -76,7 +76,7 @@
         v-if="selectedMachineId"
         class="btn-refresh"
         :disabled="isLoading"
-        title="Refresh sessions"
+        :title="t('sessionsIndex.refreshSessions')"
         @click="refreshSessions"
       >
         <svg
@@ -98,7 +98,7 @@
     <!-- Loading State -->
     <div v-if="isLoading && sessions.length === 0" class="loading-state">
       <div class="spinner"></div>
-      <p>Loading sessions...</p>
+      <p>{{ t('sessionsIndex.loadingSessions') }}</p>
     </div>
 
     <!-- Error State -->
@@ -107,7 +107,7 @@
         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
       </svg>
       <p>{{ error }}</p>
-      <button class="btn-secondary" @click="refreshSessions">Try Again</button>
+      <button class="btn-secondary" @click="refreshSessions">{{ t('sessionsIndex.tryAgain') }}</button>
     </div>
 
     <!-- No Machine Selected -->
@@ -117,8 +117,8 @@
           <path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/>
         </svg>
       </div>
-      <h3>Select a machine</h3>
-      <p>Choose a machine from the dropdown above to view its sessions.</p>
+      <h3>{{ t('sessionsIndex.selectMachineTitle') }}</h3>
+      <p>{{ t('sessionsIndex.selectMachineHint') }}</p>
       <router-link
         v-if="machines.length === 0"
         to="/machines"
@@ -127,7 +127,7 @@
         <svg viewBox="0 0 24 24" fill="currentColor">
           <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
         </svg>
-        Add a Machine First
+        {{ t('sessionsIndex.addMachineFirst') }}
       </router-link>
     </div>
 
@@ -138,13 +138,13 @@
           <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
         </svg>
       </div>
-      <h3>No sessions yet</h3>
-      <p>This machine has no sessions. Start a new Claude session to get going.</p>
+      <h3>{{ t('sessionsIndex.noSessionsTitle') }}</h3>
+      <p>{{ t('sessionsIndex.noSessionsHint') }}</p>
       <router-link to="/sessions/new" class="btn-primary-link">
         <svg viewBox="0 0 24 24" fill="currentColor">
           <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
         </svg>
-        Create First Session
+        {{ t('sessionsIndex.createFirstSession') }}
       </router-link>
     </div>
 
@@ -154,7 +154,7 @@
         :data="sessions"
         :columns="tableColumns"
         :is-loading="isLoading"
-        empty-text="No sessions found"
+        :empty-text="t('sessionsIndex.noSessionsFound')"
         row-key="id"
       >
         <template #row="{ row: rawRow }">
@@ -176,7 +176,7 @@
             >
               {{ truncatePath(asSession(rawRow).project_path ?? '') }}
             </span>
-            <span v-else class="text-skin-secondary">N/A</span>
+            <span v-else class="text-skin-secondary">{{ t('sessionsIndex.notAvailable') }}</span>
           </td>
           <td class="px-6 py-4 whitespace-nowrap">
             <Badge :variant="statusBadgeVariant(asSession(rawRow).status)" :dot="true" size="sm">
@@ -195,36 +195,36 @@
                 v-if="asSession(rawRow).is_running"
                 :to="`/sessions/${asSession(rawRow).id}`"
                 class="action-btn attach"
-                title="Attach to session"
+                :title="t('sessionsIndex.attachToSession')"
               >
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                 </svg>
-                Attach
+                {{ t('sessionsIndex.attach') }}
               </router-link>
               <button
                 v-if="asSession(rawRow).is_running"
                 class="action-btn terminate"
-                title="Terminate session"
+                :title="t('sessionsIndex.terminateSession')"
                 :disabled="terminatingId === asSession(rawRow).id"
                 @click="handleTerminate(asSession(rawRow).id)"
               >
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
-                {{ terminatingId === asSession(rawRow).id ? '...' : 'Stop' }}
+                {{ terminatingId === asSession(rawRow).id ? '...' : t('sessionsIndex.stop') }}
               </button>
               <router-link
                 v-if="!asSession(rawRow).is_running"
                 :to="`/sessions/${asSession(rawRow).id}`"
                 class="action-btn view"
-                title="View session details"
+                :title="t('sessionsIndex.viewSessionDetails')"
               >
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                 </svg>
-                View
+                {{ t('sessionsIndex.view') }}
               </router-link>
             </div>
           </td>
@@ -241,16 +241,15 @@
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
             </svg>
           </div>
-          <h3>Terminate Session</h3>
+          <h3>{{ t('sessionsIndex.terminateModalTitle') }}</h3>
         </div>
         <p class="confirm-text">
-          Are you sure you want to terminate session
-          <strong class="text-skin-primary">{{ truncateId(sessionToTerminate ?? '') }}</strong>?
-          This will end the running Claude instance.
+          {{ t('sessionsIndex.terminateConfirmBefore') }}
+          <strong class="text-skin-primary">{{ truncateId(sessionToTerminate ?? '') }}</strong>{{ t('sessionsIndex.terminateConfirmAfter') }}
         </p>
         <div class="confirm-actions">
           <button class="btn-cancel" @click="showTerminateModal = false">
-            Cancel
+            {{ t('sessionsIndex.cancel') }}
           </button>
           <button
             class="btn-danger"
@@ -258,7 +257,7 @@
             @click="confirmTerminate"
           >
             <span v-if="terminatingId" class="spinner-sm"></span>
-            {{ terminatingId ? 'Terminating...' : 'Terminate' }}
+            {{ terminatingId ? t('sessionsIndex.terminating') : t('sessionsIndex.terminate') }}
           </button>
         </div>
       </div>
@@ -268,12 +267,15 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { useSessionsStore } from '@/stores/sessions';
 import Table from '@/components/common/Table.vue';
 import Badge from '@/components/common/Badge.vue';
 import Select from '@/components/common/Select.vue';
 import type { Session, TableColumn, SessionStatus, SessionMode, SelectOption } from '@/types';
+
+const { t } = useI18n();
 
 const store = useSessionsStore();
 const {
@@ -310,15 +312,15 @@ const machineOptions = computed<SelectOption[]>(() =>
 );
 
 // Table columns definition
-const tableColumns: TableColumn[] = [
-  { key: 'id', label: 'Session ID', width: '180px' },
-  { key: 'mode', label: 'Mode', width: '120px' },
-  { key: 'project_path', label: 'Project Path' },
-  { key: 'status', label: 'Status', width: '140px' },
-  { key: 'formatted_duration', label: 'Duration', width: '110px' },
-  { key: 'created_at', label: 'Created', width: '140px', sortable: true },
-  { key: 'actions', label: 'Actions', width: '180px' },
-];
+const tableColumns = computed<TableColumn[]>(() => [
+  { key: 'id', label: t('sessionsIndex.colSessionId'), width: '180px' },
+  { key: 'mode', label: t('sessionsIndex.colMode'), width: '120px' },
+  { key: 'project_path', label: t('sessionsIndex.colProjectPath') },
+  { key: 'status', label: t('sessionsIndex.colStatus'), width: '140px' },
+  { key: 'formatted_duration', label: t('sessionsIndex.colDuration'), width: '110px' },
+  { key: 'created_at', label: t('sessionsIndex.colCreated'), width: '140px', sortable: true },
+  { key: 'actions', label: t('sessionsIndex.colActions'), width: '180px' },
+]);
 
 // -- Lifecycle --
 onMounted(async () => {
@@ -380,13 +382,13 @@ function truncatePath(path: string): string {
 
 function formatStatus(status: SessionStatus): string {
   const labels: Record<SessionStatus, string> = {
-    created: 'Created',
-    starting: 'Starting',
-    running: 'Running',
-    waiting_input: 'Waiting',
-    completed: 'Completed',
-    error: 'Error',
-    terminated: 'Terminated',
+    created: t('sessionsIndex.statusCreated'),
+    starting: t('sessionsIndex.statusStarting'),
+    running: t('sessionsIndex.statusRunning'),
+    waiting_input: t('sessionsIndex.statusWaiting'),
+    completed: t('sessionsIndex.statusCompleted'),
+    error: t('sessionsIndex.statusError'),
+    terminated: t('sessionsIndex.statusTerminated'),
   };
   return labels[status] ?? status;
 }
@@ -424,10 +426,10 @@ function formatRelativeTime(dateString: string): string {
   const diffHr = Math.floor(diffMin / 60);
   const diffDay = Math.floor(diffHr / 24);
 
-  if (diffSec < 60) return 'just now';
-  if (diffMin < 60) return `${diffMin}m ago`;
-  if (diffHr < 24) return `${diffHr}h ago`;
-  if (diffDay < 7) return `${diffDay}d ago`;
+  if (diffSec < 60) return t('sessionsIndex.justNow');
+  if (diffMin < 60) return t('sessionsIndex.minutesAgo', { count: diffMin });
+  if (diffHr < 24) return t('sessionsIndex.hoursAgo', { count: diffHr });
+  if (diffDay < 7) return t('sessionsIndex.daysAgo', { count: diffDay });
   return date.toLocaleDateString();
 }
 </script>

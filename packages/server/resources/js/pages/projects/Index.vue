@@ -3,8 +3,8 @@
     <div class="page-header">
       <div class="header-content">
         <div>
-          <h1>Projects</h1>
-          <p class="subtitle">Manage your shared multi-agent projects</p>
+          <h1>{{ t('projectsIndex.title') }}</h1>
+          <p class="subtitle">{{ t('projectsIndex.subtitle') }}</p>
         </div>
         <div class="header-actions">
           <select 
@@ -12,7 +12,7 @@
             class="machine-select"
             @change="onMachineChange"
           >
-            <option value="">All Machines</option>
+            <option value="">{{ t('projectsIndex.allMachines') }}</option>
             <option 
               v-for="machine in machinesStore.machines" 
               :key="machine.id" 
@@ -28,7 +28,7 @@
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
             </svg>
-            New Project
+            {{ t('projectsIndex.newProject') }}
           </Button>
         </div>
       </div>
@@ -37,7 +37,7 @@
     <!-- Loading State -->
     <div v-if="projectsStore.isLoading" class="loading-state">
       <div class="spinner" />
-      <p>Loading projects...</p>
+      <p>{{ t('projectsIndex.loadingProjects') }}</p>
     </div>
 
     <!-- Empty State -->
@@ -45,18 +45,18 @@
       <svg viewBox="0 0 24 24" fill="currentColor">
         <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
       </svg>
-      <h3>No projects found</h3>
+      <h3>{{ t('projectsIndex.noProjectsFound') }}</h3>
       <p v-if="selectedMachineId">
-        Get started by creating your first project for this machine.
+        {{ t('projectsIndex.emptyForMachine') }}
       </p>
       <p v-else>
-        Select a machine to view or create projects.
+        {{ t('projectsIndex.emptySelectMachine') }}
       </p>
       <Button
         variant="primary"
         @click="$router.push({ name: 'projects.new' })"
       >
-        Create Project
+        {{ t('projectsIndex.createProject') }}
       </Button>
     </div>
 
@@ -84,15 +84,15 @@
         <div class="project-stats">
           <div class="stat">
             <span class="stat-value">{{ project.active_instances_count }}</span>
-            <span class="stat-label">Active Instances</span>
+            <span class="stat-label">{{ t('projectsIndex.activeInstances') }}</span>
           </div>
           <div class="stat">
             <span class="stat-value">{{ project.pending_tasks_count }}</span>
-            <span class="stat-label">Pending Tasks</span>
+            <span class="stat-label">{{ t('projectsIndex.pendingTasks') }}</span>
           </div>
           <div class="stat">
             <span class="stat-value">{{ Math.round(project.token_usage_percent) }}%</span>
-            <span class="stat-label">Token Usage</span>
+            <span class="stat-label">{{ t('projectsIndex.tokenUsage') }}</span>
           </div>
         </div>
 
@@ -110,27 +110,27 @@
         </div>
 
         <div class="project-actions" @click.stop>
-          <button 
-            class="action-btn" 
-            title="View"
+          <button
+            class="action-btn"
+            :title="t('projectsIndex.actionView')"
             @click="goToProject(project.id)"
           >
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
             </svg>
           </button>
-          <button 
-            class="action-btn" 
-            title="Tasks"
+          <button
+            class="action-btn"
+            :title="t('projectsIndex.actionTasks')"
             @click="goToTasks(project.id)"
           >
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
             </svg>
           </button>
-          <button 
-            class="action-btn danger" 
-            title="Delete"
+          <button
+            class="action-btn danger"
+            :title="t('projectsIndex.actionDelete')"
             @click="confirmDelete(project)"
           >
             <svg viewBox="0 0 24 24" fill="currentColor">
@@ -142,27 +142,27 @@
     </div>
 
     <!-- Create Project Modal -->
-    <Modal v-model="showCreateModal" title="Create New Project">
+    <Modal v-model="showCreateModal" :title="t('projectsIndex.createModalTitle')">
       <form @submit.prevent="createProject" class="project-form">
         <div class="form-group">
-          <label>Project Name</label>
-          <input 
-            v-model="createForm.name" 
-            type="text" 
-            placeholder="My Awesome Project"
+          <label>{{ t('projectsIndex.fieldProjectName') }}</label>
+          <input
+            v-model="createForm.name"
+            type="text"
+            :placeholder="t('projectsIndex.placeholderProjectName')"
             required
           />
         </div>
         <div class="form-group">
           <div class="path-header">
-            <label>Project Path</label>
+            <label>{{ t('projectsIndex.fieldProjectPath') }}</label>
             <button
               v-if="isSelectedMachineOnline"
               type="button"
               class="toggle-input-btn"
               @click="useManualInput = !useManualInput"
             >
-              {{ useManualInput ? 'Browse files' : 'Manual input' }}
+              {{ useManualInput ? t('projectsIndex.toggleBrowseFiles') : t('projectsIndex.toggleManualInput') }}
             </button>
           </div>
 
@@ -170,7 +170,7 @@
             <input
               v-model="createForm.project_path"
               type="text"
-              placeholder="/path/to/project"
+              :placeholder="t('projectsIndex.placeholderProjectPath')"
               required
             />
           </div>
@@ -191,62 +191,62 @@
           </template>
         </div>
         <div class="form-group">
-          <label>Summary</label>
-          <textarea 
-            v-model="createForm.summary" 
+          <label>{{ t('projectsIndex.fieldSummary') }}</label>
+          <textarea
+            v-model="createForm.summary"
             rows="3"
-            placeholder="Brief description of the project"
+            :placeholder="t('projectsIndex.placeholderSummary')"
           />
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>Architecture</label>
-            <textarea 
-              v-model="createForm.architecture" 
+            <label>{{ t('projectsIndex.fieldArchitecture') }}</label>
+            <textarea
+              v-model="createForm.architecture"
               rows="3"
-              placeholder="System architecture notes"
+              :placeholder="t('projectsIndex.placeholderArchitecture')"
             />
           </div>
           <div class="form-group">
-            <label>Conventions</label>
-            <textarea 
-              v-model="createForm.conventions" 
+            <label>{{ t('projectsIndex.fieldConventions') }}</label>
+            <textarea
+              v-model="createForm.conventions"
               rows="3"
-              placeholder="Coding conventions"
+              :placeholder="t('projectsIndex.placeholderConventions')"
             />
           </div>
         </div>
         <div class="form-actions">
           <Button type="button" variant="secondary" @click="showCreateModal = false">
-            Cancel
+            {{ t('projectsIndex.cancel') }}
           </Button>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             variant="primary"
             :loading="projectsStore.isCreating"
           >
-            Create Project
+            {{ t('projectsIndex.createProject') }}
           </Button>
         </div>
       </form>
     </Modal>
 
     <!-- Delete Confirmation Modal -->
-    <Modal v-model="showDeleteModal" title="Delete Project">
+    <Modal v-model="showDeleteModal" :title="t('projectsIndex.deleteModalTitle')">
       <div class="delete-confirm">
-        <p>Are you sure you want to delete <strong>{{ projectToDelete?.name }}</strong>?</p>
-        <p class="warning">This action cannot be undone. All tasks, context, and locks will be permanently removed.</p>
+        <p>{{ t('projectsIndex.deleteConfirmPrefix') }} <strong>{{ projectToDelete?.name }}</strong>{{ t('projectsIndex.deleteConfirmSuffix') }}</p>
+        <p class="warning">{{ t('projectsIndex.deleteWarning') }}</p>
         <div class="form-actions">
           <Button type="button" variant="secondary" @click="showDeleteModal = false">
-            Cancel
+            {{ t('projectsIndex.cancel') }}
           </Button>
-          <Button 
-            type="button" 
+          <Button
+            type="button"
             variant="danger"
             :loading="projectsStore.isDeleting"
             @click="deleteProject"
           >
-            Delete Project
+            {{ t('projectsIndex.deleteProject') }}
           </Button>
         </div>
       </div>
@@ -256,6 +256,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useProjectsStore } from '@/stores/projects';
 import { useMachinesStore } from '@/stores/machines';
@@ -266,6 +267,7 @@ import Modal from '@/components/common/Modal.vue';
 import RemoteFileTree from '@/components/sessions/RemoteFileTree.vue';
 import type { SharedProject } from '@/types';
 
+const { t } = useI18n();
 const router = useRouter();
 const projectsStore = useProjectsStore();
 const machinesStore = useMachinesStore();
@@ -325,13 +327,13 @@ async function loadProjects() {
   try {
     await projectsStore.fetchProjects(selectedMachineId.value);
   } catch (err) {
-    toast.error('Failed to load projects');
+    toast.error(t('projectsIndex.toastLoadFailed'));
   }
 }
 
 function getMachineName(machineId: string): string {
   const machine = machinesStore.machines.find(m => m.id === machineId);
-  return machine?.name || 'Unknown';
+  return machine?.name || t('projectsIndex.unknownMachine');
 }
 
 function goToProject(projectId: string) {
@@ -347,11 +349,11 @@ async function createProject() {
   
   try {
     await projectsStore.createProject(selectedMachineId.value, createForm.value);
-    toast.success('Project created successfully');
+    toast.success(t('projectsIndex.toastCreateSuccess'));
     showCreateModal.value = false;
     resetCreateForm();
   } catch (err) {
-    toast.error('Failed to create project');
+    toast.error(t('projectsIndex.toastCreateFailed'));
   }
 }
 
@@ -380,11 +382,11 @@ async function deleteProject() {
   
   try {
     await projectsStore.deleteProject(projectToDelete.value.id);
-    toast.success('Project deleted successfully');
+    toast.success(t('projectsIndex.toastDeleteSuccess'));
     showDeleteModal.value = false;
     projectToDelete.value = null;
   } catch (err) {
-    toast.error('Failed to delete project');
+    toast.error(t('projectsIndex.toastDeleteFailed'));
   }
 }
 </script>

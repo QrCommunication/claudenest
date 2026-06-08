@@ -2,32 +2,32 @@
   <div class="tasks-board-page">
     <div class="board-header">
       <div class="header-filters">
-        <input 
+        <input
           v-model="searchQuery"
           type="text"
-          placeholder="Search tasks..."
+          :placeholder="t('projectsTasks.searchPlaceholder')"
           class="search-input"
         />
         <select v-model="priorityFilter" class="filter-select">
-          <option value="">All Priorities</option>
-          <option value="critical">Critical</option>
-          <option value="high">High</option>
-          <option value="medium">Medium</option>
-          <option value="low">Low</option>
+          <option value="">{{ t('projectsTasks.allPriorities') }}</option>
+          <option value="critical">{{ t('projectsTasks.priorityCritical') }}</option>
+          <option value="high">{{ t('projectsTasks.priorityHigh') }}</option>
+          <option value="medium">{{ t('projectsTasks.priorityMedium') }}</option>
+          <option value="low">{{ t('projectsTasks.priorityLow') }}</option>
         </select>
       </div>
       <Button variant="primary" @click="showCreateModal = true">
         <svg viewBox="0 0 24 24" fill="currentColor">
           <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
         </svg>
-        New Task
+        {{ t('projectsTasks.newTask') }}
       </Button>
     </div>
 
     <!-- Loading State -->
     <div v-if="tasksStore.isLoading" class="loading-state">
       <div class="spinner" />
-      <p>Loading tasks...</p>
+      <p>{{ t('projectsTasks.loadingTasks') }}</p>
     </div>
 
     <!-- Kanban Board -->
@@ -72,34 +72,34 @@
     />
 
     <!-- Task Detail Modal -->
-    <Modal v-model="showTaskDetail" :title="selectedTask?.title || 'Task Detail'">
+    <Modal v-model="showTaskDetail" :title="selectedTask?.title || t('projectsTasks.taskDetail')">
       <div v-if="selectedTask" class="task-detail">
         <div class="task-meta">
           <div class="meta-item">
-            <span class="meta-label">Status</span>
+            <span class="meta-label">{{ t('projectsTasks.status') }}</span>
             <span class="meta-value status" :class="selectedTask.status">{{ selectedTask.status }}</span>
           </div>
           <div class="meta-item">
-            <span class="meta-label">Priority</span>
+            <span class="meta-label">{{ t('projectsTasks.priority') }}</span>
             <span class="meta-value priority" :class="selectedTask.priority">{{ selectedTask.priority }}</span>
           </div>
           <div class="meta-item" v-if="selectedTask.assigned_to">
-            <span class="meta-label">Assigned To</span>
+            <span class="meta-label">{{ t('projectsTasks.assignedTo') }}</span>
             <span class="meta-value">{{ selectedTask.assigned_to.slice(0, 8) }}...</span>
           </div>
           <div class="meta-item" v-if="selectedTask.estimated_tokens">
-            <span class="meta-label">Est. Tokens</span>
+            <span class="meta-label">{{ t('projectsTasks.estTokens') }}</span>
             <span class="meta-value">{{ selectedTask.estimated_tokens }}</span>
           </div>
         </div>
 
         <div class="task-description" v-if="selectedTask.description">
-          <h4>Description</h4>
+          <h4>{{ t('projectsTasks.description') }}</h4>
           <p>{{ selectedTask.description }}</p>
         </div>
 
         <div class="task-files" v-if="selectedTask.files?.length">
-          <h4>Files</h4>
+          <h4>{{ t('projectsTasks.files') }}</h4>
           <div class="files-list">
             <FileLockIndicator 
               v-for="file in selectedTask.files" 
@@ -111,7 +111,7 @@
         </div>
 
         <div class="task-dependencies" v-if="selectedTask.dependencies?.length">
-          <h4>Dependencies</h4>
+          <h4>{{ t('projectsTasks.dependencies') }}</h4>
           <ul>
             <li v-for="depId in selectedTask.dependencies" :key="depId">
               {{ getTaskTitle(depId) }}
@@ -120,10 +120,10 @@
         </div>
 
         <div class="task-completion" v-if="selectedTask.is_completed">
-          <h4>Completion Summary</h4>
+          <h4>{{ t('projectsTasks.completionSummary') }}</h4>
           <p>{{ selectedTask.completion_summary }}</p>
           <div class="files-modified" v-if="selectedTask.files_modified?.length">
-            <h5>Files Modified</h5>
+            <h5>{{ t('projectsTasks.filesModified') }}</h5>
             <ul>
               <li v-for="file in selectedTask.files_modified" :key="file">{{ file }}</li>
             </ul>
@@ -136,33 +136,33 @@
             variant="primary"
             @click="showClaimModal = true"
           >
-            Claim Task
+            {{ t('projectsTasks.claimTask') }}
           </Button>
-          <Button 
+          <Button
             v-if="selectedTask.is_claimed"
             variant="secondary"
             @click="releaseTask(selectedTask.id)"
           >
-            Release
+            {{ t('projectsTasks.release') }}
           </Button>
-          <Button 
+          <Button
             v-if="selectedTask.is_claimed && !selectedTask.is_completed"
             variant="primary"
             @click="showCompleteModal = true"
           >
-            Complete
+            {{ t('projectsTasks.complete') }}
           </Button>
           <Button variant="danger" @click="deleteTask(selectedTask.id)">
-            Delete
+            {{ t('projectsTasks.delete') }}
           </Button>
         </div>
       </div>
     </Modal>
 
     <!-- Claim Task Modal -->
-    <Modal v-model="showClaimModal" title="Claim Task">
+    <Modal v-model="showClaimModal" :title="t('projectsTasks.claimTask')">
       <div class="claim-form">
-        <p>Select an instance to claim this task:</p>
+        <p>{{ t('projectsTasks.selectInstance') }}</p>
         <div class="instances-list">
           <button
             v-for="instance in availableInstances"
@@ -176,41 +176,41 @@
           </button>
         </div>
         <div class="form-actions">
-          <Button variant="secondary" @click="showClaimModal = false">Cancel</Button>
-          <Button 
-            variant="primary" 
+          <Button variant="secondary" @click="showClaimModal = false">{{ t('projectsTasks.cancel') }}</Button>
+          <Button
+            variant="primary"
             :disabled="!selectedInstanceId"
             @click="confirmClaim"
           >
-            Claim
+            {{ t('projectsTasks.claim') }}
           </Button>
         </div>
       </div>
     </Modal>
 
     <!-- Complete Task Modal -->
-    <Modal v-model="showCompleteModal" title="Complete Task">
+    <Modal v-model="showCompleteModal" :title="t('projectsTasks.completeTask')">
       <form @submit.prevent="confirmComplete" class="complete-form">
         <div class="form-group">
-          <label>Completion Summary</label>
-          <textarea 
-            v-model="completionForm.summary" 
+          <label>{{ t('projectsTasks.completionSummary') }}</label>
+          <textarea
+            v-model="completionForm.summary"
             rows="4"
-            placeholder="Describe what was accomplished..."
+            :placeholder="t('projectsTasks.summaryPlaceholder')"
             required
           />
         </div>
         <div class="form-group">
-          <label>Files Modified (one per line)</label>
-          <textarea 
-            v-model="completionForm.filesModified" 
+          <label>{{ t('projectsTasks.filesModifiedOnePerLine') }}</label>
+          <textarea
+            v-model="completionForm.filesModified"
             rows="3"
             placeholder="/path/to/file1.js&#10;/path/to/file2.js"
           />
         </div>
         <div class="form-actions">
-          <Button type="button" variant="secondary" @click="showCompleteModal = false">Cancel</Button>
-          <Button type="submit" variant="primary">Complete Task</Button>
+          <Button type="button" variant="secondary" @click="showCompleteModal = false">{{ t('projectsTasks.cancel') }}</Button>
+          <Button type="submit" variant="primary">{{ t('projectsTasks.completeTask') }}</Button>
         </div>
       </form>
     </Modal>
@@ -219,6 +219,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 import { useTasksStore } from '@/stores/tasks';
 import { useProjectsStore } from '@/stores/projects';
@@ -235,6 +236,7 @@ const props = defineProps<{
   projectId?: string;
 }>();
 
+const { t } = useI18n();
 const route = useRoute();
 const tasksStore = useTasksStore();
 const projectsStore = useProjectsStore();
@@ -298,7 +300,7 @@ async function loadTasks() {
   try {
     await tasksStore.fetchTasks(projectId.value);
   } catch (err) {
-    toast.error('Failed to load tasks');
+    toast.error(t('projectsTasks.toastLoadFailed'));
   }
 }
 
@@ -325,9 +327,9 @@ async function handleDrop(newStatus: TaskStatus, event: DragEvent) {
   
   try {
     await tasksStore.updateTask(task.id, { status: newStatus } as any);
-    toast.success(`Task moved to ${newStatus.replace('_', ' ')}`);
+    toast.success(t('projectsTasks.toastTaskMoved', { status: newStatus.replace('_', ' ') }));
   } catch (err) {
-    toast.error('Failed to move task');
+    toast.error(t('projectsTasks.toastMoveFailed'));
   }
   
   draggedTask.value = null;
@@ -340,7 +342,7 @@ function openTaskDetail(task: SharedTask) {
 
 function onTaskCreated() {
   showCreateModal.value = false;
-  toast.success('Task created successfully');
+  toast.success(t('projectsTasks.toastTaskCreated'));
 }
 
 async function claimTask(taskId: string) {
@@ -355,9 +357,9 @@ async function confirmClaim() {
     await tasksStore.claimTask(selectedTask.value.id, selectedInstanceId.value);
     showClaimModal.value = false;
     selectedInstanceId.value = '';
-    toast.success('Task claimed successfully');
+    toast.success(t('projectsTasks.toastTaskClaimed'));
   } catch (err) {
-    toast.error('Failed to claim task');
+    toast.error(t('projectsTasks.toastClaimFailed'));
   }
 }
 
@@ -365,9 +367,9 @@ async function releaseTask(taskId: string) {
   try {
     await tasksStore.releaseTask(taskId);
     showTaskDetail.value = false;
-    toast.success('Task released');
+    toast.success(t('projectsTasks.toastTaskReleased'));
   } catch (err) {
-    toast.error('Failed to release task');
+    toast.error(t('projectsTasks.toastReleaseFailed'));
   }
 }
 
@@ -393,27 +395,27 @@ async function confirmComplete() {
     showCompleteModal.value = false;
     showTaskDetail.value = false;
     completionForm.value = { summary: '', filesModified: '' };
-    toast.success('Task completed successfully');
+    toast.success(t('projectsTasks.toastTaskCompleted'));
   } catch (err) {
-    toast.error('Failed to complete task');
+    toast.error(t('projectsTasks.toastCompleteFailed'));
   }
 }
 
 async function deleteTask(taskId: string) {
-  if (!confirm('Are you sure you want to delete this task?')) return;
-  
+  if (!confirm(t('projectsTasks.confirmDelete'))) return;
+
   try {
     await tasksStore.deleteTask(taskId);
     showTaskDetail.value = false;
-    toast.success('Task deleted');
+    toast.success(t('projectsTasks.toastTaskDeleted'));
   } catch (err) {
-    toast.error('Failed to delete task');
+    toast.error(t('projectsTasks.toastDeleteFailed'));
   }
 }
 
 function getTaskTitle(taskId: string): string {
   const task = tasksStore.tasks.find(t => t.id === taskId);
-  return task?.title || 'Unknown Task';
+  return task?.title || t('projectsTasks.unknownTask');
 }
 </script>
 

@@ -63,7 +63,7 @@
           <svg class="btn-icon" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
           </svg>
-          Connect
+          {{ t('terminalSessioncard.connect') }}
         </button>
         
         <button 
@@ -74,7 +74,7 @@
           <svg class="btn-icon" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
           </svg>
-          Stop
+          {{ t('terminalSessioncard.stop') }}
         </button>
         
         <button 
@@ -85,7 +85,7 @@
           <svg class="btn-icon" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
           </svg>
-          Logs
+          {{ t('terminalSessioncard.logs') }}
         </button>
       </div>
     </div>
@@ -94,7 +94,10 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { Session, SessionMode, SessionStatus } from '@/types';
+
+const { t } = useI18n();
 
 // ============================================================================
 // Props & Emits
@@ -135,29 +138,29 @@ const statusClass = computed(() => {
 
 const statusLabel = computed(() => {
   const labels: Record<SessionStatus, string> = {
-    created: 'Created',
-    starting: 'Starting',
-    running: 'Running',
-    waiting_input: 'Waiting',
-    completed: 'Completed',
-    error: 'Error',
-    terminated: 'Stopped',
+    created: t('terminalSessioncard.statusCreated'),
+    starting: t('terminalSessioncard.statusStarting'),
+    running: t('terminalSessioncard.statusRunning'),
+    waiting_input: t('terminalSessioncard.statusWaiting'),
+    completed: t('terminalSessioncard.statusCompleted'),
+    error: t('terminalSessioncard.statusError'),
+    terminated: t('terminalSessioncard.statusStopped'),
   };
   return labels[props.session.status] || props.session.status;
 });
 
 const modeLabel = computed(() => {
   const labels: Record<SessionMode, string> = {
-    interactive: 'Interactive',
-    headless: 'Headless',
-    oneshot: 'One-shot',
-    bash: 'Bash',
+    interactive: t('terminalSessioncard.modeInteractive'),
+    headless: t('terminalSessioncard.modeHeadless'),
+    oneshot: t('terminalSessioncard.modeOneshot'),
+    bash: t('terminalSessioncard.modeBash'),
   };
   return labels[props.session.mode] || props.session.mode;
 });
 
 const projectPathDisplay = computed(() => {
-  if (!props.session.project_path) return 'No project';
+  if (!props.session.project_path) return t('terminalSessioncard.noProject');
   
   const path = props.session.project_path;
   if (path.length > 30) {
@@ -168,7 +171,7 @@ const projectPathDisplay = computed(() => {
 
 const startTimeDisplay = computed(() => {
   if (!props.session.started_at) {
-    return 'Not started';
+    return t('terminalSessioncard.notStarted');
   }
   
   const date = new Date(props.session.started_at);
@@ -181,7 +184,7 @@ const startTimeDisplay = computed(() => {
 });
 
 const durationDisplay = computed(() => {
-  return props.session.formatted_duration || 'N/A';
+  return props.session.formatted_duration || t('terminalSessioncard.durationNA');
 });
 
 const canConnect = computed(() => {
@@ -201,7 +204,7 @@ function handleConnect(): void {
 }
 
 function handleTerminate(): void {
-  if (confirm('Are you sure you want to terminate this session?')) {
+  if (confirm(t('terminalSessioncard.terminateConfirm'))) {
     emit('terminate', props.session.id);
   }
 }

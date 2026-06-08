@@ -16,7 +16,7 @@
           </button>
 
           <Logo variant="full" size="sm" :to="'/'" />
-          <span class="docs-kicker">Docs</span>
+          <span class="docs-kicker">{{ t('docslayout.docs') }}</span>
         </div>
 
         <button type="button" class="search-trigger" @click="showSearch = true">
@@ -64,7 +64,7 @@
         <article class="docs-content">
           <RouterView />
 
-          <nav v-if="prevNext.prev || prevNext.next" class="page-nav" aria-label="Page navigation">
+          <nav v-if="prevNext.prev || prevNext.next" class="page-nav" :aria-label="t('docslayout.pageNavigation')">
             <router-link
               v-if="prevNext.prev && prevNext.prev.path"
               :to="prevNext.prev.path"

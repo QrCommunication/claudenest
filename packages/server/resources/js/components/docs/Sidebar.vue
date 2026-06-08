@@ -6,7 +6,7 @@
         <circle cx="11" cy="11" r="7" />
         <path d="M21 21l-4.3-4.3" />
       </svg>
-      <span>Search docs...</span>
+      <span>{{ t('docsSidebar.searchDocs') }}</span>
       <kbd>{{ modKey }}K</kbd>
     </button>
 
@@ -53,7 +53,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
           <path d="M15 18l-6-6 6-6" />
         </svg>
-        Back to home
+        {{ t('docsSidebar.backToHome') }}
       </router-link>
     </div>
   </div>
@@ -62,8 +62,10 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useDocs } from '@/composables/useDocs';
 
+const { t } = useI18n();
 const route = useRoute();
 const { docsNavigation } = useDocs();
 const emit = defineEmits<{

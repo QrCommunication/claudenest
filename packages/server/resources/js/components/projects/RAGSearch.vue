@@ -7,7 +7,7 @@
       <input
         v-model="query"
         type="text"
-        placeholder="Search context with RAG..."
+        :placeholder="t('projectsRagsearch.searchPlaceholder')"
         @keyup.enter="search"
       />
       <button 
@@ -25,14 +25,14 @@
         :loading="contextStore.isQuerying"
         @click="search"
       >
-        Search
+        {{ t('projectsRagsearch.search') }}
       </Button>
     </div>
 
     <div v-if="contextStore.queryResults.length > 0" class="search-results-dropdown">
       <div class="results-header">
-        <span>{{ contextStore.queryResults.length }} results found</span>
-        <button @click="clear">Clear</button>
+        <span>{{ t('projectsRagsearch.resultsFound', { count: contextStore.queryResults.length }) }}</span>
+        <button @click="clear">{{ t('projectsRagsearch.clear') }}</button>
       </div>
       <div class="results-list">
         <div 
@@ -56,6 +56,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useContextStore } from '@/stores/context';
 import Button from '@/components/common/Button.vue';
 import type { ContextQueryResult } from '@/types';
@@ -70,6 +71,8 @@ const emit = defineEmits<{
   search: [results: ContextQueryResult[]];
   select: [result: ContextQueryResult];
 }>();
+
+const { t } = useI18n();
 
 const contextStore = useContextStore();
 

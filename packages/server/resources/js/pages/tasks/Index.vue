@@ -4,8 +4,8 @@
     <div class="page-header">
       <div class="header-content">
         <div>
-          <h1>Tasks</h1>
-          <p class="subtitle">Manage and track all tasks across projects</p>
+          <h1>{{ t('tasksIndex.title') }}</h1>
+          <p class="subtitle">{{ t('tasksIndex.subtitle') }}</p>
         </div>
         <div class="header-actions">
           <select 
@@ -13,7 +13,7 @@
             class="project-select"
             @change="onProjectChange"
           >
-            <option value="">All Projects</option>
+            <option value="">{{ t('tasksIndex.allProjects') }}</option>
             <option 
               v-for="project in projectsStore.projects" 
               :key="project.id" 
@@ -30,7 +30,7 @@
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
             </svg>
-            New Task
+            {{ t('tasksIndex.newTask') }}
           </Button>
         </div>
       </div>
@@ -41,34 +41,34 @@
           <input 
             v-model="searchQuery"
             type="text"
-            placeholder="Search tasks..."
+            :placeholder="t('tasksIndex.searchPlaceholder')"
             class="search-input"
           />
         </div>
         <div class="filter-group">
           <select v-model="statusFilter" class="filter-select">
-            <option value="">All Statuses</option>
-            <option value="pending">Pending</option>
-            <option value="in_progress">In Progress</option>
-            <option value="blocked">Blocked</option>
-            <option value="review">Review</option>
-            <option value="done">Done</option>
+            <option value="">{{ t('tasksIndex.allStatuses') }}</option>
+            <option value="pending">{{ t('tasksIndex.statusPending') }}</option>
+            <option value="in_progress">{{ t('tasksIndex.statusInProgress') }}</option>
+            <option value="blocked">{{ t('tasksIndex.statusBlocked') }}</option>
+            <option value="review">{{ t('tasksIndex.statusReview') }}</option>
+            <option value="done">{{ t('tasksIndex.statusDone') }}</option>
           </select>
         </div>
         <div class="filter-group">
           <select v-model="priorityFilter" class="filter-select">
-            <option value="">All Priorities</option>
-            <option value="critical">Critical</option>
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
+            <option value="">{{ t('tasksIndex.allPriorities') }}</option>
+            <option value="critical">{{ t('tasksIndex.priorityCritical') }}</option>
+            <option value="high">{{ t('tasksIndex.priorityHigh') }}</option>
+            <option value="medium">{{ t('tasksIndex.priorityMedium') }}</option>
+            <option value="low">{{ t('tasksIndex.priorityLow') }}</option>
           </select>
         </div>
         <div class="filter-group">
           <select v-model="assigneeFilter" class="filter-select">
-            <option value="">All Assignees</option>
-            <option value="unassigned">Unassigned</option>
-            <option value="assigned">Assigned</option>
+            <option value="">{{ t('tasksIndex.allAssignees') }}</option>
+            <option value="unassigned">{{ t('tasksIndex.unassigned') }}</option>
+            <option value="assigned">{{ t('tasksIndex.assigned') }}</option>
           </select>
         </div>
       </div>
@@ -76,16 +76,16 @@
 
     <!-- Stats Cards -->
     <div class="stats-row">
-      <Card class="stat-card" title="Total Tasks">
+      <Card class="stat-card" :title="t('tasksIndex.totalTasks')">
         <div class="stat-value">{{ filteredTasks.length }}</div>
       </Card>
-      <Card class="stat-card" title="Pending">
+      <Card class="stat-card" :title="t('tasksIndex.statusPending')">
         <div class="stat-value pending">{{ pendingCount }}</div>
       </Card>
-      <Card class="stat-card" title="In Progress">
+      <Card class="stat-card" :title="t('tasksIndex.statusInProgress')">
         <div class="stat-value in-progress">{{ inProgressCount }}</div>
       </Card>
-      <Card class="stat-card" title="Done">
+      <Card class="stat-card" :title="t('tasksIndex.statusDone')">
         <div class="stat-value done">{{ doneCount }}</div>
       </Card>
     </div>
@@ -93,7 +93,7 @@
     <!-- Loading State -->
     <div v-if="tasksStore.isLoading" class="loading-state">
       <div class="spinner" />
-      <p>Loading tasks...</p>
+      <p>{{ t('tasksIndex.loadingTasks') }}</p>
     </div>
 
     <!-- Empty State -->
@@ -101,19 +101,19 @@
       <svg viewBox="0 0 24 24" fill="currentColor">
         <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
       </svg>
-      <h3>No tasks found</h3>
+      <h3>{{ t('tasksIndex.noTasksFound') }}</h3>
       <p v-if="selectedProjectId">
-        Get started by creating your first task.
+        {{ t('tasksIndex.emptyProjectSelected') }}
       </p>
       <p v-else>
-        Select a project to view or create tasks.
+        {{ t('tasksIndex.emptyNoProject') }}
       </p>
-      <Button 
+      <Button
         v-if="selectedProjectId"
-        variant="primary" 
+        variant="primary"
         @click="showCreateModal = true"
       >
-        Create Task
+        {{ t('tasksIndex.createTask') }}
       </Button>
     </div>
 
@@ -129,7 +129,7 @@
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
           </svg>
-          Kanban
+          {{ t('tasksIndex.kanban') }}
         </button>
         <button 
           class="toggle-btn"
@@ -139,7 +139,7 @@
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
           </svg>
-          List
+          {{ t('tasksIndex.list') }}
         </button>
       </div>
 
@@ -181,34 +181,34 @@
     />
 
     <!-- Task Detail Modal -->
-    <Modal v-model="showTaskDetail" :title="selectedTask?.title || 'Task Detail'">
+    <Modal v-model="showTaskDetail" :title="selectedTask?.title || t('tasksIndex.taskDetail')">
       <div v-if="selectedTask" class="task-detail">
         <div class="task-meta-grid">
           <div class="meta-item">
-            <span class="meta-label">Status</span>
+            <span class="meta-label">{{ t('tasksIndex.metaStatus') }}</span>
             <span class="meta-value status" :class="selectedTask.status">{{ selectedTask.status }}</span>
           </div>
           <div class="meta-item">
-            <span class="meta-label">Priority</span>
+            <span class="meta-label">{{ t('tasksIndex.metaPriority') }}</span>
             <span class="meta-value priority" :class="selectedTask.priority">{{ selectedTask.priority }}</span>
           </div>
           <div class="meta-item" v-if="selectedTask.assigned_to">
-            <span class="meta-label">Assigned To</span>
+            <span class="meta-label">{{ t('tasksIndex.metaAssignedTo') }}</span>
             <span class="meta-value">{{ selectedTask.assigned_to.slice(0, 8) }}...</span>
           </div>
           <div class="meta-item" v-if="selectedTask.estimated_tokens">
-            <span class="meta-label">Est. Tokens</span>
+            <span class="meta-label">{{ t('tasksIndex.metaEstTokens') }}</span>
             <span class="meta-value">{{ selectedTask.estimated_tokens }}</span>
           </div>
         </div>
 
         <div class="task-description-section" v-if="selectedTask.description">
-          <h4>Description</h4>
+          <h4>{{ t('tasksIndex.description') }}</h4>
           <p>{{ selectedTask.description }}</p>
         </div>
 
         <div class="task-files-section" v-if="selectedTask.files?.length">
-          <h4>Files</h4>
+          <h4>{{ t('tasksIndex.files') }}</h4>
           <div class="files-list">
             <FileLockIndicator 
               v-for="file in selectedTask.files" 
@@ -225,33 +225,33 @@
             variant="primary"
             @click="showClaimModal = true"
           >
-            Claim Task
+            {{ t('tasksIndex.claimTask') }}
           </Button>
-          <Button 
+          <Button
             v-if="selectedTask.is_claimed && !selectedTask.is_completed"
             variant="secondary"
             @click="releaseTask(selectedTask.id)"
           >
-            Release
+            {{ t('tasksIndex.release') }}
           </Button>
-          <Button 
+          <Button
             v-if="selectedTask.is_claimed && !selectedTask.is_completed"
             variant="primary"
             @click="showCompleteModal = true"
           >
-            Complete
+            {{ t('tasksIndex.complete') }}
           </Button>
           <Button variant="danger" @click="deleteTask(selectedTask.id)">
-            Delete
+            {{ t('tasksIndex.delete') }}
           </Button>
         </div>
       </div>
     </Modal>
 
     <!-- Claim Task Modal -->
-    <Modal v-model="showClaimModal" title="Claim Task">
+    <Modal v-model="showClaimModal" :title="t('tasksIndex.claimTask')">
       <div class="claim-form">
-        <p>Select an instance to claim this task:</p>
+        <p>{{ t('tasksIndex.selectInstancePrompt') }}</p>
         <div class="instances-list">
           <button
             v-for="instance in availableInstances"
@@ -265,41 +265,41 @@
           </button>
         </div>
         <div class="form-actions">
-          <Button variant="secondary" @click="showClaimModal = false">Cancel</Button>
-          <Button 
-            variant="primary" 
+          <Button variant="secondary" @click="showClaimModal = false">{{ t('tasksIndex.cancel') }}</Button>
+          <Button
+            variant="primary"
             :disabled="!selectedInstanceId"
             @click="confirmClaim"
           >
-            Claim
+            {{ t('tasksIndex.claim') }}
           </Button>
         </div>
       </div>
     </Modal>
 
     <!-- Complete Task Modal -->
-    <Modal v-model="showCompleteModal" title="Complete Task">
+    <Modal v-model="showCompleteModal" :title="t('tasksIndex.completeTask')">
       <form @submit.prevent="confirmComplete" class="complete-form">
         <div class="form-group">
-          <label>Completion Summary</label>
-          <textarea 
-            v-model="completionForm.summary" 
+          <label>{{ t('tasksIndex.completionSummary') }}</label>
+          <textarea
+            v-model="completionForm.summary"
             rows="4"
-            placeholder="Describe what was accomplished..."
+            :placeholder="t('tasksIndex.completionSummaryPlaceholder')"
             required
           />
         </div>
         <div class="form-group">
-          <label>Files Modified (one per line)</label>
-          <textarea 
-            v-model="completionForm.filesModified" 
+          <label>{{ t('tasksIndex.filesModifiedLabel') }}</label>
+          <textarea
+            v-model="completionForm.filesModified"
             rows="3"
             placeholder="/path/to/file1.js&#10;/path/to/file2.js"
           />
         </div>
         <div class="form-actions">
-          <Button type="button" variant="secondary" @click="showCompleteModal = false">Cancel</Button>
-          <Button type="submit" variant="primary">Complete Task</Button>
+          <Button type="button" variant="secondary" @click="showCompleteModal = false">{{ t('tasksIndex.cancel') }}</Button>
+          <Button type="submit" variant="primary">{{ t('tasksIndex.completeTask') }}</Button>
         </div>
       </form>
     </Modal>
@@ -308,6 +308,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useTasksStore } from '@/stores/tasks';
 import { useProjectsStore } from '@/stores/projects';
 import { useToastStore } from '@/stores/toasts';
@@ -321,6 +322,7 @@ import InstanceBadge from '@/components/projects/InstanceBadge.vue';
 import FileLockIndicator from '@/components/projects/FileLockIndicator.vue';
 import { KANBAN_COLUMNS, type SharedTask, type TaskStatus, type TaskPriority } from '@/types';
 
+const { t } = useI18n();
 const tasksStore = useTasksStore();
 const projectsStore = useProjectsStore();
 const toastStore = useToastStore();
@@ -405,16 +407,16 @@ async function loadTasks() {
   try {
     await tasksStore.fetchTasks(selectedProjectId.value);
   } catch (err) {
-    toastStore.error('Failed to load tasks');
+    toastStore.error(t('tasksIndex.toastLoadFailed'));
   }
 }
 
 async function handleMoveTask(taskId: string, newStatus: TaskStatus) {
   try {
     await tasksStore.moveTask(taskId, newStatus);
-    toastStore.success(`Task moved to ${newStatus.replace('_', ' ')}`);
+    toastStore.success(t('tasksIndex.toastTaskMoved', { status: newStatus.replace('_', ' ') }));
   } catch (err) {
-    toastStore.error('Failed to move task');
+    toastStore.error(t('tasksIndex.toastMoveFailed'));
   }
 }
 
@@ -425,7 +427,7 @@ function openTaskDetail(task: SharedTask) {
 
 function onTaskCreated() {
   showCreateModal.value = false;
-  toastStore.success('Task created successfully');
+  toastStore.success(t('tasksIndex.toastTaskCreated'));
 }
 
 async function claimTask(taskId: string) {
@@ -441,9 +443,9 @@ async function confirmClaim() {
     showClaimModal.value = false;
     selectedInstanceId.value = '';
     showTaskDetail.value = false;
-    toastStore.success('Task claimed successfully');
+    toastStore.success(t('tasksIndex.toastTaskClaimed'));
   } catch (err) {
-    toastStore.error('Failed to claim task');
+    toastStore.error(t('tasksIndex.toastClaimFailed'));
   }
 }
 
@@ -451,9 +453,9 @@ async function releaseTask(taskId: string) {
   try {
     await tasksStore.releaseTask(taskId);
     showTaskDetail.value = false;
-    toastStore.success('Task released');
+    toastStore.success(t('tasksIndex.toastTaskReleased'));
   } catch (err) {
-    toastStore.error('Failed to release task');
+    toastStore.error(t('tasksIndex.toastReleaseFailed'));
   }
 }
 
@@ -479,21 +481,21 @@ async function confirmComplete() {
     showCompleteModal.value = false;
     showTaskDetail.value = false;
     completionForm.value = { summary: '', filesModified: '' };
-    toastStore.success('Task completed successfully');
+    toastStore.success(t('tasksIndex.toastTaskCompleted'));
   } catch (err) {
-    toastStore.error('Failed to complete task');
+    toastStore.error(t('tasksIndex.toastCompleteFailed'));
   }
 }
 
 async function deleteTask(taskId: string) {
-  if (!confirm('Are you sure you want to delete this task?')) return;
+  if (!confirm(t('tasksIndex.confirmDelete'))) return;
   
   try {
     await tasksStore.deleteTask(taskId);
     showTaskDetail.value = false;
-    toastStore.success('Task deleted');
+    toastStore.success(t('tasksIndex.toastTaskDeleted'));
   } catch (err) {
-    toastStore.error('Failed to delete task');
+    toastStore.error(t('tasksIndex.toastDeleteFailed'));
   }
 }
 </script>

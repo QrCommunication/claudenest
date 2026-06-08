@@ -3,14 +3,14 @@
     <!-- Header -->
     <div class="page-header">
       <div class="header-content">
-        <h1>Machines</h1>
-        <p class="subtitle">Manage your ClaudeNest connected machines</p>
+        <h1>{{ t('machinesIndex.title') }}</h1>
+        <p class="subtitle">{{ t('machinesIndex.subtitle') }}</p>
       </div>
       <button class="btn-add" @click="showAddModal = true">
         <svg viewBox="0 0 24 24" fill="currentColor">
           <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
         </svg>
-        Add Machine
+        {{ t('machinesIndex.addMachine') }}
       </button>
     </div>
 
@@ -24,7 +24,7 @@
         </div>
         <div class="stat-info">
           <span class="stat-value">{{ onlineMachines.length }}</span>
-          <span class="stat-label">Online</span>
+          <span class="stat-label">{{ t('machinesIndex.statOnline') }}</span>
         </div>
       </div>
       <div class="stat-card">
@@ -35,7 +35,7 @@
         </div>
         <div class="stat-info">
           <span class="stat-value">{{ offlineMachines.length }}</span>
-          <span class="stat-label">Offline</span>
+          <span class="stat-label">{{ t('machinesIndex.statOffline') }}</span>
         </div>
       </div>
       <div class="stat-card">
@@ -46,7 +46,7 @@
         </div>
         <div class="stat-info">
           <span class="stat-value">{{ totalActiveSessions }}</span>
-          <span class="stat-label">Active Sessions</span>
+          <span class="stat-label">{{ t('machinesIndex.statActiveSessions') }}</span>
         </div>
       </div>
       <div class="stat-card">
@@ -57,7 +57,7 @@
         </div>
         <div class="stat-info">
           <span class="stat-value">{{ machines.length }}</span>
-          <span class="stat-label">Total Machines</span>
+          <span class="stat-label">{{ t('machinesIndex.statTotalMachines') }}</span>
         </div>
       </div>
     </div>
@@ -71,7 +71,7 @@
         <input
           v-model="filters.search"
           type="text"
-          placeholder="Search machines..."
+          :placeholder="t('machinesIndex.searchPlaceholder')"
           @input="handleSearch"
         />
       </div>
@@ -92,7 +92,7 @@
         <button
           :class="['toggle-btn', { active: viewMode === 'grid' }]"
           @click="viewMode = 'grid'"
-          title="Grid view"
+          :title="t('machinesIndex.gridView')"
         >
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z"/>
@@ -101,7 +101,7 @@
         <button
           :class="['toggle-btn', { active: viewMode === 'list' }]"
           @click="viewMode = 'list'"
-          title="List view"
+          :title="t('machinesIndex.listView')"
         >
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
@@ -113,7 +113,7 @@
     <!-- Loading State -->
     <div v-if="isLoading" class="loading-state">
       <div class="spinner"></div>
-      <p>Loading machines...</p>
+      <p>{{ t('machinesIndex.loading') }}</p>
     </div>
 
     <!-- Error State -->
@@ -122,7 +122,7 @@
         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
       </svg>
       <p>{{ error }}</p>
-      <button class="btn-secondary" @click="refresh">Try Again</button>
+      <button class="btn-secondary" @click="refresh">{{ t('machinesIndex.tryAgain') }}</button>
     </div>
 
     <!-- Empty State -->
@@ -132,21 +132,21 @@
           <path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/>
         </svg>
       </div>
-      <h3>{{ machines.length === 0 ? 'No machines yet' : 'No machines found' }}</h3>
+      <h3>{{ machines.length === 0 ? t('machinesIndex.emptyTitleNone') : t('machinesIndex.emptyTitleNoResults') }}</h3>
       <p v-if="machines.length === 0">
-        Get started by adding your first machine to connect with ClaudeNest.
+        {{ t('machinesIndex.emptyBodyNone') }}
       </p>
       <p v-else>
-        No machines match your current filters. Try adjusting your search.
+        {{ t('machinesIndex.emptyBodyNoResults') }}
       </p>
       <button v-if="machines.length === 0" class="btn-primary" @click="showAddModal = true">
         <svg viewBox="0 0 24 24" fill="currentColor">
           <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
         </svg>
-        Add Your First Machine
+        {{ t('machinesIndex.addFirstMachine') }}
       </button>
       <button v-else class="btn-secondary" @click="clearFilters">
-        Clear Filters
+        {{ t('machinesIndex.clearFilters') }}
       </button>
     </div>
 
@@ -179,7 +179,7 @@
         </svg>
       </button>
       <span class="page-info">
-        Page {{ pagination.currentPage }} of {{ pagination.lastPage }}
+        {{ t('machinesIndex.pageInfo', { current: pagination.currentPage, total: pagination.lastPage }) }}
       </span>
       <button
         :disabled="pagination.currentPage === pagination.lastPage"
@@ -210,23 +210,22 @@
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
             </svg>
           </div>
-          <h3>Delete Machine</h3>
+          <h3>{{ t('machinesIndex.deleteTitle') }}</h3>
         </div>
         <p class="confirm-text">
-          Are you sure you want to delete <strong>{{ machineToDelete?.name }}</strong>?
-          This will terminate all active sessions and cannot be undone.
+          {{ t('machinesIndex.deleteConfirmPrefix') }} <strong>{{ machineToDelete?.name }}</strong>{{ t('machinesIndex.deleteConfirmSuffix') }}
         </p>
         <div class="confirm-actions">
           <button class="btn-secondary" @click="showDeleteModal = false">
-            Cancel
+            {{ t('machinesIndex.cancel') }}
           </button>
-          <button 
+          <button
             class="btn-danger"
             :disabled="isDeleting"
             @click="executeDelete"
           >
             <span v-if="isDeleting" class="spinner"></span>
-            {{ isDeleting ? 'Deleting...' : 'Delete Machine' }}
+            {{ isDeleting ? t('machinesIndex.deleting') : t('machinesIndex.deleteTitle') }}
           </button>
         </div>
       </div>
@@ -237,6 +236,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { useMachinesStore } from '@/stores/machines';
 import MachineCard from '@/components/machines/MachineCard.vue';
@@ -244,6 +244,7 @@ import MachineForm from '@/components/machines/MachineForm.vue';
 import type { Machine, MachineStatus, CreateMachineForm, UpdateMachineForm } from '@/types';
 
 const router = useRouter();
+const { t } = useI18n();
 const machinesStore = useMachinesStore();
 
 const { 
@@ -268,10 +269,10 @@ const isDeleting = ref(false);
 const formRef = ref<InstanceType<typeof MachineForm>>();
 
 const filterTabs = computed(() => [
-  { value: 'all' as const, label: 'All', count: machines.value.length },
-  { value: 'online' as const, label: 'Online', count: onlineMachines.value.length },
-  { value: 'offline' as const, label: 'Offline', count: offlineMachines.value.length },
-  { value: 'connecting' as const, label: 'Connecting', count: machines.value.filter(m => m.status === 'connecting').length },
+  { value: 'all' as const, label: t('machinesIndex.tabAll'), count: machines.value.length },
+  { value: 'online' as const, label: t('machinesIndex.tabOnline'), count: onlineMachines.value.length },
+  { value: 'offline' as const, label: t('machinesIndex.tabOffline'), count: offlineMachines.value.length },
+  { value: 'connecting' as const, label: t('machinesIndex.tabConnecting'), count: machines.value.filter(m => m.status === 'connecting').length },
 ]);
 
 onMounted(() => {

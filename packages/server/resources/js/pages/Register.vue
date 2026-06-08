@@ -34,7 +34,7 @@
             type="text"
             required
             autocomplete="name"
-            placeholder="Ada Lovelace"
+            :placeholder="t('register.namePlaceholder')"
             class="field-input"
             :class="{ 'has-error': getFieldError('name') }"
             :disabled="authStore.isLoading"
@@ -130,7 +130,7 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import AuthShell from '@/components/public/AuthShell.vue';
 
-const { t, locale } = useI18n();
+const { t } = useI18n();
 const router = useRouter();
 const authStore = useAuthStore();
 
@@ -162,10 +162,13 @@ const passwordStrength = computed(() => {
 });
 
 const strengthLabel = computed(() => {
-  const fr = locale.value?.toString().startsWith('fr');
-  const labels = fr
-    ? ['', 'Mot de passe faible', 'Mot de passe moyen', 'Bon mot de passe', 'Mot de passe fort']
-    : ['', 'Weak password', 'Fair password', 'Good password', 'Strong password'];
+  const labels = [
+    '',
+    t('register.passwordStrengthWeak'),
+    t('register.passwordStrengthFair'),
+    t('register.passwordStrengthGood'),
+    t('register.passwordStrengthStrong'),
+  ];
   return labels[passwordStrength.value] ?? '';
 });
 

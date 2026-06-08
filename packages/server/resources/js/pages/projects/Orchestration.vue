@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="page-header">
       <div class="header-info">
-        <h1 class="page-title">Orchestration</h1>
+        <h1 class="page-title">{{ t('projectsOrchestration.title') }}</h1>
         <p class="page-subtitle" v-if="project">{{ project.name }}</p>
       </div>
       <div class="header-actions">
@@ -15,7 +15,7 @@
           <svg viewBox="0 0 24 24" fill="currentColor" class="btn-icon">
             <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
           </svg>
-          Refresh
+          {{ t('projectsOrchestration.refresh') }}
         </button>
         <button
           v-if="!isOrchestratorRunning"
@@ -26,7 +26,7 @@
           <svg viewBox="0 0 24 24" fill="currentColor" class="btn-icon">
             <path d="M8 5v14l11-7z"/>
           </svg>
-          {{ isOrchestratorLoading ? 'Starting...' : 'Start Orchestrator' }}
+          {{ isOrchestratorLoading ? t('projectsOrchestration.starting') : t('projectsOrchestration.startOrchestrator') }}
         </button>
         <button
           v-else
@@ -37,7 +37,7 @@
           <svg viewBox="0 0 24 24" fill="currentColor" class="btn-icon">
             <path d="M6 6h12v12H6z"/>
           </svg>
-          {{ isOrchestratorLoading ? 'Stopping...' : 'Stop Orchestrator' }}
+          {{ isOrchestratorLoading ? t('projectsOrchestration.stopping') : t('projectsOrchestration.stopOrchestrator') }}
         </button>
         <button
           class="btn btn-secondary"
@@ -47,7 +47,7 @@
           <svg viewBox="0 0 24 24" fill="currentColor" class="btn-icon">
             <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
           </svg>
-          {{ isDispatching ? 'Dispatching...' : 'Auto-Dispatch' }}
+          {{ isDispatching ? t('projectsOrchestration.dispatching') : t('projectsOrchestration.autoDispatch') }}
         </button>
       </div>
     </div>
@@ -62,10 +62,10 @@
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.instances.total }}</span>
-          <span class="stat-label">Instances</span>
+          <span class="stat-label">{{ t('projectsOrchestration.instances') }}</span>
           <div class="stat-breakdown">
-            <span class="badge badge-idle">{{ stats.instances.idle }} idle</span>
-            <span class="badge badge-busy">{{ stats.instances.busy }} busy</span>
+            <span class="badge badge-idle">{{ t('projectsOrchestration.idle', { count: stats.instances.idle }) }}</span>
+            <span class="badge badge-busy">{{ t('projectsOrchestration.busy', { count: stats.instances.busy }) }}</span>
           </div>
         </div>
       </div>
@@ -78,9 +78,9 @@
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.tasks.pending }}</span>
-          <span class="stat-label">Pending Tasks</span>
+          <span class="stat-label">{{ t('projectsOrchestration.pendingTasks') }}</span>
           <div class="stat-breakdown">
-            <span class="badge badge-progress">{{ stats.tasks.in_progress }} in progress</span>
+            <span class="badge badge-progress">{{ t('projectsOrchestration.inProgress', { count: stats.tasks.in_progress }) }}</span>
           </div>
         </div>
       </div>
@@ -93,10 +93,10 @@
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.tasks.completed }}</span>
-          <span class="stat-label">Completed</span>
+          <span class="stat-label">{{ t('projectsOrchestration.completed') }}</span>
           <div class="stat-breakdown">
             <span class="badge badge-blocked" v-if="stats.tasks.blocked > 0">
-              {{ stats.tasks.blocked }} blocked
+              {{ t('projectsOrchestration.blocked', { count: stats.tasks.blocked }) }}
             </span>
           </div>
         </div>
@@ -110,7 +110,7 @@
         </div>
         <div class="stat-content">
           <span class="stat-value">{{ stats.total_tasks_completed }}</span>
-          <span class="stat-label">Total Completed</span>
+          <span class="stat-label">{{ t('projectsOrchestration.totalCompleted') }}</span>
         </div>
       </div>
     </div>
@@ -121,7 +121,7 @@
         <svg viewBox="0 0 24 24" fill="currentColor" class="dispatch-icon">
           <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
         </svg>
-        <span>{{ lastDispatchResult.count }} task(s) dispatched</span>
+        <span>{{ t('projectsOrchestration.tasksDispatched', { count: lastDispatchResult.count }) }}</span>
       </div>
       <div class="dispatch-details">
         <div
@@ -129,7 +129,7 @@
           :key="item.task_id"
           class="dispatch-item"
         >
-          Task {{ item.task_id.slice(0, 8) }}... → Instance {{ item.instance_id.slice(0, 8) }}...
+          {{ t('projectsOrchestration.dispatchItem', { task: item.task_id.slice(0, 8), instance: item.instance_id.slice(0, 8) }) }}
         </div>
       </div>
     </div>
@@ -137,7 +137,7 @@
     <!-- Instances Grid -->
     <div class="section">
       <div class="section-header">
-        <h2 class="section-title">Connected Instances</h2>
+        <h2 class="section-title">{{ t('projectsOrchestration.connectedInstances') }}</h2>
         <span class="section-count">{{ connectedInstances.length }}</span>
       </div>
 
@@ -153,15 +153,15 @@
         <svg viewBox="0 0 24 24" fill="currentColor" class="empty-icon">
           <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
         </svg>
-        <p>No instances connected</p>
-        <span class="empty-hint">Start an agent with this project to see instances here</span>
+        <p>{{ t('projectsOrchestration.noInstancesConnected') }}</p>
+        <span class="empty-hint">{{ t('projectsOrchestration.noInstancesHint') }}</span>
       </div>
     </div>
 
     <!-- Activity Feed -->
     <div class="section">
       <div class="section-header">
-        <h2 class="section-title">Recent Activity</h2>
+        <h2 class="section-title">{{ t('projectsOrchestration.recentActivity') }}</h2>
       </div>
       <ActivityFeed
         :activities="activityLogs"
@@ -173,12 +173,14 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useOrchestratorStore } from '@/stores/orchestrator';
 import { useProjectsStore } from '@/stores/projects';
 import InstanceCard from '@/components/multiagent/InstanceCard.vue';
 import ActivityFeed from '@/components/multiagent/ActivityFeed.vue';
 
 const route = useRoute();
+const { t } = useI18n();
 const orchestratorStore = useOrchestratorStore();
 const projectsStore = useProjectsStore();
 

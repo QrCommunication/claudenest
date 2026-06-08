@@ -7,7 +7,7 @@
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
             </svg>
-            API Tester
+            {{ t('docsApitester.apiTester') }}
           </h2>
           <button class="close-btn" @click="$emit('close')">
             <svg viewBox="0 0 24 24" fill="currentColor">
@@ -19,7 +19,7 @@
         <div class="tester-body">
           <!-- Request Configuration -->
           <div class="request-section">
-            <h3>Request</h3>
+            <h3>{{ t('docsApitester.request') }}</h3>
             
             <div class="request-line">
               <select v-model="method" class="method-select">
@@ -43,17 +43,17 @@
                 @click="sendRequest"
               >
                 <span v-if="isLoading" class="spinner"></span>
-                <span v-else>Send</span>
+                <span v-else>{{ t('docsApitester.send') }}</span>
               </button>
             </div>
 
             <!-- Auth Token -->
             <div class="input-group">
-              <label>Authorization Token</label>
-              <input 
-                type="text" 
+              <label>{{ t('docsApitester.authorizationToken') }}</label>
+              <input
+                type="text"
                 v-model="authToken"
-                placeholder="Bearer YOUR_TOKEN_HERE"
+                :placeholder="t('docsApitester.authTokenPlaceholder')"
               />
             </div>
 
@@ -64,29 +64,29 @@
                 :class="{ active: activeTab === 'headers' }"
                 @click="activeTab = 'headers'"
               >
-                Headers ({{ headersCount }})
+                {{ t('docsApitester.headers') }} ({{ headersCount }})
               </button>
               <button 
                 class="tab-btn"
                 :class="{ active: activeTab === 'body' }"
                 @click="activeTab = 'body'"
               >
-                Body
+                {{ t('docsApitester.body') }}
               </button>
             </div>
 
             <!-- Headers -->
             <div v-if="activeTab === 'headers'" class="tab-panel">
               <div v-for="(header, index) in headers" :key="index" class="header-row">
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   v-model="header.key"
-                  placeholder="Header name"
+                  :placeholder="t('docsApitester.headerName')"
                 />
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   v-model="header.value"
-                  placeholder="Header value"
+                  :placeholder="t('docsApitester.headerValue')"
                 />
                 <button class="remove-btn" @click="removeHeader(index)">
                   <svg viewBox="0 0 24 24" fill="currentColor">
@@ -95,7 +95,7 @@
                 </button>
               </div>
               <button class="add-btn" @click="addHeader">
-                + Add Header
+                {{ t('docsApitester.addHeader') }}
               </button>
             </div>
 
@@ -114,7 +114,7 @@
           <!-- Response Section -->
           <div class="response-section" v-if="response">
             <div class="response-header">
-              <h3>Response</h3>
+              <h3>{{ t('docsApitester.response') }}</h3>
               <div class="response-meta">
                 <span 
                   class="status-badge"
@@ -132,14 +132,14 @@
                 :class="{ active: responseTab === 'body' }"
                 @click="responseTab = 'body'"
               >
-                Body
+                {{ t('docsApitester.body') }}
               </button>
               <button 
                 class="tab-btn"
                 :class="{ active: responseTab === 'headers' }"
                 @click="responseTab = 'headers'"
               >
-                Headers
+                {{ t('docsApitester.headers') }}
               </button>
             </div>
 
@@ -162,7 +162,7 @@
           <!-- Error Section -->
           <div class="error-section" v-if="error">
             <div class="error-box">
-              <h4>Error</h4>
+              <h4>{{ t('docsApitester.error') }}</h4>
               <p>{{ error }}</p>
             </div>
           </div>
@@ -174,6 +174,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface Header {
   key: string;
@@ -249,14 +252,14 @@ const validateBody = (): boolean => {
     bodyError.value = '';
     return true;
   } catch (e) {
-    bodyError.value = 'Invalid JSON format';
+    bodyError.value = t('docsApitester.invalidJsonFormat');
     return false;
   }
 };
 
 const sendRequest = async () => {
   if (!url.value) {
-    error.value = 'Please enter a URL';
+    error.value = t('docsApitester.pleaseEnterUrl');
     return;
   }
 
@@ -322,7 +325,7 @@ const sendRequest = async () => {
       headers: responseHeaders,
     };
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'An error occurred';
+    error.value = err instanceof Error ? err.message : t('docsApitester.anErrorOccurred');
   } finally {
     isLoading.value = false;
   }

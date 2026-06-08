@@ -9,10 +9,10 @@
     <!-- Error State -->
     <div v-else-if="!skill" class="text-center py-12">
       <AlertCircleIcon class="w-12 h-12 text-red-400 mx-auto mb-4" />
-      <h3 class="text-lg font-medium text-skin-primary mb-2">Skill not found</h3>
-      <p class="text-skin-secondary mb-4">The skill you're looking for doesn't exist or has been removed.</p>
+      <h3 class="text-lg font-medium text-skin-primary mb-2">{{ t('skillsShow.skillNotFound') }}</h3>
+      <p class="text-skin-secondary mb-4">{{ t('skillsShow.skillNotFoundDescription') }}</p>
       <Button variant="primary" @click="$router.push('/skills')">
-        Back to Skills
+        {{ t('skillsShow.backToSkills') }}
       </Button>
     </div>
 
@@ -45,7 +45,7 @@
           />
           <Button variant="ghost" @click="$router.push('/skills')">
             <ArrowLeftIcon class="w-4 h-4" />
-            Back
+            {{ t('skillsShow.back') }}
           </Button>
         </div>
       </div>
@@ -57,25 +57,25 @@
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Configuration -->
-        <Card title="Configuration" class-name="lg:col-span-2">
+        <Card :title="t('skillsShow.configuration')" class-name="lg:col-span-2">
           <div class="space-y-4">
             <div class="flex items-center justify-between">
               <p class="text-sm text-skin-secondary">
-                {{ skill.has_config ? 'Edit the JSON configuration for this skill' : 'No configuration options available' }}
+                {{ skill.has_config ? t('skillsShow.editJsonConfig') : t('skillsShow.noConfigOptions') }}
               </p>
               <div v-if="skill.has_config" class="flex gap-2">
                 <Button variant="ghost" size="sm" @click="resetConfig">
                   <RotateCcwIcon class="w-4 h-4" />
-                  Reset
+                  {{ t('skillsShow.reset') }}
                 </Button>
-                <Button 
-                  variant="primary" 
-                  size="sm" 
+                <Button
+                  variant="primary"
+                  size="sm"
                   :loading="skillsStore.isUpdating"
                   @click="saveConfig"
                 >
                   <SaveIcon class="w-4 h-4" />
-                  Save
+                  {{ t('skillsShow.save') }}
                 </Button>
               </div>
             </div>
@@ -91,13 +91,13 @@
             
             <div v-else class="text-center py-8 bg-surface-1 rounded-lg">
               <SettingsIcon class="w-8 h-8 text-skin-secondary mx-auto mb-2" />
-              <p class="text-sm text-skin-secondary">This skill has no configurable options</p>
+              <p class="text-sm text-skin-secondary">{{ t('skillsShow.noConfigurableOptions') }}</p>
             </div>
           </div>
         </Card>
 
         <!-- Tags -->
-        <Card v-if="skill.tags?.length" title="Tags">
+        <Card v-if="skill.tags?.length" :title="t('skillsShow.tags')">
           <div class="flex flex-wrap gap-2">
             <Badge 
               v-for="tag in skill.tags" 
@@ -111,7 +111,7 @@
         </Card>
 
         <!-- Examples -->
-        <Card v-if="skill.examples?.length" title="Examples">
+        <Card v-if="skill.examples?.length" :title="t('skillsShow.examples')">
           <div class="space-y-3">
             <div 
               v-for="(example, index) in skill.examples" 
@@ -135,7 +135,7 @@
 
       <!-- Related Skills -->
       <div v-if="skillsStore.relatedSkills.length > 0" class="mt-8">
-        <h2 class="text-lg font-semibold text-skin-primary mb-4">Related Skills</h2>
+        <h2 class="text-lg font-semibold text-skin-primary mb-4">{{ t('skillsShow.relatedSkills') }}</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <SkillCard
             v-for="relatedSkill in skillsStore.relatedSkills"
@@ -150,10 +150,10 @@
       <!-- Metadata -->
       <div class="mt-8 pt-6 border-t border-skin">
         <div class="flex flex-wrap gap-6 text-sm text-skin-secondary">
-          <span>Discovered: {{ skill.discovered_at_human || 'Unknown' }}</span>
-          <span>Created: {{ skill.created_at_human }}</span>
-          <span>Updated: {{ skill.updated_at }}</span>
-          <span>Machine ID: {{ skill.machine_id }}</span>
+          <span>{{ t('skillsShow.discovered') }}: {{ skill.discovered_at_human || t('skillsShow.unknown') }}</span>
+          <span>{{ t('skillsShow.created') }}: {{ skill.created_at_human }}</span>
+          <span>{{ t('skillsShow.updated') }}: {{ skill.updated_at }}</span>
+          <span>{{ t('skillsShow.machineId') }}: {{ skill.machine_id }}</span>
         </div>
       </div>
     </div>
@@ -163,6 +163,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useSkillsStore } from '@/stores/skills';
 import { useMachinesStore } from '@/stores/machines';
 import { useToast } from '@/composables/useToast';
@@ -184,6 +185,7 @@ import type { Skill } from '@/types';
 
 const route = useRoute();
 const router = useRouter();
+const { t } = useI18n();
 const skillsStore = useSkillsStore();
 const machinesStore = useMachinesStore();
 const toast = useToast();
@@ -218,7 +220,7 @@ async function loadSkill(): Promise<void> {
       configJson.value = JSON.stringify(skill.value.config, null, 2);
     }
   } catch {
-    toast.error('Failed to load skill');
+    toast.error(t('skillsShow.failedToLoadSkill'));
   }
 }
 
@@ -227,9 +229,9 @@ async function toggleSkill(): Promise<void> {
   
   try {
     await skillsStore.toggleSkill(currentMachineId.value, skill.value.path);
-    toast.success(`Skill ${skill.value.enabled ? 'disabled' : 'enabled'}`);
+    toast.success(skill.value.enabled ? t('skillsShow.skillDisabled') : t('skillsShow.skillEnabled'));
   } catch {
-    toast.error('Failed to toggle skill');
+    toast.error(t('skillsShow.failedToToggleSkill'));
   }
 }
 
@@ -239,13 +241,13 @@ async function saveConfig(): Promise<void> {
   try {
     const config = JSON.parse(configJson.value);
     await skillsStore.updateSkill(currentMachineId.value, skill.value.path, { config });
-    toast.success('Configuration saved');
+    toast.success(t('skillsShow.configurationSaved'));
     configError.value = '';
   } catch (e) {
     if (e instanceof SyntaxError) {
-      configError.value = 'Invalid JSON: ' + e.message;
+      configError.value = t('skillsShow.invalidJson') + ': ' + e.message;
     } else {
-      toast.error('Failed to save configuration');
+      toast.error(t('skillsShow.failedToSaveConfiguration'));
     }
   }
 }

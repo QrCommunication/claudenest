@@ -2,14 +2,14 @@
   <div class="step-tasks">
     <div class="step-header">
       <div>
-        <h2 class="step-title">Tasks</h2>
-        <p class="step-desc">Define the initial tasks for this project. Agents will pick them up automatically.</p>
+        <h2 class="step-title">{{ t('projectsWizardSteptasks.title') }}</h2>
+        <p class="step-desc">{{ t('projectsWizardSteptasks.desc') }}</p>
       </div>
       <button class="btn btn-add" @click="emit('add')">
         <svg viewBox="0 0 24 24" fill="currentColor" class="btn-icon">
           <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
         </svg>
-        Add Task
+        {{ t('projectsWizardSteptasks.addTask') }}
       </button>
     </div>
 
@@ -44,13 +44,13 @@
               v-model="task.title"
               type="text"
               class="task-title-input"
-              placeholder="Task title..."
+              :placeholder="t('projectsWizardSteptasks.taskTitlePlaceholder')"
             />
             <select v-model="task.priority" class="priority-select">
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-              <option value="critical">Critical</option>
+              <option value="low">{{ t('projectsWizardSteptasks.priorityLow') }}</option>
+              <option value="medium">{{ t('projectsWizardSteptasks.priorityMedium') }}</option>
+              <option value="high">{{ t('projectsWizardSteptasks.priorityHigh') }}</option>
+              <option value="critical">{{ t('projectsWizardSteptasks.priorityCritical') }}</option>
             </select>
           </div>
 
@@ -65,19 +65,22 @@
           v-model="task.description"
           class="task-desc-input"
           rows="2"
-          placeholder="Description..."
+          :placeholder="t('projectsWizardSteptasks.descriptionPlaceholder')"
         ></textarea>
       </div>
     </div>
 
     <div class="empty-tasks" v-else>
-      <p>No tasks yet. Click "Add Task" or go back to generate them from context.</p>
+      <p>{{ t('projectsWizardSteptasks.emptyTasks') }}</p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import type { WizardState } from '@/composables/useProjectWizard';
+
+const { t } = useI18n();
 
 interface Props {
   state: WizardState;

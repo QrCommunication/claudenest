@@ -3,13 +3,13 @@
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-skin-primary">MCP Servers</h1>
-        <p class="text-skin-secondary mt-1">Manage Model Context Protocol servers and tools</p>
+        <h1 class="text-2xl font-bold text-skin-primary">{{ t('mcpIndex.title') }}</h1>
+        <p class="text-skin-secondary mt-1">{{ t('mcpIndex.subtitle') }}</p>
       </div>
       <div class="flex items-center gap-3">
         <MachineSelector />
         <Badge v-if="mcpStore.stats" variant="info" size="md">
-          {{ mcpStore.stats.running }}/{{ mcpStore.stats.total }} running
+          {{ mcpStore.stats.running }}/{{ mcpStore.stats.total }} {{ t('mcpIndex.running') }}
         </Badge>
         <Button
           variant="ghost"
@@ -17,11 +17,11 @@
           :loading="mcpStore.isLoading"
         >
           <RefreshCwIcon class="w-4 h-4" />
-          Refresh
+          {{ t('mcpIndex.refresh') }}
         </Button>
         <Button variant="primary" @click="showAddModal = true">
           <PlusIcon class="w-4 h-4" />
-          Add Server
+          {{ t('mcpIndex.addServer') }}
         </Button>
       </div>
     </div>
@@ -30,19 +30,19 @@
     <div v-if="mcpStore.stats" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
       <Card class-name="text-center">
         <p class="text-2xl font-bold text-skin-primary">{{ mcpStore.stats.total }}</p>
-        <p class="text-sm text-skin-secondary">Total Servers</p>
+        <p class="text-sm text-skin-secondary">{{ t('mcpIndex.totalServers') }}</p>
       </Card>
       <Card class-name="text-center">
         <p class="text-2xl font-bold text-green-400">{{ mcpStore.stats.running }}</p>
-        <p class="text-sm text-skin-secondary">Running</p>
+        <p class="text-sm text-skin-secondary">{{ t('mcpIndex.runningLabel') }}</p>
       </Card>
       <Card class-name="text-center">
         <p class="text-2xl font-bold text-skin-secondary">{{ mcpStore.stats.stopped }}</p>
-        <p class="text-sm text-skin-secondary">Stopped</p>
+        <p class="text-sm text-skin-secondary">{{ t('mcpIndex.stopped') }}</p>
       </Card>
       <Card class-name="text-center">
         <p class="text-2xl font-bold text-brand-purple">{{ mcpStore.stats.total_tools }}</p>
-        <p class="text-sm text-skin-secondary">Total Tools</p>
+        <p class="text-sm text-skin-secondary">{{ t('mcpIndex.totalTools') }}</p>
       </Card>
     </div>
 
@@ -57,7 +57,7 @@
         ]"
         @click="selectedTransport = null"
       >
-        All Transports
+        {{ t('mcpIndex.allTransports') }}
       </button>
       <button
         v-for="transport in mcpStore.transports"
@@ -81,11 +81,11 @@
 
     <div v-else-if="filteredServers.length === 0" class="text-center py-12">
       <ServerIcon class="w-12 h-12 text-skin-secondary mx-auto mb-4" />
-      <h3 class="text-lg font-medium text-skin-primary mb-2">No MCP servers</h3>
-      <p class="text-skin-secondary mb-4">Add your first MCP server to start using tools</p>
+      <h3 class="text-lg font-medium text-skin-primary mb-2">{{ t('mcpIndex.noServers') }}</h3>
+      <p class="text-skin-secondary mb-4">{{ t('mcpIndex.noServersHint') }}</p>
       <Button variant="primary" @click="showAddModal = true">
         <PlusIcon class="w-4 h-4" />
-        Add Server
+        {{ t('mcpIndex.addServer') }}
       </Button>
     </div>
 
@@ -118,24 +118,24 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <!-- Configuration -->
           <div>
-            <h4 class="text-sm font-medium text-skin-secondary mb-3">Configuration</h4>
+            <h4 class="text-sm font-medium text-skin-secondary mb-3">{{ t('mcpIndex.configuration') }}</h4>
             <div class="space-y-2 text-sm">
               <div class="flex justify-between">
-                <span class="text-skin-secondary">Transport</span>
+                <span class="text-skin-secondary">{{ t('mcpIndex.transport') }}</span>
                 <Badge variant="default" size="sm">{{ selectedServer.transport }}</Badge>
               </div>
               <div v-if="selectedServer.command" class="flex justify-between">
-                <span class="text-skin-secondary">Command</span>
+                <span class="text-skin-secondary">{{ t('mcpIndex.command') }}</span>
                 <code class="text-xs bg-surface-1 px-2 py-0.5 rounded font-mono max-w-xs truncate">
                   {{ selectedServer.command }}
                 </code>
               </div>
               <div v-if="selectedServer.url" class="flex justify-between">
-                <span class="text-skin-secondary">URL</span>
+                <span class="text-skin-secondary">{{ t('mcpIndex.url') }}</span>
                 <span class="text-skin-primary">{{ selectedServer.url }}</span>
               </div>
               <div class="flex justify-between">
-                <span class="text-skin-secondary">Status</span>
+                <span class="text-skin-secondary">{{ t('mcpIndex.status') }}</span>
                 <MCPStatusBadge :status="selectedServer.status" />
               </div>
             </div>
@@ -144,9 +144,9 @@
           <!-- Tools Preview -->
           <div>
             <div class="flex items-center justify-between mb-3">
-              <h4 class="text-sm font-medium text-skin-secondary">Tools ({{ selectedServer.tools_count }})</h4>
+              <h4 class="text-sm font-medium text-skin-secondary">{{ t('mcpIndex.tools') }} ({{ selectedServer.tools_count }})</h4>
               <Button variant="ghost" size="sm" @click="viewTools(selectedServer)">
-                View All
+                {{ t('mcpIndex.viewAll') }}
               </Button>
             </div>
             <div v-if="selectedServer.tools?.length" class="space-y-2">
@@ -159,11 +159,11 @@
                 <span class="text-sm text-skin-primary">{{ tool.name }}</span>
               </div>
               <div v-if="selectedServer.tools.length > 3" class="text-sm text-skin-secondary text-center">
-                +{{ selectedServer.tools.length - 3 }} more
+                +{{ selectedServer.tools.length - 3 }} {{ t('mcpIndex.more') }}
               </div>
             </div>
             <div v-else class="text-sm text-skin-secondary">
-              No tools available
+              {{ t('mcpIndex.noToolsAvailable') }}
             </div>
           </div>
         </div>
@@ -172,7 +172,7 @@
         <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-skin">
           <Button variant="error" @click="deleteServer(selectedServer)">
             <TrashIcon class="w-4 h-4" />
-            Delete
+            {{ t('mcpIndex.delete') }}
           </Button>
           <Button 
             v-if="selectedServer.status === 'stopped'"
@@ -181,7 +181,7 @@
             @click="startServer(selectedServer)"
           >
             <PlayIcon class="w-4 h-4" />
-            Start
+            {{ t('mcpIndex.start') }}
           </Button>
           <Button 
             v-else
@@ -190,7 +190,7 @@
             @click="stopServer(selectedServer)"
           >
             <SquareIcon class="w-4 h-4" />
-            Stop
+            {{ t('mcpIndex.stop') }}
           </Button>
         </div>
       </Card>
@@ -217,6 +217,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useMCPStore } from '@/stores/mcp';
 import { useMachinesStore } from '@/stores/machines';
 import { useToast } from '@/composables/useToast';
@@ -241,6 +242,7 @@ import {
 } from 'lucide-vue-next';
 import type { MCPServer, CreateMCPServerPayload } from '@/types';
 
+const { t } = useI18n();
 const mcpStore = useMCPStore();
 const machinesStore = useMachinesStore();
 const { success: toastSuccess, error: toastError } = useToast();
@@ -281,13 +283,13 @@ async function loadServers(): Promise<void> {
   try {
     await mcpStore.fetchServers(currentMachineId.value);
   } catch {
-    toastError('Failed to load MCP servers');
+    toastError(t('mcpIndex.toastLoadFailed'));
   }
 }
 
 async function refreshServers(): Promise<void> {
   await loadServers();
-  toastSuccess('Servers refreshed');
+  toastSuccess(t('mcpIndex.toastServersRefreshed'));
 }
 
 async function addServer(data: CreateMCPServerPayload): Promise<void> {
@@ -295,10 +297,10 @@ async function addServer(data: CreateMCPServerPayload): Promise<void> {
 
   try {
     await mcpStore.createServer(currentMachineId.value, data);
-    toastSuccess('MCP server added');
+    toastSuccess(t('mcpIndex.toastServerAdded'));
     showAddModal.value = false;
   } catch {
-    toastError('Failed to add MCP server');
+    toastError(t('mcpIndex.toastAddFailed'));
   }
 }
 
@@ -307,9 +309,9 @@ async function startServer(server: MCPServer): Promise<void> {
 
   try {
     await mcpStore.startServer(currentMachineId.value, server.name);
-    toastSuccess(`Server "${server.display_name}" started`);
+    toastSuccess(t('mcpIndex.toastServerStarted', { name: server.display_name }));
   } catch {
-    toastError('Failed to start server');
+    toastError(t('mcpIndex.toastStartFailed'));
   }
 }
 
@@ -318,9 +320,9 @@ async function stopServer(server: MCPServer): Promise<void> {
 
   try {
     await mcpStore.stopServer(currentMachineId.value, server.name);
-    toastSuccess(`Server "${server.display_name}" stopped`);
+    toastSuccess(t('mcpIndex.toastServerStopped', { name: server.display_name }));
   } catch {
-    toastError('Failed to stop server');
+    toastError(t('mcpIndex.toastStopFailed'));
   }
 }
 
@@ -350,25 +352,25 @@ async function refreshServerTools(server: MCPServer): Promise<void> {
 
   try {
     await mcpStore.fetchServerTools(currentMachineId.value, server.name);
-    toastSuccess('Tools refreshed');
+    toastSuccess(t('mcpIndex.toastToolsRefreshed'));
   } catch {
-    toastError('Failed to refresh tools');
+    toastError(t('mcpIndex.toastToolsRefreshFailed'));
   }
 }
 
 async function deleteServer(server: MCPServer): Promise<void> {
   if (!currentMachineId.value) return;
 
-  if (!confirm(`Are you sure you want to delete "${server.display_name}"?`)) {
+  if (!confirm(t('mcpIndex.confirmDelete', { name: server.display_name }))) {
     return;
   }
 
   try {
     await mcpStore.deleteServer(currentMachineId.value, server.name);
     selectedServer.value = null;
-    toastSuccess('Server deleted');
+    toastSuccess(t('mcpIndex.toastServerDeleted'));
   } catch {
-    toastError('Failed to delete server');
+    toastError(t('mcpIndex.toastDeleteFailed'));
   }
 }
 </script>

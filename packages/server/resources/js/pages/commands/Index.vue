@@ -3,13 +3,13 @@
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-skin-primary">Commands</h1>
-        <p class="text-skin-secondary mt-1">Discover and execute available commands</p>
+        <h1 class="text-2xl font-bold text-skin-primary">{{ t('commandsIndex.title') }}</h1>
+        <p class="text-skin-secondary mt-1">{{ t('commandsIndex.subtitle') }}</p>
       </div>
       <div class="flex items-center gap-3">
         <MachineSelector />
         <Badge variant="info" size="md">
-          {{ commandsStore.pagination.total }} total
+          {{ commandsStore.pagination.total }} {{ t('commandsIndex.total') }}
         </Badge>
       </div>
     </div>
@@ -28,14 +28,14 @@
       <Select
         v-model="selectedCategory"
         :options="categoryOptions"
-        placeholder="All Categories"
+        :placeholder="t('commandsIndex.allCategories')"
         class="w-full sm:w-48"
       />
       <Select
         v-if="skillOptions.length > 0"
         v-model="selectedSkill"
         :options="skillOptions"
-        placeholder="All Skills"
+        :placeholder="t('commandsIndex.allSkills')"
         class="w-full sm:w-48"
       />
     </div>
@@ -65,9 +65,9 @@
 
     <div v-else-if="filteredCommands.length === 0" class="text-center py-12">
       <TerminalIcon class="w-12 h-12 text-skin-secondary mx-auto mb-4" />
-      <h3 class="text-lg font-medium text-skin-primary mb-2">No commands found</h3>
+      <h3 class="text-lg font-medium text-skin-primary mb-2">{{ t('commandsIndex.noCommandsFound') }}</h3>
       <p class="text-skin-secondary">
-        {{ searchQuery ? 'Try adjusting your search filters' : 'Commands will appear here once discovered' }}
+        {{ searchQuery ? t('commandsIndex.adjustFilters') : t('commandsIndex.commandsWillAppear') }}
       </p>
     </div>
 
@@ -89,7 +89,7 @@
                 {{ command.category }}
               </Badge>
               <Badge v-if="command.has_aliases" variant="default" size="sm">
-                {{ command.aliases.length }} alias{{ command.aliases.length > 1 ? 'es' : '' }}
+                {{ command.aliases.length }} {{ command.aliases.length > 1 ? t('commandsIndex.aliasesLabel') : t('commandsIndex.aliasLabel') }}
               </Badge>
             </div>
             <p v-if="command.description" class="text-sm text-skin-secondary mt-1">
@@ -135,7 +135,7 @@
           <ChevronLeftIcon class="w-4 h-4" />
         </Button>
         <span class="text-sm text-skin-secondary">
-          Page {{ currentPage }} of {{ totalPages }}
+          {{ t('commandsIndex.page') }} {{ currentPage }} {{ t('commandsIndex.of') }} {{ totalPages }}
         </span>
         <Button
           variant="ghost"
@@ -163,7 +163,7 @@
             {{ selectedCommand.category }}
           </Badge>
           <Badge variant="default" size="sm">
-            {{ selectedCommand.parameters_count }} params
+            {{ selectedCommand.parameters_count }} {{ t('commandsIndex.params') }}
           </Badge>
         </div>
 
@@ -172,12 +172,12 @@
         </p>
 
         <div class="bg-surface-1 rounded-lg p-3">
-          <p class="text-xs text-skin-secondary mb-1">Usage</p>
+          <p class="text-xs text-skin-secondary mb-1">{{ t('commandsIndex.usage') }}</p>
           <code class="text-brand-purple font-mono text-sm">{{ selectedCommand.signature }}</code>
         </div>
 
         <div v-if="selectedCommand.parameters.length > 0">
-          <p class="text-sm font-medium text-skin-primary mb-2">Parameters</p>
+          <p class="text-sm font-medium text-skin-primary mb-2">{{ t('commandsIndex.parameters') }}</p>
           <div class="space-y-2">
             <div
               v-for="param in selectedCommand.parameters"
@@ -187,7 +187,7 @@
               <div class="flex items-center gap-2">
                 <code class="text-skin-primary font-mono">{{ param.name }}</code>
                 <Badge size="sm" variant="default">{{ param.type }}</Badge>
-                <Badge v-if="param.required" size="sm" variant="error">required</Badge>
+                <Badge v-if="param.required" size="sm" variant="error">{{ t('commandsIndex.required') }}</Badge>
               </div>
               <p v-if="param.description" class="text-xs text-skin-secondary mt-1">
                 {{ param.description }}
@@ -197,7 +197,7 @@
         </div>
 
         <div v-if="selectedCommand.aliases.length > 0">
-          <p class="text-sm font-medium text-skin-primary mb-2">Aliases</p>
+          <p class="text-sm font-medium text-skin-primary mb-2">{{ t('commandsIndex.aliases') }}</p>
           <div class="flex gap-2">
             <code 
               v-for="alias in selectedCommand.aliases" 
@@ -210,7 +210,7 @@
         </div>
 
         <div v-if="selectedCommand.examples?.length">
-          <p class="text-sm font-medium text-skin-primary mb-2">Examples</p>
+          <p class="text-sm font-medium text-skin-primary mb-2">{{ t('commandsIndex.examples') }}</p>
           <div class="space-y-2">
             <div
               v-for="(example, index) in selectedCommand.examples"
@@ -230,15 +230,15 @@
       <template #footer>
         <div class="flex justify-end gap-3">
           <Button variant="ghost" @click="showDetail = false">
-            Close
+            {{ t('commandsIndex.close') }}
           </Button>
-          <Button 
-            variant="primary" 
+          <Button
+            variant="primary"
             :loading="commandsStore.isExecuting"
             @click="executeCommand"
           >
             <PlayIcon class="w-4 h-4" />
-            Execute
+            {{ t('commandsIndex.execute') }}
           </Button>
         </div>
       </template>
@@ -248,6 +248,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useCommandsStore } from '@/stores/commands';
 import { useMachinesStore } from '@/stores/machines';
 import { useToast } from '@/composables/useToast';
@@ -268,6 +269,7 @@ import {
 } from 'lucide-vue-next';
 import type { DiscoveredCommand, CommandCategory } from '@/types';
 
+const { t } = useI18n();
 const commandsStore = useCommandsStore();
 const machinesStore = useMachinesStore();
 const toast = useToast();
@@ -347,7 +349,7 @@ async function loadCommands(): Promise<void> {
   try {
     await commandsStore.fetchCommands(currentMachineId.value);
   } catch {
-    toast.error('Failed to load commands');
+    toast.error(t('commandsIndex.loadFailed'));
   }
 }
 
@@ -361,10 +363,10 @@ async function executeCommand(): Promise<void> {
   
   try {
     await commandsStore.executeCommand(currentMachineId.value, selectedCommand.value.id);
-    toast.success(`Command "${selectedCommand.value.name}" executed`);
+    toast.success(t('commandsIndex.commandExecuted', { name: selectedCommand.value.name }));
     showDetail.value = false;
   } catch {
-    toast.error('Failed to execute command');
+    toast.error(t('commandsIndex.executeFailed'));
   }
 }
 

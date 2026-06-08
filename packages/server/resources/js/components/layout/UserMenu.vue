@@ -9,7 +9,7 @@
 
       <!-- Name & Email -->
       <div class="user-info">
-        <p class="user-name">{{ user?.name || 'Guest' }}</p>
+        <p class="user-name">{{ user?.name || t('layoutUsermenu.guest') }}</p>
         <p class="user-email">{{ user?.email || '' }}</p>
       </div>
 
@@ -28,7 +28,7 @@
             <span v-else>{{ initials }}</span>
           </div>
           <div class="min-w-0">
-            <p class="dropdown-user-name">{{ user?.name || 'Guest' }}</p>
+            <p class="dropdown-user-name">{{ user?.name || t('layoutUsermenu.guest') }}</p>
             <p class="dropdown-user-email">{{ user?.email || '' }}</p>
           </div>
         </div>
@@ -39,7 +39,7 @@
             <svg class="dropdown-item-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
-            Profile
+            {{ t('layoutUsermenu.profile') }}
           </router-link>
 
           <router-link to="/settings" class="dropdown-item" @click="isOpen = false">
@@ -47,7 +47,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            Settings
+            {{ t('layoutUsermenu.settings') }}
           </router-link>
         </div>
 
@@ -59,7 +59,7 @@
             <svg class="dropdown-item-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
-            Sign out
+            {{ t('layoutUsermenu.signOut') }}
           </button>
         </div>
       </div>
@@ -69,6 +69,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { useToast } from '@/composables/useToast';
@@ -80,6 +81,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), { user: null });
 
+const { t } = useI18n();
 const router = useRouter();
 const authStore = useAuthStore();
 const toast = useToast();
@@ -111,9 +113,9 @@ const handleLogout = async () => {
   try {
     await authStore.logout();
     router.push('/login');
-    toast.success('Signed out', 'You have been successfully signed out');
+    toast.success(t('layoutUsermenu.signedOut'), t('layoutUsermenu.signedOutMessage'));
   } catch {
-    toast.error('Error', 'Failed to sign out');
+    toast.error(t('layoutUsermenu.error'), t('layoutUsermenu.signOutFailed'));
   }
 };
 </script>

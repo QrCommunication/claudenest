@@ -18,7 +18,7 @@
           v-if="machine.status === 'offline' && machineHasWakeOnLan"
           class="action-btn wake-btn"
           @click="$emit('wake', machine.id)"
-          title="Wake on LAN"
+          :title="t('machinesMachinecard.wakeOnLan')"
         >
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83z"/>
@@ -28,7 +28,7 @@
           class="action-btn connect-btn"
           :disabled="machine.status !== 'online'"
           @click="$emit('connect', machine)"
-          title="Connect"
+          :title="t('machinesMachinecard.connect')"
         >
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
@@ -37,7 +37,7 @@
         <button 
           class="action-btn edit-btn"
           @click="$emit('edit', machine)"
-          title="Edit"
+          :title="t('machinesMachinecard.edit')"
         >
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
@@ -46,7 +46,7 @@
         <button 
           class="action-btn delete-btn"
           @click="$emit('delete', machine)"
-          title="Delete"
+          :title="t('machinesMachinecard.delete')"
         >
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
@@ -64,13 +64,13 @@
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9z"/>
           </svg>
-          {{ machine.last_seen_human || 'Never' }}
+          {{ machine.last_seen_human || t('machinesMachinecard.never') }}
         </span>
         <span class="meta-item sessions" :class="{ 'sessions-active': machine.active_sessions_count > 0 }">
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
           </svg>
-          {{ machine.active_sessions_count }} active
+          {{ machine.active_sessions_count }} {{ t('machinesMachinecard.active') }}
         </span>
       </div>
       
@@ -84,16 +84,19 @@
       v-if="!machine.can_accept_more_sessions && machine.status === 'online'" 
       class="machine-warning"
     >
-      Max sessions reached
+      {{ t('machinesMachinecard.maxSessionsReached') }}
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import StatusDot from './StatusDot.vue';
 import PlatformIcon from './PlatformIcon.vue';
 import type { Machine } from '@/types';
+
+const { t } = useI18n();
 
 interface Props {
   machine: Machine;

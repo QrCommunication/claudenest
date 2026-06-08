@@ -16,7 +16,7 @@
         <button
           class="copy-path-btn"
           @click.stop="copyEndpoint"
-          :aria-label="copied ? 'Copied' : 'Copy endpoint'"
+          :aria-label="copied ? t('docsEndpointcard.copied') : t('docsEndpointcard.copyEndpoint')"
           type="button"
         >
           <svg v-if="!copied" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
@@ -45,14 +45,14 @@
     <div v-if="expanded" class="endpoint-body">
       <!-- Parameters -->
       <div v-if="params?.length" class="endpoint-section">
-        <h4 class="section-title">Parameters</h4>
+        <h4 class="section-title">{{ t('docsEndpointcard.parameters') }}</h4>
         <table class="params-table">
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Type</th>
-              <th>Required</th>
-              <th>Description</th>
+              <th>{{ t('docsEndpointcard.name') }}</th>
+              <th>{{ t('docsEndpointcard.type') }}</th>
+              <th>{{ t('docsEndpointcard.required') }}</th>
+              <th>{{ t('docsEndpointcard.description') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -61,7 +61,7 @@
               <td><span class="type-badge">{{ param.type }}</span></td>
               <td>
                 <span class="required-badge" :class="{ required: param.required }">
-                  {{ param.required ? 'Yes' : 'No' }}
+                  {{ param.required ? t('docsEndpointcard.yes') : t('docsEndpointcard.no') }}
                 </span>
               </td>
               <td>{{ param.description }}</td>
@@ -72,13 +72,13 @@
 
       <!-- Code Examples -->
       <div v-if="codeExamples.length" class="endpoint-section">
-        <h4 class="section-title">Examples</h4>
+        <h4 class="section-title">{{ t('docsEndpointcard.examples') }}</h4>
         <CodeTabs :tabs="codeExamples" />
       </div>
 
       <!-- Responses -->
       <div v-if="responses?.length" class="endpoint-section">
-        <h4 class="section-title">Responses</h4>
+        <h4 class="section-title">{{ t('docsEndpointcard.responses') }}</h4>
         <div v-for="(resp, i) in responses" :key="i" class="response-block">
           <div class="response-header">
             <span class="http-status" :class="String(resp.status).startsWith('2') ? 'status-ok' : 'status-err'">
@@ -97,6 +97,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useDocs } from '@/composables/useDocs';
 import CodeBlock from './CodeBlock.vue';
 import CodeTabs from './CodeTabs.vue';
@@ -125,6 +126,7 @@ const props = defineProps<{
   responses?: ResponseExample[];
 }>();
 
+const { t } = useI18n();
 const { copyToClipboard } = useDocs();
 
 const expanded = ref(false);

@@ -3,20 +3,20 @@
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-skin-primary">MCP Tools</h1>
-        <p class="text-skin-secondary mt-1">Browse and test tools from all MCP servers</p>
+        <h1 class="text-2xl font-bold text-skin-primary">{{ t('mcpTools.title') }}</h1>
+        <p class="text-skin-secondary mt-1">{{ t('mcpTools.subtitle') }}</p>
       </div>
       <div class="flex items-center gap-3">
         <Badge variant="info" size="md">
-          {{ mcpStore.allTools.length }} tools
+          {{ t('mcpTools.toolsCount', { count: mcpStore.allTools.length }) }}
         </Badge>
-        <Button 
-          variant="primary" 
+        <Button
+          variant="primary"
           @click="refreshTools"
           :loading="mcpStore.isLoadingTools"
         >
           <RefreshCwIcon class="w-4 h-4" />
-          Refresh
+          {{ t('mcpTools.refresh') }}
         </Button>
       </div>
     </div>
@@ -26,7 +26,7 @@
       <Input
         v-model="searchQuery"
         type="text"
-        placeholder="Search tools..."
+        :placeholder="t('mcpTools.searchPlaceholder')"
         class="w-full max-w-md"
       >
         <template #left-icon>
@@ -46,7 +46,7 @@
         ]"
         @click="selectedServer = null"
       >
-        All Servers
+        {{ t('mcpTools.allServers') }}
       </button>
       <button
         v-for="server in mcpStore.servers"
@@ -71,9 +71,9 @@
     <!-- Empty State -->
     <div v-else-if="filteredTools.length === 0" class="text-center py-12">
       <WrenchIcon class="w-12 h-12 text-skin-secondary mx-auto mb-4" />
-      <h3 class="text-lg font-medium text-skin-primary mb-2">No tools found</h3>
+      <h3 class="text-lg font-medium text-skin-primary mb-2">{{ t('mcpTools.noToolsFound') }}</h3>
       <p class="text-skin-secondary">
-        {{ searchQuery ? 'Try adjusting your search' : 'Start an MCP server to see available tools' }}
+        {{ searchQuery ? t('mcpTools.tryAdjustingSearch') : t('mcpTools.startServerHint') }}
       </p>
     </div>
 
@@ -103,6 +103,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useMCPStore } from '@/stores/mcp';
 import { useMachinesStore } from '@/stores/machines';
 import { useToast } from '@/composables/useToast';
@@ -119,6 +120,7 @@ import {
 } from 'lucide-vue-next';
 import type { MCPTool, MCPToolWithServer } from '@/types';
 
+const { t } = useI18n();
 const mcpStore = useMCPStore();
 const machinesStore = useMachinesStore();
 const { success: toastSuccess, error: toastError } = useToast();
@@ -165,13 +167,13 @@ async function loadTools(): Promise<void> {
       mcpStore.fetchAllTools(currentMachineId.value),
     ]);
   } catch {
-    toastError('Failed to load tools');
+    toastError(t('mcpTools.loadFailed'));
   }
 }
 
 async function refreshTools(): Promise<void> {
   await loadTools();
-  toastSuccess('Tools refreshed');
+  toastSuccess(t('mcpTools.toolsRefreshed'));
 }
 
 function openToolTester(tool: MCPTool | MCPToolWithServer): void {
@@ -204,10 +206,10 @@ async function executeTool(params: Record<string, unknown>): Promise<void> {
       }
     );
     executionResult.value = result;
-    toastSuccess('Tool executed successfully');
+    toastSuccess(t('mcpTools.executeSuccess'));
   } catch (err) {
-    executionError.value = 'Failed to execute tool';
-    toastError('Failed to execute tool');
+    executionError.value = t('mcpTools.executeFailed');
+    toastError(t('mcpTools.executeFailed'));
   }
 }
 </script>

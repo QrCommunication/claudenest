@@ -2,7 +2,7 @@
   <div class="modal-overlay" @click.self="$emit('close')">
     <div :class="['modal-card', { 'modal-card-wide': step === 'terminal' }]">
       <div class="modal-header">
-        <h2>{{ step === 'terminal' ? 'Login via Terminal' : 'Add Credential' }}</h2>
+        <h2>{{ step === 'terminal' ? t('credentialsAddcredentialmodal.loginViaTerminal') : t('credentialsAddcredentialmodal.addCredential') }}</h2>
         <button class="close-btn" @click="handleClose">
           <svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
             <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
@@ -16,7 +16,7 @@
           <!-- Name Input -->
           <div class="form-group">
             <label for="name" class="form-label">
-              Name
+              {{ t('credentialsAddcredentialmodal.name') }}
               <span class="text-red-400">*</span>
             </label>
             <input
@@ -26,15 +26,15 @@
               class="form-input"
               placeholder="my-credential"
               pattern="[a-z0-9\-]+"
-              title="Only lowercase letters, numbers, and dashes allowed"
+              :title="t('credentialsAddcredentialmodal.nameTitle')"
               required
             />
-            <p class="form-hint">Use lowercase letters, numbers, and dashes only</p>
+            <p class="form-hint">{{ t('credentialsAddcredentialmodal.nameHint') }}</p>
           </div>
 
           <!-- Auth Type Tabs -->
           <div class="form-group">
-            <label class="form-label">Authentication Type</label>
+            <label class="form-label">{{ t('credentialsAddcredentialmodal.authenticationType') }}</label>
             <div class="tabs">
               <button
                 type="button"
@@ -44,7 +44,7 @@
                 <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
                   <path d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
                 </svg>
-                API Key
+                {{ t('credentialsAddcredentialmodal.apiKey') }}
               </button>
               <button
                 type="button"
@@ -54,7 +54,7 @@
                 <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                 </svg>
-                OAuth
+                {{ t('credentialsAddcredentialmodal.oauth') }}
               </button>
             </div>
           </div>
@@ -62,7 +62,7 @@
           <!-- API Key Input -->
           <div v-if="form.auth_type === 'api_key'" class="form-group">
             <label for="api_key" class="form-label">
-              API Key
+              {{ t('credentialsAddcredentialmodal.apiKey') }}
               <span class="text-red-400">*</span>
             </label>
             <input
@@ -73,26 +73,26 @@
               placeholder="sk-ant-..."
               required
             />
-            <p class="form-hint">Your Claude API key from Anthropic Console</p>
+            <p class="form-hint">{{ t('credentialsAddcredentialmodal.apiKeyHint') }}</p>
           </div>
 
           <!-- OAuth Section -->
           <div v-if="form.auth_type === 'oauth'" class="oauth-section">
             <!-- Machine selector -->
             <div v-if="onlineMachines.length > 0" class="form-group">
-              <label class="form-label">Machine</label>
+              <label class="form-label">{{ t('credentialsAddcredentialmodal.machine') }}</label>
               <select v-model="selectedMachineId" class="form-input">
                 <option v-for="m in onlineMachines" :key="m.id" :value="m.id">
                   {{ m.display_name || m.name }} ({{ m.platform }})
                 </option>
               </select>
-              <p class="form-hint">A bash terminal will open on this machine</p>
+              <p class="form-hint">{{ t('credentialsAddcredentialmodal.machineHint') }}</p>
             </div>
             <div v-else class="oauth-no-machine">
               <svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
                 <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
               </svg>
-              <p>No machines online. Start the ClaudeNest agent on your machine first.</p>
+              <p>{{ t('credentialsAddcredentialmodal.noMachinesOnline') }}</p>
             </div>
 
             <!-- Connect button -->
@@ -105,20 +105,20 @@
               <svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
                 <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8h16v12zM6 10h2v2H6zm0 4h8v2H6zm10 0h2v2h-2zm-6-4h8v2h-8z"/>
               </svg>
-              Open Terminal &amp; Login
+              {{ t('credentialsAddcredentialmodal.openTerminalLogin') }}
             </button>
             <p class="form-hint text-center">
-              Opens a bash session — run <code>claude login</code> then capture credentials
+              {{ t('credentialsAddcredentialmodal.opensBashSessionPrefix') }} <code>claude login</code> {{ t('credentialsAddcredentialmodal.opensBashSessionSuffix') }}
             </p>
 
             <!-- Divider -->
             <div class="oauth-divider">
-              <span>or enter tokens manually</span>
+              <span>{{ t('credentialsAddcredentialmodal.orEnterTokensManually') }}</span>
             </div>
 
             <!-- Manual token inputs -->
             <div class="form-group">
-              <label for="access_token" class="form-label">Access Token</label>
+              <label for="access_token" class="form-label">{{ t('credentialsAddcredentialmodal.accessToken') }}</label>
               <input
                 id="access_token"
                 v-model="form.access_token"
@@ -126,10 +126,10 @@
                 class="form-input font-mono text-sm"
                 placeholder="oat01-..."
               />
-              <p class="form-hint">From claudeAiOauth.accessToken in ~/.claude/.credentials.json</p>
+              <p class="form-hint">{{ t('credentialsAddcredentialmodal.accessTokenHint') }}</p>
             </div>
             <div class="form-group">
-              <label for="refresh_token" class="form-label">Refresh Token</label>
+              <label for="refresh_token" class="form-label">{{ t('credentialsAddcredentialmodal.refreshToken') }}</label>
               <input
                 id="refresh_token"
                 v-model="form.refresh_token"
@@ -137,42 +137,42 @@
                 class="form-input font-mono text-sm"
                 placeholder="ort01-..."
               />
-              <p class="form-hint">From claudeAiOauth.refreshToken in credentials file</p>
+              <p class="form-hint">{{ t('credentialsAddcredentialmodal.refreshTokenHint') }}</p>
             </div>
           </div>
 
           <!-- Claude Dir Mode -->
           <div class="form-group">
-            <label class="form-label">Claude Directory Mode</label>
+            <label class="form-label">{{ t('credentialsAddcredentialmodal.claudeDirectoryMode') }}</label>
             <div class="toggle-group">
               <button
                 type="button"
                 :class="['toggle-btn', { 'toggle-btn-active': form.claude_dir_mode === 'shared' }]"
                 @click="form.claude_dir_mode = 'shared'"
               >
-                Shared
+                {{ t('credentialsAddcredentialmodal.shared') }}
               </button>
               <button
                 type="button"
                 :class="['toggle-btn', { 'toggle-btn-active': form.claude_dir_mode === 'isolated' }]"
                 @click="form.claude_dir_mode = 'isolated'"
               >
-                Isolated
+                {{ t('credentialsAddcredentialmodal.isolated') }}
               </button>
             </div>
             <p class="form-hint">
-              {{ form.claude_dir_mode === 'shared' ? 'Share credentials across machines (~/.claude/)' : 'Isolated per machine (~/.config/claudenest/)' }}
+              {{ form.claude_dir_mode === 'shared' ? t('credentialsAddcredentialmodal.sharedHint') : t('credentialsAddcredentialmodal.isolatedHint') }}
             </p>
           </div>
 
           <!-- Submit Buttons -->
           <div class="modal-footer">
             <button type="button" class="btn-secondary" @click="$emit('close')" :disabled="isSubmitting">
-              Cancel
+              {{ t('credentialsAddcredentialmodal.cancel') }}
             </button>
             <button type="submit" class="btn-primary" :disabled="isSubmitting">
               <div v-if="isSubmitting" class="spinner"></div>
-              <span v-else>Create Credential</span>
+              <span v-else>{{ t('credentialsAddcredentialmodal.createCredential') }}</span>
             </button>
           </div>
         </form>
@@ -180,7 +180,7 @@
         <!-- ==================== STEP 2: Terminal ==================== -->
         <div v-if="step === 'terminal'" class="terminal-step">
           <div class="terminal-hint">
-            Run <code>claude login</code> in this terminal, complete the login, then click <strong>Capture Credentials</strong>.
+            {{ t('credentialsAddcredentialmodal.terminalHintPrefix') }} <code>claude login</code> {{ t('credentialsAddcredentialmodal.terminalHintMiddle') }} <strong>{{ t('credentialsAddcredentialmodal.captureCredentials') }}</strong>.
           </div>
 
           <!-- Embedded terminal -->
@@ -195,7 +195,7 @@
           <!-- Action bar -->
           <div class="terminal-actions">
             <button type="button" class="btn-secondary" @click="handleClose">
-              Cancel
+              {{ t('credentialsAddcredentialmodal.cancel') }}
             </button>
             <button
               type="button"
@@ -208,7 +208,7 @@
                 <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
                   <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
                 </svg>
-                Capture Credentials
+                {{ t('credentialsAddcredentialmodal.captureCredentials') }}
               </template>
             </button>
           </div>
@@ -220,6 +220,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useCredentialsStore } from '@/stores/credentials';
 import { useSessionsStore } from '@/stores/sessions';
 import { useMachinesStore } from '@/stores/machines';
@@ -242,6 +243,7 @@ const emit = defineEmits<{
   (e: 'created'): void;
 }>();
 
+const { t } = useI18n();
 const store = useCredentialsStore();
 const sessionsStore = useSessionsStore();
 const machinesStore = useMachinesStore();
@@ -279,12 +281,12 @@ async function handleSubmit(): Promise<void> {
 
   try {
     if (!/^[a-z0-9-]+$/.test(form.name)) {
-      toast.error('Invalid name format', 'Use only lowercase letters, numbers, and dashes');
+      toast.error(t('credentialsAddcredentialmodal.invalidNameFormat'), t('credentialsAddcredentialmodal.useOnlyLowercase'));
       return;
     }
 
     if (form.auth_type === 'api_key' && !form.api_key.trim()) {
-      toast.error('API key is required');
+      toast.error(t('credentialsAddcredentialmodal.apiKeyRequired'));
       return;
     }
 
@@ -304,7 +306,7 @@ async function handleSubmit(): Promise<void> {
     await store.createCredential(payload);
     emit('created');
   } catch (error: unknown) {
-    toast.error('Failed to create credential', getErrorMessage(error));
+    toast.error(t('credentialsAddcredentialmodal.failedToCreateCredential'), getErrorMessage(error));
   } finally {
     isSubmitting.value = false;
   }
@@ -312,12 +314,12 @@ async function handleSubmit(): Promise<void> {
 
 async function handleConnectClaude(): Promise<void> {
   if (!form.name || !/^[a-z0-9-]+$/.test(form.name)) {
-    toast.error('Enter a valid name first', 'Use only lowercase letters, numbers, and dashes');
+    toast.error(t('credentialsAddcredentialmodal.enterValidNameFirst'), t('credentialsAddcredentialmodal.useOnlyLowercase'));
     return;
   }
 
   if (!selectedMachineId.value) {
-    toast.error('No machine selected');
+    toast.error(t('credentialsAddcredentialmodal.noMachineSelected'));
     return;
   }
 
@@ -340,7 +342,7 @@ async function handleConnectClaude(): Promise<void> {
     // 3. Switch to terminal view
     step.value = 'terminal';
   } catch (error: unknown) {
-    toast.error('Failed to start terminal', getErrorMessage(error));
+    toast.error(t('credentialsAddcredentialmodal.failedToStartTerminal'), getErrorMessage(error));
   }
 }
 
@@ -351,7 +353,7 @@ async function handleCapture(): Promise<void> {
 
   try {
     await store.captureFromMachine(currentCredentialId.value, selectedMachineId.value);
-    toast.success('Credentials captured!', 'OAuth tokens stored from ~/.claude/.credentials.json');
+    toast.success(t('credentialsAddcredentialmodal.credentialsCaptured'), t('credentialsAddcredentialmodal.oauthTokensStored'));
 
     // Clean up the bash session
     if (bashSessionId.value) {
@@ -360,7 +362,7 @@ async function handleCapture(): Promise<void> {
 
     emit('created');
   } catch (error: unknown) {
-    toast.error('Capture failed', getErrorMessage(error));
+    toast.error(t('credentialsAddcredentialmodal.captureFailed'), getErrorMessage(error));
   } finally {
     isCapturing.value = false;
   }

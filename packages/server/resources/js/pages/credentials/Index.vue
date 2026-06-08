@@ -2,14 +2,14 @@
   <div class="credentials-page">
     <div class="page-header">
       <div>
-        <h1>Credentials</h1>
-        <p class="page-subtitle">Manage your Claude API keys and OAuth tokens</p>
+        <h1>{{ t('credentialsIndex.title') }}</h1>
+        <p class="page-subtitle">{{ t('credentialsIndex.subtitle') }}</p>
       </div>
       <button class="btn-primary" @click="showAddModal = true">
         <svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
           <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
         </svg>
-        Add Credential
+        {{ t('credentialsIndex.addCredential') }}
       </button>
     </div>
 
@@ -19,16 +19,16 @@
 
     <div v-else-if="error" class="error-state">
       <p>{{ error }}</p>
-      <button class="btn-secondary" @click="loadCredentials">Retry</button>
+      <button class="btn-secondary" @click="loadCredentials">{{ t('credentialsIndex.retry') }}</button>
     </div>
 
     <div v-else-if="credentials.length === 0" class="empty-state">
       <svg viewBox="0 0 24 24" fill="currentColor" class="empty-icon">
         <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
       </svg>
-      <h3>No credentials yet</h3>
-      <p>Add your first Claude API key or OAuth token to get started.</p>
-      <button class="btn-primary" @click="showAddModal = true">Add Credential</button>
+      <h3>{{ t('credentialsIndex.emptyTitle') }}</h3>
+      <p>{{ t('credentialsIndex.emptyDescription') }}</p>
+      <button class="btn-primary" @click="showAddModal = true">{{ t('credentialsIndex.addCredential') }}</button>
     </div>
 
     <div v-else class="credentials-grid">
@@ -70,6 +70,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 import { useCredentialsStore } from '@/stores/credentials';
 import { useToast } from '@/composables/useToast';
@@ -81,6 +82,7 @@ import EditCredentialModal from './EditCredentialModal.vue';
 import CaptureOAuthModal from './CaptureOAuthModal.vue';
 import type { Credential } from '@/types';
 
+const { t } = useI18n();
 const store = useCredentialsStore();
 const toast = useToast();
 const route = useRoute();
@@ -98,10 +100,10 @@ function handleStorageEvent(event: StorageEvent): void {
     oauthPopup?.close();
     oauthPopup = null;
     if (data.success) {
-      toast.success('Claude connected!');
+      toast.success(t('credentialsIndex.claudeConnected'));
       loadCredentials();
     } else if (data.error) {
-      toast.error('OAuth failed', data.error);
+      toast.error(t('credentialsIndex.oauthFailed'), data.error);
     }
   } catch {
     // Ignore parse errors
@@ -117,10 +119,10 @@ onMounted(() => {
   const successId = route.query.oauth_success as string | undefined;
   const oauthError = route.query.oauth_error as string | undefined;
   if (successId) {
-    toast.success('Claude connected successfully!');
+    toast.success(t('credentialsIndex.claudeConnectedSuccessfully'));
     loadCredentials();
   } else if (oauthError) {
-    toast.error('OAuth failed', decodeURIComponent(oauthError));
+    toast.error(t('credentialsIndex.oauthFailed'), decodeURIComponent(oauthError));
   }
 });
 
@@ -134,34 +136,34 @@ async function loadCredentials(): Promise<void> {
   try {
     await store.fetchCredentials();
   } catch (error) {
-    toast.error('Failed to load credentials', getErrorMessage(error));
+    toast.error(t('credentialsIndex.failedToLoad'), getErrorMessage(error));
   }
 }
 
 function onCredentialCreated(): void {
   showAddModal.value = false;
-  toast.success('Credential created');
+  toast.success(t('credentialsIndex.credentialCreated'));
 }
 
 async function handleTest(id: string): Promise<void> {
   try {
     const result = await store.testCredential(id);
     if (result.valid) {
-      toast.success('Credential is valid', String(result.message || ''));
+      toast.success(t('credentialsIndex.credentialValid'), String(result.message || ''));
     } else {
-      toast.error('Credential is invalid', String(result.message || 'Unknown error'));
+      toast.error(t('credentialsIndex.credentialInvalid'), String(result.message || t('credentialsIndex.unknownError')));
     }
   } catch (error) {
-    toast.error('Test failed', getErrorMessage(error));
+    toast.error(t('credentialsIndex.testFailed'), getErrorMessage(error));
   }
 }
 
 async function handleRefresh(id: string): Promise<void> {
   try {
     await store.refreshCredential(id);
-    toast.success('Token refreshed');
+    toast.success(t('credentialsIndex.tokenRefreshed'));
   } catch (error) {
-    toast.error('Refresh failed', getErrorMessage(error));
+    toast.error(t('credentialsIndex.refreshFailed'), getErrorMessage(error));
   }
 }
 
@@ -180,10 +182,10 @@ async function handleConnect(id: string): Promise<void> {
     const popup = window.open(authUrl, 'claude_oauth', 'width=620,height=720,scrollbars=yes,resizable=yes');
     oauthPopup = popup;
     if (!popup) {
-      toast.error('Popup blocked', 'Please allow popups for this site and try again.');
+      toast.error(t('credentialsIndex.popupBlocked'), t('credentialsIndex.popupBlockedMessage'));
     }
   } catch (err) {
-    toast.error('Failed to initiate OAuth', getErrorMessage(err));
+    toast.error(t('credentialsIndex.failedToInitiateOauth'), getErrorMessage(err));
   }
 }
 
@@ -194,19 +196,19 @@ function handleOAuthMessage(event: MessageEvent): void {
   oauthPopup = null;
 
   if (event.data.success) {
-    toast.success('Claude connected!');
+    toast.success(t('credentialsIndex.claudeConnected'));
     loadCredentials();
   } else if (event.data.error) {
-    toast.error('OAuth failed', event.data.error);
+    toast.error(t('credentialsIndex.oauthFailed'), event.data.error);
   }
 }
 
 async function handleSetDefault(id: string): Promise<void> {
   try {
     await store.setDefault(id);
-    toast.success('Default credential updated');
+    toast.success(t('credentialsIndex.defaultUpdated'));
   } catch (error) {
-    toast.error('Failed to set default', getErrorMessage(error));
+    toast.error(t('credentialsIndex.failedToSetDefault'), getErrorMessage(error));
   }
 }
 
@@ -216,16 +218,16 @@ function handleEdit(credential: Credential): void {
 
 function onCredentialUpdated(): void {
   editingCredential.value = null;
-  toast.success('Credential updated');
+  toast.success(t('credentialsIndex.credentialUpdated'));
 }
 
 async function handleDelete(id: string): Promise<void> {
-  if (!confirm('Delete this credential? This cannot be undone.')) return;
+  if (!confirm(t('credentialsIndex.confirmDelete'))) return;
   try {
     await store.deleteCredential(id);
-    toast.success('Credential deleted');
+    toast.success(t('credentialsIndex.credentialDeleted'));
   } catch (error) {
-    toast.error('Failed to delete', getErrorMessage(error));
+    toast.error(t('credentialsIndex.failedToDelete'), getErrorMessage(error));
   }
 }
 </script>

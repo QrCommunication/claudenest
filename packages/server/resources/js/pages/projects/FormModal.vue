@@ -1,23 +1,23 @@
 <template>
   <Modal
     :model-value="modelValue"
-    :title="isEditing ? 'Edit Project' : 'Create New Project'"
+    :title="isEditing ? t('projectsFormmodal.editProject') : t('projectsFormmodal.createNewProject')"
     @update:model-value="$emit('update:modelValue', $event)"
   >
     <form @submit.prevent="handleSubmit" class="project-form">
       <!-- Basic Info -->
       <div class="form-section">
-        <h4 class="section-title">Basic Information</h4>
+        <h4 class="section-title">{{ t('projectsFormmodal.basicInformation') }}</h4>
 
         <div class="form-group">
           <label for="project-name">
-            Project Name <span class="required">*</span>
+            {{ t('projectsFormmodal.projectName') }} <span class="required">*</span>
           </label>
           <input
             id="project-name"
             v-model="form.name"
             type="text"
-            placeholder="My Awesome Project"
+            :placeholder="t('projectsFormmodal.projectNamePlaceholder')"
             required
             :disabled="isSubmitting"
           />
@@ -28,31 +28,31 @@
           <!-- Editing: disabled input -->
           <template v-if="isEditing">
             <label for="project-path">
-              Project Path <span class="required">*</span>
+              {{ t('projectsFormmodal.projectPath') }} <span class="required">*</span>
             </label>
             <input
               id="project-path"
               v-model="form.project_path"
               type="text"
-              placeholder="/path/to/project"
+              :placeholder="t('projectsFormmodal.projectPathPlaceholder')"
               required
               :disabled="true"
             />
-            <p class="form-hint">Absolute path to the project directory on the machine</p>
+            <p class="form-hint">{{ t('projectsFormmodal.projectPathHint') }}</p>
           </template>
 
           <!-- Creating + machine online: file tree or manual input -->
           <template v-else-if="isMachineOnline">
             <div class="path-header">
               <label>
-                Project Path <span class="required">*</span>
+                {{ t('projectsFormmodal.projectPath') }} <span class="required">*</span>
               </label>
               <button
                 type="button"
                 class="toggle-input-btn"
                 @click="useManualInput = !useManualInput"
               >
-                {{ useManualInput ? 'Browse files' : 'Manual input' }}
+                {{ useManualInput ? t('projectsFormmodal.browseFiles') : t('projectsFormmodal.manualInput') }}
               </button>
             </div>
 
@@ -60,11 +60,11 @@
               <input
                 v-model="form.project_path"
                 type="text"
-                placeholder="/path/to/project"
+                :placeholder="t('projectsFormmodal.projectPathPlaceholder')"
                 required
                 :disabled="isSubmitting"
               />
-              <p class="form-hint">Absolute path to the project directory on the machine</p>
+              <p class="form-hint">{{ t('projectsFormmodal.projectPathHint') }}</p>
             </template>
             <template v-else>
               <RemoteFileTree
@@ -79,62 +79,62 @@
                 aria-hidden="true"
                 tabindex="-1"
               />
-              <p class="form-hint">Click a folder to select it, double-click to navigate into it</p>
+              <p class="form-hint">{{ t('projectsFormmodal.projectPathSelectHint') }}</p>
             </template>
           </template>
 
           <!-- Creating + machine offline: plain input -->
           <template v-else>
             <label for="project-path">
-              Project Path <span class="required">*</span>
+              {{ t('projectsFormmodal.projectPath') }} <span class="required">*</span>
             </label>
             <input
               id="project-path"
               v-model="form.project_path"
               type="text"
-              placeholder="/path/to/project"
+              :placeholder="t('projectsFormmodal.projectPathPlaceholder')"
               required
               :disabled="isSubmitting"
             />
-            <p class="form-hint">Absolute path to the project directory on the machine</p>
+            <p class="form-hint">{{ t('projectsFormmodal.projectPathHint') }}</p>
           </template>
         </div>
       </div>
 
       <!-- Context Info -->
       <div class="form-section">
-        <h4 class="section-title">Context</h4>
+        <h4 class="section-title">{{ t('projectsFormmodal.context') }}</h4>
 
         <div class="form-group">
-          <label for="project-summary">Summary</label>
+          <label for="project-summary">{{ t('projectsFormmodal.summary') }}</label>
           <textarea
             id="project-summary"
             v-model="form.summary"
             rows="3"
-            placeholder="Brief description of the project"
+            :placeholder="t('projectsFormmodal.summaryPlaceholder')"
             :disabled="isSubmitting"
           />
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label for="project-architecture">Architecture</label>
+            <label for="project-architecture">{{ t('projectsFormmodal.architecture') }}</label>
             <textarea
               id="project-architecture"
               v-model="form.architecture"
               rows="4"
-              placeholder="System architecture notes"
+              :placeholder="t('projectsFormmodal.architecturePlaceholder')"
               :disabled="isSubmitting"
             />
           </div>
 
           <div class="form-group">
-            <label for="project-conventions">Conventions</label>
+            <label for="project-conventions">{{ t('projectsFormmodal.conventions') }}</label>
             <textarea
               id="project-conventions"
               v-model="form.conventions"
               rows="4"
-              placeholder="Coding conventions"
+              :placeholder="t('projectsFormmodal.conventionsPlaceholder')"
               :disabled="isSubmitting"
             />
           </div>
@@ -143,11 +143,11 @@
 
       <!-- Settings -->
       <div class="form-section" v-if="!isEditing">
-        <h4 class="section-title">Settings</h4>
+        <h4 class="section-title">{{ t('projectsFormmodal.settings') }}</h4>
 
         <div class="form-row">
           <div class="form-group">
-            <label for="max-tokens">Max Context Tokens</label>
+            <label for="max-tokens">{{ t('projectsFormmodal.maxContextTokens') }}</label>
             <input
               id="max-tokens"
               v-model.number="form.max_tokens"
@@ -160,7 +160,7 @@
           </div>
 
           <div class="form-group">
-            <label for="context-retention">Context Retention (days)</label>
+            <label for="context-retention">{{ t('projectsFormmodal.contextRetentionDays') }}</label>
             <input
               id="context-retention"
               v-model.number="form.settings.contextRetentionDays"
@@ -174,7 +174,7 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label for="task-timeout">Task Timeout (minutes)</label>
+            <label for="task-timeout">{{ t('projectsFormmodal.taskTimeoutMinutes') }}</label>
             <input
               id="task-timeout"
               v-model.number="form.settings.taskTimeoutMinutes"
@@ -186,7 +186,7 @@
           </div>
 
           <div class="form-group">
-            <label for="lock-timeout">Lock Timeout (minutes)</label>
+            <label for="lock-timeout">{{ t('projectsFormmodal.lockTimeoutMinutes') }}</label>
             <input
               id="lock-timeout"
               v-model.number="form.settings.lockTimeoutMinutes"
@@ -199,15 +199,15 @@
         </div>
 
         <div class="form-group">
-          <label for="broadcast-level">Broadcast Level</label>
+          <label for="broadcast-level">{{ t('projectsFormmodal.broadcastLevel') }}</label>
           <select
             id="broadcast-level"
             v-model="form.settings.broadcastLevel"
             :disabled="isSubmitting"
           >
-            <option value="all">All - Broadcast to all instances</option>
-            <option value="managers">Managers - Only to managing instances</option>
-            <option value="none">None - Disable broadcasts</option>
+            <option value="all">{{ t('projectsFormmodal.broadcastAll') }}</option>
+            <option value="managers">{{ t('projectsFormmodal.broadcastManagers') }}</option>
+            <option value="none">{{ t('projectsFormmodal.broadcastNone') }}</option>
           </select>
         </div>
       </div>
@@ -228,14 +228,14 @@
           @click="$emit('update:modelValue', false)"
           :disabled="isSubmitting"
         >
-          Cancel
+          {{ t('projectsFormmodal.cancel') }}
         </Button>
         <Button
           type="submit"
           variant="primary"
           :loading="isSubmitting"
         >
-          {{ isEditing ? 'Save Changes' : 'Create Project' }}
+          {{ isEditing ? t('projectsFormmodal.saveChanges') : t('projectsFormmodal.createProject') }}
         </Button>
       </div>
     </form>
@@ -244,6 +244,7 @@
 
 <script setup lang="ts">
 import { reactive, ref, watch, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Modal from '@/components/common/Modal.vue';
 import Button from '@/components/common/Button.vue';
 import RemoteFileTree from '@/components/sessions/RemoteFileTree.vue';
@@ -269,6 +270,8 @@ const emit = defineEmits<{
   'update:modelValue': [value: boolean];
   'submit': [data: CreateProjectForm | UpdateProjectForm];
 }>();
+
+const { t } = useI18n();
 
 const isEditing = computed(() => !!props.project);
 

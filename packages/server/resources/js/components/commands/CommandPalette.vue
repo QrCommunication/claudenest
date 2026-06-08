@@ -6,7 +6,7 @@
       <Input
         v-model="searchQuery"
         type="text"
-        placeholder="Search commands..."
+        :placeholder="t('commandsCommandpalette.searchCommands')"
         class="pl-10 pr-10"
         @focus="isOpen = true"
         @keydown.down.prevent="highlightNext"
@@ -16,7 +16,7 @@
       />
       <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
         <span v-if="searchQuery" class="text-xs text-skin-secondary">
-          {{ filteredCommands.length }} results
+          {{ t('commandsCommandpalette.results', { count: filteredCommands.length }) }}
         </span>
         <kbd class="hidden sm:inline-block text-xs text-skin-secondary bg-surface-3 px-1.5 py-0.5 rounded">⌘K</kbd>
       </div>
@@ -28,7 +28,7 @@
       class="absolute top-full left-0 right-0 mt-2 bg-surface-2 border border-skin rounded-card shadow-xl max-h-96 overflow-auto z-50"
     >
       <div v-if="filteredCommands.length === 0" class="p-4 text-center">
-        <p class="text-sm text-skin-secondary">No commands found</p>
+        <p class="text-sm text-skin-secondary">{{ t('commandsCommandpalette.noCommandsFound') }}</p>
       </div>
       
       <template v-else>
@@ -78,6 +78,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Input from '@/components/common/Input.vue';
 import Badge from '@/components/common/Badge.vue';
 import { SearchIcon, TerminalIcon, ArrowRightIcon } from 'lucide-vue-next';
@@ -89,6 +90,8 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+const { t } = useI18n();
 
 const emit = defineEmits<{
   select: [command: DiscoveredCommand];

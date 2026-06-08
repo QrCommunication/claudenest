@@ -1,7 +1,7 @@
 <template>
   <div class="step-orchestrator">
-    <h2 class="step-title">Launch Configuration</h2>
-    <p class="step-desc">Configure the orchestrator and review your project before creation.</p>
+    <h2 class="step-title">{{ t('projectsWizardSteporchestrator.launchConfiguration') }}</h2>
+    <p class="step-desc">{{ t('projectsWizardSteporchestrator.configureOrchestratorDesc') }}</p>
 
     <!-- Auto-Start Toggle -->
     <div class="toggle-row">
@@ -12,16 +12,16 @@
           class="toggle-input"
         />
         <span class="toggle-switch"></span>
-        <span class="toggle-text">Start orchestrator immediately</span>
+        <span class="toggle-text">{{ t('projectsWizardSteporchestrator.startOrchestratorImmediately') }}</span>
       </label>
-      <span class="toggle-hint">The orchestrator will auto-dispatch tasks to available agents.</span>
+      <span class="toggle-hint">{{ t('projectsWizardSteporchestrator.autoDispatchHint') }}</span>
     </div>
 
     <!-- Config (shown when auto-start enabled) -->
     <div class="config-section" v-if="state.orchestratorConfig.autoStart">
       <div class="config-grid">
         <div class="config-field">
-          <label class="field-label">Min Workers</label>
+          <label class="field-label">{{ t('projectsWizardSteporchestrator.minWorkers') }}</label>
           <input
             type="number"
             v-model.number="state.orchestratorConfig.minWorkers"
@@ -31,7 +31,7 @@
           />
         </div>
         <div class="config-field">
-          <label class="field-label">Max Workers</label>
+          <label class="field-label">{{ t('projectsWizardSteporchestrator.maxWorkers') }}</label>
           <input
             type="number"
             v-model.number="state.orchestratorConfig.maxWorkers"
@@ -41,7 +41,7 @@
           />
         </div>
         <div class="config-field">
-          <label class="field-label">Poll Interval (ms)</label>
+          <label class="field-label">{{ t('projectsWizardSteporchestrator.pollIntervalMs') }}</label>
           <input
             type="number"
             v-model.number="state.orchestratorConfig.pollIntervalMs"
@@ -56,18 +56,18 @@
 
     <!-- Summary -->
     <div class="summary-section">
-      <h3 class="summary-title">Project Summary</h3>
+      <h3 class="summary-title">{{ t('projectsWizardSteporchestrator.projectSummary') }}</h3>
       <div class="summary-grid">
         <div class="summary-item">
-          <span class="summary-label">Name</span>
+          <span class="summary-label">{{ t('projectsWizardSteporchestrator.name') }}</span>
           <span class="summary-value">{{ state.projectName || '—' }}</span>
         </div>
         <div class="summary-item">
-          <span class="summary-label">Path</span>
+          <span class="summary-label">{{ t('projectsWizardSteporchestrator.path') }}</span>
           <span class="summary-value font-mono text-xs">{{ state.path || '—' }}</span>
         </div>
         <div class="summary-item">
-          <span class="summary-label">Tech Stack</span>
+          <span class="summary-label">{{ t('projectsWizardSteporchestrator.techStack') }}</span>
           <div class="stack-badges" v-if="state.scanResult?.tech_stack?.length">
             <span
               v-for="tech in state.scanResult.tech_stack"
@@ -78,13 +78,13 @@
           <span v-else class="summary-value">—</span>
         </div>
         <div class="summary-item">
-          <span class="summary-label">Tasks</span>
-          <span class="summary-value">{{ state.tasks.length }} task(s)</span>
+          <span class="summary-label">{{ t('projectsWizardSteporchestrator.tasks') }}</span>
+          <span class="summary-value">{{ t('projectsWizardSteporchestrator.taskCount', { count: state.tasks.length }) }}</span>
         </div>
         <div class="summary-item">
-          <span class="summary-label">Orchestrator</span>
+          <span class="summary-label">{{ t('projectsWizardSteporchestrator.orchestrator') }}</span>
           <span class="summary-value">
-            {{ state.orchestratorConfig.autoStart ? `Auto-start (${state.orchestratorConfig.minWorkers}-${state.orchestratorConfig.maxWorkers} workers)` : 'Manual start' }}
+            {{ state.orchestratorConfig.autoStart ? t('projectsWizardSteporchestrator.autoStartWorkers', { min: state.orchestratorConfig.minWorkers, max: state.orchestratorConfig.maxWorkers }) : t('projectsWizardSteporchestrator.manualStart') }}
           </span>
         </div>
       </div>
@@ -93,6 +93,7 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import type { WizardState } from '@/composables/useProjectWizard';
 
 interface Props {
@@ -100,6 +101,8 @@ interface Props {
 }
 
 defineProps<Props>();
+
+const { t } = useI18n();
 </script>
 
 <style scoped>

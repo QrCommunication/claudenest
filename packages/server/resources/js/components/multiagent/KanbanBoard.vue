@@ -19,7 +19,7 @@
           v-if="column.id === 'pending'"
           class="column-add-btn"
           @click="$emit('create-task')"
-          title="Add task"
+          :title="t('multiagentKanbanboard.addTask')"
         >
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
@@ -42,7 +42,7 @@
         />
         
         <div v-if="getTasksForColumn(column.id).length === 0" class="column-empty">
-          <p>No {{ column.title.toLowerCase() }} tasks</p>
+          <p>{{ t('multiagentKanbanboard.noTasks', { status: column.title.toLowerCase() }) }}</p>
         </div>
       </div>
     </div>
@@ -51,6 +51,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import TaskCard from '@/components/projects/TaskCard.vue';
 import type { SharedTask, TaskStatus, TaskPriority } from '@/types';
 
@@ -75,6 +76,8 @@ const props = withDefaults(defineProps<Props>(), {
   epicFilter: '',
   sprintFilter: '',
 });
+
+const { t } = useI18n();
 
 const emit = defineEmits<{
   'move-task': [taskId: string, newStatus: TaskStatus];

@@ -16,12 +16,12 @@
     <div class="lock-info">
       <span class="lock-filename">{{ filename }}</span>
       <span v-if="isLocked" class="lock-meta">
-        Locked by {{ truncatedOwner }}
+        {{ t('multiagentFilelockbadge.lockedBy', { owner: truncatedOwner }) }}
         <span v-if="lock?.remaining_seconds" class="lock-expiry">
           ({{ formatExpiry(lock.remaining_seconds) }})
         </span>
       </span>
-      <span v-else class="lock-meta unlocked">Unlocked</span>
+      <span v-else class="lock-meta unlocked">{{ t('multiagentFilelockbadge.unlocked') }}</span>
     </div>
     
     <div v-if="showActions && isLocked" class="lock-actions">
@@ -29,7 +29,7 @@
         v-if="isOwnLock"
         class="action-btn unlock"
         @click.stop="$emit('unlock', filePath)"
-        title="Unlock file"
+        :title="t('multiagentFilelockbadge.unlockFile')"
       >
         <svg viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6h1.9c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm0 12H6V10h12v10z"/>
@@ -39,7 +39,7 @@
         v-else-if="canForceUnlock"
         class="action-btn force-unlock"
         @click.stop="$emit('force-unlock', filePath)"
-        title="Force unlock (admin)"
+        :title="t('multiagentFilelockbadge.forceUnlock')"
       >
         <svg viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
@@ -51,7 +51,10 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { FileLock } from '@/types';
+
+const { t } = useI18n();
 
 interface Props {
   filePath: string;

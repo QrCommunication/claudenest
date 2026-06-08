@@ -2,7 +2,7 @@
   <div v-if="isOpen" class="modal-overlay" @click.self="close">
     <div class="modal-content">
       <div class="modal-header">
-        <h2>{{ isEditing ? 'Edit Machine' : 'Add New Machine' }}</h2>
+        <h2>{{ isEditing ? t('machinesMachineform.editMachine') : t('machinesMachineform.addNewMachine') }}</h2>
         <button class="close-btn" @click="close">
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
@@ -12,27 +12,27 @@
 
       <form @submit.prevent="handleSubmit" class="modal-body">
         <div class="form-group">
-          <label for="name">Machine Name *</label>
+          <label for="name">{{ t('machinesMachineform.machineNameLabel') }}</label>
           <input
             id="name"
             v-model="form.name"
             type="text"
             required
-            placeholder="e.g., MacBook Pro"
+            :placeholder="t('machinesMachineform.machineNamePlaceholder')"
             :class="{ 'error': errors.name }"
           />
           <span v-if="errors.name" class="error-text">{{ errors.name }}</span>
         </div>
 
         <div v-if="!isEditing" class="form-group">
-          <label for="platform">Platform *</label>
+          <label for="platform">{{ t('machinesMachineform.platformLabel') }}</label>
           <select
             id="platform"
             v-model="form.platform"
             required
             :class="{ 'error': errors.platform }"
           >
-            <option value="">Select Platform</option>
+            <option value="">{{ t('machinesMachineform.selectPlatform') }}</option>
             <option value="darwin">macOS</option>
             <option value="win32">Windows</option>
             <option value="linux">Linux</option>
@@ -41,17 +41,17 @@
         </div>
 
         <div v-if="!isEditing" class="form-group">
-          <label for="hostname">Hostname</label>
+          <label for="hostname">{{ t('machinesMachineform.hostnameLabel') }}</label>
           <input
             id="hostname"
             v-model="form.hostname"
             type="text"
-            placeholder="e.g., macbook-pro.local"
+            :placeholder="t('machinesMachineform.hostnamePlaceholder')"
           />
         </div>
 
         <div class="form-group">
-          <label for="max_sessions">Maximum Sessions</label>
+          <label for="max_sessions">{{ t('machinesMachineform.maxSessionsLabel') }}</label>
           <input
             id="max_sessions"
             v-model.number="form.max_sessions"
@@ -59,11 +59,11 @@
             min="1"
             max="100"
           />
-          <span class="help-text">Maximum number of concurrent Claude sessions</span>
+          <span class="help-text">{{ t('machinesMachineform.maxSessionsHelp') }}</span>
         </div>
 
         <div v-if="isEditing" class="form-group">
-          <label>Capabilities</label>
+          <label>{{ t('machinesMachineform.capabilitiesLabel') }}</label>
           <div class="capabilities-grid">
             <label v-for="cap in availableCapabilities" :key="cap.value" class="capability-item">
               <input
@@ -83,7 +83,7 @@
 
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" @click="close">
-            Cancel
+            {{ t('machinesMachineform.cancel') }}
           </button>
           <button 
             type="submit" 
@@ -91,7 +91,7 @@
             :disabled="isSubmitting"
           >
             <span v-if="isSubmitting" class="spinner"></span>
-            {{ isSubmitting ? (isEditing ? 'Saving...' : 'Creating...') : (isEditing ? 'Save Changes' : 'Create Machine') }}
+            {{ isSubmitting ? (isEditing ? t('machinesMachineform.saving') : t('machinesMachineform.creating')) : (isEditing ? t('machinesMachineform.saveChanges') : t('machinesMachineform.createMachine')) }}
           </button>
         </div>
       </form>
@@ -102,11 +102,10 @@
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
           </svg>
-          <h3>Machine Created Successfully!</h3>
+          <h3>{{ t('machinesMachineform.machineCreatedSuccess') }}</h3>
         </div>
         <p class="token-instructions">
-          Copy this token and use it to configure the ClaudeNest agent on your machine.
-          This token will only be shown once.
+          {{ t('machinesMachineform.tokenInstructions') }}
         </p>
         <div class="token-display">
           <code>{{ newToken }}</code>
@@ -117,7 +116,7 @@
           </button>
         </div>
         <button class="btn btn-primary" @click="closeWithToken">
-          Done
+          {{ t('machinesMachineform.done') }}
         </button>
       </div>
     </div>
@@ -126,7 +125,10 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { Machine, CreateMachineForm, UpdateMachineForm, MachinePlatform } from '@/types';
+
+const { t } = useI18n();
 
 interface Props {
   isOpen: boolean;
@@ -142,13 +144,13 @@ const emit = defineEmits<{
   submit: [data: CreateMachineForm | UpdateMachineForm];
 }>();
 
-const availableCapabilities = [
-  { value: 'wake_on_lan', label: 'Wake on LAN' },
-  { value: 'gpu_acceleration', label: 'GPU Acceleration' },
-  { value: 'docker', label: 'Docker Support' },
-  { value: 'ssh_access', label: 'SSH Access' },
-  { value: 'file_sync', label: 'File Sync' },
-];
+const availableCapabilities = computed(() => [
+  { value: 'wake_on_lan', label: t('machinesMachineform.capWakeOnLan') },
+  { value: 'gpu_acceleration', label: t('machinesMachineform.capGpuAcceleration') },
+  { value: 'docker', label: t('machinesMachineform.capDockerSupport') },
+  { value: 'ssh_access', label: t('machinesMachineform.capSshAccess') },
+  { value: 'file_sync', label: t('machinesMachineform.capFileSync') },
+]);
 
 const form = ref({
   name: '',
@@ -203,11 +205,11 @@ function validate(): boolean {
   errors.value = {};
   
   if (!form.value.name.trim()) {
-    errors.value.name = 'Machine name is required';
+    errors.value.name = t('machinesMachineform.machineNameRequired');
   }
   
   if (!isEditing.value && !form.value.platform) {
-    errors.value.platform = 'Platform is required';
+    errors.value.platform = t('machinesMachineform.platformRequired');
   }
   
   return Object.keys(errors.value).length === 0;
@@ -240,7 +242,7 @@ async function handleSubmit() {
     
     emit('submit', data);
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'An error occurred';
+    error.value = err instanceof Error ? err.message : t('machinesMachineform.genericError');
   } finally {
     isSubmitting.value = false;
   }
