@@ -51,7 +51,7 @@ abstract class TestCase extends BaseTestCase
     /**
      * Assert standard error response.
      */
-    protected function assertErrorResponse($response, int $status, string $code = null): void
+    protected function assertErrorResponse($response, int $status, ?string $code = null): void
     {
         $response->assertStatus($status)
             ->assertJson(['success' => false])
