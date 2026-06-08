@@ -721,7 +721,7 @@ class ProjectController extends Controller
     /**
      * Helper: Get project belonging to authenticated user.
      */
-    private function getUserProject(Request $request, string $id): ?SharedProject
+    protected function getUserProject(Request $request, string $id): ?SharedProject
     {
         return SharedProject::forUser($request->user()->id)->find($id);
     }
