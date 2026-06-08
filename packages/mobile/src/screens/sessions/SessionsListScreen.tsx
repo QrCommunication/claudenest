@@ -3,7 +3,14 @@
  * Displays list of sessions with filters, header stats, FAB, and FadeIn animations.
  */
 
-import React, { useEffect, useCallback, useState, useMemo, useRef, memo } from 'react';
+import React, {
+  useEffect,
+  useCallback,
+  useState,
+  useMemo,
+  useRef,
+  memo,
+} from "react";
 import {
   View,
   Text,
@@ -14,39 +21,43 @@ import {
   ScrollView,
   Animated,
   Platform,
-} from 'react-native';
-import { MaterialIcons as Icon } from '@expo/vector-icons';
-import { colors, spacing, borderRadius, typography } from '@/theme';
-import { useSessionsStore } from '@/stores/sessionsStore';
-import { useMachinesStore } from '@/stores/machinesStore';
-import { useFadeIn } from '@/utils/animations';
-import type { Session, SessionStatus } from '@/types';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { SessionsStackParamList } from '@/navigation/types';
+} from "react-native";
+import { MaterialIcons as Icon } from "@expo/vector-icons";
+import { colors, spacing, borderRadius, typography } from "@/theme";
+import { useSessionsStore } from "@/stores/sessionsStore";
+import { useMachinesStore } from "@/stores/machinesStore";
+import { useFadeIn } from "@/utils/animations";
+import type { Session, SessionStatus } from "@/types";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type { SessionsStackParamList } from "@/navigation/types";
 
-import {
-  LoadingSpinner,
-  EmptyState,
-  ErrorMessage,
-} from '@/components/common';
-import { SessionCard } from '@/components/sessions';
+import { LoadingSpinner, EmptyState, ErrorMessage } from "@/components/common";
+import { SessionCard } from "@/components/sessions";
 
-type Props = NativeStackScreenProps<SessionsStackParamList, 'SessionsList'>;
+type Props = NativeStackScreenProps<SessionsStackParamList, "SessionsList">;
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-type FilterType = 'all' | 'active' | 'completed';
+type FilterType = "all" | "active" | "completed";
 
 const FILTERS: Array<{ key: FilterType; label: string }> = [
-  { key: 'all', label: 'All' },
-  { key: 'active', label: 'Active' },
-  { key: 'completed', label: 'Completed' },
+  { key: "all", label: "All" },
+  { key: "active", label: "Active" },
+  { key: "completed", label: "Completed" },
 ];
 
-const ACTIVE_STATUSES: SessionStatus[] = ['starting', 'running', 'waiting_input'];
-const COMPLETED_STATUSES: SessionStatus[] = ['completed', 'terminated', 'error'];
+const ACTIVE_STATUSES: SessionStatus[] = [
+  "starting",
+  "running",
+  "waiting_input",
+];
+const COMPLETED_STATUSES: SessionStatus[] = [
+  "completed",
+  "terminated",
+  "error",
+];
 
 // ---------------------------------------------------------------------------
 // FilterChip
@@ -59,18 +70,30 @@ interface FilterChipProps {
   onPress: () => void;
 }
 
-const FilterChip = memo(function FilterChip({ label, isActive, count, onPress }: FilterChipProps) {
+const FilterChip = memo(function FilterChip({
+  label,
+  isActive,
+  count,
+  onPress,
+}: FilterChipProps) {
   return (
     <TouchableOpacity
       style={[styles.filterChip, isActive && styles.filterChipActive]}
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>
+      <Text
+        style={[styles.filterChipText, isActive && styles.filterChipTextActive]}
+      >
         {label}
       </Text>
       <View style={[styles.filterBadge, isActive && styles.filterBadgeActive]}>
-        <Text style={[styles.filterBadgeText, isActive && styles.filterBadgeTextActive]}>
+        <Text
+          style={[
+            styles.filterBadgeText,
+            isActive && styles.filterBadgeTextActive,
+          ]}
+        >
           {count}
         </Text>
       </View>
@@ -133,16 +156,11 @@ const AnimatedSessionCard = memo(function AnimatedSessionCard({
 
 export const SessionsListScreen: React.FC<Props> = ({ route, navigation }) => {
   const { machineId } = route.params || {};
-  const {
-    sessions,
-    isLoading,
-    error,
-    fetchSessions,
-    clearError,
-  } = useSessionsStore();
+  const { sessions, isLoading, error, fetchSessions, clearError } =
+    useSessionsStore();
   const { machines, fetchMachines } = useMachinesStore();
 
-  const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+  const [activeFilter, setActiveFilter] = useState<FilterType>("all");
   const headerFade = useFadeIn(320);
 
   // ---------------------------------------------------------------------------
@@ -185,24 +203,25 @@ export const SessionsListScreen: React.FC<Props> = ({ route, navigation }) => {
       ? sessions.filter((s) => s.machine_id === machineId)
       : sessions;
     return [...base].sort(
-      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
     );
   }, [sessions, machineId]);
 
   const activeSessions = useMemo(
     () => baseSessions.filter((s) => ACTIVE_STATUSES.includes(s.status)),
-    [baseSessions]
+    [baseSessions],
   );
   const completedSessions = useMemo(
     () => baseSessions.filter((s) => COMPLETED_STATUSES.includes(s.status)),
-    [baseSessions]
+    [baseSessions],
   );
 
   const filteredSessions = useMemo(() => {
     switch (activeFilter) {
-      case 'active':
+      case "active":
         return activeSessions;
-      case 'completed':
+      case "completed":
         return completedSessions;
       default:
         return baseSessions;
@@ -215,7 +234,7 @@ export const SessionsListScreen: React.FC<Props> = ({ route, navigation }) => {
       active: activeSessions.length,
       completed: completedSessions.length,
     }),
-    [baseSessions, activeSessions, completedSessions]
+    [baseSessions, activeSessions, completedSessions],
   );
 
   // ---------------------------------------------------------------------------
@@ -231,20 +250,20 @@ export const SessionsListScreen: React.FC<Props> = ({ route, navigation }) => {
   }, [machineId, machines, fetchSessions]);
 
   const handleNewSession = useCallback(() => {
-    const targetMachine = machineId || machines[0]?.id || '';
-    navigation.navigate('NewSession', { machineId: targetMachine });
+    const targetMachine = machineId || machines[0]?.id || "";
+    navigation.navigate("NewSession", { machineId: targetMachine });
   }, [navigation, machineId, machines]);
 
   const handlePressSession = useCallback(
     (session: Session) => {
-      navigation.navigate('Session', { sessionId: session.id });
+      navigation.navigate("Session", { sessionId: session.id });
     },
-    [navigation]
+    [navigation],
   );
 
   const getMachineName = useCallback(
     (mid: string) => machines.find((m) => m.id === mid)?.name,
-    [machines]
+    [machines],
   );
 
   // ---------------------------------------------------------------------------
@@ -260,7 +279,7 @@ export const SessionsListScreen: React.FC<Props> = ({ route, navigation }) => {
         index={index}
       />
     ),
-    [handlePressSession, machineId, getMachineName]
+    [handlePressSession, machineId, getMachineName],
   );
 
   const keyExtractor = useCallback((item: Session) => item.id, []);
@@ -272,7 +291,11 @@ export const SessionsListScreen: React.FC<Props> = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       {error && (
-        <ErrorMessage message={error} onRetry={handleRefresh} onDismiss={clearError} />
+        <ErrorMessage
+          message={error}
+          onRetry={handleRefresh}
+          onDismiss={clearError}
+        />
       )}
 
       {/* Header Stats */}
@@ -330,12 +353,12 @@ export const SessionsListScreen: React.FC<Props> = ({ route, navigation }) => {
             icon="terminal"
             title="No sessions"
             description={
-              activeFilter === 'all'
-                ? 'Start a new session to interact with Claude'
+              activeFilter === "all"
+                ? "Start a new session to interact with Claude"
                 : `No ${activeFilter} sessions`
             }
-            actionLabel={activeFilter === 'all' ? 'New Session' : undefined}
-            onAction={activeFilter === 'all' ? handleNewSession : undefined}
+            actionLabel={activeFilter === "all" ? "New Session" : undefined}
+            onAction={activeFilter === "all" ? handleNewSession : undefined}
           />
         }
       />
@@ -368,8 +391,8 @@ const styles = StyleSheet.create({
 
   // Stats header
   statsHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: colors.background.dark3,
     marginHorizontal: spacing.md,
     marginTop: spacing.md,
@@ -380,18 +403,18 @@ const styles = StyleSheet.create({
   },
   statItem: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
   },
   statValue: {
-    fontSize: typography.size['2xl'],
-    fontWeight: '700',
+    fontSize: typography.size["2xl"],
+    fontWeight: "700",
     color: colors.text.primary,
   },
   statLabel: {
     fontSize: typography.size.xs,
     color: colors.text.muted,
     marginTop: 2,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   statDivider: {
@@ -403,15 +426,18 @@ const styles = StyleSheet.create({
   // Filters
   filtersContainer: {
     marginTop: spacing.sm,
+    flexGrow: 0,
+    flexShrink: 0,
   },
   filtersContent: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     gap: spacing.sm,
+    alignItems: "center",
   },
   filterChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.xs,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
@@ -422,32 +448,32 @@ const styles = StyleSheet.create({
   },
   filterChipActive: {
     borderColor: colors.primary.purple,
-    backgroundColor: 'rgba(168,85,247,0.15)',
+    backgroundColor: "rgba(168,85,247,0.15)",
   },
   filterChipText: {
     fontSize: typography.size.sm,
-    fontWeight: '500',
+    fontWeight: "500",
     color: colors.text.secondary,
   },
   filterChipTextActive: {
     color: colors.primary.purple,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   filterBadge: {
     minWidth: 18,
     height: 18,
     borderRadius: borderRadius.full,
     backgroundColor: colors.background.dark4,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 4,
   },
   filterBadgeActive: {
-    backgroundColor: 'rgba(168,85,247,0.3)',
+    backgroundColor: "rgba(168,85,247,0.3)",
   },
   filterBadgeText: {
     fontSize: typography.size.xs,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.text.muted,
   },
   filterBadgeTextActive: {
@@ -463,15 +489,15 @@ const styles = StyleSheet.create({
 
   // FAB
   fab: {
-    position: 'absolute',
+    position: "absolute",
     right: spacing.lg,
-    bottom: Platform.OS === 'ios' ? 32 : spacing.lg,
+    bottom: Platform.OS === "ios" ? 32 : spacing.lg,
     width: 56,
     height: 56,
     borderRadius: borderRadius.full,
     backgroundColor: colors.primary.purple,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     shadowColor: colors.primary.purple,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
