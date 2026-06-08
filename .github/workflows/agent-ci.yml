@@ -112,7 +112,10 @@ jobs:
 
       - name: Publish to NPM
         if: steps.check.outputs.changed == 'true'
-        run: npm publish --access public --provenance
+        # Provenance is rejected on self-hosted runners (npm 422: only
+        # github-hosted runners are supported). id-token:write re-enables it by
+        # default on npm 11+, so disable it explicitly.
+        run: npm publish --access public --provenance=false
 
       - name: Create git tag
         if: steps.check.outputs.changed == 'true'
