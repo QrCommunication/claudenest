@@ -547,27 +547,50 @@ class AgentServe extends Command
         $machine = Machine::find($machineId);
         if (!$machine) return;
 
+        // IMPORTANT: agent:serve is a single ReactPHP event loop shared with
+        // terminal I/O. A per-row updateOrCreate (one blocking query each) would
+        // freeze every terminal for the duration on each 30s push. Build the
+        // rows in memory and persist them in ONE bulk upsert + one delete.
+        $now = now();
         $seen = [];
+        $rows = [];
         foreach ($sessions as $s) {
             $sessionId = $s['sessionId'] ?? null;
             if (!$sessionId) continue;
             $seen[] = $sessionId;
+            $rows[] = [
+                'id' => (string) Str::uuid(),
+                'machine_id' => $machineId,
+                'session_id' => $sessionId,
+                'project_slug' => $s['projectSlug'] ?? '',
+                'cwd' => $s['cwd'] ?? '',
+                'project_name' => $s['projectName'] ?? '',
+                'transcript_path' => $s['transcriptPath'] ?? '',
+                'is_live' => (bool) ($s['isLive'] ?? false),
+                'pid' => $s['pid'] ?? null,
+                'tty' => $s['tty'] ?? null,
+                'started_at' => $s['startedAt'] ?? null,
+                'last_activity_at' => $s['lastActivityAt'] ?? null,
+                'size_bytes' => $s['sizeBytes'] ?? 0,
+                'last_preview' => $s['lastPreview'] ?? null,
+                'adopted' => false,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
 
-            DiscoveredSession::updateOrCreate(
-                ['machine_id' => $machineId, 'session_id' => $sessionId],
+        if ($rows) {
+            // Single query; conflict on (machine_id, session_id) updates in place.
+            // 'adopted'/'agent_session_id' are intentionally NOT in the update set
+            // so an adopted session keeps its binding across rescans.
+            DiscoveredSession::upsert(
+                $rows,
+                ['machine_id', 'session_id'],
                 [
-                    'project_slug' => $s['projectSlug'] ?? '',
-                    'cwd' => $s['cwd'] ?? '',
-                    'project_name' => $s['projectName'] ?? '',
-                    'transcript_path' => $s['transcriptPath'] ?? '',
-                    'is_live' => (bool) ($s['isLive'] ?? false),
-                    'pid' => $s['pid'] ?? null,
-                    'tty' => $s['tty'] ?? null,
-                    'started_at' => $s['startedAt'] ?? null,
-                    'last_activity_at' => $s['lastActivityAt'] ?? null,
-                    'size_bytes' => $s['sizeBytes'] ?? 0,
-                    'last_preview' => $s['lastPreview'] ?? null,
-                ]
+                    'project_slug', 'cwd', 'project_name', 'transcript_path',
+                    'is_live', 'pid', 'tty', 'started_at', 'last_activity_at',
+                    'size_bytes', 'last_preview', 'updated_at',
+                ],
             );
         }
 

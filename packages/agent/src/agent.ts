@@ -187,8 +187,10 @@ export class ClaudeNestAgent extends EventEmitter {
       await this.syncService.fullSync();
       this.syncService.startPeriodicSync();
 
-      // Start scanning the user's own Claude sessions and push them online
-      this.claudeSessionDiscovery.startAutoDiscovery(30_000, true);
+      // Start scanning the user's own Claude sessions and push them online.
+      // 60s cadence keeps the dashboard fresh without flooding I/O; the meta
+      // cache means unchanged transcripts are not re-read each cycle.
+      this.claudeSessionDiscovery.startAutoDiscovery(60_000, true);
 
       this.isRunning = true;
       this.emit('started');

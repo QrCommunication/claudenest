@@ -60,6 +60,9 @@ export class ClaudeSessionDiscovery extends EventEmitter {
   private readonly projectsDir: string;
   private readonly tailers = new Map<string, TranscriptTailer>();
   private autoTimer: NodeJS.Timeout | null = null;
+  /** Cache cwd+preview per transcript, keyed by path, invalidated on mtime change.
+   *  Avoids re-reading hundreds of unchanged historical transcripts every scan. */
+  private readonly metaCache = new Map<string, { mtimeMs: number; cwd: string; preview: string | null }>();
 
   constructor(options: DiscoveryOptions) {
     super();
@@ -104,9 +107,20 @@ export class ClaudeSessionDiscovery extends EventEmitter {
 
         if (!isLive && !includeHistory) continue;
 
-        const cwd =
-          proc?.cwd ?? (await readCwdFromTranscript(t.path)) ?? this.slugToCwd(slug);
-        const preview = await readTailPreview(t.path);
+        // Reuse cached cwd/preview when the transcript is unchanged (mtime).
+        // Live sessions append constantly → mtime changes → always refreshed.
+        let cwd: string;
+        let preview: string | null;
+        const cached = this.metaCache.get(t.path);
+        if (cached && cached.mtimeMs === t.mtimeMs) {
+          cwd = proc?.cwd ?? cached.cwd;
+          preview = cached.preview;
+        } else {
+          cwd =
+            proc?.cwd ?? (await readCwdFromTranscript(t.path)) ?? this.slugToCwd(slug);
+          preview = await readTailPreview(t.path);
+          this.metaCache.set(t.path, { mtimeMs: t.mtimeMs, cwd, preview });
+        }
 
         sessions.push({
           sessionId: t.sessionId,
@@ -123,6 +137,14 @@ export class ClaudeSessionDiscovery extends EventEmitter {
           lastPreview: preview ?? undefined,
           adopted: false,
         });
+      }
+    }
+
+    // Evict cache entries for transcripts that no longer exist (bound memory).
+    if (this.metaCache.size > transcripts.length * 2) {
+      const livePaths = new Set(transcripts.map((t) => t.path));
+      for (const key of this.metaCache.keys()) {
+        if (!livePaths.has(key)) this.metaCache.delete(key);
       }
     }
 
