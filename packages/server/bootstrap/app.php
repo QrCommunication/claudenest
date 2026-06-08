@@ -72,7 +72,11 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         // Authorization errors (403 Forbidden - user authenticated but lacks permission)
-        $exceptions->render(function (\Illuminate\Auth\Access\AuthorizationException $e, $request) {
+        // Laravel prepares AuthorizationException into a Symfony
+        // AccessDeniedHttpException before the render callbacks run, so we must
+        // match the converted form here — otherwise it falls through to the
+        // generic \Throwable handler and a denied access returns 500 instead of 403.
+        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException $e, $request) {
             if ($request->is('api/*')) {
                 return response()->json([
                     'success' => false,

@@ -59,6 +59,10 @@ class SessionController extends Controller
         $this->authorize('view', $machine);
 
         $sessions = $machine->sessions()
+            ->when(
+                $request->filled('status'),
+                fn ($query) => $query->where('status', $request->input('status'))
+            )
             ->orderBy('created_at', 'desc')
             ->paginate($request->input('per_page', 20));
 
