@@ -13,6 +13,7 @@ use App\Services\AgentGateway;
 use App\Services\CredentialService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 /**
  * Discovery and live mirroring of the user's own Claude Code sessions
@@ -152,8 +153,14 @@ class ClaudeSessionController extends Controller
             return $this->errorResponse('MACHINE_OFFLINE', 'Machine is not online', 422);
         }
 
+        // Scope the credential to the authenticated user (prevent referencing
+        // another user's credential — IDOR defense in depth).
         $validated = $request->validate([
-            'credential_id' => 'nullable|uuid|exists:claude_credentials,id',
+            'credential_id' => [
+                'nullable',
+                'uuid',
+                Rule::exists('claude_credentials', 'id')->where('user_id', $request->user()->id),
+            ],
         ]);
 
         // Create the Session row first so the resumed tmux session's output is
