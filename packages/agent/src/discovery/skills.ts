@@ -323,7 +323,7 @@ export class SkillsDiscovery extends EventEmitter {
       const cmdName = dirName === 'commands' ? baseName : `${dirName}/${baseName}`;
 
       let description = '';
-      let category = 'command';
+      const category = 'command';
 
       if (frontmatterMatch) {
         const lines = frontmatterMatch[1].split('\n');
