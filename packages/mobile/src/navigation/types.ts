@@ -2,7 +2,7 @@
  * Navigation Types
  */
 
-import type { NavigatorScreenParams } from '@react-navigation/native';
+import type { NavigatorScreenParams } from "@react-navigation/native";
 
 // Root Stack
 export type RootStackParamList = {
@@ -27,6 +27,7 @@ export type MainTabParamList = {
 export type MachinesStackParamList = {
   MachinesList: undefined;
   MachineDetail: { machineId: string };
+  ClaudeSessions: { machineId: string };
   PairMachine: undefined;
 };
 
@@ -65,6 +66,9 @@ export type SettingsStackParamList = {
 
 // Helper type for screen props
 export type ScreenProps<T extends keyof RootStackParamList> = {
-  navigation: import('@react-navigation/native').NavigationProp<RootStackParamList, T>;
-  route: import('@react-navigation/native').RouteProp<RootStackParamList, T>;
+  navigation: import("@react-navigation/native").NavigationProp<
+    RootStackParamList,
+    T
+  >;
+  route: import("@react-navigation/native").RouteProp<RootStackParamList, T>;
 };

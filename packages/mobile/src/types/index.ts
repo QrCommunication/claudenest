@@ -30,23 +30,28 @@ export type MachinePlatform = "darwin" | "win32" | "linux";
 
 export interface Machine {
   id: string;
-  userId: string;
+  user_id?: string;
   name: string;
+  display_name?: string;
   platform: MachinePlatform;
   hostname: string;
   arch: string;
-  nodeVersion: string;
-  agentVersion: string;
-  claudeVersion: string;
-  claudePath: string;
+  node_version: string;
+  agent_version: string;
+  claude_version: string;
+  claude_path: string;
   status: MachineStatus;
-  lastSeenAt: string | null;
-  connectedAt: string | null;
+  is_online?: boolean;
+  last_seen_at: string | null;
+  last_seen_human?: string | null;
+  connected_at: string | null;
   capabilities: Record<string, unknown>;
-  maxSessions: number;
-  activeSessions?: number;
-  createdAt: string;
-  updatedAt: string;
+  max_sessions: number;
+  active_sessions_count?: number;
+  can_accept_more_sessions?: boolean;
+  created_at: string;
+  created_at_human?: string;
+  updated_at: string;
 }
 
 export interface MachineCapabilities {
@@ -55,6 +60,22 @@ export interface MachineCapabilities {
   supportedModes: string[];
   skillsPath: string | null;
   mcpPath: string | null;
+}
+
+// ==================== FILE BROWSER TYPES ====================
+
+export interface FileEntry {
+  name: string;
+  type: "directory" | "file";
+  size?: number;
+  modifiedAt?: string;
+}
+
+/** Result of browsing a machine's remote filesystem. */
+export interface BrowseResult {
+  path: string;
+  home_path: string;
+  entries: FileEntry[];
 }
 
 // ==================== SESSION TYPES ====================
@@ -108,6 +129,30 @@ export interface CreateSessionRequest {
     cols: number;
     rows: number;
   };
+}
+
+/**
+ * A Claude Code session discovered by the agent on the machine (scanned from
+ * the user's own ~/.claude transcripts), optionally adopted for remote resume.
+ */
+export interface DiscoveredSession {
+  id: string;
+  machine_id: string;
+  session_id: string;
+  project_slug: string;
+  cwd: string;
+  project_name: string;
+  transcript_path: string;
+  is_live: boolean;
+  pid: number | null;
+  tty: string | null;
+  started_at: string | null;
+  last_activity_at: string | null;
+  last_activity_human: string | null;
+  size_bytes: number;
+  last_preview: string | null;
+  adopted: boolean;
+  agent_session_id: string | null;
 }
 
 // ==================== PROJECT TYPES ====================

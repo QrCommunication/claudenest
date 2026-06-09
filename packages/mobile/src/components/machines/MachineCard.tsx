@@ -83,14 +83,14 @@ export const MachineCard = memo(function MachineCard({
             <View style={styles.detailRow}>
               <Icon name="memory" size={14} color={colors.text.muted} />
               <Text style={styles.detailText}>
-                Claude {machine.claudeVersion || 'N/A'}
+                Claude {machine.claude_version || 'N/A'}
               </Text>
             </View>
             <View style={styles.detailRow}>
               <Icon name="terminal" size={14} color={colors.text.muted} />
               <Text style={styles.detailText}>
-                {machine.activeSessions || 0} active session
-                {(machine.activeSessions || 0) !== 1 ? 's' : ''}
+                {machine.active_sessions_count || 0} active session
+                {(machine.active_sessions_count || 0) !== 1 ? 's' : ''}
               </Text>
             </View>
           </View>

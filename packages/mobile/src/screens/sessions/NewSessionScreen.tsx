@@ -3,54 +3,62 @@
  * Screen for creating a new session
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Pressable,
   Alert,
-} from 'react-native';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-type IconName = React.ComponentProps<typeof MaterialIcons>['name'];
+} from "react-native";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+type IconName = React.ComponentProps<typeof MaterialIcons>["name"];
 const Icon = MaterialIcons;
-import { colors, spacing, borderRadius, typography } from '@/theme';
-import { useSessionsStore } from '@/stores/sessionsStore';
-import { useMachinesStore } from '@/stores/machinesStore';
-import { Button, Input, LoadingSpinner } from '@/components/common';
-import type { SessionMode } from '@/types';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { SessionsStackParamList } from '@/navigation/types';
+import { colors, spacing, borderRadius, typography } from "@/theme";
+import { useSessionsStore } from "@/stores/sessionsStore";
+import { useMachinesStore } from "@/stores/machinesStore";
+import { Button, Input, LoadingSpinner } from "@/components/common";
+import { FolderPickerModal } from "@/components/sessions/FolderPickerModal";
+import type { SessionMode } from "@/types";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type { SessionsStackParamList } from "@/navigation/types";
 
-type Props = NativeStackScreenProps<SessionsStackParamList, 'NewSession'>;
+type Props = NativeStackScreenProps<SessionsStackParamList, "NewSession">;
 
-const MODES: { value: SessionMode; label: string; icon: IconName; description: string }[] = [
+const MODES: {
+  value: SessionMode;
+  label: string;
+  icon: IconName;
+  description: string;
+}[] = [
   {
-    value: 'interactive',
-    label: 'Interactive',
-    icon: 'chat',
-    description: 'Full interactive Claude session with terminal',
+    value: "interactive",
+    label: "Interactive",
+    icon: "chat",
+    description: "Full interactive Claude session with terminal",
   },
   {
-    value: 'headless',
-    label: 'Headless',
-    icon: 'headset',
-    description: 'Background session without terminal input',
+    value: "headless",
+    label: "Headless",
+    icon: "headset",
+    description: "Background session without terminal input",
   },
   {
-    value: 'oneshot',
-    label: 'One-shot',
-    icon: 'flash-on',
-    description: 'Execute a single prompt and exit',
+    value: "oneshot",
+    label: "One-shot",
+    icon: "flash-on",
+    description: "Execute a single prompt and exit",
   },
 ];
 
 export const NewSessionScreen: React.FC<Props> = ({ route, navigation }) => {
   const { machineId } = route.params;
-  const [selectedMode, setSelectedMode] = useState<SessionMode>('interactive');
-  const [projectPath, setProjectPath] = useState('');
-  const [initialPrompt, setInitialPrompt] = useState('');
+  const [selectedMode, setSelectedMode] = useState<SessionMode>("interactive");
+  const [projectPath, setProjectPath] = useState("");
+  const [initialPrompt, setInitialPrompt] = useState("");
+  const [pickerVisible, setPickerVisible] = useState(false);
   const { createSession, isLoading } = useSessionsStore();
   const { getMachineById } = useMachinesStore();
 
@@ -58,12 +66,12 @@ export const NewSessionScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const handleCreate = useCallback(async () => {
     if (!machine) {
-      Alert.alert('Error', 'Machine not found');
+      Alert.alert("Error", "Machine not found");
       return;
     }
 
-    if (machine.status !== 'online') {
-      Alert.alert('Error', 'Machine is offline. Please wake it first.');
+    if (machine.status !== "online") {
+      Alert.alert("Error", "Machine is offline. Please wake it first.");
       return;
     }
 
@@ -75,9 +83,9 @@ export const NewSessionScreen: React.FC<Props> = ({ route, navigation }) => {
       });
 
       // Navigate to the new session
-      navigation.replace('Session', { sessionId: session.id });
+      navigation.replace("Session", { sessionId: session.id });
     } catch (error) {
-      Alert.alert('Error', 'Failed to create session. Please try again.');
+      Alert.alert("Error", "Failed to create session. Please try again.");
     }
   }, [
     machine,
@@ -105,7 +113,7 @@ export const NewSessionScreen: React.FC<Props> = ({ route, navigation }) => {
               styles.statusDot,
               {
                 backgroundColor:
-                  machine.status === 'online'
+                  machine.status === "online"
                     ? colors.semantic.success
                     : colors.semantic.error,
               },
@@ -151,10 +159,38 @@ export const NewSessionScreen: React.FC<Props> = ({ route, navigation }) => {
         <View style={styles.optionsContainer}>
           <Input
             label="Project Path (optional)"
-            placeholder="/path/to/project"
+            placeholder="~ (machine home directory)"
             value={projectPath}
             onChangeText={setProjectPath}
-            leftIcon={<Icon name="folder" size={20} color={colors.text.muted} />}
+            autoCapitalize="none"
+            autoCorrect={false}
+            helper="Leave empty to use the machine's home directory, type a path, or browse."
+            leftIcon={
+              <Icon name="folder" size={20} color={colors.text.muted} />
+            }
+            rightIcon={
+              <Pressable
+                onPress={() => {
+                  if (machine.status !== "online") {
+                    Alert.alert(
+                      "Machine offline",
+                      "Bring the machine online to browse its folders.",
+                    );
+                    return;
+                  }
+                  setPickerVisible(true);
+                }}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel="Browse folders"
+              >
+                <Icon
+                  name="folder-open"
+                  size={20}
+                  color={colors.accent.purple}
+                />
+              </Pressable>
+            }
           />
 
           <Input
@@ -174,17 +210,24 @@ export const NewSessionScreen: React.FC<Props> = ({ route, navigation }) => {
           title="Create Session"
           onPress={handleCreate}
           loading={isLoading}
-          disabled={machine.status !== 'online' || isLoading}
+          disabled={machine.status !== "online" || isLoading}
           size="large"
           style={styles.createButton}
         />
 
-        {machine.status !== 'online' && (
+        {machine.status !== "online" && (
           <Text style={styles.offlineWarning}>
             Machine is offline. Wake it before creating a session.
           </Text>
         )}
       </View>
+
+      <FolderPickerModal
+        visible={pickerVisible}
+        machineId={machineId}
+        onClose={() => setPickerVisible(false)}
+        onSelect={setProjectPath}
+      />
     </ScrollView>
   );
 };
@@ -198,8 +241,8 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
   },
   machineInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: colors.background.card,
     padding: spacing.md,
     borderRadius: borderRadius.lg,
@@ -209,7 +252,7 @@ const styles = StyleSheet.create({
   machineName: {
     flex: 1,
     fontSize: typography.size.base,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.text.primary,
   },
   statusDot: {
@@ -219,10 +262,10 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: typography.size.base,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.text.secondary,
     marginBottom: spacing.md,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
   modesContainer: {
     gap: spacing.md,
@@ -233,14 +276,14 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     padding: spacing.lg,
     borderWidth: 2,
-    borderColor: 'transparent',
+    borderColor: "transparent",
   },
   modeCardSelected: {
     borderColor: colors.primary.purple,
   },
   modeLabel: {
     fontSize: typography.size.md,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.text.secondary,
     marginTop: spacing.sm,
   },
@@ -265,7 +308,7 @@ const styles = StyleSheet.create({
   offlineWarning: {
     fontSize: typography.size.sm,
     color: colors.semantic.error,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: spacing.md,
   },
 });
