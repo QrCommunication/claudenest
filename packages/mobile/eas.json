@@ -11,8 +11,11 @@
         "simulator": true
       },
       "env": {
-        "API_URL": "https://claudenest.io/api",
-        "WS_URL": "wss://claudenest.io"
+        "EXPO_PUBLIC_API_URL": "https://claudenest.io",
+        "EXPO_PUBLIC_REVERB_APP_KEY": "ba5e8c79e195359afbe9bea81384770a",
+        "EXPO_PUBLIC_REVERB_HOST": "claudenest.io",
+        "EXPO_PUBLIC_REVERB_PORT": "443",
+        "EXPO_PUBLIC_REVERB_SCHEME": "https"
       }
     },
     "preview": {
@@ -21,15 +24,21 @@
         "buildType": "apk"
       },
       "env": {
-        "API_URL": "https://claudenest.io/api",
-        "WS_URL": "wss://claudenest.io"
+        "EXPO_PUBLIC_API_URL": "https://claudenest.io",
+        "EXPO_PUBLIC_REVERB_APP_KEY": "ba5e8c79e195359afbe9bea81384770a",
+        "EXPO_PUBLIC_REVERB_HOST": "claudenest.io",
+        "EXPO_PUBLIC_REVERB_PORT": "443",
+        "EXPO_PUBLIC_REVERB_SCHEME": "https"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
-        "API_URL": "https://claudenest.io/api",
-        "WS_URL": "wss://claudenest.io"
+        "EXPO_PUBLIC_API_URL": "https://claudenest.io",
+        "EXPO_PUBLIC_REVERB_APP_KEY": "ba5e8c79e195359afbe9bea81384770a",
+        "EXPO_PUBLIC_REVERB_HOST": "claudenest.io",
+        "EXPO_PUBLIC_REVERB_PORT": "443",
+        "EXPO_PUBLIC_REVERB_SCHEME": "https"
       }
     }
   },

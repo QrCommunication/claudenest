@@ -16,8 +16,7 @@ import type { ApiResponse, ApiError } from "@/types";
 const getAuthStore = () => require("@/stores/authStore").useAuthStore;
 
 // API Configuration — override via EXPO_PUBLIC_API_URL in .env
-const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL || "https://api.claudenest.app";
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || "https://claudenest.io";
 // Server routes are /api/* (no /v1 prefix)
 
 // Create axios instance
