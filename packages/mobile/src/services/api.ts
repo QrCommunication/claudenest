@@ -133,8 +133,42 @@ export const machinesApi = {
       },
     }),
 
-  getSkills: (id: string) =>
-    api.get<import("@/types").Skill[]>(`/machines/${id}/skills`),
+  // Single page of skills. Server defaults to per_page=15, so always pass a
+  // large page size when a full list is wanted (see getAllSkills).
+  getSkills: (
+    id: string,
+    params?: {
+      search?: string;
+      category?: string;
+      enabled?: boolean;
+      page?: number;
+      per_page?: number;
+    },
+  ) =>
+    api.get<import("@/types").Skill[]>(`/machines/${id}/skills`, {
+      params: {
+        per_page: params?.per_page ?? 200,
+        ...(params?.page ? { page: params.page } : {}),
+        ...(params?.search ? { search: params.search } : {}),
+        ...(params?.category ? { category: params.category } : {}),
+        ...(params?.enabled !== undefined ? { enabled: params.enabled } : {}),
+      },
+    }),
+
+  // Fetch EVERY skill the agent reported, paginating through all pages so the
+  // UI never silently caps at the server's default page size.
+  getAllSkills: async (id: string): Promise<import("@/types").Skill[]> => {
+    const first = await machinesApi.getSkills(id, { page: 1, per_page: 200 });
+    const all = [...(first.data ?? [])];
+    const lastPage =
+      (first.meta as { pagination?: { last_page?: number } } | undefined)
+        ?.pagination?.last_page ?? 1;
+    for (let page = 2; page <= lastPage; page++) {
+      const res = await machinesApi.getSkills(id, { page, per_page: 200 });
+      all.push(...(res.data ?? []));
+    }
+    return all;
+  },
 
   getMCP: (id: string) =>
     api.get<import("@/types").MCPServer[]>(`/machines/${id}/mcp`),

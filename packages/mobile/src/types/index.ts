@@ -360,12 +360,18 @@ export interface ActivityLog {
 // ==================== SKILL TYPES ====================
 
 export interface Skill {
+  id: string;
   name: string;
+  display_name: string | null;
   path: string;
   description: string | null;
+  category: string | null;
+  category_color: string | null;
   version: string | null;
-  author: string | null;
+  enabled: boolean;
   tags: string[];
+  has_config?: boolean;
+  discovered_at_human?: string | null;
 }
 
 // ==================== MCP TYPES ====================
