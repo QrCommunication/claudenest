@@ -46,6 +46,16 @@ class AgentServe extends Command
     /** @var array<int, array{buffer: string, upgraded: bool, machineId: ?string, frameBuffer: string, type: ?string, sessionId: ?string}> */
     private array $connState = [];
 
+    /**
+     * Throttle map for presence writes (machineId => last epoch second written).
+     * The agent pings every 30s; we persist last_seen/status at most once per
+     * 30s window to keep DB writes cheap while staying well under the 2-minute
+     * offline threshold.
+     *
+     * @var array<string, int>
+     */
+    private array $presenceTouched = [];
+
     private int $nextConnId = 0;
 
     public function handle(): int
@@ -269,7 +279,7 @@ class AgentServe extends Command
         if ($type === 'agent') {
             $machineId = $state['machineId'];
             if ($machineId && isset($this->agents[$machineId]) && $this->agents[$machineId]['connId'] === $connId) {
-                unset($this->agents[$machineId]);
+                unset($this->agents[$machineId], $this->presenceTouched[$machineId]);
 
                 $machine = Machine::find($machineId);
                 if ($machine) {
@@ -360,7 +370,7 @@ class AgentServe extends Command
                 'oauth:auth-url' => $this->onOAuthAuthUrl($data),
                 'oauth:tokens' => $this->onOAuthTokens($data),
                 'oauth:error' => $this->onOAuthError($data),
-                'ping' => $this->sendToAgent($machineId, 'pong', ['timestamp' => now()->getTimestampMs()]),
+                'ping' => $this->onAgentPing($machineId),
                 'error' => $this->onAgentError($machineId, $data),
                 default => $this->warn("[" . date('H:i:s') . "] Unknown agent message type: {$type}"),
             };
@@ -745,6 +755,42 @@ class AgentServe extends Command
         ], 600);
 
         $this->warn("[" . date('H:i:s') . "] OAuth error for credential {$credentialId}: {$error}");
+    }
+
+    /**
+     * Handle an agent heartbeat: refresh presence, then reply with a pong.
+     *
+     * The WebSocket ping (every 30s) is the agent's liveness signal, so it MUST
+     * drive `last_seen_at`/`status` — otherwise the per-minute offline scheduler
+     * (2-minute staleness threshold) flips a healthy, connected machine to
+     * `offline` and nothing flips it back until a fresh WS connect.
+     */
+    private function onAgentPing(string $machineId): void
+    {
+        $this->touchPresence($machineId);
+        $this->sendToAgent($machineId, 'pong', ['timestamp' => now()->getTimestampMs()]);
+    }
+
+    /**
+     * Persist the machine's presence (last_seen + online), throttled to once
+     * per 30s per machine. A lightweight query-builder update avoids loading
+     * the model and firing events on every heartbeat.
+     */
+    private function touchPresence(string $machineId): void
+    {
+        $now = time();
+        $last = $this->presenceTouched[$machineId] ?? 0;
+        if ($now - $last < 30) {
+            return;
+        }
+        $this->presenceTouched[$machineId] = $now;
+
+        Machine::query()
+            ->where('id', $machineId)
+            ->update([
+                'last_seen_at' => now(),
+                'status' => 'online',
+            ]);
     }
 
     // ==================== Server → Agent ====================

@@ -65,6 +65,13 @@ function logDir(): string {
 // ── Public API ──────────────────────────────────────
 
 export function installService(opts: ServiceOptions): void {
+  // Idempotency: wipe EVERY prior install (both systemd scopes, launchd,
+  // scheduled task, stray processes) before creating exactly one. This is what
+  // prevents the duplicate-agent situation where a user-scope unit and a
+  // system-scope unit (or a shell-installed unit) both run with the same
+  // machine token and fight over the single server-side WebSocket slot.
+  cleanupPreviousInstalls({ verbose: true });
+
   switch (process.platform) {
     case 'linux':
       return installSystemd(opts);
@@ -74,6 +81,79 @@ export function installService(opts: ServiceOptions): void {
       return installWindows(opts);
     default:
       throw new Error(`Service install unsupported on platform: ${process.platform}`);
+  }
+}
+
+/**
+ * Remove any previously-installed agent service across ALL known install
+ * methods so a reinstall never leaves two agents running. Best-effort and
+ * non-fatal: a scope that isn't present is simply skipped.
+ */
+export function cleanupPreviousInstalls(opts: { verbose?: boolean } = {}): void {
+  const log = (msg: string) => {
+    if (opts.verbose) console.log(msg);
+  };
+
+  switch (process.platform) {
+    case 'linux':
+      cleanupSystemd(log);
+      break;
+    case 'darwin':
+      cleanupLaunchd(log);
+      break;
+    case 'win32':
+      run('schtasks', ['/Delete', '/TN', SERVICE_LABEL, '/F']);
+      log('✓ Removed any prior scheduled task');
+      break;
+  }
+
+  // Kill stray foreground agents that aren't under a service manager anymore
+  // (e.g. a `claudenest-agent start` launched by hand). Safe: installService
+  // starts a fresh one right after. macOS/Linux only; pkill is absent on win32.
+  if (process.platform !== 'win32') {
+    run('pkill', ['-f', 'claudenest-agent start']);
+    run('pkill', ['-f', 'dist/index.js start']);
+  }
+}
+
+function cleanupSystemd(log: (m: string) => void): void {
+  // --- user scope ---
+  const userUnit = systemdUnitPath(false);
+  run('systemctl', ['--user', 'disable', '--now', `${SERVICE_LABEL}.service`]);
+  if (fs.existsSync(userUnit)) {
+    safeUnlink(userUnit);
+    log(`✓ Removed user unit ${userUnit}`);
+  }
+  run('systemctl', ['--user', 'daemon-reload']);
+  run('systemctl', ['--user', 'reset-failed', `${SERVICE_LABEL}.service`]);
+
+  // --- system scope (needs root) ---
+  const systemUnit = systemdUnitPath(true);
+  if (fs.existsSync(systemUnit)) {
+    // Try non-interactive sudo first to avoid hanging in headless contexts.
+    const disabled = run('sudo', ['-n', 'systemctl', 'disable', '--now', `${SERVICE_LABEL}.service`]);
+    const removed = run('sudo', ['-n', 'rm', '-f', systemUnit]);
+    if (disabled.ok || removed.ok) {
+      run('sudo', ['-n', 'systemctl', 'daemon-reload']);
+      log(`✓ Removed system unit ${systemUnit}`);
+    } else {
+      console.log(
+        '⚠ A system-wide service exists but could not be removed without a password.\n' +
+          '  Run this once, then re-run the install:\n' +
+          `    sudo systemctl disable --now ${SERVICE_LABEL}.service\n` +
+          `    sudo rm -f ${systemUnit}\n` +
+          '    sudo systemctl daemon-reload',
+      );
+    }
+  }
+}
+
+function cleanupLaunchd(log: (m: string) => void): void {
+  const plist = launchdPlistPath();
+  run('launchctl', ['unload', '-w', plist]);
+  if (fs.existsSync(plist)) {
+    safeUnlink(plist);
+    log(`✓ Removed LaunchAgent ${plist}`);
   }
 }
 
@@ -110,27 +190,11 @@ export function stopService(): void {
 }
 
 export function uninstallService(): void {
-  switch (process.platform) {
-    case 'linux': {
-      run('systemctl', ['--user', 'disable', '--now', `${SERVICE_LABEL}.service`]);
-      safeUnlink(systemdUnitPath(false));
-      run('systemctl', ['--user', 'daemon-reload']);
-      console.log('✓ Service uninstalled');
-      return;
-    }
-    case 'darwin': {
-      const plist = launchdPlistPath();
-      run('launchctl', ['unload', '-w', plist]);
-      safeUnlink(plist);
-      console.log('✓ Service uninstalled');
-      return;
-    }
-    case 'win32':
-      report(run('schtasks', ['/Delete', '/TN', SERVICE_LABEL, '/F']), 'uninstalled');
-      return;
-    default:
-      throw new Error(`Unsupported platform: ${process.platform}`);
-  }
+  // Reuse the same thorough cleanup as install so uninstall also removes a
+  // stray system-scope unit / launchd plist / scheduled task, not just the
+  // happy-path user unit.
+  cleanupPreviousInstalls({ verbose: true });
+  console.log('✓ Service uninstalled');
 }
 
 export function serviceStatus(): void {

@@ -492,8 +492,44 @@ main() {
 # ============================================
 # Service installation
 # ============================================
+
+# Idempotency: remove EVERY prior agent install before creating a new one, so a
+# re-run never leaves two agents fighting over the same machine token. Covers
+# both systemd scopes (user + system), launchd, and stray foreground processes.
+cleanup_previous_install() {
+  step "Removing any previous agent service (idempotent reinstall)..."
+
+  if [[ "$OS" == "linux" ]]; then
+    # User-scope unit (created by `claudenest-agent install-service`)
+    systemctl --user disable --now claudenest-agent.service >/dev/null 2>&1 || true
+    rm -f "$HOME/.config/systemd/user/claudenest-agent.service" 2>/dev/null || true
+    systemctl --user daemon-reload >/dev/null 2>&1 || true
+    systemctl --user reset-failed claudenest-agent.service >/dev/null 2>&1 || true
+
+    # System-scope unit (created by this script with sudo)
+    if [[ -f /etc/systemd/system/claudenest-agent.service ]]; then
+      sudo systemctl disable --now claudenest-agent.service >/dev/null 2>&1 || true
+      sudo rm -f /etc/systemd/system/claudenest-agent.service 2>/dev/null || true
+      sudo systemctl daemon-reload >/dev/null 2>&1 || true
+      info "Removed previous system service unit"
+    fi
+  elif [[ "$OS" == "macos" ]]; then
+    local plist="$HOME/Library/LaunchAgents/io.claudenest.agent.plist"
+    launchctl unload -w "$plist" >/dev/null 2>&1 || true
+    rm -f "$plist" 2>/dev/null || true
+  fi
+
+  # Kill any stray foreground agent (not under a service manager). A fresh one
+  # is started right after by install_service.
+  pkill -f "claudenest-agent start" >/dev/null 2>&1 || true
+  pkill -f "dist/index.js start" >/dev/null 2>&1 || true
+}
+
 install_service() {
   AGENT_PATH="${AGENT_CMD:-$(command -v claudenest-agent)}"
+
+  # Always wipe prior installs first → exactly one agent after this runs.
+  cleanup_previous_install
 
   if [[ "$OS" == "linux" ]]; then
     install_systemd_service "$AGENT_PATH"
