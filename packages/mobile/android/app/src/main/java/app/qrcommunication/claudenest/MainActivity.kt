@@ -1,4 +1,4 @@
-package io.claudenest.app
+package app.qrcommunication.claudenest
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build
