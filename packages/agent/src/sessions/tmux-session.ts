@@ -39,6 +39,8 @@ export class TmuxSession extends EventEmitter {
   private readonly maxBufferSize = 10000;
   private tmuxName: string;
   private isolatedConfigDir: string | null = null;
+  /** Last requested terminal size, re-applied to the control client on attach. */
+  private clientSize: { cols: number; rows: number } | null = null;
 
   pid?: number;
 
@@ -64,6 +66,7 @@ export class TmuxSession extends EventEmitter {
 
     const cols = this.options.ptySize?.cols || 120;
     const rows = this.options.ptySize?.rows || 40;
+    this.clientSize = { cols, rows };
     const cleanEnv = buildCleanProcessEnv();
 
     try {
@@ -165,9 +168,22 @@ export class TmuxSession extends EventEmitter {
   }
 
   resize(cols: number, rows: number): void {
+    this.clientSize = { cols, rows };
     if (!this.controller) return;
 
     this.logger.debug({ cols, rows }, `Resizing to ${cols}x${rows}`);
+
+    // In tmux control mode the WINDOW size is driven by the attached control
+    // client's reported size — `resize-window` alone is overridden by it, so the
+    // pane (and Claude Code inside it) stays at the control client's default
+    // width while the mobile xterm displays a different width. That mismatch is
+    // what makes Ink's in-place redraws stack ("input multiplies") and floods
+    // the wire with mis-aligned full-frame redraws (the latency).
+    //
+    // `refresh-client -C <cols>x<rows>` sets the control client's size so tmux
+    // resizes the window+pane to match. resize-window is kept as a belt-and-
+    // suspenders for `window-size manual` setups.
+    this.controller.stdin?.write(`refresh-client -C ${cols}x${rows}\n`);
     this.controller.stdin?.write(
       `resize-window -t ${this.tmuxName} -x ${cols} -y ${rows}\n`,
     );
@@ -342,6 +358,17 @@ export class TmuxSession extends EventEmitter {
     this.controller.stdout!.on('data', (chunk: Buffer) => {
       this.parser.feed(chunk.toString());
     });
+
+    // Pin the control client's size so tmux sizes the window/pane to the
+    // intended terminal size from the start (otherwise it defaults to ~80
+    // cols and mismatches the mobile xterm width → stacked redraws).
+    if (this.clientSize) {
+      const { cols, rows } = this.clientSize;
+      this.controller.stdin?.write(`refresh-client -C ${cols}x${rows}\n`);
+      this.controller.stdin?.write(
+        `resize-window -t ${this.tmuxName} -x ${cols} -y ${rows}\n`,
+      );
+    }
 
     this.controller.stderr!.on('data', (chunk: Buffer) => {
       this.logger.warn({ stderr: chunk.toString().trim() }, 'tmux stderr');

@@ -405,6 +405,18 @@ class AgentServe extends Command
                     'sessionId' => $sessionId,
                     'data' => $data,
                 ]);
+            } elseif ($message['type'] === 'resize') {
+                // Resize over the same low-latency channel as input so the PTY
+                // width tracks the client without a separate HTTP round-trip.
+                $cols = (int) ($message['cols'] ?? 0);
+                $rows = (int) ($message['rows'] ?? 0);
+                if ($cols >= 20 && $cols <= 500 && $rows >= 5 && $rows <= 200) {
+                    $this->sendToAgent($machineId, 'session:resize', [
+                        'sessionId' => $sessionId,
+                        'cols' => $cols,
+                        'rows' => $rows,
+                    ]);
+                }
             }
         } catch (\Throwable $e) {
             // Silently ignore malformed terminal messages
