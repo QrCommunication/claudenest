@@ -1366,6 +1366,8 @@
     "session": "Session",
     "search": "Search",
     "fitToWindow": "Fit to Window",
+    "fullscreen": "Fullscreen",
+    "exitFullscreen": "Exit Fullscreen",
     "terminateSession": "Terminate Session",
     "disconnect": "Disconnect",
     "statusCreated": "Created",

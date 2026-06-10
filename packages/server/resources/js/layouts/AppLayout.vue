@@ -1,7 +1,8 @@
 <template>
   <div class="app-layout">
-    <!-- Sidebar -->
+    <!-- Sidebar (hidden in fullscreen/zen mode) -->
     <AppSidebar
+      v-if="!isFullscreen"
       :collapsed="sidebarCollapsed"
       @toggle="toggleSidebar"
     />
@@ -13,11 +14,11 @@
         sidebarCollapsed ? 'sidebar-collapsed' : 'sidebar-expanded',
       ]"
     >
-      <!-- Tab Bar -->
+      <!-- Tab Bar — kept in fullscreen: session tabs + the "+" button -->
       <TabBar />
 
       <!-- Breadcrumb Bar -->
-      <div v-if="showBreadcrumb" class="breadcrumb-bar">
+      <div v-if="showBreadcrumb && !isFullscreen" class="breadcrumb-bar">
         <Breadcrumb :items="breadcrumbItems" />
       </div>
 
@@ -33,8 +34,8 @@
         </router-view>
       </main>
 
-      <!-- Status Bar -->
-      <StatusBar />
+      <!-- Status Bar (hidden in fullscreen/zen mode) -->
+      <StatusBar v-if="!isFullscreen" />
     </div>
 
     <!-- Mobile Sidebar Overlay -->
@@ -57,8 +58,10 @@ import StatusBar from '@/components/layout/StatusBar.vue';
 import Breadcrumb from '@/components/common/Breadcrumb.vue';
 import { useTabs } from '@/composables/useTabs';
 import { useBreadcrumb } from '@/composables/useBreadcrumb';
+import { useFullscreen } from '@/composables/useFullscreen';
 
 const route = useRoute();
+const { isFullscreen } = useFullscreen();
 const sidebarCollapsed = ref(false);
 const mobileSidebarOpen = ref(false);
 

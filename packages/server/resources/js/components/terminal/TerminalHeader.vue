@@ -55,8 +55,8 @@
           </svg>
         </button>
         
-        <button 
-          class="action-btn" 
+        <button
+          class="action-btn"
           @click="emit('fit')"
           :title="t('terminalTerminalheader.fitToWindow')"
         >
@@ -64,7 +64,23 @@
             <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 11-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15 13.586V12a1 1 0 011-1z" clip-rule="evenodd" />
           </svg>
         </button>
-        
+
+        <button
+          class="action-btn"
+          :class="{ active: isFullscreen }"
+          @click="toggleFullscreen"
+          :title="isFullscreen ? t('terminalTerminalheader.exitFullscreen') : t('terminalTerminalheader.fullscreen')"
+        >
+          <!-- Enter fullscreen: corners pointing out -->
+          <svg v-if="!isFullscreen" class="icon" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M3 4a1 1 0 011-1h3a1 1 0 010 2H5v2a1 1 0 01-2 0V4zM13 3a1 1 0 100 2h2v2a1 1 0 102 0V4a1 1 0 00-1-1h-3zM3 13a1 1 0 012 0v2h2a1 1 0 110 2H4a1 1 0 01-1-1v-3zM17 13a1 1 0 10-2 0v2h-2a1 1 0 100 2h3a1 1 0 001-1v-3z" />
+          </svg>
+          <!-- Exit fullscreen: corners pointing in -->
+          <svg v-else class="icon" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M7 3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 010-2h2V4a1 1 0 011-1zM13 3a1 1 0 00-1 1v3a1 1 0 001 1h3a1 1 0 100-2h-2V4a1 1 0 00-1-1zM7 17a1 1 0 001-1v-3a1 1 0 00-1-1H4a1 1 0 100 2h2v2a1 1 0 001 1zM12 16a1 1 0 102 0v-2h2a1 1 0 100-2h-3a1 1 0 00-1 1v3z" />
+          </svg>
+        </button>
+
         <button 
           class="action-btn danger" 
           :disabled="!canTerminate"
@@ -93,9 +109,11 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useFullscreen } from '@/composables/useFullscreen';
 import type { SessionMode, SessionStatus } from '@/types';
 
 const { t } = useI18n();
+const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
 
 // ============================================================================
 // Props & Emits

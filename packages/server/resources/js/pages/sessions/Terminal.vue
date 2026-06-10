@@ -314,7 +314,10 @@ watch(() => session.value?.is_running, (isRunning, wasRunning) => {
 .terminal-page {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  /* 100% of .app-content (flex:1 in the 100vh layout column) — 100vh here
+     overflowed by the tab/status bar heights, pushing the terminal bottom
+     below the fold. */
+  height: 100%;
   background: var(--bg-primary, var(--surface-1));
   overflow: hidden;
 }
