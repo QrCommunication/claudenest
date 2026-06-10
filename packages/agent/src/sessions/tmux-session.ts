@@ -294,18 +294,39 @@ export class TmuxSession extends EventEmitter {
     // credentials stay isolated (we write our own .credentials.json below).
     this.linkUserConfigInto(configDir);
 
-    // For OAuth: write .credentials.json in Claude Code's native format
+    // For OAuth: write .credentials.json in Claude Code's native format.
+    // An accessToken alone is treated as a degraded login; refreshToken and
+    // expiresAt (forwarded by the server when the credential has them) let
+    // Claude Code see a complete, non-expired session instead of prompting
+    // for /login.
     if (hasOAuth) {
+      const expiresAtMs = Number(credEnv['CLAUDE_CODE_OAUTH_EXPIRES_AT']);
       const credsFile = path.join(configDir, '.credentials.json');
       const credsData = JSON.stringify({
         claudeAiOauth: {
           accessToken: credEnv['CLAUDE_CODE_OAUTH_TOKEN'],
+          ...(credEnv['CLAUDE_CODE_OAUTH_REFRESH_TOKEN']
+            ? { refreshToken: credEnv['CLAUDE_CODE_OAUTH_REFRESH_TOKEN'] }
+            : {}),
+          ...(Number.isFinite(expiresAtMs) && expiresAtMs > 0
+            ? { expiresAt: expiresAtMs }
+            : {}),
+          scopes: ['user:inference', 'user:profile'],
         },
       });
       fs.writeFileSync(credsFile, credsData, { mode: 0o600 });
-      // Remove env var — Claude Code reads the file, not this env var
+      // Remove transport-only env vars — Claude Code reads the file
       delete credEnv['CLAUDE_CODE_OAUTH_TOKEN'];
+      delete credEnv['CLAUDE_CODE_OAUTH_REFRESH_TOKEN'];
+      delete credEnv['CLAUDE_CODE_OAUTH_EXPIRES_AT'];
     }
+
+    // Seed the onboarding/approval state — without it Claude Code re-runs
+    // onboarding and shows the login screen on EVERY session.
+    this.seedClaudeState(
+      configDir,
+      hasApiKey ? credEnv['ANTHROPIC_API_KEY'] : undefined,
+    );
 
     // Force Claude Code to use the isolated config directory
     credEnv['CLAUDE_CONFIG_DIR'] = configDir;
@@ -314,6 +335,56 @@ export class TmuxSession extends EventEmitter {
       { configDir, hasApiKey, hasOAuth },
       'Credential isolation: created isolated config dir',
     );
+  }
+
+  /**
+   * Seed `.claude.json` in the isolated config dir. Claude Code keeps its
+   * onboarding/approval state there — at the CONFIG ROOT, not inside
+   * ~/.claude/, so linkUserConfigInto() never covers it. Without this file
+   * every session boots with a virgin state: Claude re-runs onboarding and
+   * shows the login screen each time, and an ANTHROPIC_API_KEY from the
+   * environment requires interactive confirmation unless the key's last 20
+   * characters are pre-approved in `customApiKeyResponses.approved`.
+   *
+   * Starts from the user's real ~/.claude.json when available (theme,
+   * trusted projects), as a copy — never a symlink: concurrent sessions
+   * writing the same state file through links would corrupt the user's own
+   * config.
+   */
+  private seedClaudeState(configDir: string, apiKey?: string): void {
+    const stateFile = path.join(configDir, '.claude.json');
+
+    let state: Record<string, unknown> = {};
+    const source = fs.existsSync(stateFile)
+      ? stateFile
+      : path.join(os.homedir(), '.claude.json');
+    try {
+      state = JSON.parse(fs.readFileSync(source, 'utf8')) as Record<string, unknown>;
+    } catch {
+      state = {};
+    }
+
+    state['hasCompletedOnboarding'] = true;
+
+    if (apiKey) {
+      const responses = (state['customApiKeyResponses'] ?? {}) as {
+        approved?: string[];
+        rejected?: string[];
+      };
+      const approved = new Set(responses.approved ?? []);
+      approved.add(apiKey.slice(-20));
+      state['customApiKeyResponses'] = {
+        ...responses,
+        approved: [...approved],
+        rejected: responses.rejected ?? [],
+      };
+    }
+
+    try {
+      fs.writeFileSync(stateFile, JSON.stringify(state), { mode: 0o600 });
+    } catch (error) {
+      this.logger.warn({ err: error }, 'Could not seed .claude.json state');
+    }
   }
 
   /**

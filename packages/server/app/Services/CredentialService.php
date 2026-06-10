@@ -36,6 +36,19 @@ class CredentialService
             }
 
             $env['CLAUDE_CODE_OAUTH_TOKEN'] = $token;
+
+            // Transport-only vars: the agent assembles a complete
+            // .credentials.json (accessToken + refreshToken + expiresAt) in the
+            // session's isolated CLAUDE_CONFIG_DIR, then strips these from the
+            // environment. Without refreshToken/expiresAt Claude Code treats
+            // the synthetic credentials as a degraded login and prompts again.
+            $refreshToken = $credential->getRefreshToken();
+            if ($refreshToken) {
+                $env['CLAUDE_CODE_OAUTH_REFRESH_TOKEN'] = $refreshToken;
+            }
+            if ($credential->expires_at) {
+                $env['CLAUDE_CODE_OAUTH_EXPIRES_AT'] = (string) $credential->expires_at->getTimestampMs();
+            }
         }
 
         $credential->markUsed();
