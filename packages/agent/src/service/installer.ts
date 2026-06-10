@@ -244,7 +244,7 @@ Type=simple
 ${userLine}ExecStart=${node} ${script} start --server ${opts.serverUrl}
 EnvironmentFile=${envFile}
 WorkingDirectory=${os.homedir()}
-Restart=on-failure
+Restart=always
 RestartSec=5
 
 [Install]

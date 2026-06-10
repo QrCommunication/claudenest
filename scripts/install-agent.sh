@@ -576,7 +576,7 @@ Environment=HOME=$HOME
 Environment=DBUS_SESSION_BUS_ADDRESS=$dbus_addr
 Environment=PATH=$PATH
 ExecStart=$agent_path start
-Restart=on-failure
+Restart=always
 RestartSec=10
 
 [Install]

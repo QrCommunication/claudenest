@@ -321,7 +321,12 @@ export class ClaudeNestAgent extends EventEmitter {
 
     this.wsClient.on('error', (error: Error) => {
       this.logger.error({ err: error }, 'WebSocket error');
-      this.emit('error', error);
+      // EventEmitter throws synchronously on 'error' when no listener is
+      // attached — a transient network error (e.g. DNS EAI_AGAIN) must never
+      // crash the agent; reconnection is already handled on the 'close' event.
+      if (this.listenerCount('error') > 0) {
+        this.emit('error', error);
+      }
     });
 
     // Session events
@@ -372,7 +377,9 @@ export class ClaudeNestAgent extends EventEmitter {
     process.on('SIGTERM', () => this.handleShutdown());
     process.on('uncaughtException', (error) => {
       this.logger.fatal({ err: error }, 'Uncaught exception');
-      this.handleShutdown();
+      // Exit non-zero so the service supervisor (systemd Restart=on-failure)
+      // restarts the agent — a crash must never look like a clean shutdown.
+      this.handleShutdown(1);
     });
     process.on('unhandledRejection', (reason) => {
       this.logger.error({ reason }, 'Unhandled rejection');
@@ -521,12 +528,12 @@ export class ClaudeNestAgent extends EventEmitter {
     }
   }
 
-  private async handleShutdown(): Promise<void> {
+  private async handleShutdown(exitCode = 0): Promise<void> {
     this.logger.info('Shutdown signal received');
 
     try {
       await this.stop();
-      process.exit(0);
+      process.exit(exitCode);
     } catch (error) {
       this.logger.error({ err: error }, 'Error during shutdown');
       process.exit(1);
