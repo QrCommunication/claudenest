@@ -148,9 +148,22 @@ export function useTerminal(options: UseTerminalOptions): UseTerminalReturn {
     
     // Open terminal in container
     term.open(container);
-    
+
+    // Register the resize handler BEFORE the initial fit: xterm emits
+    // onResize during fit(), and the ResizeObserver only re-triggers it when
+    // the container size CHANGES afterwards. Registered after, the initial
+    // fitted size was never propagated — the PTY/tmux stayed at the creation
+    // default (120x40) while xterm displayed the full container, so output
+    // only occupied a small top-left box of the screen.
+    term.onResize(({ cols, rows }) => {
+      handleResize(cols, rows);
+    });
+
     // Initial fit
     fit.fit();
+    // Push the size even if fit() landed on the defaults (no resize event):
+    // this also primes the cached size replayed when the terminal WS opens.
+    handleResize(term.cols, term.rows);
     
     // Handle input from terminal
     term.onData((data) => {
@@ -173,11 +186,6 @@ export function useTerminal(options: UseTerminalOptions): UseTerminalReturn {
           sendInput(ctrlCodes[key.toLowerCase()]);
         }
       }
-    });
-    
-    // Handle resize
-    term.onResize(({ cols, rows }) => {
-      handleResize(cols, rows);
     });
     
     // Setup resize observer
