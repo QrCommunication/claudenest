@@ -217,12 +217,14 @@ export function useTerminal(options: UseTerminalOptions): UseTerminalReturn {
     }
   }
 
-  async function handleResize(cols: number, rows: number): Promise<void> {
-    try {
-      await sessionsApi.resize(sessionId, cols, rows);
-    } catch {
-      // Resize failure is non-critical: session continues at previous dimensions
-    }
+  function handleResize(cols: number, rows: number): void {
+    // Fast path over the terminal WebSocket (cached + replayed on reconnect).
+    // The previous REST-only path was silently dropped whenever the session
+    // was still 'created'/'starting' (the controller 404s outside
+    // running/waiting_input) — and xterm never re-emits onResize unless the
+    // size changes, so tmux stayed at its default size forever: full-screen
+    // TUIs repainted over themselves from the top instead of scrolling.
+    websocketManager.sendResize(cols, rows);
   }
 
   // ============================================================================

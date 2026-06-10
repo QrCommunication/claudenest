@@ -49,6 +49,12 @@ class WebSocketManager {
   private autoReconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private terminalReconnectAttempts = 0;
   private terminalReconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  // Last size reported by xterm's fit. Re-sent on every terminal WS (re)open:
+  // the initial fit usually fires BEFORE the socket is open, and tmux's
+  // control client otherwise keeps a default size that mismatches the
+  // browser terminal (full-screen TUIs then repaint over themselves from the
+  // top instead of scrolling).
+  private lastTerminalSize: { cols: number; rows: number } | null = null;
   
   // Auto-reconnect delays
   private readonly AUTO_RECONNECT_DELAY_DISCONNECT = 1000;
@@ -149,6 +155,12 @@ class WebSocketManager {
 
     this.terminalWs.onopen = () => {
       this.terminalReconnectAttempts = 0;
+      // Sync the PTY/tmux size with the browser terminal as soon as the
+      // channel is live (the fit that produced it likely ran before open).
+      if (this.lastTerminalSize) {
+        const { cols, rows } = this.lastTerminalSize;
+        this.terminalWs?.send(JSON.stringify({ type: 'resize', cols, rows }));
+      }
     };
 
     this.terminalWs.onmessage = (event) => {
@@ -268,6 +280,28 @@ class WebSocketManager {
     import('./api').then(({ sessionsApi }) => {
       if (this.config) {
         sessionsApi.sendInput(this.config.session_id, data);
+      }
+    });
+  }
+
+  /**
+   * Resize the session PTY. Same fast path as input: direct WebSocket frame
+   * to AgentServe (works whatever the session's DB status), HTTP fallback
+   * otherwise. The size is cached and replayed on every terminal WS (re)open.
+   */
+  sendResize(cols: number, rows: number): void {
+    this.lastTerminalSize = { cols, rows };
+
+    if (this.terminalWs && this.terminalWs.readyState === WebSocket.OPEN) {
+      this.terminalWs.send(JSON.stringify({ type: 'resize', cols, rows }));
+      return;
+    }
+
+    import('./api').then(({ sessionsApi }) => {
+      if (this.config) {
+        sessionsApi.resize(this.config.session_id, cols, rows).catch(() => {
+          // Non-critical: the size is replayed when the terminal WS opens.
+        });
       }
     });
   }
