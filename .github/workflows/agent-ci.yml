@@ -122,6 +122,11 @@ jobs:
         env:
           AGENT_VERSION: ${{ steps.check.outputs.local }}
         run: |
+          # Idempotent: the release process may have pushed the tag manually
+          if git ls-remote --exit-code --tags origin "agent-v${AGENT_VERSION}" >/dev/null 2>&1; then
+            echo "Tag agent-v${AGENT_VERSION} already exists on origin, skipping"
+            exit 0
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag "agent-v${AGENT_VERSION}"
