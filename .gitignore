@@ -21,6 +21,9 @@
 # Dependencies
 node_modules/
 vendor/
+# Published Blade vendor views (mail theme) must stay tracked —
+# the bare "vendor/" pattern above would silently ignore them
+!packages/server/resources/views/vendor/
 
 # Build outputs
 dist/

@@ -36,6 +36,10 @@ class User extends Authenticatable
         'github_id',
         'email_verified_at',
         'role',
+        'mfa_method',
+        'mfa_secret',
+        'mfa_recovery_codes',
+        'mfa_confirmed_at',
     ];
 
     /**
@@ -46,6 +50,8 @@ class User extends Authenticatable
         'google_id',
         'github_id',
         'remember_token',
+        'mfa_secret',
+        'mfa_recovery_codes',
     ];
 
     /**
@@ -53,6 +59,7 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'mfa_confirmed_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

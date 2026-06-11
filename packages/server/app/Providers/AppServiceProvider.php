@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\PersonalAccessToken;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
@@ -33,6 +34,16 @@ class AppServiceProvider extends ServiceProvider
         if ($this->app->isLocal()) {
             Model::shouldBeStrict();
         }
+
+        // API-only backend: there is no named web route `password.reset`, so the
+        // default ResetPassword notification URL builder would throw a
+        // RouteNotFoundException BEFORE sending — the reset email would never
+        // leave the server. Point the action link at the SPA route instead.
+        ResetPassword::createUrlUsing(function (object $notifiable, string $token): string {
+            return rtrim((string) config('app.url'), '/')
+                . '/reset-password?token=' . $token
+                . '&email=' . urlencode($notifiable->getEmailForPasswordReset());
+        });
 
         // Note: vector type registration is handled automatically by pgvector extension
     }

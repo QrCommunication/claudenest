@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\PasswordChangedMail;
+use App\Mail\WelcomeMail;
 use App\Models\MagicLink;
 use App\Models\User;
 use App\Models\PersonalAccessToken;
@@ -151,6 +153,11 @@ class AuthController extends Controller
                 "{$provider}_id" => $socialUser->getId(),
                 'email_verified_at' => now(),
             ]);
+
+            event(new Registered($user));
+
+            // First OAuth sign-in = account creation → welcome email.
+            $this->sendMailSafely($user, new WelcomeMail($user->name), 'welcome');
         }
 
         // Create API token
@@ -443,6 +450,13 @@ class AuthController extends Controller
             ->when($currentTokenId, fn ($q) => $q->where('id', '!=', $currentTokenId))
             ->delete();
 
+        // Security notification (anti account-takeover): tell the owner.
+        $this->sendMailSafely(
+            $user,
+            new PasswordChangedMail($user->name, now()->toDayDateTimeString() . ' (UTC)'),
+            'password changed'
+        );
+
         return response()->json([
             'success' => true,
             'data' => ['message' => 'Password updated'],
@@ -519,6 +533,26 @@ class AuthController extends Controller
         ];
     }
 
+    /**
+     * Helper: Send a transactional email without letting a mail transport
+     * failure break the auth flow (the primary action already succeeded —
+     * a 500 after committing a registration/password change would be worse).
+     *
+     * No PII in logs: only the user id is logged, never the email address.
+     */
+    private function sendMailSafely(User $user, \Illuminate\Mail\Mailable $mailable, string $context): void
+    {
+        try {
+            Mail::to($user->email)->send($mailable);
+        } catch (\Throwable $e) {
+            Log::warning("Failed to send {$context} email", [
+                'user_id' => $user->id,
+                'mailable' => $mailable::class,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
     /** Login user with email and password. */
     #[OA\Post(
         path: '/api/auth/login',
@@ -567,6 +601,19 @@ class AuthController extends Controller
 
         if (!Hash::check($validated['password'], $user->password)) {
             return $this->errorResponse('AUTH_002', 'Invalid credentials', 401);
+        }
+
+        // MFA challenge: intercept before issuing Sanctum token
+        if ($user->mfa_confirmed_at !== null) {
+            [$mfaToken, $mfaResponse] = MfaController::issueChallengeToken($user->id, $user->mfa_method);
+            return response()->json([
+                'success' => true,
+                'data' => $mfaResponse,
+                'meta' => [
+                    'timestamp' => now()->toIso8601String(),
+                    'request_id' => $request->header('X-Request-ID', uniqid()),
+                ],
+            ]);
         }
 
         // Create API token
@@ -637,6 +684,8 @@ class AuthController extends Controller
         ]);
 
         event(new Registered($user));
+
+        $this->sendMailSafely($user, new WelcomeMail($user->name), 'welcome');
 
         // Create API token
         $tokenResult = PersonalAccessToken::createForUser(
@@ -771,6 +820,14 @@ class AuthController extends Controller
                 ])->save();
 
                 event(new PasswordReset($user));
+
+                // Security notification (anti account-takeover): a reset is a
+                // password change too — the legitimate owner must be told.
+                $this->sendMailSafely(
+                    $user,
+                    new PasswordChangedMail($user->name, now()->toDayDateTimeString() . ' (UTC)'),
+                    'password changed'
+                );
             }
         );
 

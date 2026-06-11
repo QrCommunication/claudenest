@@ -18,6 +18,12 @@ Route::prefix('auth')->group(function () {
     Route::post('/reset-password', [Api\AuthController::class, 'resetPassword']);
     Route::post('/magic-link', [Api\AuthController::class, 'magicLink']);
     Route::post('/magic-link/verify', [Api\AuthController::class, 'magicLinkVerify']);
+
+    // MFA challenge — public, tightly rate-limited
+    Route::middleware('throttle:10,1')->group(function () {
+        Route::post('/mfa/verify', [Api\MfaController::class, 'verify']);
+        Route::post('/mfa/resend', [Api\MfaController::class, 'resend']);
+    });
 });
 
 // Public OAuth routes
@@ -43,6 +49,10 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     // ==================== DASHBOARD ====================
     Route::get('dashboard/stats', [Api\DashboardController::class, 'stats']);
 
+    // ==================== FEEDBACK ====================
+    Route::post('/feedback', [Api\FeedbackController::class, 'feedback'])
+        ->middleware('throttle:5,60');
+
     // ==================== AUTH ====================
     Route::prefix('auth')->group(function () {
         Route::post('/logout', [Api\AuthController::class, 'logout']);
@@ -54,6 +64,15 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
         Route::get('/tokens', [Api\AuthController::class, 'listTokens']);
         Route::post('/tokens', [Api\AuthController::class, 'createToken']);
         Route::delete('/tokens/{id}', [Api\AuthController::class, 'revokeToken']);
+
+        // ==================== MFA (AUTHENTICATED) ====================
+        Route::get('/mfa', [Api\MfaController::class, 'status']);
+        Route::post('/mfa/totp/setup', [Api\MfaController::class, 'totpSetup']);
+        Route::post('/mfa/totp/confirm', [Api\MfaController::class, 'totpConfirm']);
+        Route::post('/mfa/email/setup', [Api\MfaController::class, 'emailSetup']);
+        Route::post('/mfa/email/confirm', [Api\MfaController::class, 'emailConfirm']);
+        Route::delete('/mfa', [Api\MfaController::class, 'disable']);
+        Route::post('/mfa/recovery/regenerate', [Api\MfaController::class, 'regenerateRecoveryCodes']);
     });
 
     // ==================== PAIRING (AUTHENTICATED) ====================
