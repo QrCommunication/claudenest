@@ -95,9 +95,9 @@
       </p>
       <p>
         {{ $t('docDocsCookiespolicy.section6Also') }}
-        <router-link to="/docs/mentions-legales">{{ $t('docDocsCookiespolicy.linkLegal') }}</router-link>
+        <router-link to="/legal/mentions-legales">{{ $t('docDocsCookiespolicy.linkLegal') }}</router-link>
         {{ $t('docDocsCookiespolicy.andOur') }}
-        <router-link to="/docs/privacy">{{ $t('docDocsCookiespolicy.linkPrivacy') }}</router-link>.
+        <router-link to="/legal/privacy">{{ $t('docDocsCookiespolicy.linkPrivacy') }}</router-link>.
       </p>
     </section>
   </article>

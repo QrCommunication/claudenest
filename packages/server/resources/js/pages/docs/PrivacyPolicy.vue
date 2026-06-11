@@ -798,7 +798,7 @@
     <section id="cookies">
       <h2 id="cookies">{{ $t('docDocsPrivacypolicy.s8Heading') }}</h2>
       <p>
-        {{ $t('docDocsPrivacypolicy.s8IntroPre') }} <router-link to="/docs/cookies">{{ $t('docDocsPrivacypolicy.s8CookiePolicyLink') }}</router-link>.
+        {{ $t('docDocsPrivacypolicy.s8IntroPre') }} <router-link to="/legal/cookies">{{ $t('docDocsPrivacypolicy.s8CookiePolicyLink') }}</router-link>.
       </p>
 
       <div class="data-table-wrapper">

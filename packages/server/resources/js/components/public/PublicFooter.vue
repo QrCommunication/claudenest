@@ -34,10 +34,10 @@
 
       <div class="footer-col">
         <h4 class="footer-heading">{{ t('landing.footer.legal') }}</h4>
-        <router-link to="/docs/mentions-legales" class="footer-link">{{ t('landing.footer.mentions_legales') }}</router-link>
-        <router-link to="/docs/privacy" class="footer-link">{{ t('auth.privacy_policy') }}</router-link>
-        <router-link to="/docs/terms" class="footer-link">{{ t('auth.terms_of_service') }}</router-link>
-        <router-link to="/docs/cookies" class="footer-link">{{ t('landing.footer.cookies') }}</router-link>
+        <router-link to="/legal/mentions-legales" class="footer-link">{{ t('landing.footer.mentions_legales') }}</router-link>
+        <router-link to="/legal/privacy" class="footer-link">{{ t('auth.privacy_policy') }}</router-link>
+        <router-link to="/legal/terms" class="footer-link">{{ t('auth.terms_of_service') }}</router-link>
+        <router-link to="/legal/cookies" class="footer-link">{{ t('landing.footer.cookies') }}</router-link>
       </div>
 
       <div class="footer-col">

@@ -410,25 +410,45 @@ const routes: RouteRecordRaw[] = [
                 name: 'docs.resources.changelog',
                 component: () => import('@/pages/docs/ApiReference.vue'),
             },
+            // Legal pages moved to /legal — keep old URLs alive.
+            { path: 'terms', redirect: '/legal/terms' },
+            { path: 'privacy', redirect: '/legal/privacy' },
+            { path: 'mentions-legales', redirect: '/legal/mentions-legales' },
+            { path: 'cookies', redirect: '/legal/cookies' },
+        ],
+    },
+
+    // Legal pages: public chrome WITHOUT the documentation sidebar (the docs
+    // menu has no business framing legal content).
+    {
+        path: '/legal',
+        component: () => import('@/layouts/LegalLayout.vue'),
+        meta: { public: true },
+        children: [
+            { path: '', redirect: '/legal/mentions-legales' },
             {
-                path: 'terms',
-                name: 'docs.terms',
-                component: () => import('@/pages/docs/TermsOfService.vue'),
+                path: 'mentions-legales',
+                name: 'legal.mentions-legales',
+                component: () => import('@/pages/docs/MentionsLegales.vue'),
+                meta: { public: true },
             },
             {
                 path: 'privacy',
-                name: 'docs.privacy',
+                name: 'legal.privacy',
                 component: () => import('@/pages/docs/PrivacyPolicy.vue'),
+                meta: { public: true },
             },
             {
-                path: 'mentions-legales',
-                name: 'docs.mentions-legales',
-                component: () => import('@/pages/docs/MentionsLegales.vue'),
+                path: 'terms',
+                name: 'legal.terms',
+                component: () => import('@/pages/docs/TermsOfService.vue'),
+                meta: { public: true },
             },
             {
                 path: 'cookies',
-                name: 'docs.cookies',
+                name: 'legal.cookies',
                 component: () => import('@/pages/docs/CookiePolicy.vue'),
+                meta: { public: true },
             },
         ],
     },

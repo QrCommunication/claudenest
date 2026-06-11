@@ -98,9 +98,9 @@
           <input v-model="form.agreeTerms" type="checkbox" required />
           <span>
             {{ t('auth.terms_agreement') }}
-            <router-link to="/docs/terms" class="form-link">{{ t('auth.terms_of_service') }}</router-link>
+            <router-link to="/legal/terms" class="form-link">{{ t('auth.terms_of_service') }}</router-link>
             &amp;
-            <router-link to="/docs/privacy" class="form-link">{{ t('auth.privacy_policy') }}</router-link>
+            <router-link to="/legal/privacy" class="form-link">{{ t('auth.privacy_policy') }}</router-link>
           </span>
         </label>
 

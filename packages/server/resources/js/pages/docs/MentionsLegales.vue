@@ -156,7 +156,7 @@
       </p>
       <p>
         {{ $t('docDocsMentionslegales.donneesPara2Before') }}
-        <router-link to="/docs/privacy">{{ $t('docDocsMentionslegales.donneesPrivacyLink') }}</router-link>{{ $t('docDocsMentionslegales.donneesPara2After') }}
+        <router-link to="/legal/privacy">{{ $t('docDocsMentionslegales.donneesPrivacyLink') }}</router-link>{{ $t('docDocsMentionslegales.donneesPara2After') }}
       </p>
       <p>
         {{ $t('docDocsMentionslegales.donneesRightsIntro') }}
@@ -210,7 +210,7 @@
       </p>
       <p>
         {{ $t('docDocsMentionslegales.cookiesPara2Before') }}
-        <router-link to="/docs/cookies">{{ $t('docDocsMentionslegales.cookiesPolicyLink') }}</router-link>{{ $t('docDocsMentionslegales.cookiesPara2After') }}
+        <router-link to="/legal/cookies">{{ $t('docDocsMentionslegales.cookiesPolicyLink') }}</router-link>{{ $t('docDocsMentionslegales.cookiesPara2After') }}
       </p>
       <p>
         {{ $t('docDocsMentionslegales.cookiesPara3') }}

@@ -387,13 +387,13 @@ export const docsNavigation: NavSection[] = [
       {
         id: 'terms',
         title: 'Terms of Service',
-        path: '/docs/terms',
+        path: '/legal/terms',
         description: 'Terms and conditions'
       },
       {
         id: 'privacy',
         title: 'Privacy Policy',
-        path: '/docs/privacy',
+        path: '/legal/privacy',
         description: 'GDPR-compliant privacy policy'
       }
     ]
@@ -406,25 +406,25 @@ export const docsNavigation: NavSection[] = [
       {
         id: 'legal-mentions-legales',
         title: 'Mentions légales',
-        path: '/docs/mentions-legales',
+        path: '/legal/mentions-legales',
         description: 'Informations légales (France)'
       },
       {
         id: 'legal-privacy',
         title: 'Politique de confidentialité',
-        path: '/docs/privacy',
+        path: '/legal/privacy',
         description: 'Politique RGPD'
       },
       {
         id: 'legal-terms',
         title: 'CGU',
-        path: '/docs/terms',
+        path: '/legal/terms',
         description: 'Conditions générales d\'utilisation'
       },
       {
         id: 'legal-cookies',
         title: 'Cookies',
-        path: '/docs/cookies',
+        path: '/legal/cookies',
         description: 'Politique de cookies'
       }
     ]

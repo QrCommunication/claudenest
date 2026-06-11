@@ -179,7 +179,7 @@
       <h3 id="gdpr-compliance">{{ $t('docDocsTermsofservice.s6_1Title') }}</h3>
       <p>
         {{ $t('docDocsTermsofservice.s6_1Para1') }}
-        <router-link to="/docs/privacy">{{ $t('docDocsTermsofservice.privacyPolicyLink') }}</router-link>{{ $t('docDocsTermsofservice.s6_1Para2') }}
+        <router-link to="/legal/privacy">{{ $t('docDocsTermsofservice.privacyPolicyLink') }}</router-link>{{ $t('docDocsTermsofservice.s6_1Para2') }}
       </p>
 
       <h3 id="data-collection">{{ $t('docDocsTermsofservice.s6_2Title') }}</h3>
@@ -454,7 +454,7 @@
       <h3 id="entire-agreement">{{ $t('docDocsTermsofservice.s13_1Title') }}</h3>
       <p>
         {{ $t('docDocsTermsofservice.s13_1Para1') }}
-        <router-link to="/docs/privacy">{{ $t('docDocsTermsofservice.privacyPolicyLink') }}</router-link> {{ $t('docDocsTermsofservice.s13_1Para2') }}
+        <router-link to="/legal/privacy">{{ $t('docDocsTermsofservice.privacyPolicyLink') }}</router-link> {{ $t('docDocsTermsofservice.s13_1Para2') }}
       </p>
 
       <h3 id="severability">{{ $t('docDocsTermsofservice.s13_2Title') }}</h3>
