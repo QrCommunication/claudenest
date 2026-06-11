@@ -1,6 +1,6 @@
 <template>
-  <div ref="menuRef" class="user-menu">
-    <button class="user-menu-btn" @click="isOpen = !isOpen">
+  <div ref="rootRef" class="user-menu">
+    <button class="user-menu-btn" @click="toggle">
       <!-- Avatar -->
       <div class="user-avatar" :class="{ 'user-avatar--gradient': !user?.avatar_url }">
         <img v-if="user?.avatar_url" :src="user.avatar_url" :alt="user?.name" class="w-full h-full rounded-full object-cover" />
@@ -19,8 +19,12 @@
       </svg>
     </button>
 
+    <!-- Teleported to body: the 40px tab bar clips absolute children with
+         its overflow:hidden, so an in-place dropdown opened but was never
+         visible. Fixed coords are computed from the trigger rect. -->
+    <Teleport to="body">
     <Transition name="dropdown">
-      <div v-if="isOpen" class="dropdown-menu">
+      <div v-if="isOpen" ref="menuRef" class="dropdown-menu" :style="menuStyle">
         <!-- User Info -->
         <div class="dropdown-header">
           <div class="dropdown-avatar" :class="{ 'dropdown-avatar--gradient': !user?.avatar_url }">
@@ -64,11 +68,12 @@
         </div>
       </div>
     </Transition>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, type CSSProperties } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
@@ -87,7 +92,29 @@ const authStore = useAuthStore();
 const toast = useToast();
 
 const isOpen = ref(false);
+const rootRef = ref<HTMLElement | null>(null);
 const menuRef = ref<HTMLElement | null>(null);
+const menuStyle = ref<CSSProperties>({});
+
+const positionMenu = (): void => {
+  const btn = rootRef.value;
+  if (!btn) return;
+  const rect = btn.getBoundingClientRect();
+  // Right-align the 220px menu under the trigger, clamped in the viewport.
+  const right = Math.max(8, window.innerWidth - rect.right);
+  menuStyle.value = { top: `${rect.bottom + 6}px`, right: `${right}px` };
+};
+
+const toggle = (): void => {
+  if (!isOpen.value) positionMenu();
+  isOpen.value = !isOpen.value;
+};
+
+// Fixed-positioned from the trigger rect — close on scroll/resize instead
+// of tracking the trigger.
+const handleViewportChange = (): void => {
+  if (isOpen.value) isOpen.value = false;
+};
 
 const initials = computed(() => {
   if (!props.user?.name) return '?';
@@ -100,13 +127,24 @@ const initials = computed(() => {
 });
 
 const handleClickOutside = (event: MouseEvent) => {
-  if (menuRef.value && !menuRef.value.contains(event.target as Node)) {
-    isOpen.value = false;
-  }
+  if (!isOpen.value) return;
+  const target = event.target as Node;
+  // The menu is teleported to body: check BOTH the trigger and the menu.
+  if (rootRef.value?.contains(target)) return;
+  if (menuRef.value?.contains(target)) return;
+  isOpen.value = false;
 };
 
-onMounted(() => document.addEventListener('mousedown', handleClickOutside));
-onUnmounted(() => document.removeEventListener('mousedown', handleClickOutside));
+onMounted(() => {
+  document.addEventListener('mousedown', handleClickOutside);
+  window.addEventListener('scroll', handleViewportChange, true);
+  window.addEventListener('resize', handleViewportChange);
+});
+onUnmounted(() => {
+  document.removeEventListener('mousedown', handleClickOutside);
+  window.removeEventListener('scroll', handleViewportChange, true);
+  window.removeEventListener('resize', handleViewportChange);
+});
 
 const handleLogout = async () => {
   isOpen.value = false;
@@ -200,18 +238,17 @@ const handleLogout = async () => {
   .user-chevron { display: block; }
 }
 
-/* Dropdown */
+/* Dropdown — teleported to body, fixed coords set inline from the trigger
+   rect (an absolute child was clipped by the tab bar's overflow:hidden). */
 .dropdown-menu {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 6px);
+  position: fixed;
   width: 220px;
   background-color: var(--bg-secondary);
   border-radius: 8px;
   border: 1px solid var(--border-color);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   padding: 4px 0;
-  z-index: 200;
+  z-index: 9999;
 }
 
 .dropdown-header {
