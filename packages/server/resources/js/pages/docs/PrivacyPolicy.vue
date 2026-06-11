@@ -50,6 +50,20 @@
           </p>
         </div>
       </div>
+      <div class="info-card">
+        <div class="info-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+          </svg>
+        </div>
+        <div>
+          <h4>{{ $t('docDocsPrivacypolicy.s1DpoTitle') }}</h4>
+          <p>
+            {{ $t('docDocsPrivacypolicy.s1DpoPara') }}<br>
+            {{ $t('docDocsPrivacypolicy.s1EmailLabel') }} <a href="mailto:contact@qrcommunication.com">contact@qrcommunication.com</a>
+          </p>
+        </div>
+      </div>
       <p>
         {{ $t('docDocsPrivacypolicy.s1OpenSourcePara') }}
       </p>
@@ -306,6 +320,34 @@
       <h3 id="activity-logs">{{ $t('docDocsPrivacypolicy.s26Heading') }}</h3>
       <p>
         {{ $t('docDocsPrivacypolicy.s26Para') }}
+      </p>
+
+      <h3 id="credentials-and-push-tokens">{{ $t('docDocsPrivacypolicy.s27Heading') }}</h3>
+      <div class="data-table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>{{ $t('docDocsPrivacypolicy.thData') }}</th>
+              <th>{{ $t('docDocsPrivacypolicy.thPurpose') }}</th>
+              <th>{{ $t('docDocsPrivacypolicy.thRetention') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>api_key</code> / <code>oauth_token</code></td>
+              <td>{{ $t('docDocsPrivacypolicy.s27CredentialsPurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.s27CredentialsRetention') }}</td>
+            </tr>
+            <tr>
+              <td><code>push_token</code></td>
+              <td>{{ $t('docDocsPrivacypolicy.s27PushTokenPurpose') }}</td>
+              <td>{{ $t('docDocsPrivacypolicy.s27PushTokenRetention') }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        {{ $t('docDocsPrivacypolicy.s27Para') }}
       </p>
     </section>
 
@@ -608,12 +650,36 @@
             {{ $t('docDocsPrivacypolicy.s62GithubPara') }}
           </p>
         </div>
+
+        <div class="third-party-card">
+          <div class="tp-header">
+            <span class="tp-badge external">{{ $t('docDocsPrivacypolicy.badgeExternal') }}</span>
+            <h4>Anthropic (Claude API)</h4>
+          </div>
+          <p>
+            {{ $t('docDocsPrivacypolicy.s62AnthropicPara') }}
+          </p>
+        </div>
       </div>
 
       <h3 id="no-data-sales">{{ $t('docDocsPrivacypolicy.s63Heading') }}</h3>
       <p>
         {{ $t('docDocsPrivacypolicy.s63Para1') }} <strong>{{ $t('docDocsPrivacypolicy.s63Emphasis') }}</strong> {{ $t('docDocsPrivacypolicy.s63Para2') }}
       </p>
+
+      <h3 id="processors">{{ $t('docDocsPrivacypolicy.s64Heading') }}</h3>
+      <div class="third-party-grid">
+        <div class="third-party-card">
+          <div class="tp-header">
+            <span class="tp-badge external">{{ $t('docDocsPrivacypolicy.badgeProcessor') }}</span>
+            <h4>Scaleway SAS</h4>
+          </div>
+          <p>
+            {{ $t('docDocsPrivacypolicy.s64ScalewayPara') }}<br>
+            <a href="https://www.scaleway.com" target="_blank" rel="noopener noreferrer">www.scaleway.com</a>
+          </p>
+        </div>
+      </div>
     </section>
 
     <!-- Section 7: Your Rights -->
@@ -702,6 +768,10 @@
           </div>
         </div>
       </div>
+
+      <p>
+        {{ $t('docDocsPrivacypolicy.s7PostMortemPara') }}
+      </p>
 
       <div class="info-card info-card--spaced">
         <div class="info-icon">
@@ -918,7 +988,7 @@
             </svg>
             <div>
               <strong>{{ $t('docDocsPrivacypolicy.s13EmailLabel') }}</strong>
-              <p><a href="mailto:dpo@claudenest.io">dpo@claudenest.io</a></p>
+              <p><a href="mailto:contact@qrcommunication.com">contact@qrcommunication.com</a></p>
             </div>
           </div>
 
@@ -938,7 +1008,7 @@
             </svg>
             <div>
               <strong>{{ $t('docDocsPrivacypolicy.s13GithubLabel') }}</strong>
-              <p><a href="https://github.com/claudenest/claudenest/issues" target="_blank" rel="noopener">{{ $t('docDocsPrivacypolicy.s13GithubLinkText') }}</a></p>
+              <p><a href="https://github.com/QrCommunication/claudenest/issues" target="_blank" rel="noopener">{{ $t('docDocsPrivacypolicy.s13GithubLinkText') }}</a></p>
             </div>
           </div>
         </div>

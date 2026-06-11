@@ -9,7 +9,7 @@
             <span class="meta-dot" />
             {{ t('landing.open_source.title') }}
           </span>
-          <span class="meta-chip">MIT License</span>
+          <span class="meta-chip">PolyForm Noncommercial</span>
         </div>
       </div>
 

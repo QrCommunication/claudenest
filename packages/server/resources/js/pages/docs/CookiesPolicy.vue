@@ -91,7 +91,7 @@
       <h2>{{ $t('docDocsCookiespolicy.section6Title') }}</h2>
       <p>
         {{ $t('docDocsCookiespolicy.section6Para') }}
-        <a href="mailto:privacy@claudenest.io">privacy@claudenest.io</a>
+        <a href="mailto:contact@qrcommunication.com">contact@qrcommunication.com</a>
       </p>
       <p>
         {{ $t('docDocsCookiespolicy.section6Also') }}

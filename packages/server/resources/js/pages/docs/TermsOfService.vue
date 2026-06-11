@@ -164,6 +164,12 @@
       <p>
         {{ $t('docDocsTermsofservice.s5_3Para') }}
       </p>
+      <p>
+        {{ $t('docDocsTermsofservice.s5_3Para2Before') }}
+        <a href="https://polyformproject.org/licenses/noncommercial/1.0.0/" target="_blank" rel="noopener noreferrer">polyformproject.org/licenses/noncommercial/1.0.0</a>
+        {{ $t('docDocsTermsofservice.s5_3Para2Mid') }}
+        <a href="https://github.com/QrCommunication/claudenest" target="_blank" rel="noopener noreferrer">github.com/QrCommunication/claudenest</a>{{ $t('docDocsTermsofservice.s5_3Para2After') }}
+      </p>
     </section>
 
     <!-- Section 6: Data Protection -->
@@ -223,7 +229,7 @@
       </div>
       <p>
         {{ $t('docDocsTermsofservice.s6_3Para2Before') }}
-        <a href="mailto:privacy@claudenest.io">privacy@claudenest.io</a>{{ $t('docDocsTermsofservice.s6_3Para2After') }}
+        <a href="mailto:contact@qrcommunication.com">contact@qrcommunication.com</a>{{ $t('docDocsTermsofservice.s6_3Para2After') }}
       </p>
 
       <h3 id="data-retention">{{ $t('docDocsTermsofservice.s6_4Title') }}</h3>
@@ -307,7 +313,7 @@
       <h3 id="termination-by-you">{{ $t('docDocsTermsofservice.s9_1Title') }}</h3>
       <p>
         {{ $t('docDocsTermsofservice.s9_1Para1Before') }}
-        <a href="mailto:support@claudenest.io">support@claudenest.io</a> {{ $t('docDocsTermsofservice.s9_1Para1After') }}
+        <a href="mailto:contact@qrcommunication.com">contact@qrcommunication.com</a> {{ $t('docDocsTermsofservice.s9_1Para1After') }}
       </p>
       <ul>
         <li>{{ $t('docDocsTermsofservice.s9_1Item1') }}</li>
@@ -424,7 +430,7 @@
           </div>
           <div>
             <h4>{{ $t('docDocsTermsofservice.contactDpoTitle') }}</h4>
-            <a href="mailto:privacy@claudenest.io">privacy@claudenest.io</a>
+            <a href="mailto:contact@qrcommunication.com">contact@qrcommunication.com</a>
           </div>
         </div>
         <div class="contact-card">
@@ -435,7 +441,7 @@
           </div>
           <div>
             <h4>{{ $t('docDocsTermsofservice.contactSupportTitle') }}</h4>
-            <a href="mailto:support@claudenest.io">support@claudenest.io</a>
+            <a href="mailto:contact@qrcommunication.com">contact@qrcommunication.com</a>
           </div>
         </div>
       </div>

@@ -186,7 +186,7 @@
           <li>Include the <code>request_id</code> from error responses when contacting support</li>
           <li>Check our <a href="https://github.com/claudenest/claudenest/issues" target="_blank">GitHub Issues</a></li>
           <li>Join our <a href="https://discord.gg/claudenest" target="_blank">Discord community</a></li>
-          <li>Email <a href="mailto:support@claudenest.io">support@claudenest.io</a></li>
+          <li>Email <a href="mailto:contact@qrcommunication.com">contact@qrcommunication.com</a></li>
         </ul>
       </div>
     </div>

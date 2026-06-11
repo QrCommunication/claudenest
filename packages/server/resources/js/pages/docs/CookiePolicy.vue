@@ -410,7 +410,7 @@
           </div>
           <div>
             <h4>{{ $t('docDocsCookiepolicy.contactDpoTitle') }}</h4>
-            <a href="mailto:dpo@claudenest.io">dpo@claudenest.io</a>
+            <a href="mailto:contact@qrcommunication.com">contact@qrcommunication.com</a>
           </div>
         </div>
       </div>

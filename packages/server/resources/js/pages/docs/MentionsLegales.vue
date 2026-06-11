@@ -44,6 +44,10 @@
               <span class="detail-value">{{ $t('docDocsMentionslegales.detailFormeValue') }}</span>
             </div>
             <div class="detail-row">
+              <span class="detail-label">{{ $t('docDocsMentionslegales.detailCapitalLabel') }}</span>
+              <span class="detail-value">{{ $t('docDocsMentionslegales.detailCapitalValue') }}</span>
+            </div>
+            <div class="detail-row">
               <span class="detail-label">SIREN</span>
               <span class="detail-value">940 163 496</span>
             </div>
@@ -98,7 +102,8 @@
         <div>
           <h4>{{ $t('docDocsMentionslegales.hebergementCardTitle') }}</h4>
           <p>
-            {{ $t('docDocsMentionslegales.hebergementCardBody') }}
+            {{ $t('docDocsMentionslegales.hebergementCardBody') }}<br>
+            <a href="https://www.scaleway.com" target="_blank" rel="noopener noreferrer">www.scaleway.com</a>
           </p>
         </div>
       </div>
@@ -164,9 +169,17 @@
         <li>{{ $t('docDocsMentionslegales.donneesRightPortabilite') }}</li>
         <li>{{ $t('docDocsMentionslegales.donneesRightOpposition') }}</li>
       </ul>
+      <h3 id="dpo">{{ $t('docDocsMentionslegales.donneesDpoHeading') }}</h3>
+      <p>
+        {{ $t('docDocsMentionslegales.donneesDpoPara1') }}
+      </p>
+      <p>
+        {{ $t('docDocsMentionslegales.donneesDpoContactBefore') }}
+        <a href="mailto:contact@qrcommunication.com">contact@qrcommunication.com</a>{{ $t('docDocsMentionslegales.donneesDpoContactAfter') }}
+      </p>
       <p>
         {{ $t('docDocsMentionslegales.donneesExerciceBefore') }}
-        <a href="mailto:dpo@claudenest.io">dpo@claudenest.io</a>.
+        <a href="mailto:contact@qrcommunication.com">contact@qrcommunication.com</a>.
         {{ $t('docDocsMentionslegales.donneesExerciceAfter') }}
       </p>
       <p>
