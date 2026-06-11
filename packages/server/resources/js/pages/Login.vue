@@ -1,6 +1,7 @@
 <template>
   <AuthShell>
     <div class="auth-card">
+      <template v-if="!authStore.mfaPending">
       <div class="auth-heading">
         <h1 class="auth-title">{{ t('auth.welcome_back') }}</h1>
         <p class="auth-subtitle">{{ t('auth.sign_in') }}</p>
@@ -83,14 +84,91 @@
         {{ t('auth.no_account') }}
         <router-link to="/register" class="form-link">{{ t('auth.sign_up') }}</router-link>
       </p>
+      </template>
+
+      <!-- MFA challenge step -->
+      <template v-else>
+      <div class="auth-heading">
+        <h1 class="auth-title">
+          {{ authStore.mfaPending.method === 'email' ? t('auth.mfa.title_email') : t('auth.mfa.title_totp') }}
+        </h1>
+        <p class="auth-subtitle">
+          {{ authStore.mfaPending.method === 'email' ? t('auth.mfa.subtitle_email') : t('auth.mfa.subtitle_totp') }}
+        </p>
+      </div>
+
+      <form class="auth-form" @submit.prevent="handleVerifyMfa" novalidate>
+        <div class="field">
+          <label for="mfa-code" class="field-label">
+            {{ useRecoveryCode ? t('auth.mfa.recovery_label') : t('auth.mfa.code_label') }}
+          </label>
+          <input
+            id="mfa-code"
+            ref="mfaCodeInput"
+            v-model="mfaCode"
+            type="text"
+            :inputmode="useRecoveryCode ? 'text' : 'numeric'"
+            :maxlength="useRecoveryCode ? 64 : 6"
+            autocomplete="one-time-code"
+            autofocus
+            :placeholder="useRecoveryCode ? t('auth.mfa.recovery_placeholder') : t('auth.mfa.code_placeholder')"
+            class="field-input"
+            :class="{ 'has-error': mfaError, 'mfa-code-input': !useRecoveryCode }"
+            :disabled="isVerifyingMfa"
+          />
+          <span v-if="mfaError" class="field-error">{{ mfaError }}</span>
+        </div>
+
+        <button type="submit" class="btn-primary" :disabled="isVerifyingMfa">
+          <span v-if="!isVerifyingMfa">
+            {{ t('auth.mfa.verify') }}
+          </span>
+          <span v-else class="spinner">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" opacity="0.25" />
+              <path d="M12 2a10 10 0 0 1 10 10" />
+            </svg>
+          </span>
+        </button>
+
+        <div class="mfa-actions">
+          <button type="button" class="form-link mfa-link" @click="toggleRecoveryCode">
+            {{ useRecoveryCode ? t('auth.mfa.use_normal_code') : t('auth.mfa.use_recovery_code') }}
+          </button>
+          <button
+            v-if="authStore.mfaPending.method === 'email'"
+            type="button"
+            class="form-link mfa-link"
+            :disabled="resendCooldown > 0 || isResending"
+            @click="handleResend"
+          >
+            {{ resendCooldown > 0 ? t('auth.mfa.resend_wait', { seconds: resendCooldown }) : t('auth.mfa.resend') }}
+          </button>
+          <button type="button" class="form-link mfa-link mfa-link-muted" @click="handleCancelMfa">
+            {{ t('auth.mfa.cancel') }}
+          </button>
+        </div>
+      </form>
+      </template>
+
+      <nav class="auth-legal-links">
+        <router-link to="/legal/terms">{{ t('auth.terms_of_service') }}</router-link>
+        <span aria-hidden="true">·</span>
+        <router-link to="/legal/privacy">{{ t('auth.privacy_policy') }}</router-link>
+        <span aria-hidden="true">·</span>
+        <router-link to="/legal/mentions-legales">{{ t('landing.footer.mentions_legales') }}</router-link>
+        <span aria-hidden="true">·</span>
+        <router-link to="/legal/cookies">{{ t('landing.footer.cookies') }}</router-link>
+      </nav>
     </div>
   </AuthShell>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch, nextTick, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
+import axios from 'axios';
 import { useAuthStore } from '@/stores/auth';
 import { useToast } from '@/composables/useToast';
 import AuthShell from '@/components/public/AuthShell.vue';
@@ -105,6 +183,33 @@ const password = ref('');
 const rememberMe = ref(false);
 const isLoading = ref(false);
 const errors = ref<{ email?: string; password?: string }>({});
+
+// MFA challenge state
+const mfaCode = ref('');
+const mfaError = ref('');
+const isVerifyingMfa = ref(false);
+const useRecoveryCode = ref(false);
+const isResending = ref(false);
+const resendCooldown = ref(0);
+const mfaCodeInput = ref<HTMLInputElement | null>(null);
+let resendTimer: ReturnType<typeof setInterval> | null = null;
+
+watch(
+  () => authStore.mfaPending,
+  async (pending) => {
+    if (pending) {
+      mfaCode.value = '';
+      mfaError.value = '';
+      useRecoveryCode.value = false;
+      await nextTick();
+      mfaCodeInput.value?.focus();
+    }
+  },
+);
+
+onUnmounted(() => {
+  if (resendTimer) clearInterval(resendTimer);
+});
 
 async function handleLogin(): Promise<void> {
   errors.value = {};
@@ -121,6 +226,12 @@ async function handleLogin(): Promise<void> {
   isLoading.value = true;
   try {
     await authStore.login(email.value, password.value);
+
+    if (authStore.mfaPending) {
+      // MFA challenge required — the template switches to the MFA step.
+      return;
+    }
+
     toast.success(t('auth.welcome_back'), t('auth.login_success'));
     router.push('/dashboard');
   } catch {
@@ -128,6 +239,104 @@ async function handleLogin(): Promise<void> {
   } finally {
     isLoading.value = false;
   }
+}
+
+function getApiErrorCode(error: unknown): string | undefined {
+  if (axios.isAxiosError(error)) {
+    return error.response?.data?.error?.code;
+  }
+  return undefined;
+}
+
+async function handleVerifyMfa(): Promise<void> {
+  mfaError.value = '';
+
+  if (!mfaCode.value.trim()) {
+    mfaError.value = t('auth.mfa.code_required');
+    return;
+  }
+
+  isVerifyingMfa.value = true;
+  try {
+    await authStore.verifyMfa(mfaCode.value.trim());
+    toast.success(t('auth.welcome_back'), t('auth.login_success'));
+    router.push('/dashboard');
+  } catch (error) {
+    const code = getApiErrorCode(error);
+    const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+
+    if (code === 'MFA_004') {
+      toast.error(t('common.error'), t('auth.mfa.session_expired'));
+      authStore.cancelMfa();
+    } else if (code === 'MFA_005') {
+      toast.error(t('common.error'), t('auth.mfa.too_many_attempts'));
+      authStore.cancelMfa();
+    } else if (status === 429) {
+      mfaError.value = t('auth.mfa.throttled');
+    } else if (code === 'MFA_002' || status === 422) {
+      mfaError.value = t('auth.mfa.invalid_code');
+      mfaCode.value = '';
+      await nextTick();
+      mfaCodeInput.value?.focus();
+    } else {
+      mfaError.value = t('auth.mfa.verify_failed');
+    }
+  } finally {
+    isVerifyingMfa.value = false;
+  }
+}
+
+async function handleResend(): Promise<void> {
+  if (isResending.value || resendCooldown.value > 0) return;
+
+  isResending.value = true;
+  try {
+    await authStore.resendMfaCode();
+    toast.success(t('auth.mfa.title_email'), t('auth.mfa.resend_sent'));
+    startResendCooldown();
+  } catch (error) {
+    const code = getApiErrorCode(error);
+    if (code === 'MFA_004') {
+      toast.error(t('common.error'), t('auth.mfa.session_expired'));
+      authStore.cancelMfa();
+    } else {
+      toast.error(t('common.error'), t('auth.mfa.resend_failed'));
+    }
+  } finally {
+    isResending.value = false;
+  }
+}
+
+function startResendCooldown(): void {
+  resendCooldown.value = 30;
+  if (resendTimer) clearInterval(resendTimer);
+  resendTimer = setInterval(() => {
+    resendCooldown.value -= 1;
+    if (resendCooldown.value <= 0 && resendTimer) {
+      clearInterval(resendTimer);
+      resendTimer = null;
+    }
+  }, 1000);
+}
+
+async function toggleRecoveryCode(): Promise<void> {
+  useRecoveryCode.value = !useRecoveryCode.value;
+  mfaCode.value = '';
+  mfaError.value = '';
+  await nextTick();
+  mfaCodeInput.value?.focus();
+}
+
+function handleCancelMfa(): void {
+  mfaCode.value = '';
+  mfaError.value = '';
+  useRecoveryCode.value = false;
+  if (resendTimer) {
+    clearInterval(resendTimer);
+    resendTimer = null;
+  }
+  resendCooldown.value = 0;
+  authStore.cancelMfa();
 }
 
 function socialLogin(provider: 'google' | 'github'): void {
@@ -383,5 +592,64 @@ function socialLogin(provider: 'google' | 'github'): void {
   font-size: 0.85rem;
   color: var(--text-secondary);
   text-align: center;
+}
+
+/* MFA step */
+.mfa-code-input {
+  text-align: center;
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: 0.35em;
+  font-variant-numeric: tabular-nums;
+}
+
+.mfa-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 0.25rem;
+}
+
+.mfa-link {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.mfa-link:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  color: var(--text-muted);
+}
+
+.mfa-link-muted {
+  color: var(--text-muted);
+}
+
+.mfa-link-muted:hover {
+  color: var(--text-secondary);
+}
+
+/* Legal links footer */
+.auth-legal-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
+.auth-legal-links a {
+  color: var(--text-muted);
+  transition: color 0.2s;
+}
+
+.auth-legal-links a:hover {
+  color: var(--text-secondary);
 }
 </style>

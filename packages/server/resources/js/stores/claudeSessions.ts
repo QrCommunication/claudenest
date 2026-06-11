@@ -100,8 +100,12 @@ export const useClaudeSessionsStore = defineStore('claudeSessions', () => {
     }
   }
 
-  async function adopt(machineId: string, sessionId: string): Promise<string | null> {
-    const agentSessionId = await claudeSessionsApi.adopt(machineId, sessionId);
+  async function adopt(
+    machineId: string,
+    sessionId: string,
+    credentialId?: string | null,
+  ): Promise<string | null> {
+    const agentSessionId = await claudeSessionsApi.adopt(machineId, sessionId, credentialId);
     const session = sessions.value.find((s) => s.session_id === sessionId);
     if (session) {
       session.adopted = true;

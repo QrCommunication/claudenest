@@ -104,6 +104,159 @@
                 {{ t('settings.updatePassword') }}
               </Button>
             </div>
+
+            <!-- Two-Factor Authentication -->
+            <div class="pt-6 border-t border-skin">
+              <div class="flex items-center justify-between mb-1">
+                <h4 class="text-sm font-medium text-skin-primary">{{ t('settings.mfaTitle') }}</h4>
+                <span
+                  v-if="mfa"
+                  :class="[
+                    'text-xs font-medium px-2 py-0.5 rounded-full',
+                    mfa.enabled
+                      ? 'bg-green-500/10 text-green-400'
+                      : 'bg-surface-4 text-skin-secondary',
+                  ]"
+                >
+                  {{ mfa.enabled ? t('settings.mfaStatusEnabled') : t('settings.mfaStatusDisabled') }}
+                </span>
+              </div>
+              <p class="text-xs text-skin-secondary mb-4">{{ t('settings.mfaDescription') }}</p>
+
+              <p v-if="isLoadingMfa" class="text-sm text-skin-secondary">{{ t('settings.mfaLoading') }}</p>
+
+              <!-- Recovery codes (shown ONCE after confirm/regenerate) -->
+              <div v-else-if="recoveryCodes" class="space-y-3">
+                <div class="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-3">
+                  <p class="text-sm font-medium text-yellow-400 mb-1">{{ t('settings.mfaRecoveryTitle') }}</p>
+                  <p class="text-xs text-skin-secondary">{{ t('settings.mfaRecoveryWarning') }}</p>
+                </div>
+                <div class="grid grid-cols-2 gap-2 rounded-lg bg-surface-1 border border-skin p-4 font-mono text-sm text-skin-primary">
+                  <span v-for="code in recoveryCodes" :key="code">{{ code }}</span>
+                </div>
+                <div class="flex gap-2">
+                  <Button variant="secondary" size="sm" @click="copyRecoveryCodes">
+                    {{ t('settings.mfaCopyCodes') }}
+                  </Button>
+                  <Button size="sm" @click="recoveryCodes = null">
+                    {{ t('settings.mfaRecoveryDone') }}
+                  </Button>
+                </div>
+              </div>
+
+              <template v-else-if="mfa">
+                <!-- MFA enabled -->
+                <div v-if="mfa.enabled" class="space-y-4">
+                  <p class="text-sm text-skin-primary">
+                    {{ mfa.method === 'totp' ? t('settings.mfaMethodTotp') : t('settings.mfaMethodEmail') }}
+                  </p>
+
+                  <div class="flex flex-wrap gap-2">
+                    <Button variant="secondary" size="sm" @click="toggleDisableForm">
+                      {{ t('settings.mfaDisable') }}
+                    </Button>
+                    <Button variant="secondary" size="sm" @click="toggleRegenerateForm">
+                      {{ t('settings.mfaRegenerateCodes') }}
+                    </Button>
+                  </div>
+
+                  <!-- Disable form -->
+                  <div v-if="showDisableForm" class="space-y-3 rounded-lg bg-surface-1 border border-skin p-4">
+                    <Input
+                      v-model="disablePassword"
+                      type="password"
+                      :label="t('settings.mfaPasswordLabel')"
+                      :placeholder="t('settings.mfaPasswordPlaceholder')"
+                    />
+                    <div class="flex gap-2">
+                      <Button size="sm" :disabled="isDisablingMfa || !disablePassword" @click="disableMfa">
+                        {{ t('settings.mfaDisable') }}
+                      </Button>
+                      <Button variant="secondary" size="sm" @click="showDisableForm = false">
+                        {{ t('settings.mfaCancel') }}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <!-- Regenerate recovery codes form -->
+                  <div v-if="showRegenerateForm" class="space-y-3 rounded-lg bg-surface-1 border border-skin p-4">
+                    <Input
+                      v-model="regeneratePassword"
+                      type="password"
+                      :label="t('settings.mfaPasswordLabel')"
+                      :placeholder="t('settings.mfaPasswordPlaceholder')"
+                    />
+                    <div class="flex gap-2">
+                      <Button size="sm" :disabled="isRegenerating || !regeneratePassword" @click="regenerateRecoveryCodes">
+                        {{ t('settings.mfaRegenerateCodes') }}
+                      </Button>
+                      <Button variant="secondary" size="sm" @click="showRegenerateForm = false">
+                        {{ t('settings.mfaCancel') }}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- MFA disabled -->
+                <div v-else>
+                  <div v-if="!mfaSetupMode" class="flex flex-wrap gap-2">
+                    <Button variant="secondary" size="sm" :disabled="isSettingUpMfa" @click="startTotpSetup">
+                      {{ t('settings.mfaEnableTotp') }}
+                    </Button>
+                    <Button variant="secondary" size="sm" :disabled="isSettingUpMfa" @click="startEmailSetup">
+                      {{ t('settings.mfaEnableEmail') }}
+                    </Button>
+                  </div>
+
+                  <!-- TOTP setup flow -->
+                  <div v-else-if="mfaSetupMode === 'totp'" class="space-y-4">
+                    <p class="text-xs text-skin-secondary">{{ t('settings.mfaTotpInstructions') }}</p>
+                    <!-- eslint-disable-next-line vue/no-v-html — trusted SVG markup from our own backend -->
+                    <div v-if="totpSetup" class="mfa-qr" v-html="totpSetup.qr_svg" />
+                    <div v-if="totpSetup" class="space-y-1">
+                      <p class="text-xs text-skin-secondary">{{ t('settings.mfaSecretLabel') }}</p>
+                      <div class="flex items-center gap-2">
+                        <code class="text-xs font-mono text-skin-primary bg-surface-1 border border-skin rounded px-2 py-1 break-all">{{ totpSetup.secret }}</code>
+                        <Button variant="secondary" size="sm" @click="copySecret">
+                          {{ t('settings.mfaCopySecret') }}
+                        </Button>
+                      </div>
+                    </div>
+                    <Input
+                      v-model="mfaSetupCode"
+                      :label="t('settings.mfaCodeLabel')"
+                      :placeholder="t('settings.mfaCodePlaceholder')"
+                    />
+                    <div class="flex gap-2">
+                      <Button size="sm" :disabled="isConfirmingMfa || mfaSetupCode.length !== 6" @click="confirmMfaSetup">
+                        {{ t('settings.mfaConfirm') }}
+                      </Button>
+                      <Button variant="secondary" size="sm" @click="cancelMfaSetup">
+                        {{ t('settings.mfaCancel') }}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <!-- Email setup flow -->
+                  <div v-else class="space-y-4">
+                    <p class="text-xs text-skin-secondary">{{ t('settings.mfaEmailInstructions') }}</p>
+                    <Input
+                      v-model="mfaSetupCode"
+                      :label="t('settings.mfaCodeLabel')"
+                      :placeholder="t('settings.mfaCodePlaceholder')"
+                    />
+                    <div class="flex gap-2">
+                      <Button size="sm" :disabled="isConfirmingMfa || mfaSetupCode.length !== 6" @click="confirmMfaSetup">
+                        {{ t('settings.mfaConfirm') }}
+                      </Button>
+                      <Button variant="secondary" size="sm" @click="cancelMfaSetup">
+                        {{ t('settings.mfaCancel') }}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </div>
           </div>
         </Card>
 
@@ -195,17 +348,83 @@
             </div>
           </div>
         </Card>
+
+        <!-- About Section -->
+        <Card v-if="activeSection === 'about'" :title="t('settings.sectionAbout')">
+          <div class="space-y-6">
+            <div>
+              <h4 class="text-sm font-medium text-skin-primary mb-3">{{ t('settings.aboutHelpDocs') }}</h4>
+              <ul class="space-y-2">
+                <li><a href="https://claudenest.io" target="_blank" rel="noreferrer" class="text-sm text-brand-purple hover:underline">claudenest.io</a></li>
+                <li><a href="https://claudenest.io/docs" target="_blank" rel="noreferrer" class="text-sm text-brand-purple hover:underline">{{ t('settings.aboutDocs') }}</a></li>
+                <li><a href="https://github.com/QrCommunication/claudenest" target="_blank" rel="noreferrer" class="text-sm text-brand-purple hover:underline">GitHub</a></li>
+              </ul>
+            </div>
+
+            <div class="pt-6 border-t border-skin">
+              <h4 class="text-sm font-medium text-skin-primary mb-3">{{ t('settings.aboutLegal') }}</h4>
+              <ul class="space-y-2">
+                <li><router-link to="/legal/terms" class="text-sm text-skin-secondary hover:text-skin-primary">{{ t('auth.terms_of_service') }}</router-link></li>
+                <li><router-link to="/legal/privacy" class="text-sm text-skin-secondary hover:text-skin-primary">{{ t('auth.privacy_policy') }}</router-link></li>
+                <li><router-link to="/legal/mentions-legales" class="text-sm text-skin-secondary hover:text-skin-primary">{{ t('landing.footer.mentions_legales') }}</router-link></li>
+                <li><router-link to="/legal/cookies" class="text-sm text-skin-secondary hover:text-skin-primary">{{ t('landing.footer.cookies') }}</router-link></li>
+              </ul>
+            </div>
+
+            <div class="pt-6 border-t border-skin">
+              <h4 class="text-sm font-medium text-skin-primary mb-3">{{ t('settings.feedbackTitle') }}</h4>
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-skin-secondary mb-1.5">{{ t('settings.feedbackCategory') }}</label>
+                  <select
+                    v-model="feedback.category"
+                    class="w-full bg-surface-1 border border-skin rounded-lg px-3 py-2 text-skin-primary text-sm focus:outline-none focus:border-brand-purple appearance-none"
+                  >
+                    <option value="bug">{{ t('settings.feedbackCategoryBug') }}</option>
+                    <option value="idea">{{ t('settings.feedbackCategoryIdea') }}</option>
+                    <option value="question">{{ t('settings.feedbackCategoryQuestion') }}</option>
+                    <option value="other">{{ t('settings.feedbackCategoryOther') }}</option>
+                  </select>
+                </div>
+                <Input
+                  v-model="feedback.subject"
+                  :label="t('settings.feedbackSubject')"
+                  :placeholder="t('settings.feedbackSubjectPlaceholder')"
+                  maxlength="150"
+                />
+                <div>
+                  <label class="block text-sm font-medium text-skin-secondary mb-1.5">{{ t('settings.feedbackMessage') }}</label>
+                  <textarea
+                    v-model="feedback.message"
+                    rows="5"
+                    maxlength="5000"
+                    :placeholder="t('settings.feedbackMessagePlaceholder')"
+                    class="w-full bg-surface-1 border border-skin rounded-lg px-3 py-2 text-skin-primary text-sm focus:outline-none focus:border-brand-purple resize-none"
+                  />
+                </div>
+                <Button :disabled="isSendingFeedback" @click="sendFeedback">
+                  {{ isSendingFeedback ? t('settings.feedbackSending') : t('settings.feedbackSend') }}
+                </Button>
+              </div>
+            </div>
+
+            <p class="pt-6 border-t border-skin text-xs text-skin-secondary">
+              {{ t('settings.aboutLicense') }}
+            </p>
+          </div>
+        </Card>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useToast } from '@/composables/useToast';
 import { useAuthStore } from '@/stores/auth';
 import { api } from '@/composables/useApi';
+import { mfaApi, type MfaStatus, type MfaTotpSetup } from '@/services/api';
 import Card from '@/components/common/Card.vue';
 import Button from '@/components/common/Button.vue';
 import Input from '@/components/common/Input.vue';
@@ -214,6 +433,7 @@ import {
   ShieldCheckIcon,
   PaintBrushIcon,
   BellIcon,
+  InformationCircleIcon,
 } from '@heroicons/vue/24/outline';
 
 const { t } = useI18n();
@@ -233,6 +453,7 @@ const sections = computed(() => [
   { id: 'security', name: t('settings.sectionSecurity'), icon: ShieldCheckIcon },
   { id: 'appearance', name: t('settings.sectionAppearance'), icon: PaintBrushIcon },
   { id: 'notifications', name: t('settings.sectionNotifications'), icon: BellIcon },
+  { id: 'about', name: t('settings.sectionAbout'), icon: InformationCircleIcon },
 ]);
 
 const profile = ref({
@@ -244,6 +465,29 @@ const password = ref({
   current: '',
   new: '',
   confirm: '',
+});
+
+// ==================== MFA state ====================
+const mfa = ref<MfaStatus | null>(null);
+const isLoadingMfa = ref(false);
+const mfaSetupMode = ref<'totp' | 'email' | null>(null);
+const totpSetup = ref<MfaTotpSetup | null>(null);
+const mfaSetupCode = ref('');
+const isSettingUpMfa = ref(false);
+const isConfirmingMfa = ref(false);
+const recoveryCodes = ref<string[] | null>(null);
+const showDisableForm = ref(false);
+const disablePassword = ref('');
+const isDisablingMfa = ref(false);
+const showRegenerateForm = ref(false);
+const regeneratePassword = ref('');
+const isRegenerating = ref(false);
+
+const isSendingFeedback = ref(false);
+const feedback = ref({
+  category: 'bug',
+  subject: '',
+  message: '',
 });
 
 const notificationSettings = ref([
@@ -315,6 +559,28 @@ const saveProfile = async () => {
   }
 };
 
+const sendFeedback = async () => {
+  if (isSendingFeedback.value) return;
+  isSendingFeedback.value = true;
+  try {
+    await api.post('/feedback', {
+      category: feedback.value.category,
+      subject: feedback.value.subject,
+      message: feedback.value.message,
+    });
+    toast.success(t('settings.toastFeedbackSentTitle'), t('settings.toastFeedbackSentBody'));
+    feedback.value = { category: 'bug', subject: '', message: '' };
+  } catch (err: unknown) {
+    const detail =
+      (err as { response?: { data?: { errors?: Record<string, string[]> } } })
+        ?.response?.data?.errors;
+    const firstError = detail ? Object.values(detail)[0]?.[0] : undefined;
+    toast.error(t('settings.toastFeedbackErrorTitle'), firstError || t('settings.toastFeedbackErrorBody'));
+  } finally {
+    isSendingFeedback.value = false;
+  }
+};
+
 const changePassword = async () => {
   if (password.value.new !== password.value.confirm) {
     toast.error(t('settings.toastErrorTitle'), t('settings.toastPasswordMismatchBody'));
@@ -339,4 +605,156 @@ const changePassword = async () => {
     isChangingPassword.value = false;
   }
 };
+
+// ==================== MFA handlers ====================
+
+const loadMfaStatus = async () => {
+  isLoadingMfa.value = true;
+  try {
+    mfa.value = await mfaApi.status();
+  } catch {
+    mfa.value = null;
+  } finally {
+    isLoadingMfa.value = false;
+  }
+};
+
+// Lazy-load the MFA status the first time the security section is opened
+watch(
+  activeSection,
+  (section) => {
+    if (section === 'security' && mfa.value === null && !isLoadingMfa.value) {
+      loadMfaStatus();
+    }
+  },
+  { immediate: true },
+);
+
+const startTotpSetup = async () => {
+  isSettingUpMfa.value = true;
+  try {
+    totpSetup.value = await mfaApi.totpSetup();
+    mfaSetupMode.value = 'totp';
+    mfaSetupCode.value = '';
+  } catch {
+    toast.error(t('settings.toastErrorTitle'), t('settings.toastMfaSetupErrorBody'));
+  } finally {
+    isSettingUpMfa.value = false;
+  }
+};
+
+const startEmailSetup = async () => {
+  isSettingUpMfa.value = true;
+  try {
+    await mfaApi.emailSetup();
+    mfaSetupMode.value = 'email';
+    mfaSetupCode.value = '';
+    toast.success(t('settings.toastMfaEmailSentTitle'), t('settings.toastMfaEmailSentBody'));
+  } catch {
+    toast.error(t('settings.toastErrorTitle'), t('settings.toastMfaSetupErrorBody'));
+  } finally {
+    isSettingUpMfa.value = false;
+  }
+};
+
+const cancelMfaSetup = () => {
+  mfaSetupMode.value = null;
+  totpSetup.value = null;
+  mfaSetupCode.value = '';
+};
+
+const confirmMfaSetup = async () => {
+  if (isConfirmingMfa.value || !mfaSetupMode.value) return;
+  isConfirmingMfa.value = true;
+  try {
+    const result =
+      mfaSetupMode.value === 'totp'
+        ? await mfaApi.totpConfirm(mfaSetupCode.value)
+        : await mfaApi.emailConfirm(mfaSetupCode.value);
+    recoveryCodes.value = result.recovery_codes;
+    cancelMfaSetup();
+    await loadMfaStatus();
+    toast.success(t('settings.toastMfaEnabledTitle'), t('settings.toastMfaEnabledBody'));
+  } catch {
+    toast.error(t('settings.toastErrorTitle'), t('settings.toastMfaErrorBody'));
+  } finally {
+    isConfirmingMfa.value = false;
+  }
+};
+
+const toggleDisableForm = () => {
+  showDisableForm.value = !showDisableForm.value;
+  showRegenerateForm.value = false;
+  disablePassword.value = '';
+};
+
+const toggleRegenerateForm = () => {
+  showRegenerateForm.value = !showRegenerateForm.value;
+  showDisableForm.value = false;
+  regeneratePassword.value = '';
+};
+
+const disableMfa = async () => {
+  if (isDisablingMfa.value) return;
+  isDisablingMfa.value = true;
+  try {
+    await mfaApi.disable(disablePassword.value);
+    showDisableForm.value = false;
+    disablePassword.value = '';
+    await loadMfaStatus();
+    toast.success(t('settings.toastMfaDisabledTitle'), t('settings.toastMfaDisabledBody'));
+  } catch {
+    toast.error(t('settings.toastErrorTitle'), t('settings.toastMfaPasswordErrorBody'));
+  } finally {
+    isDisablingMfa.value = false;
+  }
+};
+
+const regenerateRecoveryCodes = async () => {
+  if (isRegenerating.value) return;
+  isRegenerating.value = true;
+  try {
+    recoveryCodes.value = await mfaApi.regenerateRecoveryCodes(regeneratePassword.value);
+    showRegenerateForm.value = false;
+    regeneratePassword.value = '';
+    toast.success(t('settings.toastMfaCodesRegeneratedTitle'), t('settings.toastMfaCodesRegeneratedBody'));
+  } catch {
+    toast.error(t('settings.toastErrorTitle'), t('settings.toastMfaPasswordErrorBody'));
+  } finally {
+    isRegenerating.value = false;
+  }
+};
+
+const copyToClipboard = async (text: string) => {
+  try {
+    await navigator.clipboard.writeText(text);
+    toast.success(t('settings.toastCopiedTitle'), t('settings.toastCopiedBody'));
+  } catch {
+    toast.error(t('settings.toastErrorTitle'), t('settings.toastCopyErrorBody'));
+  }
+};
+
+const copySecret = () => {
+  if (totpSetup.value) copyToClipboard(totpSetup.value.secret);
+};
+
+const copyRecoveryCodes = () => {
+  if (recoveryCodes.value) copyToClipboard(recoveryCodes.value.join('\n'));
+};
 </script>
+
+<style scoped>
+.mfa-qr {
+  display: inline-block;
+  padding: 0.5rem;
+  background: #fff;
+  border-radius: 0.5rem;
+  line-height: 0;
+}
+
+.mfa-qr :deep(svg) {
+  width: 160px;
+  height: 160px;
+  display: block;
+}
+</style>

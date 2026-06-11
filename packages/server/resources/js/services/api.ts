@@ -168,11 +168,122 @@ export const claudeSessionsApi = {
   },
 
   /** Adopt a session into the agent's tmux for remote control. */
-  async adopt(machineId: string, sessionId: string): Promise<string | null> {
+  async adopt(
+    machineId: string,
+    sessionId: string,
+    credentialId?: string | null,
+  ): Promise<string | null> {
     const response = await api.post<ApiResponse<{ agent_session_id: string | null }>>(
       `/machines/${machineId}/claude-sessions/${sessionId}/adopt`,
+      { credential_id: credentialId ?? null },
     );
     return extractData(response).agent_session_id;
+  },
+};
+
+// ============================================================================
+// MFA (Two-Factor Authentication) API
+// ============================================================================
+
+export interface MfaStatus {
+  enabled: boolean;
+  method: 'totp' | 'email' | null;
+  confirmed_at: string | null;
+}
+
+export interface MfaTotpSetup {
+  secret: string;
+  uri: string;
+  qr_svg: string;
+}
+
+export interface MfaConfirmResult {
+  method: 'totp' | 'email';
+  recovery_codes: string[];
+}
+
+export interface MfaVerifyResult<TUser = unknown> {
+  user: TUser;
+  token: string;
+  expires_at: string;
+}
+
+export const mfaApi = {
+  /**
+   * Get the current MFA status for the authenticated user
+   */
+  async status(): Promise<MfaStatus> {
+    const response = await api.get<ApiResponse<MfaStatus>>('/auth/mfa');
+    return extractData(response);
+  },
+
+  /**
+   * Verify an MFA challenge during login (public endpoint)
+   */
+  async verify<TUser = unknown>(mfaToken: string, code: string): Promise<MfaVerifyResult<TUser>> {
+    const response = await api.post<ApiResponse<MfaVerifyResult<TUser>>>('/auth/mfa/verify', {
+      mfa_token: mfaToken,
+      code,
+    });
+    return extractData(response);
+  },
+
+  /**
+   * Resend the MFA code by email (email method only)
+   */
+  async resend(mfaToken: string): Promise<void> {
+    await api.post<ApiResponse<null>>('/auth/mfa/resend', { mfa_token: mfaToken });
+  },
+
+  /**
+   * Start TOTP setup — returns the secret, otpauth URI and inline QR SVG
+   */
+  async totpSetup(): Promise<MfaTotpSetup> {
+    const response = await api.post<ApiResponse<MfaTotpSetup>>('/auth/mfa/totp/setup');
+    return extractData(response);
+  },
+
+  /**
+   * Confirm TOTP setup with a 6-digit code — returns one-time recovery codes
+   */
+  async totpConfirm(code: string): Promise<MfaConfirmResult> {
+    const response = await api.post<ApiResponse<MfaConfirmResult>>('/auth/mfa/totp/confirm', { code });
+    return extractData(response);
+  },
+
+  /**
+   * Start email MFA setup — sends a code to the user's email
+   */
+  async emailSetup(): Promise<void> {
+    await api.post<ApiResponse<null>>('/auth/mfa/email/setup');
+  },
+
+  /**
+   * Confirm email MFA setup with the received code — returns recovery codes
+   */
+  async emailConfirm(code: string): Promise<MfaConfirmResult> {
+    const response = await api.post<ApiResponse<MfaConfirmResult>>('/auth/mfa/email/confirm', { code });
+    return extractData(response);
+  },
+
+  /**
+   * Disable MFA (requires current password)
+   */
+  async disable(currentPassword: string): Promise<void> {
+    await api.delete<ApiResponse<null>>('/auth/mfa', {
+      data: { current_password: currentPassword },
+    });
+  },
+
+  /**
+   * Regenerate recovery codes (requires current password)
+   */
+  async regenerateRecoveryCodes(currentPassword: string): Promise<string[]> {
+    const response = await api.post<ApiResponse<{ recovery_codes: string[] }>>(
+      '/auth/mfa/recovery/regenerate',
+      { current_password: currentPassword },
+    );
+    return extractData(response).recovery_codes;
   },
 };
 

@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import type { User, ApiResponse } from '@/types';
 import { api } from '@/composables/useApi';
+import { mfaApi } from '@/services/api';
 import axios from 'axios';
 
 interface RegisterForm {
@@ -22,12 +23,26 @@ interface ResetPasswordForm {
   token: string;
 }
 
+type MfaMethod = 'totp' | 'email';
+
+interface MfaPendingState {
+  token: string;
+  method: MfaMethod;
+}
+
+type LoginResponseData =
+  | { token: string; user: User }
+  | { mfa_required: true; mfa_method: MfaMethod; mfa_token: string };
+
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null);
   const token = ref<string | null>(localStorage.getItem('auth_token'));
   const isLoading = ref(false);
   const authError = ref<string | null>(null);
   const fieldErrors = ref<Record<string, string[]>>({});
+  // Transient MFA challenge state — intentionally NOT persisted: the
+  // short-lived mfa_token must die with the page/session.
+  const mfaPending = ref<MfaPendingState | null>(null);
 
   const isAuthenticated = computed(() => !!token.value && !!user.value);
 
@@ -86,22 +101,68 @@ export const useAuthStore = defineStore('auth', () => {
   const login = async (email: string, password: string) => {
     clearErrors();
     isLoading.value = true;
+    mfaPending.value = null;
 
     try {
-      const response = await api.post<ApiResponse<{ token: string; user: User }>>('/auth/login', {
+      const response = await api.post<ApiResponse<LoginResponseData>>('/auth/login', {
         email,
         password,
       });
-      
-      setToken(response.data.data.token);
-      user.value = response.data.data.user;
-      return response.data.data;
+
+      const data = response.data.data;
+
+      if ('mfa_required' in data) {
+        // No token yet — the user must complete the MFA challenge first.
+        mfaPending.value = { token: data.mfa_token, method: data.mfa_method };
+        return data;
+      }
+
+      setToken(data.token);
+      user.value = data.user;
+      return data;
     } catch (error) {
       handleError(error);
       throw error;
     } finally {
       isLoading.value = false;
     }
+  };
+
+  /**
+   * Complete a pending MFA challenge. On success, behaves like a
+   * successful login (token + user). Throws the raw axios error so the
+   * caller can branch on error codes (MFA_002/MFA_004/MFA_005).
+   */
+  const verifyMfa = async (code: string) => {
+    if (!mfaPending.value) {
+      throw new Error('No pending MFA challenge');
+    }
+
+    isLoading.value = true;
+    try {
+      const data = await mfaApi.verify<User>(mfaPending.value.token, code);
+      setToken(data.token);
+      user.value = data.user;
+      mfaPending.value = null;
+      clearErrors();
+      return data;
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
+  /** Abandon the pending MFA challenge and return to the login form. */
+  const cancelMfa = () => {
+    mfaPending.value = null;
+    clearErrors();
+  };
+
+  /** Resend the MFA code by email (email method only). */
+  const resendMfaCode = async () => {
+    if (!mfaPending.value) {
+      throw new Error('No pending MFA challenge');
+    }
+    await mfaApi.resend(mfaPending.value.token);
   };
 
   const register = async (form: RegisterForm): Promise<boolean> => {
@@ -158,6 +219,7 @@ export const useAuthStore = defineStore('auth', () => {
     } finally {
       setToken(null);
       user.value = null;
+      mfaPending.value = null;
       clearErrors();
     }
   };
@@ -175,10 +237,14 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     authError,
     fieldErrors,
+    mfaPending,
     setToken,
     clearErrors,
     fetchUser,
     login,
+    verifyMfa,
+    cancelMfa,
+    resendMfaCode,
     register,
     forgotPassword,
     resetPassword,
