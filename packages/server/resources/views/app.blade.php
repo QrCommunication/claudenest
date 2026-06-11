@@ -71,8 +71,7 @@
                 'url' => $appUrl,
                 'logo' => $appUrl . '/favicon.svg',
                 'sameAs' => [
-                    'https://github.com/claudenest/claudenest',
-                    'https://x.com/claudenest',
+                    'https://github.com/QrCommunication/claudenest',
                 ],
             ],
             [

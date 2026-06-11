@@ -23,7 +23,7 @@
       <div class="nav-right">
         <LanguageSwitcher variant="ghost" :show-label="false" />
         <ThemeToggle variant="ghost" />
-        <router-link to="/login" class="nav-link hidden md:inline-flex">
+        <router-link to="/login" class="nav-link nav-link-login">
           {{ t('common.login') }}
         </router-link>
         <router-link to="/register" class="nav-cta">
@@ -34,7 +34,7 @@
         </router-link>
         <button
           type="button"
-          class="nav-burger md:hidden"
+          class="nav-burger"
           :aria-expanded="mobileOpen"
           :aria-label="t('publicPublicnav.toggleMenu')"
           @click="mobileOpen = !mobileOpen"
@@ -52,7 +52,7 @@
     </div>
 
     <Transition name="nav-mobile">
-      <div v-if="mobileOpen" class="nav-mobile md:hidden">
+      <div v-if="mobileOpen" class="nav-mobile">
         <router-link
           v-for="item in navItems"
           :key="item.to"
@@ -158,9 +158,29 @@ onBeforeUnmount(() => {
   gap: 0.25rem;
 }
 
+/* Same specificity trap as .nav-burger: scoped .nav-link display beats
+   Tailwind's `hidden`. Desktop-only, shown with the 900px block below. */
+.nav-link-login {
+  display: none;
+}
+
 @media (min-width: 900px) {
   .nav-center {
     display: flex;
+  }
+
+  /* Hamburger + mobile panel hidden as soon as the desktop links appear.
+     Scoped CSS is required here: a Tailwind utility (e.g. `md:hidden`,
+     specificity 0,1,0) is overridden by the scoped `.nav-burger[data-v-*]`
+     display rule (0,2,0), and `md` (768px) would not match the 900px
+     breakpoint of .nav-center anyway. */
+  .nav-burger,
+  .nav-mobile {
+    display: none;
+  }
+
+  .nav-link-login {
+    display: inline-flex;
   }
 }
 

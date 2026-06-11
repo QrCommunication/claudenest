@@ -9,7 +9,7 @@
               v-for="column in columns"
               :key="column.key"
               :class="[
-                'px-6 py-3 text-left text-xs font-medium text-skin-secondary uppercase tracking-wider',
+                'px-4 py-3 text-left text-xs font-medium text-skin-secondary uppercase tracking-wider whitespace-nowrap',
                 column.sortable ? 'cursor-pointer select-none hover:text-skin-primary' : '',
               ]"
               :style="column.width ? { width: column.width } : {}"
