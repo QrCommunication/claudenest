@@ -10,6 +10,7 @@
  *   client → server: { type: "input", data }   { type: "resize", cols, rows }
  *   server → client: { type: "output", data }  { type: "status", status }
  */
+import { authApi } from "@/services/api";
 import { useAuthStore } from "@/stores/authStore";
 
 // Nginx proxies /ws/terminal to AgentServe on the SAME host that serves the
@@ -47,9 +48,31 @@ export class TerminalSocket {
       this.scheduleReconnect();
       return;
     }
+    void this.openWithTicket();
+  }
 
-    const url = `${TERMINAL_WS_URL}?token=${encodeURIComponent(
-      token,
+  /**
+   * The bearer token must never transit in a URL (proxy/nginx access logs):
+   * exchange it for a single-use 60s ticket, the only value allowed in the
+   * query string. A fresh ticket is fetched on every (re)connect attempt.
+   */
+  private async openWithTicket(): Promise<void> {
+    let ticket = "";
+    try {
+      const res = await authApi.wsTicket();
+      ticket = res.data?.ticket ?? "";
+    } catch {
+      this.scheduleReconnect();
+      return;
+    }
+    if (this.closed) return;
+    if (!ticket) {
+      this.scheduleReconnect();
+      return;
+    }
+
+    const url = `${TERMINAL_WS_URL}?ticket=${encodeURIComponent(
+      ticket,
     )}&session=${encodeURIComponent(this.sessionId)}`;
 
     try {

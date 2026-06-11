@@ -5,7 +5,6 @@ namespace App\Console\Commands;
 use App\Models\ClaudeCredential;
 use App\Models\DiscoveredSession;
 use App\Models\Machine;
-use App\Models\PersonalAccessToken;
 use App\Models\Session;
 use App\Models\SharedProject;
 use App\Services\AgentGateway;
@@ -24,7 +23,7 @@ use React\Socket\SocketServer;
  * Dedicated WebSocket server for agent and terminal connections.
  *
  * - /ws/agent    — Agent connections (machine token auth, JSON messages)
- * - /ws/terminal — Browser terminal connections (Sanctum token auth)
+ * - /ws/terminal — Browser terminal connections (single-use ws-ticket auth)
  *
  * Uses ReactPHP for non-blocking I/O and Redis lists as a bridge
  * for server→agent messages (see AgentGateway service).
@@ -112,7 +111,7 @@ class AgentServe extends Command
         $socket->on('error', fn (\Exception $e) => $this->error("Server error: {$e->getMessage()}"));
 
         $this->info("  /ws/agent    — Agent connections (machine token)");
-        $this->info("  /ws/terminal — Browser terminals (Sanctum token)");
+        $this->info("  /ws/terminal — Browser terminals (single-use ws-ticket)");
         $this->info("Press Ctrl+C to stop.");
 
         Loop::get()->run();
@@ -205,33 +204,35 @@ class AgentServe extends Command
     {
         $state = &$this->connState[$connId];
 
-        // Parse query parameters: /ws/terminal?token=xxx&session=yyy
+        // Parse query parameters: /ws/terminal?ticket=xxx&session=yyy
+        // The ticket is a short-lived (60s), single-use opaque value issued by
+        // POST /api/auth/ws-ticket — the Sanctum bearer token must NEVER
+        // transit in the URL (query strings end up in nginx/proxy logs).
         $urlPart = explode(' ', $requestLine)[1] ?? '';
         parse_str(parse_url($urlPart, PHP_URL_QUERY) ?? '', $query);
 
-        $token = $query['token'] ?? '';
+        $ticket = $query['ticket'] ?? '';
         $sessionId = $query['session'] ?? '';
 
-        if (!$token || !$sessionId) {
-            $conn->end("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\nMissing token or session");
+        if (!$ticket || !$sessionId) {
+            $conn->end("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\nMissing ticket or session");
             return;
         }
 
-        // Verify token using the same lookup as API middleware
+        // Cache::pull = atomic read+delete → single-use even on replay
         try {
-            $accessToken = PersonalAccessToken::findValidToken($token);
+            $userId = Cache::pull('ws_ticket:' . hash('sha256', $ticket));
         } catch (\Throwable $e) {
-            $conn->end("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\nInvalid token");
+            $conn->end("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\nInvalid ticket");
             return;
         }
 
-        if (!$accessToken) {
-            $conn->end("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\nInvalid token");
+        if (!$userId) {
+            $conn->end("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\nInvalid or expired ticket");
             return;
         }
 
         // Verify session exists, belongs to user, and is active
-        $userId = $accessToken->tokenable_id;
         $session = Session::where('id', $sessionId)
             ->where('user_id', $userId)
             ->whereIn('status', ['running', 'waiting_input', 'starting'])

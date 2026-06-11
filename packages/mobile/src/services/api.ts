@@ -135,6 +135,11 @@ export const authApi = {
       mfa_token: mfaToken,
     }),
 
+  // Single-use 60s ticket for the /ws/terminal WebSocket — the bearer token
+  // must never transit in a URL (proxy/nginx access logs).
+  wsTicket: () =>
+    api.post<{ ticket: string; expires_in: number }>("/auth/ws-ticket"),
+
   logout: () => api.post("/auth/logout"),
 
   me: () => api.get<import("@/types").User>("/auth/me"),

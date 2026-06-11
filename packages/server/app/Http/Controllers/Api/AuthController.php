@@ -13,6 +13,7 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -360,6 +361,48 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'data' => null,
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
+    }
+
+    /**
+     * Issue a short-lived, single-use ticket for the /ws/terminal WebSocket.
+     *
+     * Browsers cannot set an Authorization header on a WebSocket upgrade, so
+     * SOMETHING must transit in the URL — but never the Sanctum bearer token
+     * (query strings end up in nginx/proxy access logs). This opaque ticket
+     * is bound to the user, expires in 60s, and is consumed atomically
+     * (Cache::pull) by AgentServe on the first upgrade attempt.
+     */
+    #[OA\Post(
+        path: '/api/auth/ws-ticket',
+        summary: 'Issue a single-use WebSocket ticket (60s TTL) for /ws/terminal',
+        security: [['bearerAuth' => []]],
+        tags: ['Auth'],
+        responses: [
+            new OA\Response(response: 200, description: 'Ticket issued'),
+            new OA\Response(response: 401, description: 'Unauthorized', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+        ],
+    )]
+    public function wsTicket(Request $request): JsonResponse
+    {
+        $ticket = Str::random(48);
+
+        Cache::put(
+            'ws_ticket:' . hash('sha256', $ticket),
+            (string) $request->user()->id,
+            now()->addSeconds(60),
+        );
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'ticket' => $ticket,
+                'expires_in' => 60,
+            ],
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),

@@ -61,6 +61,7 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
         Route::patch('/profile', [Api\AuthController::class, 'updateProfile']);
         Route::patch('/password', [Api\AuthController::class, 'updatePassword']);
         Route::post('/avatar', [Api\AuthController::class, 'updateAvatar']);
+        Route::post('/ws-ticket', [Api\AuthController::class, 'wsTicket']);
         Route::get('/tokens', [Api\AuthController::class, 'listTokens']);
         Route::post('/tokens', [Api\AuthController::class, 'createToken']);
         Route::delete('/tokens/{id}', [Api\AuthController::class, 'revokeToken']);

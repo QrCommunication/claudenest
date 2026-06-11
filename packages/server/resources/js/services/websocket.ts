@@ -139,13 +139,33 @@ class WebSocketManager {
    * Connect the direct terminal WebSocket for low-latency input.
    * Falls back to HTTP POST if this connection fails.
    */
-  private connectTerminalWs(sessionId: string): void {
+  private async connectTerminalWs(sessionId: string): Promise<void> {
     const authToken = localStorage.getItem('auth_token') || '';
     if (!authToken) return;
 
+    // Browsers cannot set an Authorization header on a WebSocket upgrade and
+    // the bearer token must never transit in the URL (proxy access logs) —
+    // exchange it for a single-use 60s ticket instead.
+    let ticket = '';
+    try {
+      const res = await fetch('/api/auth/ws-ticket', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+          Accept: 'application/json',
+        },
+      });
+      if (!res.ok) return;
+      const body = await res.json();
+      ticket = body?.data?.ticket ?? '';
+    } catch {
+      return;
+    }
+    if (!ticket) return;
+
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.host;
-    const url = `${protocol}//${host}/ws/terminal?session=${encodeURIComponent(sessionId)}&token=${encodeURIComponent(authToken)}`;
+    const url = `${protocol}//${host}/ws/terminal?session=${encodeURIComponent(sessionId)}&ticket=${encodeURIComponent(ticket)}`;
 
     try {
       this.terminalWs = new WebSocket(url);
@@ -197,7 +217,7 @@ class WebSocketManager {
 
     this.terminalReconnectTimer = setTimeout(() => {
       if (this.config) {
-        this.connectTerminalWs(sessionId);
+        void this.connectTerminalWs(sessionId);
       }
     }, delay);
   }
@@ -213,7 +233,7 @@ class WebSocketManager {
     try {
       this.initializeEcho(config);
       this.subscribeToSession(config.session_id);
-      this.connectTerminalWs(config.session_id);
+      void this.connectTerminalWs(config.session_id);
     } catch (error) {
       this.status = 'error';
       callbacks.onError?.(error instanceof Error ? error : new Error(String(error)));
