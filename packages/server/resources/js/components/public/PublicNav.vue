@@ -169,16 +169,6 @@ onBeforeUnmount(() => {
     display: flex;
   }
 
-  /* Hamburger + mobile panel hidden as soon as the desktop links appear.
-     Scoped CSS is required here: a Tailwind utility (e.g. `md:hidden`,
-     specificity 0,1,0) is overridden by the scoped `.nav-burger[data-v-*]`
-     display rule (0,2,0), and `md` (768px) would not match the 900px
-     breakpoint of .nav-center anyway. */
-  .nav-burger,
-  .nav-mobile {
-    display: none;
-  }
-
   .nav-link-login {
     display: inline-flex;
   }
@@ -334,5 +324,17 @@ onBeforeUnmount(() => {
 .nav-mobile-leave-to {
   opacity: 0;
   transform: translateY(-8px);
+}
+
+/* Hamburger + mobile panel hidden as soon as the desktop links appear.
+   MUST be the LAST rules of this sheet: the .nav-burger base styles are
+   declared above, and at equal specificity source order wins (a Tailwind
+   `md:hidden` also loses to the scoped [data-v] rules, and md=768px would
+   not match the 900px breakpoint of .nav-center anyway). */
+@media (min-width: 900px) {
+  .nav-burger,
+  .nav-mobile {
+    display: none;
+  }
 }
 </style>
