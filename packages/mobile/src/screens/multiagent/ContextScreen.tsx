@@ -4,15 +4,8 @@
  */
 
 import React, { useEffect, useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 'react-native';
+import { showAlert } from "@/services/dialog";
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { colors, spacing, borderRadius, typography } from '@/theme';
 import { useProjectsStore } from '@/stores/projectsStore';
@@ -60,7 +53,7 @@ export const ContextScreen: React.FC<Props> = ({ route }) => {
       await updateContext(projectId, editedContext);
       setIsEditing(false);
     } catch (error) {
-      Alert.alert('Error', 'Failed to save context');
+      showAlert('Error', 'Failed to save context');
     } finally {
       setIsSaving(false);
     }

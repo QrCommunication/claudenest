@@ -12,15 +12,8 @@ import React, {
   useRef,
   memo,
 } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-  Animated,
-} from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated } from "react-native";
+import { showAlert, showPrompt } from "@/services/dialog";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 type IconName = React.ComponentProps<typeof MaterialIcons>["name"];
 const Icon = MaterialIcons;
@@ -669,7 +662,7 @@ export const ProjectScreen: React.FC<Props> = ({ route, navigation }) => {
   // ---------------------------------------------------------------------------
 
   const handleBroadcast = useCallback(() => {
-    Alert.prompt(
+    showPrompt(
       "Broadcast Message",
       "Send a message to all instances in this project:",
       [
@@ -681,9 +674,9 @@ export const ProjectScreen: React.FC<Props> = ({ route, navigation }) => {
               setIsBroadcasting(true);
               try {
                 await broadcast(projectId, message);
-                Alert.alert("Success", "Message broadcasted to all instances");
+                showAlert("Success", "Message broadcasted to all instances");
               } catch {
-                Alert.alert("Error", "Failed to broadcast message");
+                showAlert("Error", "Failed to broadcast message");
               } finally {
                 setIsBroadcasting(false);
               }

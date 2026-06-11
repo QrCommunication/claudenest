@@ -11,17 +11,8 @@ import React, {
   useRef,
   memo,
 } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  RefreshControl,
-  TouchableOpacity,
-  Alert,
-  ScrollView,
-  Animated,
-} from "react-native";
+import { View, Text, FlatList, StyleSheet, RefreshControl, TouchableOpacity, ScrollView, Animated } from "react-native";
+import { showAlert } from "@/services/dialog";
 import { MaterialIcons as Icon } from "@expo/vector-icons";
 import { colors, spacing, borderRadius, typography } from "@/theme";
 import { useMachinesStore } from "@/stores/machinesStore";
@@ -251,13 +242,13 @@ export const MachinesListScreen: React.FC<Props> = ({ navigation }) => {
 
   const handleLongPressMachine = useCallback(
     (machine: Machine) => {
-      Alert.alert(machine.name, "What would you like to do?", [
+      showAlert(machine.name, "What would you like to do?", [
         { text: "Cancel", style: "cancel" },
         {
           text: "Delete",
           style: "destructive",
           onPress: () => {
-            Alert.alert(
+            showAlert(
               "Delete Machine?",
               `Are you sure you want to remove "${machine.name}"?`,
               [

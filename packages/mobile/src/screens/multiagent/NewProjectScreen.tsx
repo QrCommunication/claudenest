@@ -4,19 +4,8 @@
  */
 
 import React, { memo, useState, useCallback, useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  Animated,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, TextInput, ScrollView, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, Animated, ActivityIndicator } from 'react-native';
+import { showAlert } from "@/services/dialog";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { colors, spacing, borderRadius, typography } from '@/theme';
@@ -234,7 +223,7 @@ export const NewProjectScreen = memo(function NewProjectScreen({
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Failed to create project';
-      Alert.alert('Error', message);
+      showAlert('Error', message);
     }
   }, [validate, createProject, machineId, projectName, projectPath, navigation]);
 

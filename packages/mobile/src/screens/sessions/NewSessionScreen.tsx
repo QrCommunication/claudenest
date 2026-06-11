@@ -11,8 +11,8 @@ import {
   ScrollView,
   TouchableOpacity,
   Pressable,
-  Alert,
 } from "react-native";
+import { showAlert } from "@/services/dialog";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 type IconName = React.ComponentProps<typeof MaterialIcons>["name"];
 const Icon = MaterialIcons;
@@ -66,26 +66,26 @@ export const NewSessionScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const handleCreate = useCallback(async () => {
     if (!machine) {
-      Alert.alert("Error", "Machine not found");
+      showAlert("Error", "Machine not found");
       return;
     }
 
     if (machine.status !== "online") {
-      Alert.alert("Error", "Machine is offline. Please wake it first.");
+      showAlert("Error", "Machine is offline. Please wake it first.");
       return;
     }
 
     try {
       const session = await createSession(machineId, {
         mode: selectedMode,
-        projectPath: projectPath.trim() || undefined,
-        initialPrompt: initialPrompt.trim() || undefined,
+        project_path: projectPath.trim() || undefined,
+        initial_prompt: initialPrompt.trim() || undefined,
       });
 
       // Navigate to the new session
       navigation.replace("Session", { sessionId: session.id });
     } catch (error) {
-      Alert.alert("Error", "Failed to create session. Please try again.");
+      showAlert("Error", "Failed to create session. Please try again.");
     }
   }, [
     machine,
@@ -172,7 +172,7 @@ export const NewSessionScreen: React.FC<Props> = ({ route, navigation }) => {
               <Pressable
                 onPress={() => {
                   if (machine.status !== "online") {
-                    Alert.alert(
+                    showAlert(
                       "Machine offline",
                       "Bring the machine online to browse its folders.",
                     );

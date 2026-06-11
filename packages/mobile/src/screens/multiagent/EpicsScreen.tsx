@@ -3,35 +3,24 @@
  * List of epics for a given project, with progress indicators and creation FAB.
  */
 
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  RefreshControl,
-  TouchableOpacity,
-  Modal,
-  TextInput,
-  Animated,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons as Icon } from '@expo/vector-icons';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { ProjectsStackParamList } from '@/navigation/types';
-import { colors, spacing, borderRadius, typography } from '@/theme';
-import { useEpicsStore } from '@/stores/epicsStore';
-import { useFadeIn } from '@/utils/animations';
-import { EpicCard } from '@/components/multiagent/EpicCard';
-import { EmptyState } from '@/components/common/EmptyState';
-import type { Epic } from '@/types';
+import React, { memo, useCallback, useEffect, useRef, useState } from "react";
+import { View, Text, FlatList, StyleSheet, RefreshControl, TouchableOpacity, TextInput, Animated } from "react-native";
+import { showAlert } from "@/services/dialog";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { MaterialIcons as Icon } from "@expo/vector-icons";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type { ProjectsStackParamList } from "@/navigation/types";
+import { colors, spacing, borderRadius, typography } from "@/theme";
+import { useEpicsStore } from "@/stores/epicsStore";
+import { useFadeIn } from "@/utils/animations";
+import { EpicCard } from "@/components/multiagent/EpicCard";
+import { EmptyState } from "@/components/common/EmptyState";
+import { Modal } from "@/components/common";
+import type { Epic } from "@/types";
 
 // ==================== NAVIGATION TYPE ====================
 
-type Props = NativeStackScreenProps<ProjectsStackParamList, 'Epics'>;
+type Props = NativeStackScreenProps<ProjectsStackParamList, "Epics">;
 
 // ==================== CREATE EPIC MODAL ====================
 
@@ -46,36 +35,22 @@ const CreateEpicModal = memo(function CreateEpicModal({
   onClose,
   onSubmit,
 }: CreateEpicModalProps) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fieldError, setFieldError] = useState<string | null>(null);
 
-  const slideAnim = useRef(new Animated.Value(500)).current;
-
   useEffect(() => {
     if (visible) {
-      setTitle('');
-      setDescription('');
+      setTitle("");
+      setDescription("");
       setFieldError(null);
-      Animated.spring(slideAnim, {
-        toValue: 0,
-        useNativeDriver: true,
-        tension: 80,
-        friction: 12,
-      }).start();
-    } else {
-      Animated.timing(slideAnim, {
-        toValue: 500,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
     }
-  }, [visible, slideAnim]);
+  }, [visible]);
 
   const handleSubmit = useCallback(async () => {
     if (!title.trim()) {
-      setFieldError('Title is required');
+      setFieldError("Title is required");
       return;
     }
     setIsSubmitting(true);
@@ -85,7 +60,7 @@ const CreateEpicModal = memo(function CreateEpicModal({
       onClose();
     } catch (err: unknown) {
       const e = err as { message?: string };
-      setFieldError(e.message ?? 'Failed to create epic');
+      setFieldError(e.message ?? "Failed to create epic");
     } finally {
       setIsSubmitting(false);
     }
@@ -94,92 +69,82 @@ const CreateEpicModal = memo(function CreateEpicModal({
   return (
     <Modal
       visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
+      onClose={onClose}
+      title="New Epic"
+      footer={
+        <View style={modalStyles.actions}>
+          <TouchableOpacity
+            style={modalStyles.cancelBtn}
+            onPress={onClose}
+            activeOpacity={0.7}
+          >
+            <Text style={modalStyles.cancelText}>Cancel</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              modalStyles.submitBtn,
+              isSubmitting && modalStyles.btnDisabled,
+            ]}
+            onPress={handleSubmit}
+            disabled={isSubmitting}
+            activeOpacity={0.8}
+          >
+            {isSubmitting ? (
+              <View style={modalStyles.submitContent}>
+                <Icon
+                  name="hourglass-empty"
+                  size={16}
+                  color={colors.text.primary}
+                />
+                <Text style={modalStyles.submitText}>Creating…</Text>
+              </View>
+            ) : (
+              <Text style={modalStyles.submitText}>Create Epic</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      }
     >
-      <KeyboardAvoidingView
-        style={modalStyles.overlay}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <TouchableOpacity
-          style={StyleSheet.absoluteFill}
-          activeOpacity={1}
-          onPress={onClose}
+      <Text style={modalStyles.subtitle}>
+        Group related tasks under an epic to track broader goals.
+      </Text>
+
+      {fieldError ? (
+        <View style={modalStyles.errorRow}>
+          <Icon name="error-outline" size={14} color={colors.semantic.error} />
+          <Text style={modalStyles.errorText}>{fieldError}</Text>
+        </View>
+      ) : null}
+
+      <View style={modalStyles.inputGroup}>
+        <Text style={modalStyles.inputLabel}>Title *</Text>
+        <TextInput
+          style={modalStyles.textInput}
+          placeholder="e.g. Authentication system"
+          placeholderTextColor={colors.text.muted}
+          value={title}
+          onChangeText={setTitle}
+          autoFocus
+          returnKeyType="next"
+          maxLength={120}
         />
-        <Animated.View
-          style={[modalStyles.sheet, { transform: [{ translateY: slideAnim }] }]}
-        >
-          <View style={modalStyles.handle} />
+      </View>
 
-          <Text style={modalStyles.title}>New Epic</Text>
-          <Text style={modalStyles.subtitle}>
-            Group related tasks under an epic to track broader goals.
-          </Text>
-
-          {fieldError ? (
-            <View style={modalStyles.errorRow}>
-              <Icon name="error-outline" size={14} color={colors.semantic.error} />
-              <Text style={modalStyles.errorText}>{fieldError}</Text>
-            </View>
-          ) : null}
-
-          <View style={modalStyles.inputGroup}>
-            <Text style={modalStyles.inputLabel}>Title *</Text>
-            <TextInput
-              style={modalStyles.textInput}
-              placeholder="e.g. Authentication system"
-              placeholderTextColor={colors.text.muted}
-              value={title}
-              onChangeText={setTitle}
-              autoFocus
-              returnKeyType="next"
-              maxLength={120}
-            />
-          </View>
-
-          <View style={modalStyles.inputGroup}>
-            <Text style={modalStyles.inputLabel}>Description</Text>
-            <TextInput
-              style={[modalStyles.textInput, modalStyles.textInputMulti]}
-              placeholder="What does this epic cover?"
-              placeholderTextColor={colors.text.muted}
-              value={description}
-              onChangeText={setDescription}
-              multiline
-              numberOfLines={3}
-              textAlignVertical="top"
-              maxLength={500}
-            />
-          </View>
-
-          <View style={modalStyles.actions}>
-            <TouchableOpacity
-              style={modalStyles.cancelBtn}
-              onPress={onClose}
-              activeOpacity={0.7}
-            >
-              <Text style={modalStyles.cancelText}>Cancel</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[modalStyles.submitBtn, isSubmitting && modalStyles.btnDisabled]}
-              onPress={handleSubmit}
-              disabled={isSubmitting}
-              activeOpacity={0.8}
-            >
-              {isSubmitting ? (
-                <View style={modalStyles.submitContent}>
-                  <Icon name="hourglass-empty" size={16} color={colors.text.primary} />
-                  <Text style={modalStyles.submitText}>Creating…</Text>
-                </View>
-              ) : (
-                <Text style={modalStyles.submitText}>Create Epic</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-        </Animated.View>
-      </KeyboardAvoidingView>
+      <View style={modalStyles.inputGroup}>
+        <Text style={modalStyles.inputLabel}>Description</Text>
+        <TextInput
+          style={[modalStyles.textInput, modalStyles.textInputMulti]}
+          placeholder="What does this epic cover?"
+          placeholderTextColor={colors.text.muted}
+          value={description}
+          onChangeText={setDescription}
+          multiline
+          numberOfLines={3}
+          textAlignVertical="top"
+          maxLength={500}
+        />
+      </View>
     </Modal>
   );
 });
@@ -194,7 +159,11 @@ const FAB = memo(function FAB({ onPress }: FABProps) {
   const fadeStyle = useFadeIn();
   return (
     <Animated.View style={[styles.fabWrap, fadeStyle]}>
-      <TouchableOpacity style={styles.fab} onPress={onPress} activeOpacity={0.85}>
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={onPress}
+        activeOpacity={0.85}
+      >
         <Icon name="add" size={26} color={colors.text.primary} />
       </TouchableOpacity>
     </Animated.View>
@@ -209,9 +178,17 @@ const EpicSkeleton = memo(function EpicSkeleton() {
   useEffect(() => {
     const pulse = Animated.loop(
       Animated.sequence([
-        Animated.timing(opacity, { toValue: 0.85, duration: 700, useNativeDriver: true }),
-        Animated.timing(opacity, { toValue: 0.4, duration: 700, useNativeDriver: true }),
-      ])
+        Animated.timing(opacity, {
+          toValue: 0.85,
+          duration: 700,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 0.4,
+          duration: 700,
+          useNativeDriver: true,
+        }),
+      ]),
     );
     pulse.start();
     return () => pulse.stop();
@@ -242,14 +219,18 @@ const ListHeaderComponent = memo(function ListHeaderComponent({
       </View>
       <View style={styles.listHeaderDivider} />
       <View style={styles.listHeaderStat}>
-        <Text style={[styles.listHeaderValue, { color: colors.primary.purple }]}>
+        <Text
+          style={[styles.listHeaderValue, { color: colors.primary.purple }]}
+        >
           {inProgress}
         </Text>
         <Text style={styles.listHeaderLabel}>in progress</Text>
       </View>
       <View style={styles.listHeaderDivider} />
       <View style={styles.listHeaderStat}>
-        <Text style={[styles.listHeaderValue, { color: colors.semantic.success }]}>
+        <Text
+          style={[styles.listHeaderValue, { color: colors.semantic.success }]}
+        >
           {done}
         </Text>
         <Text style={styles.listHeaderLabel}>done</Text>
@@ -265,8 +246,15 @@ export const EpicsScreen = memo(function EpicsScreen({
   navigation,
 }: Props) {
   const { projectId } = route.params;
-  const { getEpicsByProject, fetchEpics, createEpic, deleteEpic, isLoading, error, clearError } =
-    useEpicsStore();
+  const {
+    getEpicsByProject,
+    fetchEpics,
+    createEpic,
+    deleteEpic,
+    isLoading,
+    error,
+    clearError,
+  } = useEpicsStore();
 
   const epics = getEpicsByProject(projectId);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -293,35 +281,32 @@ export const EpicsScreen = memo(function EpicsScreen({
     }
   }, [projectId, fetchEpics]);
 
-  const handleEpicPress = useCallback(
-    (_epic: Epic) => {
-      // Navigate to epic detail when screen is created
-    },
-    []
-  );
+  const handleEpicPress = useCallback((_epic: Epic) => {
+    // Navigate to epic detail when screen is created
+  }, []);
 
   const handleDeleteEpic = useCallback(
     (epic: Epic) => {
-      Alert.alert(
-        'Delete Epic',
+      showAlert(
+        "Delete Epic",
         `Delete "${epic.title}"? This cannot be undone.`,
         [
-          { text: 'Cancel', style: 'cancel' },
+          { text: "Cancel", style: "cancel" },
           {
-            text: 'Delete',
-            style: 'destructive',
+            text: "Delete",
+            style: "destructive",
             onPress: async () => {
               try {
                 await deleteEpic(epic.id);
               } catch {
-                Alert.alert('Error', 'Failed to delete epic');
+                showAlert("Error", "Failed to delete epic");
               }
             },
           },
-        ]
+        ],
       );
     },
-    [deleteEpic]
+    [deleteEpic],
   );
 
   const handleCreateEpic = useCallback(
@@ -329,26 +314,30 @@ export const EpicsScreen = memo(function EpicsScreen({
       await createEpic(projectId, {
         title,
         description: description || undefined,
-        color: '#a855f7',
-        priority: 'medium',
+        color: "#a855f7",
+        priority: "medium",
       });
     },
-    [projectId, createEpic]
+    [projectId, createEpic],
   );
 
   const renderItem = useCallback(
-    ({ item }: { item: Epic }) => <EpicCard epic={item} onPress={handleEpicPress} />,
-    [handleEpicPress]
+    ({ item }: { item: Epic }) => (
+      <EpicCard epic={item} onPress={handleEpicPress} />
+    ),
+    [handleEpicPress],
   );
 
   const keyExtractor = useCallback((item: Epic) => item.id, []);
 
-  const doneCount = epics.filter((e) => e.status === 'done').length;
-  const inProgressCount = epics.filter((e) => e.status === 'in_progress').length;
+  const doneCount = epics.filter((e) => e.status === "done").length;
+  const inProgressCount = epics.filter(
+    (e) => e.status === "in_progress",
+  ).length;
 
   if (isLoading && epics.length === 0) {
     return (
-      <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+      <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
         <View style={styles.skeletonContainer}>
           {[1, 2, 3, 4].map((k) => (
             <EpicSkeleton key={k} />
@@ -359,7 +348,7 @@ export const EpicsScreen = memo(function EpicsScreen({
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+    <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
       {/* Error banner */}
       {error ? (
         <TouchableOpacity
@@ -368,7 +357,9 @@ export const EpicsScreen = memo(function EpicsScreen({
           activeOpacity={0.7}
         >
           <Icon name="error-outline" size={16} color={colors.semantic.error} />
-          <Text style={styles.errorText} numberOfLines={2}>{error}</Text>
+          <Text style={styles.errorText} numberOfLines={2}>
+            {error}
+          </Text>
           <Icon name="close" size={16} color={colors.semantic.error} />
         </TouchableOpacity>
       ) : null}
@@ -406,7 +397,9 @@ export const EpicsScreen = memo(function EpicsScreen({
       />
 
       {/* FAB — hidden when list is empty (EmptyState has its own CTA) */}
-      {epics.length > 0 ? <FAB onPress={() => setIsModalVisible(true)} /> : null}
+      {epics.length > 0 ? (
+        <FAB onPress={() => setIsModalVisible(true)} />
+      ) : null}
 
       <CreateEpicModal
         visible={isModalVisible}
@@ -431,24 +424,24 @@ const styles = StyleSheet.create({
   },
   // Summary header
   listHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: colors.background.card,
     borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: "rgba(255,255,255,0.06)",
     marginBottom: spacing.md,
     padding: spacing.md,
   },
   listHeaderStat: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
   },
   listHeaderValue: {
     fontSize: typography.size.xl,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.text.primary,
-    fontVariant: ['tabular-nums'],
+    fontVariant: ["tabular-nums"],
   },
   listHeaderLabel: {
     fontSize: typography.size.xs,
@@ -462,12 +455,12 @@ const styles = StyleSheet.create({
   },
   // Error banner
   errorBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.sm,
-    backgroundColor: colors.semantic.error + '18',
+    backgroundColor: colors.semantic.error + "18",
     borderBottomWidth: 1,
-    borderBottomColor: colors.semantic.error + '40',
+    borderBottomColor: colors.semantic.error + "40",
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
@@ -488,7 +481,7 @@ const styles = StyleSheet.create({
   },
   // FAB
   fabWrap: {
-    position: 'absolute',
+    position: "absolute",
     bottom: spacing.xl,
     right: spacing.md,
   },
@@ -497,8 +490,8 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 28,
     backgroundColor: colors.primary.purple,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     shadowColor: colors.primary.purple,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.45,
@@ -511,29 +504,29 @@ const styles = StyleSheet.create({
 const modalStyles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'flex-end',
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "flex-end",
   },
   sheet: {
     backgroundColor: colors.background.dark3,
     borderTopLeftRadius: borderRadius.xl,
     borderTopRightRadius: borderRadius.xl,
     padding: spacing.lg,
-    paddingBottom: spacing['2xl'],
+    paddingBottom: spacing["2xl"],
     borderTopWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: "rgba(255,255,255,0.08)",
   },
   handle: {
     width: 36,
     height: 4,
     borderRadius: 2,
     backgroundColor: colors.border.strong,
-    alignSelf: 'center',
+    alignSelf: "center",
     marginBottom: spacing.md,
   },
   title: {
     fontSize: typography.size.xl,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.text.primary,
     marginBottom: spacing.xs,
   },
@@ -544,15 +537,15 @@ const modalStyles = StyleSheet.create({
     lineHeight: 20,
   },
   errorRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.xs,
-    backgroundColor: colors.semantic.error + '18',
+    backgroundColor: colors.semantic.error + "18",
     borderRadius: borderRadius.base,
     padding: spacing.sm,
     marginBottom: spacing.sm,
     borderWidth: 1,
-    borderColor: colors.semantic.error + '40',
+    borderColor: colors.semantic.error + "40",
   },
   errorText: {
     fontSize: typography.size.sm,
@@ -564,7 +557,7 @@ const modalStyles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: typography.size.sm,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.text.secondary,
     marginBottom: spacing.xs,
   },
@@ -583,7 +576,7 @@ const modalStyles = StyleSheet.create({
     paddingTop: spacing.sm,
   },
   actions: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: spacing.sm,
     marginTop: spacing.sm,
   },
@@ -594,11 +587,11 @@ const modalStyles = StyleSheet.create({
     backgroundColor: colors.background.dark2,
     borderWidth: 1,
     borderColor: colors.border.default,
-    alignItems: 'center',
+    alignItems: "center",
   },
   cancelText: {
     fontSize: typography.size.base,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.text.secondary,
   },
   submitBtn: {
@@ -606,20 +599,20 @@ const modalStyles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: borderRadius.md,
     backgroundColor: colors.primary.purple,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   btnDisabled: {
     opacity: 0.6,
   },
   submitContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.xs,
   },
   submitText: {
     fontSize: typography.size.base,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.text.primary,
   },
 });

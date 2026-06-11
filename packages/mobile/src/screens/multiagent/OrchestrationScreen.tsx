@@ -10,18 +10,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  Alert,
-  Animated,
-  FlatList,
-  RefreshControl,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  type ListRenderItemInfo,
-} from 'react-native';
+import { Animated, FlatList, RefreshControl, SafeAreaView, StyleSheet, Text, TouchableOpacity, View, type ListRenderItemInfo } from 'react-native';
+import { showAlert } from "@/services/dialog";
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { colors, spacing, borderRadius, typography } from '@/theme';
 import { projectsApi, runnerApi, api } from '@/services/api';
@@ -237,7 +227,7 @@ export const OrchestrationScreen: React.FC<Props> = ({ route }) => {
   // Toggle orchestrator
   const handleToggle = useCallback(() => {
     if (isRunning) {
-      Alert.alert(
+      showAlert(
         'Stop Orchestrator',
         'Stop automated orchestration for this project?',
         [
@@ -249,14 +239,14 @@ export const OrchestrationScreen: React.FC<Props> = ({ route }) => {
               try {
                 await stopOrchestrator(projectId);
               } catch {
-                Alert.alert('Error', 'Failed to stop orchestrator');
+                showAlert('Error', 'Failed to stop orchestrator');
               }
             },
           },
         ]
       );
     } else {
-      Alert.alert(
+      showAlert(
         'Start Orchestrator',
         'Enable automated task orchestration for this project?',
         [
@@ -267,7 +257,7 @@ export const OrchestrationScreen: React.FC<Props> = ({ route }) => {
               try {
                 await startOrchestrator(projectId);
               } catch {
-                Alert.alert('Error', 'Failed to start orchestrator');
+                showAlert('Error', 'Failed to start orchestrator');
               }
             },
           },

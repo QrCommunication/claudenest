@@ -4,14 +4,8 @@
  */
 
 import React, { useEffect, useCallback } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-} from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import { showAlert } from "@/services/dialog";
 import { MaterialIcons as Icon } from "@expo/vector-icons";
 import { colors, spacing, borderRadius, typography } from "@/theme";
 import { useMachinesStore } from "@/stores/machinesStore";
@@ -53,7 +47,7 @@ export const MachineDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   }, [machineId, navigation]);
 
   const handleDelete = useCallback(() => {
-    Alert.alert(
+    showAlert(
       "Delete Machine?",
       `Are you sure you want to remove "${machine?.name}"?`,
       [
@@ -66,7 +60,7 @@ export const MachineDetailScreen: React.FC<Props> = ({ route, navigation }) => {
               await deleteMachine(machineId);
               navigation.goBack();
             } catch (error) {
-              Alert.alert("Error", "Failed to delete machine");
+              showAlert("Error", "Failed to delete machine");
             }
           },
         },

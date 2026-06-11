@@ -4,24 +4,12 @@
  */
 
 import React, { memo, useState, useCallback, useEffect, useRef } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-  TextInput,
-  Modal,
-  ActivityIndicator,
-  Animated,
-  Platform,
-  KeyboardAvoidingView,
-  Switch,
-} from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Animated, Platform, KeyboardAvoidingView, Switch } from "react-native";
+import { showAlert } from "@/services/dialog";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons as Icon } from "@expo/vector-icons";
 import { colors, spacing, borderRadius, typography } from "@/theme";
+import { Modal } from "@/components/common";
 import { machinesApi, api } from "@/services/api";
 import { useFadeIn } from "@/utils/animations";
 import type { Skill } from "@/types";
@@ -94,61 +82,50 @@ const EditModal = memo(function EditModal({
   return (
     <Modal
       visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
-    >
-      <SafeAreaView style={styles.modalSafeArea} edges={["top", "bottom"]}>
-        <KeyboardAvoidingView
-          style={styles.flex}
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-        >
-          {/* Header */}
-          <View style={styles.modalHeader}>
-            <TouchableOpacity
-              onPress={onClose}
-              hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
-              disabled={isSaving}
-            >
-              <Text style={styles.modalCancelText}>Cancel</Text>
-            </TouchableOpacity>
-            <Text style={styles.modalTitle} numberOfLines={1}>
-              {skillName}
-            </Text>
-            <TouchableOpacity
-              onPress={() => onSave(content)}
-              hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
-              disabled={isSaving}
-            >
-              {isSaving ? (
-                <ActivityIndicator size="small" color={colors.primary.purple} />
-              ) : (
-                <Text style={styles.modalSaveText}>Save</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-
-          {/* Editor */}
-          <ScrollView
-            style={styles.flex}
-            contentContainerStyle={styles.editorContent}
-            keyboardShouldPersistTaps="handled"
+      onClose={onClose}
+      title={skillName}
+      hideCloseButton
+      footer={
+        <View style={styles.editFooter}>
+          <TouchableOpacity
+            onPress={onClose}
+            disabled={isSaving}
+            style={styles.editCancelBtn}
           >
-            <TextInput
-              style={styles.editor}
-              value={content}
-              onChangeText={setContent}
-              multiline
-              autoCapitalize="none"
-              autoCorrect={false}
-              textAlignVertical="top"
-              placeholder="Skill content…"
-              placeholderTextColor={colors.text.muted}
-              scrollEnabled={false}
-            />
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
+            <Text style={styles.modalCancelText}>Cancel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => onSave(content)}
+            disabled={isSaving}
+            style={styles.editSaveBtn}
+          >
+            {isSaving ? (
+              <ActivityIndicator size="small" color={colors.text.primary} />
+            ) : (
+              <Text style={styles.modalSaveText}>Save</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      }
+    >
+      <ScrollView
+        style={styles.editorScroll}
+        contentContainerStyle={styles.editorContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        <TextInput
+          style={styles.editor}
+          value={content}
+          onChangeText={setContent}
+          multiline
+          autoCapitalize="none"
+          autoCorrect={false}
+          textAlignVertical="top"
+          placeholder="Skill content…"
+          placeholderTextColor={colors.text.muted}
+          scrollEnabled={false}
+        />
+      </ScrollView>
     </Modal>
   );
 });
@@ -281,7 +258,7 @@ export const SkillDetailScreen = memo(function SkillDetailScreen({
         );
         setEnabled(value);
       } catch (err) {
-        Alert.alert("Error", "Failed to toggle skill");
+        showAlert("Error", "Failed to toggle skill");
       } finally {
         setIsToggling(false);
       }
@@ -290,7 +267,7 @@ export const SkillDetailScreen = memo(function SkillDetailScreen({
   );
 
   const handleDelete = useCallback(() => {
-    Alert.alert(
+    showAlert(
       "Delete Skill?",
       `Are you sure you want to delete "${skill?.name ?? skillPath}"? This action cannot be undone.`,
       [
@@ -306,7 +283,7 @@ export const SkillDetailScreen = memo(function SkillDetailScreen({
               );
               navigation.goBack();
             } catch (err) {
-              Alert.alert("Error", "Failed to delete skill");
+              showAlert("Error", "Failed to delete skill");
               setIsDeleting(false);
             }
           },
@@ -326,7 +303,7 @@ export const SkillDetailScreen = memo(function SkillDetailScreen({
         setSkillContent(content);
         setEditModalVisible(false);
       } catch (err) {
-        Alert.alert("Error", "Failed to save skill");
+        showAlert("Error", "Failed to save skill");
       } finally {
         setIsSaving(false);
       }
@@ -795,7 +772,7 @@ const styles = StyleSheet.create({
   modalSaveText: {
     fontSize: typography.size.base,
     fontWeight: "700",
-    color: colors.primary.purple,
+    color: colors.text.primary,
   },
   editorContent: {
     padding: spacing.md,
@@ -812,5 +789,23 @@ const styles = StyleSheet.create({
     fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
     lineHeight: 20,
     minHeight: 300,
+  },
+  editorScroll: {
+    maxHeight: 480,
+  },
+  editFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  editCancelBtn: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+  },
+  editSaveBtn: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.accent.purple,
   },
 });

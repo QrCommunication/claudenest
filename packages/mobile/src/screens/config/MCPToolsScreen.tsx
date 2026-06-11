@@ -3,33 +3,31 @@
  * Lists tools available for a given MCP server, with inline execution
  */
 
-import React, { memo, useState, useCallback, useEffect, useRef } from 'react';
+import React, { memo, useState, useCallback, useEffect, useRef } from "react";
 import {
   View,
   Text,
   FlatList,
   StyleSheet,
   TouchableOpacity,
-  Modal,
   TextInput,
   Alert,
   ScrollView,
   ActivityIndicator,
   Animated,
   RefreshControl,
-  KeyboardAvoidingView,
   Platform,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons as Icon } from '@expo/vector-icons';
-import { colors, spacing, borderRadius, typography } from '@/theme';
-import { machinesApi, api } from '@/services/api';
-import { useFadeIn } from '@/utils/animations';
-import type { MCPTool, MCPServer } from '@/types';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { SettingsStackParamList } from '@/navigation/types';
+} from "react-native";
+import { MaterialIcons as Icon } from "@expo/vector-icons";
+import { colors, spacing, borderRadius, typography } from "@/theme";
+import { Modal } from "@/components/common";
+import { machinesApi, api } from "@/services/api";
+import { useFadeIn } from "@/utils/animations";
+import type { MCPTool, MCPServer } from "@/types";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type { SettingsStackParamList } from "@/navigation/types";
 
-type Props = NativeStackScreenProps<SettingsStackParamList, 'MCPTools'>;
+type Props = NativeStackScreenProps<SettingsStackParamList, "MCPTools">;
 
 // ==================== PARAMETER INPUT ====================
 
@@ -47,12 +45,15 @@ const ParamInput = memo(function ParamInput({
   onChange,
 }: ParamInputProps) {
   const s = schema as Record<string, unknown> | null;
-  const description = typeof s?.description === 'string' ? s.description : undefined;
-  const type = typeof s?.type === 'string' ? s.type : 'string';
+  const description =
+    typeof s?.description === "string" ? s.description : undefined;
+  const type = typeof s?.type === "string" ? s.type : "string";
   const isOptional =
     !s?.required &&
-    !(Array.isArray((s as Record<string, unknown> | null)?.required) &&
-      (s as Record<string, unknown>).required);
+    !(
+      Array.isArray((s as Record<string, unknown> | null)?.required) &&
+      (s as Record<string, unknown>).required
+    );
 
   return (
     <View style={styles.paramField}>
@@ -72,9 +73,11 @@ const ParamInput = memo(function ParamInput({
         placeholderTextColor={colors.text.muted}
         autoCapitalize="none"
         autoCorrect={false}
-        multiline={type === 'object' || type === 'array'}
-        numberOfLines={type === 'object' || type === 'array' ? 3 : 1}
-        textAlignVertical={type === 'object' || type === 'array' ? 'top' : 'center'}
+        multiline={type === "object" || type === "array"}
+        numberOfLines={type === "object" || type === "array" ? 3 : 1}
+        textAlignVertical={
+          type === "object" || type === "array" ? "top" : "center"
+        }
       />
     </View>
   );
@@ -118,13 +121,16 @@ const ExecuteModal = memo(function ExecuteModal({
     try {
       // Parse param values: try JSON for object/array types, fallback to string
       const schema = tool.parameters as Record<string, Record<string, unknown>>;
-      const properties = (schema?.properties ?? {}) as Record<string, Record<string, unknown>>;
+      const properties = (schema?.properties ?? {}) as Record<
+        string,
+        Record<string, unknown>
+      >;
 
       const parsedParams: Record<string, unknown> = {};
       for (const [key, raw] of Object.entries(params)) {
         const propSchema = properties[key];
         const propType = propSchema?.type as string | undefined;
-        if ((propType === 'object' || propType === 'array') && raw.trim()) {
+        if ((propType === "object" || propType === "array") && raw.trim()) {
           try {
             parsedParams[key] = JSON.parse(raw);
           } catch {
@@ -137,16 +143,13 @@ const ExecuteModal = memo(function ExecuteModal({
 
       const response = await api.post<{ result: unknown }>(
         `/machines/${machineId}/mcp/${encodeURIComponent(serverName)}/execute`,
-        { tool: tool.name, parameters: parsedParams }
+        { tool: tool.name, parameters: parsedParams },
       );
 
       const raw = response.data?.result;
-      setResult(
-        typeof raw === 'string' ? raw : JSON.stringify(raw, null, 2)
-      );
+      setResult(typeof raw === "string" ? raw : JSON.stringify(raw, null, 2));
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Execution failed';
+      const message = err instanceof Error ? err.message : "Execution failed";
       setResult(`Error: ${message}`);
     } finally {
       setIsExecuting(false);
@@ -156,102 +159,80 @@ const ExecuteModal = memo(function ExecuteModal({
   if (!tool) return null;
 
   const schema = tool.parameters as Record<string, unknown>;
-  const properties = (
-    (schema?.properties as Record<string, unknown>) ?? {}
-  ) as Record<string, unknown>;
+  const properties = ((schema?.properties as Record<string, unknown>) ??
+    {}) as Record<string, unknown>;
   const paramKeys = Object.keys(properties);
 
   return (
     <Modal
       visible={!!tool}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
-    >
-      <SafeAreaView style={styles.modalSafeArea} edges={['top', 'bottom']}>
-        <KeyboardAvoidingView
-          style={styles.flex}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      onClose={onClose}
+      title={tool.name}
+      footer={
+        <TouchableOpacity
+          style={[
+            styles.executeButton,
+            isExecuting && styles.executeButtonDisabled,
+          ]}
+          onPress={handleExecute}
+          disabled={isExecuting}
+          activeOpacity={0.8}
         >
-          {/* Modal header */}
-          <View style={styles.modalHeader}>
-            <View style={styles.modalHeaderLeft}>
-              <Icon name="play-circle-outline" size={20} color={colors.primary.purple} />
-              <Text style={styles.modalTitle}>{tool.name}</Text>
-            </View>
-            <TouchableOpacity onPress={onClose} hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}>
-              <Icon name="close" size={22} color={colors.text.secondary} />
-            </TouchableOpacity>
+          {isExecuting ? (
+            <ActivityIndicator size="small" color={colors.text.primary} />
+          ) : (
+            <>
+              <Icon name="play-arrow" size={20} color={colors.text.primary} />
+              <Text style={styles.executeButtonText}>Execute</Text>
+            </>
+          )}
+        </TouchableOpacity>
+      }
+    >
+      <ScrollView
+        style={styles.modalScroll}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Tool description */}
+        {tool.description && (
+          <Text style={styles.modalDescription}>{tool.description}</Text>
+        )}
+
+        {/* Parameters */}
+        {paramKeys.length > 0 ? (
+          <View style={styles.paramSection}>
+            <Text style={styles.sectionLabel}>Parameters</Text>
+            {paramKeys.map((key) => (
+              <ParamInput
+                key={key}
+                paramKey={key}
+                schema={properties[key]}
+                value={params[key] ?? ""}
+                onChange={handleParamChange}
+              />
+            ))}
           </View>
+        ) : (
+          <View style={styles.noParams}>
+            <Text style={styles.noParamsText}>This tool has no parameters</Text>
+          </View>
+        )}
 
-          <ScrollView
-            style={styles.flex}
-            contentContainerStyle={styles.modalContent}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
-            {/* Tool description */}
-            {tool.description && (
-              <Text style={styles.modalDescription}>{tool.description}</Text>
-            )}
-
-            {/* Parameters */}
-            {paramKeys.length > 0 ? (
-              <View style={styles.paramSection}>
-                <Text style={styles.sectionLabel}>Parameters</Text>
-                {paramKeys.map((key) => (
-                  <ParamInput
-                    key={key}
-                    paramKey={key}
-                    schema={properties[key]}
-                    value={params[key] ?? ''}
-                    onChange={handleParamChange}
-                  />
-                ))}
-              </View>
-            ) : (
-              <View style={styles.noParams}>
-                <Text style={styles.noParamsText}>
-                  This tool has no parameters
-                </Text>
-              </View>
-            )}
-
-            {/* Result */}
-            {result !== null && (
-              <View style={styles.resultSection}>
-                <Text style={styles.sectionLabel}>Result</Text>
-                <ScrollView
-                  style={styles.resultBox}
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                >
-                  <Text style={styles.resultText}>{result}</Text>
-                </ScrollView>
-              </View>
-            )}
-          </ScrollView>
-
-          {/* Execute button */}
-          <View style={styles.modalFooter}>
-            <TouchableOpacity
-              style={[styles.executeButton, isExecuting && styles.executeButtonDisabled]}
-              onPress={handleExecute}
-              disabled={isExecuting}
-              activeOpacity={0.8}
+        {/* Result */}
+        {result !== null && (
+          <View style={styles.resultSection}>
+            <Text style={styles.sectionLabel}>Result</Text>
+            <ScrollView
+              style={styles.resultBox}
+              horizontal
+              showsHorizontalScrollIndicator={false}
             >
-              {isExecuting ? (
-                <ActivityIndicator size="small" color={colors.text.primary} />
-              ) : (
-                <>
-                  <Icon name="play-arrow" size={20} color={colors.text.primary} />
-                  <Text style={styles.executeButtonText}>Execute</Text>
-                </>
-              )}
-            </TouchableOpacity>
+              <Text style={styles.resultText}>{result}</Text>
+            </ScrollView>
           </View>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
+        )}
+      </ScrollView>
     </Modal>
   );
 });
@@ -264,7 +245,11 @@ interface ToolItemProps {
   isFirst: boolean;
 }
 
-const ToolItem = memo(function ToolItem({ tool, onExecute, isFirst }: ToolItemProps) {
+const ToolItem = memo(function ToolItem({
+  tool,
+  onExecute,
+  isFirst,
+}: ToolItemProps) {
   const [expanded, setExpanded] = useState(false);
   const rotateAnim = useRef(new Animated.Value(0)).current;
 
@@ -284,7 +269,7 @@ const ToolItem = memo(function ToolItem({ tool, onExecute, isFirst }: ToolItemPr
 
   const rotation = rotateAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: ['0deg', '180deg'],
+    outputRange: ["0deg", "180deg"],
   });
 
   return (
@@ -306,7 +291,10 @@ const ToolItem = memo(function ToolItem({ tool, onExecute, isFirst }: ToolItemPr
             )}
           </View>
           {tool.description && (
-            <Text style={styles.toolDescription} numberOfLines={expanded ? undefined : 2}>
+            <Text
+              style={styles.toolDescription}
+              numberOfLines={expanded ? undefined : 2}
+            >
               {tool.description}
             </Text>
           )}
@@ -326,8 +314,9 @@ const ToolItem = memo(function ToolItem({ tool, onExecute, isFirst }: ToolItemPr
         <View style={styles.toolParams}>
           <Text style={styles.toolParamsLabel}>Parameters</Text>
           {paramKeys.map((key) => {
-            const propSchema = (properties[key] as Record<string, unknown>) ?? {};
-            const type = propSchema.type as string ?? 'any';
+            const propSchema =
+              (properties[key] as Record<string, unknown>) ?? {};
+            const type = (propSchema.type as string) ?? "any";
             const desc = propSchema.description as string | undefined;
             return (
               <View key={key} style={styles.toolParamRow}>
@@ -353,16 +342,27 @@ const ToolSkeleton = memo(function ToolSkeleton() {
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
-        Animated.timing(opacity, { toValue: 0.8, duration: 800, useNativeDriver: true }),
-        Animated.timing(opacity, { toValue: 0.4, duration: 800, useNativeDriver: true }),
-      ])
+        Animated.timing(opacity, {
+          toValue: 0.8,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 0.4,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ]),
     ).start();
   }, [opacity]);
 
   return (
     <Animated.View style={[styles.skeleton, { opacity }]}>
       {[0, 1, 2].map((i) => (
-        <View key={i} style={[styles.skeletonItem, i > 0 && styles.toolItemBorder]}>
+        <View
+          key={i}
+          style={[styles.skeletonItem, i > 0 && styles.toolItemBorder]}
+        >
           <View style={styles.skeletonRow}>
             <View style={styles.skeletonDot} />
             <View style={styles.skeletonName} />
@@ -386,25 +386,28 @@ export const MCPToolsScreen = memo(function MCPToolsScreen({ route }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [selectedTool, setSelectedTool] = useState<MCPTool | null>(null);
 
-  const loadTools = useCallback(async (silent = false) => {
-    if (!silent) setIsLoading(true);
-    setError(null);
+  const loadTools = useCallback(
+    async (silent = false) => {
+      if (!silent) setIsLoading(true);
+      setError(null);
 
-    try {
-      // Fetch all MCP servers, find the matching one
-      const response = await machinesApi.getMCP(machineId);
-      const servers: MCPServer[] = response.data ?? [];
-      const server = servers.find((s) => s.name === serverName);
-      setTools(server?.tools ?? []);
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Failed to load tools';
-      setError(message);
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  }, [machineId, serverName]);
+      try {
+        // Fetch all MCP servers, find the matching one
+        const response = await machinesApi.getMCP(machineId);
+        const servers: MCPServer[] = response.data ?? [];
+        const server = servers.find((s) => s.name === serverName);
+        setTools(server?.tools ?? []);
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "Failed to load tools";
+        setError(message);
+      } finally {
+        setIsLoading(false);
+        setIsRefreshing(false);
+      }
+    },
+    [machineId, serverName],
+  );
 
   useEffect(() => {
     loadTools();
@@ -427,7 +430,7 @@ export const MCPToolsScreen = memo(function MCPToolsScreen({ route }: Props) {
     ({ item, index }: { item: MCPTool; index: number }) => (
       <ToolItem tool={item} onExecute={handleExecute} isFirst={index === 0} />
     ),
-    [handleExecute]
+    [handleExecute],
   );
 
   const keyExtractor = useCallback((item: MCPTool) => item.name, []);
@@ -448,7 +451,10 @@ export const MCPToolsScreen = memo(function MCPToolsScreen({ route }: Props) {
         <Icon name="error-outline" size={48} color={colors.semantic.error} />
         <Text style={styles.centerTitle}>Failed to load tools</Text>
         <Text style={styles.centerSubtitle}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={() => loadTools()}>
+        <TouchableOpacity
+          style={styles.retryButton}
+          onPress={() => loadTools()}
+        >
           <Text style={styles.retryText}>Retry</Text>
         </TouchableOpacity>
       </View>
@@ -522,8 +528,8 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   listHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.xs,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
@@ -536,7 +542,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   toolCount: {
-    backgroundColor: 'rgba(168, 85, 247, 0.12)',
+    backgroundColor: "rgba(168, 85, 247, 0.12)",
     borderRadius: borderRadius.sm,
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
@@ -544,7 +550,7 @@ const styles = StyleSheet.create({
   toolCountText: {
     fontSize: typography.size.xs,
     color: colors.primary.purple,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 
   // Tool item — borderless cards with top separator
@@ -557,22 +563,22 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border.subtle,
   },
   toolHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     gap: spacing.sm,
   },
   toolHeaderLeft: {
     flex: 1,
   },
   toolNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.xs,
     marginBottom: spacing.xs,
   },
   toolName: {
     fontSize: typography.size.base,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.text.primary,
     flex: 1,
   },
@@ -585,9 +591,9 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: borderRadius.sm,
-    backgroundColor: 'rgba(168, 85, 247, 0.12)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(168, 85, 247, 0.12)",
+    justifyContent: "center",
+    alignItems: "center",
     flexShrink: 0,
   },
 
@@ -598,13 +604,13 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.sm,
     padding: spacing.sm,
     borderLeftWidth: 2,
-    borderLeftColor: colors.primary.cyan + '60',
+    borderLeftColor: colors.primary.cyan + "60",
   },
   toolParamsLabel: {
     fontSize: typography.size.xs,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.text.muted,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 0.5,
     marginBottom: spacing.xs,
   },
@@ -614,19 +620,19 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border.subtle,
   },
   toolParamHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.xs,
   },
   toolParamKey: {
     fontSize: typography.size.sm,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.text.primary,
   },
   toolParamType: {
     fontSize: typography.size.xs,
     color: colors.primary.cyan,
-    backgroundColor: 'rgba(34, 211, 238, 0.1)',
+    backgroundColor: "rgba(34, 211, 238, 0.1)",
     paddingHorizontal: 6,
     paddingVertical: 1,
     borderRadius: borderRadius.sm,
@@ -640,22 +646,22 @@ const styles = StyleSheet.create({
   // States
   centerState: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     padding: spacing.xl,
   },
   centerTitle: {
     fontSize: typography.size.lg,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.text.primary,
     marginTop: spacing.md,
-    textAlign: 'center',
+    textAlign: "center",
   },
   centerSubtitle: {
     fontSize: typography.size.sm,
     color: colors.text.secondary,
     marginTop: spacing.xs,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 20,
   },
   retryButton: {
@@ -667,7 +673,7 @@ const styles = StyleSheet.create({
   },
   retryText: {
     fontSize: typography.size.base,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.text.primary,
   },
 
@@ -679,8 +685,8 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
   },
   skeletonRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.sm,
     marginBottom: spacing.sm,
   },
@@ -698,7 +704,7 @@ const styles = StyleSheet.create({
   },
   skeletonDesc: {
     height: 12,
-    width: '70%',
+    width: "70%",
     borderRadius: borderRadius.sm,
     backgroundColor: colors.background.dark3,
   },
@@ -709,29 +715,33 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.dark1,
   },
   modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.subtle,
   },
   modalHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.sm,
     flex: 1,
   },
   modalTitle: {
     fontSize: typography.size.lg,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.text.primary,
     flex: 1,
   },
   modalContent: {
     padding: spacing.md,
     paddingBottom: spacing.xl,
+  },
+  modalScroll: {
+    // Cap so the param/result list scrolls inside the modal sheet.
+    maxHeight: 460,
   },
   modalDescription: {
     fontSize: typography.size.base,
@@ -752,9 +762,9 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: typography.size.xs,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.text.muted,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 0.5,
     marginBottom: spacing.sm,
   },
@@ -762,20 +772,20 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   paramLabelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.xs,
     marginBottom: spacing.xs,
   },
   paramKey: {
     fontSize: typography.size.sm,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.text.primary,
   },
   paramType: {
     fontSize: typography.size.xs,
     color: colors.primary.cyan,
-    backgroundColor: 'rgba(34, 211, 238, 0.1)',
+    backgroundColor: "rgba(34, 211, 238, 0.1)",
     paddingHorizontal: 6,
     paddingVertical: 1,
     borderRadius: borderRadius.sm,
@@ -783,7 +793,7 @@ const styles = StyleSheet.create({
   paramOptional: {
     fontSize: typography.size.xs,
     color: colors.text.muted,
-    fontStyle: 'italic',
+    fontStyle: "italic",
   },
   paramDescription: {
     fontSize: typography.size.xs,
@@ -793,7 +803,7 @@ const styles = StyleSheet.create({
   paramInput: {
     backgroundColor: colors.background.dark2,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: "rgba(255, 255, 255, 0.08)",
     borderRadius: borderRadius.md,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
@@ -803,7 +813,7 @@ const styles = StyleSheet.create({
   },
   noParams: {
     padding: spacing.md,
-    alignItems: 'center',
+    alignItems: "center",
     backgroundColor: colors.background.dark2,
     borderRadius: borderRadius.md,
     marginBottom: spacing.lg,
@@ -826,7 +836,7 @@ const styles = StyleSheet.create({
   resultText: {
     fontSize: 12,
     color: colors.terminal.foreground,
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
     lineHeight: 18,
   },
 
@@ -835,9 +845,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary.purple,
     borderRadius: borderRadius.md,
     paddingVertical: spacing.sm + 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: spacing.sm,
     minHeight: 52,
   },
@@ -846,7 +856,7 @@ const styles = StyleSheet.create({
   },
   executeButtonText: {
     fontSize: typography.size.base,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.text.primary,
   },
 });

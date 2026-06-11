@@ -6,17 +6,13 @@
  */
 
 import React, { useEffect, useState, useCallback } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  RefreshControl,
-  Alert,
-} from "react-native";
+import { View, Text, FlatList, StyleSheet, RefreshControl } from "react-native";
+import { showAlert } from "@/services/dialog";
 import { MaterialIcons as Icon } from "@expo/vector-icons";
 import { colors, spacing, borderRadius, typography } from "@/theme";
 import { claudeSessionsApi } from "@/services/api";
+import { useCredentialsStore } from "@/stores/credentialsStore";
+import type { Credential } from "@/stores/credentialsStore";
 import { formatDistanceToNow } from "@/utils/date";
 import {
   Card,
@@ -44,7 +40,7 @@ export const ClaudeSessionsScreen: React.FC<Props> = ({
 
   const load = useCallback(async () => {
     try {
-      const res = await claudeSessionsApi.list(machineId);
+      const res = await claudeSessionsApi.list(machineId, true);
       setSessions(res.data ?? []);
     } catch {
       // keep previous list; error surfaced on refresh
@@ -62,9 +58,11 @@ export const ClaudeSessionsScreen: React.FC<Props> = ({
     setIsRefreshing(true);
     try {
       const res = await claudeSessionsApi.refresh(machineId);
-      setSessions(res.data ?? []);
+      // Refresh returns everything — keep only live sessions (stale /tmp
+      // sessions are noise).
+      setSessions((res.data ?? []).filter((s) => s.is_live));
     } catch {
-      Alert.alert(
+      showAlert(
         "Error",
         "Could not refresh Claude sessions. Is the machine online?",
       );
@@ -73,11 +71,15 @@ export const ClaudeSessionsScreen: React.FC<Props> = ({
     }
   }, [machineId]);
 
-  const handleResume = useCallback(
-    async (item: DiscoveredSession) => {
+  const performAdopt = useCallback(
+    async (item: DiscoveredSession, credentialId?: string) => {
       setAdoptingId(item.session_id);
       try {
-        const res = await claudeSessionsApi.adopt(machineId, item.session_id);
+        const res = await claudeSessionsApi.adopt(
+          machineId,
+          item.session_id,
+          credentialId,
+        );
         const agentSessionId = res.data?.agent_session_id;
         if (agentSessionId) {
           navigation.getParent()?.navigate("SessionsTab", {
@@ -89,12 +91,61 @@ export const ClaudeSessionsScreen: React.FC<Props> = ({
         const message =
           (err as { message?: string })?.message ??
           "Failed to resume this session.";
-        Alert.alert("Resume failed", message);
+        showAlert("Resume failed", message);
       } finally {
         setAdoptingId(null);
       }
     },
     [machineId, navigation],
+  );
+
+  const handleResume = useCallback(
+    async (item: DiscoveredSession) => {
+      // Already adopted — just (re)open it, no credential choice needed.
+      if (item.adopted) {
+        await performAdopt(item);
+        return;
+      }
+
+      // Load the user's credentials (best-effort: fall back to cached list).
+      setAdoptingId(item.session_id);
+      let credentials: Credential[];
+      try {
+        await useCredentialsStore.getState().fetchCredentials();
+        credentials = useCredentialsStore.getState().credentials;
+      } catch {
+        credentials = useCredentialsStore.getState().credentials;
+      } finally {
+        setAdoptingId(null);
+      }
+
+      // No credential configured — adopt directly, as before.
+      if (credentials.length === 0) {
+        await performAdopt(item);
+        return;
+      }
+
+      showAlert(
+        "Resume session",
+        "Choose the credential used to resume this session.",
+        [
+          ...credentials.map((c) => ({
+            text: c.is_default ? `⭐ ${c.name}` : c.name,
+            onPress: () => {
+              void performAdopt(item, c.id);
+            },
+          })),
+          {
+            text: "No credential",
+            onPress: () => {
+              void performAdopt(item);
+            },
+          },
+          { text: "Cancel", style: "cancel" as const },
+        ],
+      );
+    },
+    [performAdopt],
   );
 
   const renderItem = useCallback(

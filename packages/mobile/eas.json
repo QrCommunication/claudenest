@@ -12,6 +12,7 @@
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://claudenest.io",
+        "EXPO_PUBLIC_TERMINAL_WS_URL": "wss://claudenest.io/ws/terminal",
         "EXPO_PUBLIC_REVERB_APP_KEY": "ba5e8c79e195359afbe9bea81384770a",
         "EXPO_PUBLIC_REVERB_HOST": "claudenest.io",
         "EXPO_PUBLIC_REVERB_PORT": "443",
@@ -25,6 +26,7 @@
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://claudenest.io",
+        "EXPO_PUBLIC_TERMINAL_WS_URL": "wss://claudenest.io/ws/terminal",
         "EXPO_PUBLIC_REVERB_APP_KEY": "ba5e8c79e195359afbe9bea81384770a",
         "EXPO_PUBLIC_REVERB_HOST": "claudenest.io",
         "EXPO_PUBLIC_REVERB_PORT": "443",
@@ -35,10 +37,14 @@
       "autoIncrement": true,
       "env": {
         "EXPO_PUBLIC_API_URL": "https://claudenest.io",
+        "EXPO_PUBLIC_TERMINAL_WS_URL": "wss://claudenest.io/ws/terminal",
         "EXPO_PUBLIC_REVERB_APP_KEY": "ba5e8c79e195359afbe9bea81384770a",
         "EXPO_PUBLIC_REVERB_HOST": "claudenest.io",
         "EXPO_PUBLIC_REVERB_PORT": "443",
         "EXPO_PUBLIC_REVERB_SCHEME": "https"
+      },
+      "android": {
+        "buildType": "apk"
       }
     }
   },

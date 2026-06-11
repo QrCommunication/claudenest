@@ -12,18 +12,8 @@ import React, {
   useRef,
   memo,
 } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-  RefreshControl,
-  Animated,
-  Platform,
-} from 'react-native';
+import { View, Text, FlatList, ScrollView, StyleSheet, TouchableOpacity, RefreshControl, Animated, Platform } from 'react-native';
+import { showAlert, showPrompt } from "@/services/dialog";
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { colors, spacing, borderRadius, typography } from '@/theme';
 import { useProjectsStore } from '@/stores/projectsStore';
@@ -420,7 +410,7 @@ export const TasksScreen: React.FC<Props> = ({ route, navigation }) => {
   }, [projectId, fetchTasks]);
 
   const handleCreateTask = useCallback(() => {
-    Alert.prompt(
+    showPrompt(
       'New Task',
       'Enter task title:',
       [
@@ -432,7 +422,7 @@ export const TasksScreen: React.FC<Props> = ({ route, navigation }) => {
               try {
                 await createTask(projectId, { title });
               } catch {
-                Alert.alert('Error', 'Failed to create task');
+                showAlert('Error', 'Failed to create task');
               }
             }
           },
@@ -444,7 +434,7 @@ export const TasksScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const handlePressTask = useCallback(
     (task: SharedTask) => {
-      Alert.alert(
+      showAlert(
         task.title,
         task.description || 'No description',
         [
@@ -456,7 +446,7 @@ export const TasksScreen: React.FC<Props> = ({ route, navigation }) => {
                   try {
                     await claimTask(task.id, 'mobile-instance');
                   } catch {
-                    Alert.alert('Error', 'Failed to claim task');
+                    showAlert('Error', 'Failed to claim task');
                   }
                 },
               }
@@ -472,7 +462,7 @@ export const TasksScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const handleCompleteTask = useCallback(
     (task: SharedTask) => {
-      Alert.prompt(
+      showPrompt(
         'Complete Task',
         'Enter completion summary:',
         [
@@ -483,7 +473,7 @@ export const TasksScreen: React.FC<Props> = ({ route, navigation }) => {
               try {
                 await completeTask(task.id, summary || 'Completed', []);
               } catch {
-                Alert.alert('Error', 'Failed to complete task');
+                showAlert('Error', 'Failed to complete task');
               }
             },
           },
@@ -499,7 +489,7 @@ export const TasksScreen: React.FC<Props> = ({ route, navigation }) => {
       try {
         await claimTask(task.id, 'mobile-instance');
       } catch {
-        Alert.alert('Error', 'Failed to claim task');
+        showAlert('Error', 'Failed to claim task');
       }
     },
     [claimTask]

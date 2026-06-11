@@ -9,16 +9,8 @@
  */
 
 import React, { useState, useCallback, useRef } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  ScrollView,
-  Alert,
-  Platform,
-  KeyboardAvoidingView,
-} from "react-native";
+import { View, Text, TextInput, StyleSheet, ScrollView, Platform, KeyboardAvoidingView } from "react-native";
+import { showAlert } from "@/services/dialog";
 import { MaterialIcons as Icon } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { colors, spacing, borderRadius, typography } from "@/theme";
@@ -74,13 +66,13 @@ export const PairMachineScreen: React.FC<Props> = ({ navigation }) => {
         setPairingCode(formatted);
       }
     } catch {
-      Alert.alert("Error", "Unable to read clipboard content.");
+      showAlert("Error", "Unable to read clipboard content.");
     }
   }, []);
 
   const handlePair = useCallback(async () => {
     if (!isCodeComplete) {
-      Alert.alert(
+      showAlert(
         "Invalid Code",
         "Please enter a complete 6-character pairing code (e.g. ABC-123).",
       );
@@ -99,7 +91,7 @@ export const PairMachineScreen: React.FC<Props> = ({ navigation }) => {
 
       useMachinesStore.getState().fetchMachines();
 
-      Alert.alert(
+      showAlert(
         "Machine Paired",
         machineName.trim()
           ? `"${machineName.trim()}" has been paired successfully. The agent will connect automatically.`
@@ -110,17 +102,17 @@ export const PairMachineScreen: React.FC<Props> = ({ navigation }) => {
       const apiError = error as { status?: number; message?: string };
 
       if (apiError.status === 410) {
-        Alert.alert(
+        showAlert(
           "Code Expired",
           "This pairing code has expired. Please run `claudenest-agent pair` again on your machine to generate a new code.",
         );
       } else if (apiError.status === 404) {
-        Alert.alert(
+        showAlert(
           "Code Not Found",
           "This pairing code was not found or has already been used. Please check the code and try again.",
         );
       } else {
-        Alert.alert(
+        showAlert(
           "Pairing Failed",
           apiError.message || "An unexpected error occurred. Please try again.",
         );

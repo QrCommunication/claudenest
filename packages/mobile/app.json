@@ -2,7 +2,7 @@
   "expo": {
     "name": "ClaudeNest",
     "slug": "claudenest",
-    "version": "0.5.0",
+    "version": "0.6.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
@@ -22,8 +22,8 @@
         "backgroundColor": "#0f0f1a"
       },
       "package": "app.qrcommunication.claudenest",
-      "versionCode": 50,
-      "softwareKeyboardLayoutMode": "pan"
+      "versionCode": 60,
+      "softwareKeyboardLayoutMode": "resize"
     },
     "web": {
       "favicon": "./assets/favicon.png"

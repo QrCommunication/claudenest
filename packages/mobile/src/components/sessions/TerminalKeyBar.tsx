@@ -10,6 +10,7 @@
 import React, { memo, useCallback } from "react";
 import { View, Text, Pressable, ScrollView, StyleSheet } from "react-native";
 import { MaterialIcons as Icon } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors, spacing, borderRadius, typography } from "@/theme";
 
 type Mod = "ctrl" | "alt";
@@ -19,6 +20,11 @@ interface Props {
   ctrlActive: boolean;
   altActive: boolean;
   onToggleModifier: (mod: Mod) => void;
+  /**
+   * When the soft keyboard is open the bar sits flush on top of it, so the
+   * bottom safe-area inset must collapse (the keyboard covers that zone).
+   */
+  keyboardVisible?: boolean;
 }
 
 // Base escape sequences (no modifier).
@@ -64,7 +70,9 @@ export const TerminalKeyBar: React.FC<Props> = memo(function TerminalKeyBar({
   ctrlActive,
   altActive,
   onToggleModifier,
+  keyboardVisible = false,
 }) {
+  const insets = useSafeAreaInsets();
   const anyMod = ctrlActive || altActive;
 
   // Send an arrow/nav key, applying an armed Ctrl/Alt modifier if present, then
@@ -91,7 +99,12 @@ export const TerminalKeyBar: React.FC<Props> = memo(function TerminalKeyBar({
   );
 
   return (
-    <View style={styles.wrap}>
+    <View
+      style={[
+        styles.wrap,
+        { paddingBottom: keyboardVisible ? 0 : insets.bottom },
+      ]}
+    >
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}

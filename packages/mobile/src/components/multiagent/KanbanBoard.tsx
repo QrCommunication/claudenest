@@ -4,11 +4,17 @@
  * Long-press on a task opens a bottom sheet to move it to another column.
  */
 
-import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   Animated,
   FlatList,
-  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -16,12 +22,13 @@ import {
   TouchableOpacity,
   View,
   type ListRenderItemInfo,
-} from 'react-native';
-import { MaterialIcons as Icon } from '@expo/vector-icons';
-import { useFadeIn } from '@/utils/animations';
-import { colors, spacing, borderRadius, typography } from '@/theme';
-import { tasksApi, epicsApi, sprintsApi } from '@/services/api';
-import type { Epic, SharedTask, Sprint, TaskStatus } from '@/types';
+} from "react-native";
+import { MaterialIcons as Icon } from "@expo/vector-icons";
+import { useFadeIn } from "@/utils/animations";
+import { colors, spacing, borderRadius, typography } from "@/theme";
+import { tasksApi, epicsApi, sprintsApi } from "@/services/api";
+import { Modal } from "@/components/common";
+import type { Epic, SharedTask, Sprint, TaskStatus } from "@/types";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -47,12 +54,42 @@ type ColumnConfig = {
 const COLUMN_WIDTH = 280;
 
 const COLUMNS: ColumnConfig[] = [
-  { status: 'backlog',     label: 'Backlog',     color: colors.text.muted,          bgColor: 'rgba(100,116,139,0.15)' },
-  { status: 'pending',     label: 'Pending',     color: colors.primary.indigo,      bgColor: 'rgba(99,102,241,0.15)'  },
-  { status: 'in_progress', label: 'In Progress', color: colors.primary.cyan,        bgColor: 'rgba(34,211,238,0.15)'  },
-  { status: 'blocked',     label: 'Blocked',     color: colors.semantic.error,      bgColor: 'rgba(239,68,68,0.15)'   },
-  { status: 'review',      label: 'Review',      color: colors.semantic.warning,    bgColor: 'rgba(251,191,36,0.15)'  },
-  { status: 'done',        label: 'Done',        color: colors.semantic.success,    bgColor: 'rgba(34,197,94,0.15)'   },
+  {
+    status: "backlog",
+    label: "Backlog",
+    color: colors.text.muted,
+    bgColor: "rgba(100,116,139,0.15)",
+  },
+  {
+    status: "pending",
+    label: "Pending",
+    color: colors.primary.indigo,
+    bgColor: "rgba(99,102,241,0.15)",
+  },
+  {
+    status: "in_progress",
+    label: "In Progress",
+    color: colors.primary.cyan,
+    bgColor: "rgba(34,211,238,0.15)",
+  },
+  {
+    status: "blocked",
+    label: "Blocked",
+    color: colors.semantic.error,
+    bgColor: "rgba(239,68,68,0.15)",
+  },
+  {
+    status: "review",
+    label: "Review",
+    color: colors.semantic.warning,
+    bgColor: "rgba(251,191,36,0.15)",
+  },
+  {
+    status: "done",
+    label: "Done",
+    color: colors.semantic.success,
+    bgColor: "rgba(34,197,94,0.15)",
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -66,49 +103,56 @@ interface MoveSheetProps {
   onClose: () => void;
 }
 
-const MoveSheet = memo(function MoveSheet({ task, visible, onMove, onClose }: MoveSheetProps) {
-  const translateY = useRef(new Animated.Value(400)).current;
-
-  useEffect(() => {
-    Animated.timing(translateY, {
-      toValue: visible ? 0 : 400,
-      duration: 280,
-      useNativeDriver: true,
-    }).start();
-  }, [visible, translateY]);
-
+const MoveSheet = memo(function MoveSheet({
+  task,
+  visible,
+  onMove,
+  onClose,
+}: MoveSheetProps) {
   if (!task && !visible) return null;
 
   return (
-    <Modal transparent animationType="none" visible={visible} onRequestClose={onClose}>
-      <TouchableOpacity style={sheetStyles.backdrop} activeOpacity={1} onPress={onClose} />
-      <Animated.View style={[sheetStyles.sheet, { transform: [{ translateY }] }]}>
-        <View style={sheetStyles.handle} />
-        <Text style={sheetStyles.sheetTitle}>Move to column</Text>
-        <Text style={sheetStyles.sheetSubtitle} numberOfLines={1}>{task?.title}</Text>
-        <View style={sheetStyles.columnList}>
-          {COLUMNS.map((col) => {
-            const isCurrent = task?.status === col.status;
-            return (
-              <TouchableOpacity
-                key={col.status}
-                style={[sheetStyles.columnRow, isCurrent && sheetStyles.columnRowActive]}
-                onPress={() => task && onMove(task, col.status)}
-                disabled={isCurrent}
-                activeOpacity={0.7}
+    <Modal visible={visible} onClose={onClose} title="Move to column">
+      <Text style={sheetStyles.sheetSubtitle} numberOfLines={1}>
+        {task?.title}
+      </Text>
+      <View style={sheetStyles.columnList}>
+        {COLUMNS.map((col) => {
+          const isCurrent = task?.status === col.status;
+          return (
+            <TouchableOpacity
+              key={col.status}
+              style={[
+                sheetStyles.columnRow,
+                isCurrent && sheetStyles.columnRowActive,
+              ]}
+              onPress={() => task && onMove(task, col.status)}
+              disabled={isCurrent}
+              activeOpacity={0.7}
+            >
+              <View
+                style={[sheetStyles.colorDot, { backgroundColor: col.color }]}
+              />
+              <Text
+                style={[
+                  sheetStyles.columnLabel,
+                  isCurrent && { color: col.color },
+                ]}
               >
-                <View style={[sheetStyles.colorDot, { backgroundColor: col.color }]} />
-                <Text style={[sheetStyles.columnLabel, isCurrent && { color: col.color }]}>
-                  {col.label}
-                </Text>
-                {isCurrent && (
-                  <Icon name="check" size={16} color={col.color} style={sheetStyles.checkIcon} />
-                )}
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </Animated.View>
+                {col.label}
+              </Text>
+              {isCurrent && (
+                <Icon
+                  name="check"
+                  size={16}
+                  color={col.color}
+                  style={sheetStyles.checkIcon}
+                />
+              )}
+            </TouchableOpacity>
+          );
+        })}
+      </View>
     </Modal>
   );
 });
@@ -132,10 +176,14 @@ const KanbanTaskCard = memo(function KanbanTaskCard({
 
   const priorityColor = useMemo(() => {
     switch (task.priority) {
-      case 'critical': return colors.semantic.error;
-      case 'high':     return colors.semantic.warning;
-      case 'medium':   return colors.primary.purple;
-      default:         return colors.text.muted;
+      case "critical":
+        return colors.semantic.error;
+      case "high":
+        return colors.semantic.warning;
+      case "medium":
+        return colors.primary.purple;
+      default:
+        return colors.text.muted;
     }
   }, [task.priority]);
 
@@ -152,10 +200,14 @@ const KanbanTaskCard = memo(function KanbanTaskCard({
         <View style={[cardStyles.stripe, { backgroundColor: priorityColor }]} />
 
         <View style={cardStyles.body}>
-          <Text style={cardStyles.title} numberOfLines={2}>{task.title}</Text>
+          <Text style={cardStyles.title} numberOfLines={2}>
+            {task.title}
+          </Text>
 
           {task.description ? (
-            <Text style={cardStyles.description} numberOfLines={2}>{task.description}</Text>
+            <Text style={cardStyles.description} numberOfLines={2}>
+              {task.description}
+            </Text>
           ) : null}
 
           <View style={cardStyles.footer}>
@@ -165,8 +217,18 @@ const KanbanTaskCard = memo(function KanbanTaskCard({
               </View>
             )}
             {task.labels && task.labels.length > 0 && (
-              <View style={[cardStyles.chip, { backgroundColor: 'rgba(99,102,241,0.2)' }]}>
-                <Text style={[cardStyles.chipText, { color: colors.primary.indigo }]}>
+              <View
+                style={[
+                  cardStyles.chip,
+                  { backgroundColor: "rgba(99,102,241,0.2)" },
+                ]}
+              >
+                <Text
+                  style={[
+                    cardStyles.chipText,
+                    { color: colors.primary.indigo },
+                  ]}
+                >
                   {task.labels[0]}
                 </Text>
               </View>
@@ -211,7 +273,7 @@ const KanbanColumn = memo(function KanbanColumn({
         onLongPress={onTaskLongPress}
       />
     ),
-    [onTaskPress, onTaskLongPress]
+    [onTaskPress, onTaskLongPress],
   );
 
   const keyExtractor = useCallback((item: SharedTask) => item.id, []);
@@ -221,9 +283,15 @@ const KanbanColumn = memo(function KanbanColumn({
       {/* Header */}
       <View style={[colStyles.header, { backgroundColor: config.bgColor }]}>
         <View style={[colStyles.dot, { backgroundColor: config.color }]} />
-        <Text style={[colStyles.headerLabel, { color: config.color }]}>{config.label}</Text>
-        <View style={[colStyles.counter, { backgroundColor: config.color + '25' }]}>
-          <Text style={[colStyles.counterText, { color: config.color }]}>{tasks.length}</Text>
+        <Text style={[colStyles.headerLabel, { color: config.color }]}>
+          {config.label}
+        </Text>
+        <View
+          style={[colStyles.counter, { backgroundColor: config.color + "25" }]}
+        >
+          <Text style={[colStyles.counterText, { color: config.color }]}>
+            {tasks.length}
+          </Text>
         </View>
       </View>
 
@@ -249,7 +317,9 @@ const KanbanColumn = memo(function KanbanColumn({
 // FilterSelect — horizontal scrollable select for epics/sprints
 // ---------------------------------------------------------------------------
 
-interface FilterSelectProps<T extends { id: string; title?: string; name?: string }> {
+interface FilterSelectProps<
+  T extends { id: string; title?: string; name?: string },
+> {
   label: string;
   items: T[];
   selectedId: string | undefined;
@@ -273,11 +343,19 @@ function FilterSelect<T extends { id: string; title?: string; name?: string }>({
         contentContainerStyle={filterStyles.scroll}
       >
         <TouchableOpacity
-          style={[filterStyles.chip, !selectedId && { borderColor: color, backgroundColor: color + '20' }]}
+          style={[
+            filterStyles.chip,
+            !selectedId && {
+              borderColor: color,
+              backgroundColor: color + "20",
+            },
+          ]}
           onPress={() => onSelect(undefined)}
           activeOpacity={0.7}
         >
-          <Text style={[filterStyles.chipText, !selectedId && { color }]}>All</Text>
+          <Text style={[filterStyles.chipText, !selectedId && { color }]}>
+            All
+          </Text>
         </TouchableOpacity>
         {items.map((item) => {
           const isActive = selectedId === item.id;
@@ -285,11 +363,19 @@ function FilterSelect<T extends { id: string; title?: string; name?: string }>({
           return (
             <TouchableOpacity
               key={item.id}
-              style={[filterStyles.chip, isActive && { borderColor: color, backgroundColor: color + '20' }]}
+              style={[
+                filterStyles.chip,
+                isActive && {
+                  borderColor: color,
+                  backgroundColor: color + "20",
+                },
+              ]}
               onPress={() => onSelect(item.id)}
               activeOpacity={0.7}
             >
-              <Text style={[filterStyles.chipText, isActive && { color }]}>{display}</Text>
+              <Text style={[filterStyles.chipText, isActive && { color }]}>
+                {display}
+              </Text>
             </TouchableOpacity>
           );
         })}
@@ -313,8 +399,12 @@ export const KanbanBoard = memo(function KanbanBoard({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [epicFilter, setEpicFilter] = useState<string | undefined>(epicFilterProp);
-  const [sprintFilter, setSprintFilter] = useState<string | undefined>(sprintFilterProp);
+  const [epicFilter, setEpicFilter] = useState<string | undefined>(
+    epicFilterProp,
+  );
+  const [sprintFilter, setSprintFilter] = useState<string | undefined>(
+    sprintFilterProp,
+  );
 
   const [selectedTask, setSelectedTask] = useState<SharedTask | null>(null);
   const [sheetVisible, setSheetVisible] = useState(false);
@@ -338,7 +428,8 @@ export const KanbanBoard = memo(function KanbanBoard({
         setSprints(sprintsRes.data ?? []);
       } catch (err: unknown) {
         if (!cancelled) {
-          const msg = err instanceof Error ? err.message : 'Failed to load tasks';
+          const msg =
+            err instanceof Error ? err.message : "Failed to load tasks";
           setError(msg);
         }
       } finally {
@@ -347,7 +438,9 @@ export const KanbanBoard = memo(function KanbanBoard({
     };
 
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [projectId]);
 
   // Filtered tasks per column
@@ -361,7 +454,12 @@ export const KanbanBoard = memo(function KanbanBoard({
 
   const tasksByStatus = useMemo(() => {
     const map: Record<TaskStatus, SharedTask[]> = {
-      backlog: [], pending: [], in_progress: [], blocked: [], review: [], done: [],
+      backlog: [],
+      pending: [],
+      in_progress: [],
+      blocked: [],
+      review: [],
+      done: [],
     };
     for (const t of filteredTasks) {
       if (map[t.status]) map[t.status].push(t);
@@ -383,17 +481,26 @@ export const KanbanBoard = memo(function KanbanBoard({
     setSheetVisible(true);
   }, []);
 
-  const handleMove = useCallback(async (task: SharedTask, status: TaskStatus) => {
-    setSheetVisible(false);
-    // Optimistic update
-    setTasks((prev) => prev.map((t) => t.id === task.id ? { ...t, status } : t));
-    try {
-      await tasksApi.update(task.id, { status });
-    } catch {
-      // Rollback
-      setTasks((prev) => prev.map((t) => t.id === task.id ? { ...t, status: task.status } : t));
-    }
-  }, []);
+  const handleMove = useCallback(
+    async (task: SharedTask, status: TaskStatus) => {
+      setSheetVisible(false);
+      // Optimistic update
+      setTasks((prev) =>
+        prev.map((t) => (t.id === task.id ? { ...t, status } : t)),
+      );
+      try {
+        await tasksApi.update(task.id, { status });
+      } catch {
+        // Rollback
+        setTasks((prev) =>
+          prev.map((t) =>
+            t.id === task.id ? { ...t, status: task.status } : t,
+          ),
+        );
+      }
+    },
+    [],
+  );
 
   const handleCloseSheet = useCallback(() => {
     setSheetVisible(false);
@@ -479,8 +586,8 @@ const styles = StyleSheet.create({
   },
   centered: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: spacing.xl,
     backgroundColor: colors.background.dark2,
   },
@@ -492,7 +599,7 @@ const styles = StyleSheet.create({
     color: colors.semantic.error,
     fontSize: typography.size.base,
     marginTop: spacing.sm,
-    textAlign: 'center',
+    textAlign: "center",
   },
   filters: {
     paddingTop: spacing.sm,
@@ -505,7 +612,7 @@ const styles = StyleSheet.create({
   board: {
     padding: spacing.sm,
     gap: spacing.sm,
-    alignItems: 'flex-start',
+    alignItems: "flex-start",
   },
 });
 
@@ -516,12 +623,12 @@ const colStyles = StyleSheet.create({
     backgroundColor: colors.background.dark3,
     borderWidth: 1,
     borderColor: colors.border.default,
-    overflow: 'hidden',
-    maxHeight: '100%',
+    overflow: "hidden",
+    maxHeight: "100%",
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     gap: spacing.sm,
@@ -536,21 +643,21 @@ const colStyles = StyleSheet.create({
   headerLabel: {
     flex: 1,
     fontSize: typography.size.sm,
-    fontWeight: '700',
+    fontWeight: "700",
     letterSpacing: 0.5,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
   counter: {
     minWidth: 22,
     height: 22,
     borderRadius: 11,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: spacing.xs,
   },
   counterText: {
     fontSize: typography.size.xs,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   listContent: {
     padding: spacing.sm,
@@ -558,7 +665,7 @@ const colStyles = StyleSheet.create({
     gap: spacing.sm,
   },
   empty: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: spacing.xl,
   },
   emptyText: {
@@ -573,8 +680,8 @@ const cardStyles = StyleSheet.create({
     borderRadius: borderRadius.md,
     borderWidth: 1,
     borderColor: colors.border.default,
-    flexDirection: 'row',
-    overflow: 'hidden',
+    flexDirection: "row",
+    overflow: "hidden",
   },
   stripe: {
     width: 3,
@@ -588,7 +695,7 @@ const cardStyles = StyleSheet.create({
   },
   title: {
     fontSize: typography.size.sm,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.text.primary,
     lineHeight: 18,
   },
@@ -598,14 +705,14 @@ const cardStyles = StyleSheet.create({
     lineHeight: 16,
   },
   footer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.xs,
-    flexWrap: 'wrap',
+    flexWrap: "wrap",
     marginTop: spacing.xs,
   },
   chip: {
-    backgroundColor: 'rgba(168,85,247,0.15)',
+    backgroundColor: "rgba(168,85,247,0.15)",
     borderRadius: borderRadius.base,
     paddingHorizontal: spacing.xs,
     paddingVertical: 2,
@@ -613,13 +720,13 @@ const cardStyles = StyleSheet.create({
   chipText: {
     fontSize: typography.size.xs,
     color: colors.primary.purple,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   assignee: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 2,
-    marginLeft: 'auto',
+    marginLeft: "auto",
   },
   assigneeText: {
     fontSize: typography.size.xs,
@@ -631,13 +738,13 @@ const cardStyles = StyleSheet.create({
 const sheetStyles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: "rgba(0,0,0,0.6)",
   },
   sheet: {
     backgroundColor: colors.background.dark3,
     borderTopLeftRadius: borderRadius.xl,
     borderTopRightRadius: borderRadius.xl,
-    paddingBottom: Platform.OS === 'ios' ? 34 : spacing.xl,
+    paddingBottom: Platform.OS === "ios" ? 34 : spacing.xl,
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
     borderTopWidth: 1,
@@ -648,12 +755,12 @@ const sheetStyles = StyleSheet.create({
     height: 4,
     backgroundColor: colors.border.strong,
     borderRadius: 2,
-    alignSelf: 'center',
+    alignSelf: "center",
     marginBottom: spacing.md,
   },
   sheetTitle: {
     fontSize: typography.size.lg,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.text.primary,
     marginBottom: spacing.xs,
   },
@@ -666,8 +773,8 @@ const sheetStyles = StyleSheet.create({
     gap: spacing.xs,
   },
   columnRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     borderRadius: borderRadius.md,
@@ -688,10 +795,10 @@ const sheetStyles = StyleSheet.create({
     flex: 1,
     fontSize: typography.size.base,
     color: colors.text.secondary,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   checkIcon: {
-    marginLeft: 'auto',
+    marginLeft: "auto",
   },
 });
 
@@ -702,10 +809,10 @@ const filterStyles = StyleSheet.create({
   label: {
     fontSize: typography.size.xs,
     color: colors.text.muted,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 0.8,
     marginBottom: spacing.xs,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   scroll: {
     gap: spacing.xs,
@@ -721,6 +828,6 @@ const filterStyles = StyleSheet.create({
   chipText: {
     fontSize: typography.size.xs,
     color: colors.text.secondary,
-    fontWeight: '500',
+    fontWeight: "500",
   },
 });

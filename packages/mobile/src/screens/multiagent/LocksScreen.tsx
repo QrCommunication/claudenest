@@ -4,13 +4,8 @@
  */
 
 import React, { useEffect, useCallback } from 'react';
-import {
-  View,
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import { View, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import { showAlert, showPrompt } from "@/services/dialog";
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { colors, spacing } from '@/theme';
 import { useProjectsStore } from '@/stores/projectsStore';
@@ -53,7 +48,7 @@ export const LocksScreen: React.FC<Props> = ({ route, navigation }) => {
   }, [navigation]);
 
   const handleCreateLock = useCallback(() => {
-    Alert.prompt(
+    showPrompt(
       'Lock File',
       'Enter file path to lock:',
       [
@@ -65,7 +60,7 @@ export const LocksScreen: React.FC<Props> = ({ route, navigation }) => {
               try {
                 await createLock(projectId, path, 'Locked from mobile app');
               } catch (error) {
-                Alert.alert('Error', 'Failed to lock file');
+                showAlert('Error', 'Failed to lock file');
               }
             }
           },
@@ -77,7 +72,7 @@ export const LocksScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const handleUnlock = useCallback(
     async (lock: FileLock) => {
-      Alert.alert(
+      showAlert(
         'Unlock File?',
         `Are you sure you want to unlock "${lock.path}"?`,
         [
@@ -89,7 +84,7 @@ export const LocksScreen: React.FC<Props> = ({ route, navigation }) => {
               try {
                 await deleteLock(projectId, lock.path);
               } catch (error) {
-                Alert.alert('Error', 'Failed to unlock file');
+                showAlert('Error', 'Failed to unlock file');
               }
             },
           },

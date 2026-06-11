@@ -4,15 +4,8 @@
  */
 
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-  Linking,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking } from 'react-native';
+import { showAlert } from "@/services/dialog";
 import Constants from 'expo-constants';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 type IconName = React.ComponentProps<typeof MaterialIcons>['name'];
@@ -72,7 +65,7 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const { machines } = useMachinesStore();
 
   const handleLogout = () => {
-    Alert.alert(
+    showAlert(
       'Sign Out',
       'Are you sure you want to sign out?',
       [

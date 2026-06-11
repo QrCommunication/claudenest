@@ -5,16 +5,8 @@
  */
 
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  RefreshControl,
-  TouchableOpacity,
-  Animated,
-  Alert,
-} from 'react-native';
+import { View, Text, FlatList, StyleSheet, RefreshControl, TouchableOpacity, Animated } from 'react-native';
+import { showAlert } from "@/services/dialog";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -273,7 +265,7 @@ export const SprintsScreen = memo(function SprintsScreen({
 
   const handleStart = useCallback(
     (sprint: Sprint) => {
-      Alert.alert(
+      showAlert(
         'Start Sprint',
         `Start "${sprint.name}"? This will mark it as active.`,
         [
@@ -284,7 +276,7 @@ export const SprintsScreen = memo(function SprintsScreen({
               try {
                 await startSprint(sprint.id);
               } catch {
-                Alert.alert('Error', 'Failed to start sprint. Please try again.');
+                showAlert('Error', 'Failed to start sprint. Please try again.');
               }
             },
           },
@@ -296,7 +288,7 @@ export const SprintsScreen = memo(function SprintsScreen({
 
   const handleComplete = useCallback(
     (sprint: Sprint) => {
-      Alert.alert(
+      showAlert(
         'Complete Sprint',
         `Complete "${sprint.name}"? Unfinished tasks will remain in backlog.`,
         [
@@ -308,7 +300,7 @@ export const SprintsScreen = memo(function SprintsScreen({
               try {
                 await completeSprint(sprint.id);
               } catch {
-                Alert.alert('Error', 'Failed to complete sprint. Please try again.');
+                showAlert('Error', 'Failed to complete sprint. Please try again.');
               }
             },
           },

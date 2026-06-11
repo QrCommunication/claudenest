@@ -49,8 +49,19 @@ apiClient.interceptors.response.use(
       _retry?: boolean;
     };
 
-    // Handle 401 Unauthorized — session expired, force re-login
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Handle 401 Unauthorized — session expired, force re-login.
+    // Public auth endpoints are excluded: a 401 there means invalid
+    // credentials / expired MFA token, not an expired session.
+    const requestUrl = originalRequest?.url ?? "";
+    const isPublicAuthRoute =
+      requestUrl === "/auth/login" ||
+      requestUrl === "/auth/mfa/verify" ||
+      requestUrl === "/auth/mfa/resend";
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !isPublicAuthRoute
+    ) {
       originalRequest._retry = true;
       getAuthStore().getState().logout();
     }
@@ -87,14 +98,42 @@ export const api = {
     apiClient.delete<ApiResponse<T>>(url, config).then((res) => res.data),
 };
 
+// Auth contract shapes
+export interface LoginSuccessData {
+  user: import("@/types").User;
+  token: string;
+  expires_at: string;
+}
+
+// Returned by POST /auth/login when MFA is enabled for the account.
+// No token is issued yet — the client must call POST /auth/mfa/verify.
+export interface MfaChallengeData {
+  mfa_required: true;
+  mfa_method: "email" | "totp";
+  mfa_token: string;
+}
+
 // Specific API endpoints
 export const authApi = {
   loginWithPassword: (email: string, password: string) =>
-    api.post<{
-      user: import("@/types").User;
-      token: string;
-      expires_at: string;
-    }>("/auth/login", { email, password }),
+    api.post<LoginSuccessData | MfaChallengeData>("/auth/login", {
+      email,
+      password,
+    }),
+
+  // code = 6-digit TOTP, 6-digit email OTP, or a recovery code.
+  // After 5 failures the mfa_token is invalidated server-side (re-login).
+  verifyMfa: (mfaToken: string, code: string) =>
+    api.post<LoginSuccessData>("/auth/mfa/verify", {
+      mfa_token: mfaToken,
+      code,
+    }),
+
+  // Email method only — resends the OTP using a live mfa_token.
+  resendMfa: (mfaToken: string) =>
+    api.post<{ message: string }>("/auth/mfa/resend", {
+      mfa_token: mfaToken,
+    }),
 
   logout: () => api.post("/auth/logout"),
 
@@ -216,12 +255,14 @@ export const claudeSessionsApi = {
       `/machines/${machineId}/claude-sessions/refresh`,
     ),
 
-  adopt: (machineId: string, sessionId: string) =>
+  adopt: (machineId: string, sessionId: string, credentialId?: string | null) =>
     api.post<{
       session_id: string;
       agent_session_id: string;
       session: import("@/types").Session;
-    }>(`/machines/${machineId}/claude-sessions/${sessionId}/adopt`),
+    }>(`/machines/${machineId}/claude-sessions/${sessionId}/adopt`, {
+      credential_id: credentialId ?? null,
+    }),
 };
 
 export const projectsApi = {

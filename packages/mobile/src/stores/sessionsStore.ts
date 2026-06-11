@@ -21,10 +21,24 @@ interface SessionOutput {
   timestamp: number;
 }
 
+// Sessions whose output currently streams over the direct /ws/terminal
+// socket. While a session is in this set, the Reverb `session:output`
+// listener is muted — Reverb broadcasts go through the server-side queue
+// (hundreds of ms behind the direct relay) and rendering both paths would
+// duplicate every byte on screen. Mirrors the web client's gating
+// (resources/js/services/websocket.ts). Module-level (not store state):
+// it gates a listener, it never drives UI renders.
+const directOutputSessions = new Set<string>();
+
 interface SessionsState {
   // State
   sessions: Session[];
   sessionOutputs: Map<string, string>; // sessionId -> accumulated output
+  // Monotonic count of bytes EVER appended per session. The output buffer
+  // above is front-trimmed at MAX_OUTPUT_LENGTH, so consumers that stream
+  // deltas (the terminal WebView) must diff on this counter, not on
+  // buffer.length (which freezes once the buffer saturates).
+  sessionOutputTotals: Map<string, number>;
   activeSessionIds: Set<string>;
   isLoading: boolean;
   error: string | null;
@@ -46,6 +60,7 @@ interface SessionsState {
   terminateSession: (id: string) => Promise<void>;
   selectSession: (id: string | null) => void;
   appendOutput: (sessionId: string, data: string) => void;
+  setDirectOutput: (sessionId: string, enabled: boolean) => void;
   clearOutput: (sessionId: string) => void;
   updateSessionStatus: (id: string, status: SessionStatus) => void;
   subscribeToSession: (sessionId: string) => () => void;
@@ -62,6 +77,7 @@ export const useSessionsStore = create<SessionsState>()(
       // Initial state
       sessions: [],
       sessionOutputs: new Map(),
+      sessionOutputTotals: new Map(),
       activeSessionIds: new Set(),
       isLoading: false,
       error: null,
@@ -107,8 +123,14 @@ export const useSessionsStore = create<SessionsState>()(
         const response = await sessionsApi.get(id);
         const session = response.data!;
 
+        // UPSERT, not just update: sessions created elsewhere (adopting a
+        // discovered Claude session, deep links) are not in the list yet — a
+        // map() alone was a no-op and getSessionById() stayed undefined, so
+        // the Session screen spun on "Loading session..." forever.
         set((state) => ({
-          sessions: state.sessions.map((s) => (s.id === id ? session : s)),
+          sessions: state.sessions.some((s) => s.id === id)
+            ? state.sessions.map((s) => (s.id === id ? session : s))
+            : [...state.sessions, session],
         }));
 
         return session;
@@ -187,15 +209,28 @@ export const useSessionsStore = create<SessionsState>()(
           const newOutputs = new Map(state.sessionOutputs);
           newOutputs.set(sessionId, newOutput);
 
-          return { sessionOutputs: newOutputs };
+          const newTotals = new Map(state.sessionOutputTotals);
+          newTotals.set(
+            sessionId,
+            (state.sessionOutputTotals.get(sessionId) ?? 0) + data.length,
+          );
+
+          return { sessionOutputs: newOutputs, sessionOutputTotals: newTotals };
         });
+      },
+
+      setDirectOutput: (sessionId: string, enabled: boolean) => {
+        if (enabled) directOutputSessions.add(sessionId);
+        else directOutputSessions.delete(sessionId);
       },
 
       clearOutput: (sessionId: string) => {
         set((state) => {
           const newOutputs = new Map(state.sessionOutputs);
           newOutputs.delete(sessionId);
-          return { sessionOutputs: newOutputs };
+          const newTotals = new Map(state.sessionOutputTotals);
+          newTotals.delete(sessionId);
+          return { sessionOutputs: newOutputs, sessionOutputTotals: newTotals };
         });
       },
 
@@ -215,7 +250,10 @@ export const useSessionsStore = create<SessionsState>()(
           "session:output",
           (raw: unknown) => {
             const payload = raw as { sessionId: string; data: string };
-            if (payload.sessionId === sessionId) {
+            if (
+              payload.sessionId === sessionId &&
+              !directOutputSessions.has(sessionId)
+            ) {
               get().appendOutput(sessionId, payload.data);
             }
           },

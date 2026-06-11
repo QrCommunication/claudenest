@@ -121,11 +121,14 @@ export interface SessionLog {
   created_at: string;
 }
 
+// Field names follow the Laravel API contract (snake_case) — camelCase
+// variants are silently dropped by the server-side validation.
 export interface CreateSessionRequest {
   mode?: SessionMode;
-  projectPath?: string;
-  initialPrompt?: string;
-  ptySize?: {
+  project_path?: string;
+  initial_prompt?: string;
+  credential_id?: string;
+  pty_size?: {
     cols: number;
     rows: number;
   };
