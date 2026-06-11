@@ -1023,7 +1023,7 @@
       "copyright": "© {year} QR Communication SAS — SIREN 940 163 496. Tous droits réservés.",
       "mentions_legales": "Mentions légales",
       "cookies": "Cookies",
-      "contact_email": "contact@qrcommunication.com",
+      "contact_email": "contact{'@'}qrcommunication.com",
       "contact_phone": "+33 1 88 83 34 51",
       "contact_address": "23 rue de Richelieu, 75001 Paris"
     }
