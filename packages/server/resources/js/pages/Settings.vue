@@ -100,26 +100,9 @@
                   :placeholder="t('settings.confirmNewPasswordPlaceholder')"
                 />
               </div>
-              <Button class="mt-4" @click="changePassword">
+              <Button class="mt-4" :disabled="isChangingPassword" @click="changePassword">
                 {{ t('settings.updatePassword') }}
               </Button>
-            </div>
-
-            <div class="pt-6 border-t border-skin">
-              <h4 class="text-sm font-medium text-skin-primary mb-4">{{ t('settings.apiKey') }}</h4>
-              <div class="flex items-center gap-3">
-                <Input
-                  v-model="apiKey"
-                  readonly
-                  class="flex-1 font-mono"
-                />
-                <Button variant="secondary" @click="regenerateApiKey">
-                  {{ t('settings.regenerate') }}
-                </Button>
-              </div>
-              <p class="text-xs text-skin-secondary mt-2">
-                {{ t('settings.apiKeyHint') }}
-              </p>
             </div>
           </div>
         </Card>
@@ -243,6 +226,7 @@ const sidebarCollapsed = ref(false);
 const avatarInput = ref<HTMLInputElement | null>(null);
 const isUploadingAvatar = ref(false);
 const isSavingProfile = ref(false);
+const isChangingPassword = ref(false);
 
 const sections = computed(() => [
   { id: 'profile', name: t('settings.sectionProfile'), icon: UserCircleIcon },
@@ -261,8 +245,6 @@ const password = ref({
   new: '',
   confirm: '',
 });
-
-const apiKey = ref('cn_live_****');
 
 const notificationSettings = ref([
   { id: 'email_sessions', nameKey: 'settings.notifSessionsName', descriptionKey: 'settings.notifSessionsDescription', enabled: true },
@@ -333,19 +315,28 @@ const saveProfile = async () => {
   }
 };
 
-const changePassword = () => {
+const changePassword = async () => {
   if (password.value.new !== password.value.confirm) {
     toast.error(t('settings.toastErrorTitle'), t('settings.toastPasswordMismatchBody'));
     return;
   }
-  toast.success(t('settings.toastPasswordUpdatedTitle'), t('settings.toastPasswordUpdatedBody'));
-  password.value = { current: '', new: '', confirm: '' };
-};
-
-const regenerateApiKey = () => {
-  if (confirm(t('settings.confirmRegenerateApiKey'))) {
-    apiKey.value = 'cn_live_' + Math.random().toString(36).substring(2, 18);
-    toast.success(t('settings.toastApiKeyRegeneratedTitle'), t('settings.toastApiKeyRegeneratedBody'));
+  isChangingPassword.value = true;
+  try {
+    await api.patch('/auth/password', {
+      current_password: password.value.current,
+      password: password.value.new,
+      password_confirmation: password.value.confirm,
+    });
+    toast.success(t('settings.toastPasswordUpdatedTitle'), t('settings.toastPasswordUpdatedBody'));
+    password.value = { current: '', new: '', confirm: '' };
+  } catch (err: unknown) {
+    const detail =
+      (err as { response?: { data?: { errors?: Record<string, string[]> } } })
+        ?.response?.data?.errors;
+    const firstError = detail ? Object.values(detail)[0]?.[0] : undefined;
+    toast.error(t('settings.toastErrorTitle'), firstError || t('settings.toastPasswordErrorBody'));
+  } finally {
+    isChangingPassword.value = false;
   }
 };
 </script>

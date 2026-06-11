@@ -422,6 +422,37 @@ class AuthController extends Controller
     /**
      * Update current user profile (name, email).
      */
+    /**
+     * Change the authenticated user's password.
+     * Requires the current password; revokes every OTHER token so stolen
+     * sessions die with the old password (the current session stays valid).
+     */
+    public function updatePassword(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'current_password' => ['required', 'current_password:sanctum'],
+            'password' => ['required', 'confirmed', PasswordRule::defaults()],
+        ]);
+
+        $user = $request->user();
+        $user->update(['password' => Hash::make($validated['password'])]);
+
+        // Invalidate all other sessions/tokens (account-takeover hygiene).
+        $currentTokenId = $request->user()->currentAccessToken()?->id;
+        $user->tokens()
+            ->when($currentTokenId, fn ($q) => $q->where('id', '!=', $currentTokenId))
+            ->delete();
+
+        return response()->json([
+            'success' => true,
+            'data' => ['message' => 'Password updated'],
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
+    }
+
     public function updateProfile(Request $request): JsonResponse
     {
         $validated = $request->validate([

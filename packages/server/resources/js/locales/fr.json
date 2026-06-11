@@ -715,7 +715,8 @@
     "toastPasswordUpdatedBody": "Votre mot de passe a été modifié",
     "confirmRegenerateApiKey": "Êtes-vous sûr ? Cela invalidera votre clé API actuelle.",
     "toastApiKeyRegeneratedTitle": "Clé API régénérée",
-    "toastApiKeyRegeneratedBody": "Votre nouvelle clé API a été générée"
+    "toastApiKeyRegeneratedBody": "Votre nouvelle clé API a été générée",
+    "toastPasswordErrorBody": "Impossible de mettre à jour le mot de passe. Vérifiez votre mot de passe actuel."
   },
   "docs": {
     "title": "Documentation",

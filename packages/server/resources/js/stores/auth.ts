@@ -68,9 +68,12 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       isLoading.value = true;
-      const response = await api.get<ApiResponse<User>>('/auth/me');
-      user.value = response.data.data;
-      return response.data.data;
+      // /auth/me wraps the payload as { data: { user: {...} } } — assigning
+      // `data` directly left user.name undefined, so the whole app showed
+      // "Guest" after any full page reload.
+      const response = await api.get<ApiResponse<{ user: User }>>('/auth/me');
+      user.value = response.data.data.user;
+      return user.value;
     } catch (error) {
       setToken(null);
       user.value = null;

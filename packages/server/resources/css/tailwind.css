@@ -17,11 +17,15 @@
   --color-dark-3: #24283b;
   --color-dark-4: #3b4261;
 
-  /* Surface Colors */
-  --color-surface-1: rgb(var(--surface-1-rgb) / <alpha-value>);
-  --color-surface-2: rgb(var(--surface-2-rgb) / <alpha-value>);
-  --color-surface-3: rgb(var(--surface-3-rgb) / <alpha-value>);
-  --color-surface-4: rgb(var(--surface-4-rgb) / <alpha-value>);
+  /* Surface Colors.
+     Tailwind v4: plain var() references — opacity modifiers (bg-surface-2/50)
+     compile to color-mix(), no <alpha-value> placeholder. The v3 syntax
+     `rgb(... / <alpha-value>)` left the literal placeholder in the variable,
+     making EVERY surface utility an invalid (transparent) color. */
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-surface-4: var(--surface-4);
 
   /* Semantic Text Colors */
   --color-skin-primary: var(--text-primary);
@@ -34,9 +38,10 @@
   /* Glass Background */
   --color-glass: var(--glass-bg);
 
-  /* Fonts */
-  --font-family-sans: Inter, system-ui, -apple-system, sans-serif;
-  --font-family-mono: "JetBrains Mono", monospace;
+  /* Fonts — v4 namespace is --font-*, not v3's --font-family-*.
+     IBM Plex Sans is the face actually loaded by the app stylesheet. */
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
 
   /* Border Radius */
   --radius-card: 12px;

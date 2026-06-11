@@ -33,9 +33,8 @@
       </svg>
     </button>
 
-    <!-- User Menu -->
+    <!-- User Menu (language switching lives in the status bar) -->
     <div class="tab-bar-user">
-      <LanguageSwitcher variant="ghost" :show-label="false" />
       <UserMenu :user="authStore.user" />
     </div>
   </div>
@@ -48,7 +47,6 @@ import { useI18n } from 'vue-i18n';
 import { useTabs } from '@/composables/useTabs';
 import { useAuthStore } from '@/stores/auth';
 import UserMenu from '@/components/layout/UserMenu.vue';
-import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue';
 import {
   HomeIcon,
   CommandLineIcon,

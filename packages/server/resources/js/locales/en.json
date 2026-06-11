@@ -715,7 +715,8 @@
     "toastPasswordUpdatedBody": "Your password has been changed",
     "confirmRegenerateApiKey": "Are you sure? This will invalidate your current API key.",
     "toastApiKeyRegeneratedTitle": "API Key Regenerated",
-    "toastApiKeyRegeneratedBody": "Your new API key has been generated"
+    "toastApiKeyRegeneratedBody": "Your new API key has been generated",
+    "toastPasswordErrorBody": "Could not update the password. Check your current password."
   },
   "docs": {
     "title": "Documentation",

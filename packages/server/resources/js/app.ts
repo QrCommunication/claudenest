@@ -4,7 +4,11 @@ import { MotionPlugin } from '@vueuse/motion';
 import { RouterView } from 'vue-router';
 import router from './router/index';
 import i18n from './i18n';
-import './css/app.css';
+// NOTE: no CSS import here — the single canonical stylesheet is
+// resources/css/app.css, loaded by the Blade @vite entry. A legacy Tailwind
+// v3 file (resources/js/css/app.css) used to be imported here, generating a
+// SECOND utility bundle that loaded after the canonical one and clobbered
+// responsive variants app-wide.
 
 // Initialize theme early (before Vue app mounts)
 const initializeTheme = () => {
