@@ -93,13 +93,8 @@ class DecompositionService
         $clean = preg_replace('/\x1b\[[0-9;]*[a-zA-Z]/', '', $rawOutput);
         $clean = preg_replace('/\x1b\].*?\x07/', '', $clean);
 
-        // Try to find a JSON block between ```json ... ``` markers
-        if (preg_match('/```json\s*(\{[\s\S]*?\})\s*```/', $clean, $matches)) {
-            $jsonStr = $matches[1];
-        } elseif (preg_match('/(\{"version"\s*:\s*1[\s\S]*\})/', $clean, $matches)) {
-            // Fallback: find raw JSON starting with {"version": 1
-            $jsonStr = $matches[1];
-        } else {
+        $jsonStr = $this->extractPlanJson($clean);
+        if ($jsonStr === null) {
             return ['success' => false, 'plan' => null, 'error' => 'No JSON block found in output'];
         }
 
@@ -122,6 +117,48 @@ class DecompositionService
         }
 
         return ['success' => true, 'plan' => $validation['plan'], 'error' => null];
+    }
+
+    /**
+     * Find the master plan JSON in cleaned PTY output.
+     *
+     * The PTY stream usually echoes the decomposition prompt, which itself
+     * contains a ```json schema EXAMPLE (see buildDecompositionPrompt).
+     * Candidates are therefore scanned from the END (Claude's answer is
+     * printed after the echo) and any block carrying the example's sentinel
+     * placeholder is skipped — a first-match parse used to return the echoed
+     * schema example as a "successful" 1-task plan.
+     */
+    private function extractPlanJson(string $clean): ?string
+    {
+        $candidates = [];
+
+        // Preferred: ```json ... ``` fenced blocks.
+        if (preg_match_all('/```json\s*(\{[\s\S]*?\})\s*```/', $clean, $matches) && $matches[1]) {
+            $candidates = $matches[1];
+        }
+
+        // Fallback: raw JSON starting with {"version": 1 (greedy to the last
+        // closing brace, anchored on each occurrence).
+        if (!$candidates && preg_match_all('/\{"version"\s*:\s*1/', $clean, $matches, PREG_OFFSET_CAPTURE)) {
+            foreach ($matches[0] as $match) {
+                $candidate = substr($clean, (int) $match[1]);
+                $endPos = strrpos($candidate, '}');
+                if ($endPos !== false) {
+                    $candidates[] = substr($candidate, 0, $endPos + 1);
+                }
+            }
+        }
+
+        foreach (array_reverse($candidates) as $candidate) {
+            if (str_contains($candidate, 'Short task title')) {
+                continue; // echoed prompt example, not Claude's answer
+            }
+
+            return $candidate;
+        }
+
+        return null;
     }
 
     /**

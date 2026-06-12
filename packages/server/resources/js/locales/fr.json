@@ -2194,7 +2194,9 @@
     "architecture": "Architecture",
     "architecturePlaceholder": "Vue d'ensemble de l'architecture, composants clés...",
     "conventions": "Conventions",
-    "conventionsPlaceholder": "Conventions de codage, modèles à suivre..."
+    "conventionsPlaceholder": "Conventions de codage, modèles à suivre...",
+    "currentFocus": "Focus actuel",
+    "currentFocusPlaceholder": "Ce sur quoi l'équipe travaille en ce moment..."
   },
   "projectsWizardStepmachine": {
     "selectAMachine": "Sélectionner une machine",
@@ -2595,6 +2597,14 @@
     "tag_perf": "perf",
     "tag_fix": "fix",
     "tag_breaking": "cassant",
+    "v070mDate": "12 juin 2026",
+    "v070mTitle": "Application mobile 0.7.0",
+    "v070mDesc": "L'app mobile rattrape l'orchestration multi-agents : pilotez les workers depuis votre téléphone, planifiez avec l'IA depuis le chat, et restez informé grâce aux événements temps réel et aux notifications push (bêta).",
+    "v070mChange1": "Orchestration pilotée par le serveur depuis votre téléphone : vraies commandes start/stop/status avec suivi des workers en direct.",
+    "v070mChange2": "Sessions de planification IA directement depuis le chat — décrivez un brief et obtenez un plan sans quitter la conversation.",
+    "v070mChange3": "Création de sessions liées à un projet, avec choix du mode de permissions.",
+    "v070mChange4": "Événements temps réel pour les workers et les notifications — l'écran d'orchestration se met à jour en direct.",
+    "v070mChange5": "Notifications push (bêta) : soyez alerté quand un worker termine ou a besoin de vous.",
     "v150Date": "12 juin 2026",
     "v150Title": "Orchestration multi-agents & planification IA",
     "v150Desc": "Des workers Claude parallèles sur projets partagés, un serveur MCP intégré, des file locks appliqués par hooks, une planification pilotée par IA et un coordinateur d'incidents automatique — le tout mis à jour en direct via WebSockets.",

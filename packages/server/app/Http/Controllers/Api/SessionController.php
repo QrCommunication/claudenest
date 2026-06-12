@@ -620,7 +620,9 @@ class SessionController extends Controller
             'notification_type' => 'nullable|string|max:50',
         ]);
 
-        broadcast(new \App\Events\SessionNotification(
+        // event() (not broadcast()) so registered listeners fire too — the
+        // event is ShouldBroadcast, so it is still broadcast identically.
+        event(new \App\Events\SessionNotification(
             $session,
             $validated['message'],
             $validated['title'] ?? null,

@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\PersonalAccessToken;
+use App\Services\DecompositionStreamService;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +17,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Singleton: agent:serve accumulates ephemeral decompose-* session
+        // output in this service across WebSocket messages — it must be the
+        // same instance for the lifetime of the process.
+        $this->app->singleton(DecompositionStreamService::class);
     }
 
     /**

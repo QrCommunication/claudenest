@@ -54,14 +54,27 @@ export const useClaudeSessionsStore = defineStore('claudeSessions', () => {
     }
   }
 
-  /** Keep the list live: the agent re-scans every 30s and broadcasts it. */
+  /**
+   * Keep the list live: the agent re-scans every 30s; the broadcast is a slim
+   * signal (machine_id + count — the full list exceeded the Reverb payload
+   * limit), so we refetch the normalized list via REST on each signal.
+   * Silent refetch: no isLoading toggle, the visible list must not flicker.
+   */
   function subscribeDiscovered(machineId: string): void {
     unsubDiscovered?.();
     unsubDiscovered = subscribePrivate<DiscoveredBroadcast>(
       `machines.${machineId}`,
       '.claude_sessions.discovered',
-      (payload) => {
-        sessions.value = payload.sessions;
+      () => {
+        void claudeSessionsApi
+          .list(machineId)
+          .then((list) => {
+            sessions.value = list;
+          })
+          .catch(() => {
+            // Transient fetch failure — keep the current list, the next
+            // 30s signal will retry.
+          });
       },
     );
   }

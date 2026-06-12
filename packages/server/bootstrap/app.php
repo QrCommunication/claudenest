@@ -11,6 +11,12 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    // Event wiring is explicit via EventServiceProvider::$listen. Without this,
+    // the framework also auto-discovers app/Listeners (Laravel 11+ default,
+    // independent of the provider's shouldDiscoverEvents), registering every
+    // listener TWICE — each event would trigger duplicate side effects
+    // (e.g. double Expo push per SessionNotification).
+    ->withEvents(discover: false)
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->api(prepend: [
             \App\Http\Middleware\AuthenticateAgentToken::class,

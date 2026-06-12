@@ -40,9 +40,13 @@ export interface TranscriptBroadcast {
   timestamp: string;
 }
 
-/** Broadcast payload on `machines.{machineId}` (event claude_sessions.discovered). */
+/**
+ * Broadcast payload on `machines.{machineId}` (event claude_sessions.discovered).
+ * Slim signal — the full session list exceeded Reverb's payload limit;
+ * consumers refetch via GET /api/machines/{machine}/claude-sessions.
+ */
 export interface DiscoveredBroadcast {
   machine_id: string;
-  sessions: DiscoveredSession[];
+  count: number;
   timestamp: string;
 }

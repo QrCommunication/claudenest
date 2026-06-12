@@ -2194,7 +2194,9 @@
     "architecture": "Architecture",
     "architecturePlaceholder": "Architecture overview, key components...",
     "conventions": "Conventions",
-    "conventionsPlaceholder": "Coding conventions, patterns to follow..."
+    "conventionsPlaceholder": "Coding conventions, patterns to follow...",
+    "currentFocus": "Current Focus",
+    "currentFocusPlaceholder": "What the team is working on right now..."
   },
   "projectsWizardStepmachine": {
     "selectAMachine": "Select a Machine",
@@ -2595,6 +2597,14 @@
     "tag_perf": "perf",
     "tag_fix": "fix",
     "tag_breaking": "breaking",
+    "v070mDate": "June 12, 2026",
+    "v070mTitle": "Mobile app 0.7.0",
+    "v070mDesc": "The mobile app catches up with multi-agent orchestration: drive workers from your phone, plan with AI from the chat, and stay in the loop with real-time events and push notifications (beta).",
+    "v070mChange1": "Server-driven orchestration from your phone: real start/stop/status controls with live worker monitoring.",
+    "v070mChange2": "AI planning sessions straight from the chat — describe a brief and get a plan without leaving the conversation.",
+    "v070mChange3": "Create sessions linked to a project, with a permission mode picker.",
+    "v070mChange4": "Real-time worker and notification events — the orchestration screen updates live.",
+    "v070mChange5": "Push notifications (beta): get alerted when workers finish or need you.",
     "v150Date": "June 12, 2026",
     "v150Title": "Multi-agent orchestration & AI planning",
     "v150Desc": "Parallel Claude workers on shared projects, a built-in MCP server, hook-enforced file locks, AI-driven planning and an automatic incident coordinator — all updating live over WebSockets.",

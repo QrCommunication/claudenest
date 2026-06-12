@@ -13,6 +13,11 @@ class PushToken extends Model
     use HasFactory, HasVersion4Uuids;
 
     /**
+     * The push_tokens table has no updated_at column.
+     */
+    public const UPDATED_AT = null;
+
+    /**
      * The primary key type.
      */
     protected $keyType = 'string';
@@ -87,19 +92,26 @@ class PushToken extends Model
     public static function register(
         string $userId,
         string $token,
-        string $platform,
+        ?string $platform = null,
         array $deviceInfo = []
     ): self {
-        // Remove existing token if present
-        static::where('token', $token)->delete();
+        // A device token belongs to at most one user: reassign on re-login.
+        static::where('token', $token)
+            ->where('user_id', '!=', $userId)
+            ->delete();
 
-        return static::create([
-            'user_id' => $userId,
-            'token' => $token,
-            'platform' => $platform,
-            'device_info' => $deviceInfo,
-            'last_used_at' => now(),
-        ]);
+        // Upsert by (user_id, token) — re-registering refreshes metadata.
+        return static::updateOrCreate(
+            [
+                'user_id' => $userId,
+                'token' => $token,
+            ],
+            [
+                'platform' => $platform,
+                'device_info' => $deviceInfo,
+                'last_used_at' => now(),
+            ],
+        );
     }
 
     public static function unregister(string $token): bool

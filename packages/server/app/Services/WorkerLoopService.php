@@ -257,7 +257,9 @@ class WorkerLoopService
             'nudges' => $nudgeCount,
         ]);
 
-        broadcast(new SessionNotification(
+        // event() (not broadcast()) so registered listeners fire too — the
+        // event is ShouldBroadcast, so it is still broadcast identically.
+        event(new SessionNotification(
             $session,
             sprintf(
                 'Worker %s was paused after %d nudges without progress. Open its terminal to unblock it, or release its task; it resumes automatically on task claim/complete.',

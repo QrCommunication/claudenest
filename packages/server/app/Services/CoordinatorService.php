@@ -173,7 +173,9 @@ class CoordinatorService
         Cache::put(self::lastSpawnKey($project->id), now()->timestamp, self::SPAWN_BUDGET_SECONDS);
         Cache::put(self::activeSessionKey($project->id), $session->id, self::ACTIVE_FLAG_TTL_SECONDS);
 
-        broadcast(new SessionNotification(
+        // event() (not broadcast()) so registered listeners fire too — the
+        // event is ShouldBroadcast, so it is still broadcast identically.
+        event(new SessionNotification(
             $session,
             sprintf(
                 "Incident '%s' detected — a coordinator session was spawned to reorganise the plan (session %s).",

@@ -15,7 +15,18 @@ class ProjectContextGeneratorController extends Controller
     ) {}
 
     /**
-     * Generate project context (summary, architecture, conventions, suggested tasks) via Ollama.
+     * Maximum characters of README content forwarded to the LLM.
+     */
+    private const README_EXCERPT_LENGTH = 2000;
+
+    /**
+     * Maximum number of file paths from the structure forwarded to the LLM.
+     */
+    private const STRUCTURE_MAX_FILES = 100;
+
+    /**
+     * Generate project context (summary, architecture, conventions,
+     * current focus, normalized tech stack, suggested tasks) via Ollama.
      *
      * POST /api/machines/{machine}/projects/generate-context
      */
@@ -28,19 +39,27 @@ class ProjectContextGeneratorController extends Controller
         $validated = $request->validate([
             'path' => 'required|string|max:1024',
             'tech_stack' => 'required|array',
+            'tech_stack.*' => 'string|max:100',
             'readme' => 'nullable|string',
             'structure' => 'required|array',
-            'project_name' => 'required|string|max:255',
+            'structure.*' => 'string|max:1024',
+            // Optional: the wizard knows the typed name, but it is derivable
+            // from the scanned path when omitted (robustness on both sides).
+            'project_name' => 'nullable|string|max:255',
         ]);
+
+        $validated['project_name'] = $validated['project_name']
+            ?? (basename(rtrim($validated['path'], '/')) ?: 'Untitled project');
+        $validated['tech_stack'] = $this->normalizeTechStack($validated['tech_stack']);
 
         if (!$this->summarizationService->isAvailable()) {
             return $this->generateFallback($validated);
         }
 
-        $structureStr = implode("\n", array_slice($validated['structure'], 0, 100));
+        $structureStr = implode("\n", array_slice($validated['structure'], 0, self::STRUCTURE_MAX_FILES));
         $techStackStr = implode(', ', $validated['tech_stack']);
         $readmeExcerpt = $validated['readme']
-            ? substr($validated['readme'], 0, 2000)
+            ? substr($validated['readme'], 0, self::README_EXCERPT_LENGTH)
             : 'No README available.';
 
         // Generate summary
@@ -66,6 +85,18 @@ class ProjectContextGeneratorController extends Controller
             400
         );
 
+        // Generate current focus (inferred from README/changelog hints)
+        $currentFocus = $this->summarizationService->generate(
+            "You are analyzing a {$techStackStr} project named '{$validated['project_name']}'.\n" .
+            "README excerpt:\n{$readmeExcerpt}\n" .
+            "File structure:\n{$structureStr}\n\n" .
+            "Based on the README (roadmap, TODO, changelog or recent-changes sections if present) and the structure, " .
+            "infer what the team is most likely focused on right now. " .
+            "Answer in 1-2 sentences describing the current development focus. " .
+            "If nothing suggests a specific focus, describe the most plausible next step for this project.",
+            300
+        );
+
         // Generate suggested tasks
         $tasksRaw = $this->summarizationService->generate(
             "You are a project manager analyzing a {$techStackStr} project named '{$validated['project_name']}'.\n" .
@@ -85,6 +116,8 @@ class ProjectContextGeneratorController extends Controller
                 'summary' => $summary ?? "A {$techStackStr} project.",
                 'architecture' => $architecture ?? '',
                 'conventions' => $conventions ?? '',
+                'current_focus' => $currentFocus ?? '',
+                'tech_stack' => $validated['tech_stack'],
                 'suggested_tasks' => $suggestedTasks,
             ],
             'meta' => [
@@ -93,6 +126,44 @@ class ProjectContextGeneratorController extends Controller
                 'generated_by' => 'ollama',
             ],
         ]);
+    }
+
+    /**
+     * Normalize a raw tech-stack list: trim, drop empties, dedupe
+     * case-insensitively (first casing wins), cap the list size.
+     *
+     * @param array<int, mixed> $techStack
+     * @return array<int, string>
+     */
+    private function normalizeTechStack(array $techStack): array
+    {
+        $normalized = [];
+        $seen = [];
+
+        foreach ($techStack as $entry) {
+            if (!is_string($entry)) {
+                continue;
+            }
+
+            $entry = trim($entry);
+            if ($entry === '') {
+                continue;
+            }
+
+            $key = mb_strtolower($entry);
+            if (isset($seen[$key])) {
+                continue;
+            }
+
+            $seen[$key] = true;
+            $normalized[] = $entry;
+
+            if (count($normalized) >= 50) {
+                break;
+            }
+        }
+
+        return $normalized;
     }
 
     /**
@@ -108,6 +179,8 @@ class ProjectContextGeneratorController extends Controller
                 'summary' => "A {$techStackStr} project located at {$validated['path']}.",
                 'architecture' => '',
                 'conventions' => '',
+                'current_focus' => '',
+                'tech_stack' => $validated['tech_stack'],
                 'suggested_tasks' => [
                     [
                         'title' => 'Review project documentation',

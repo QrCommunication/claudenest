@@ -41,6 +41,8 @@ export interface WizardState {
     summary: string;
     architecture: string;
     conventions: string;
+    currentFocus: string;
+    techStack: string[];
   };
   tasks: WizardTask[];
   orchestratorConfig: OrchestratorConfig;
@@ -118,12 +120,18 @@ async function apiCreateProjectWithTasks(
   state: WizardState,
   projectsStore: ReturnType<typeof useProjectsStore>,
 ): Promise<string> {
+  const techStack = state.context.techStack.length
+    ? state.context.techStack
+    : (state.scanResult?.tech_stack ?? []);
+
   const project = await projectsStore.createProject(machineId, {
     name: state.projectName,
     project_path: state.path,
     summary: state.context.summary,
     architecture: state.context.architecture,
     conventions: state.context.conventions,
+    current_focus: state.context.currentFocus,
+    ...(techStack.length ? { settings: { techStack } } : {}),
   });
 
   for (const task of state.tasks) {
@@ -172,6 +180,8 @@ export function useProjectWizard() {
       summary: '',
       architecture: '',
       conventions: '',
+      currentFocus: '',
+      techStack: [],
     },
     tasks: [],
     orchestratorConfig: {
@@ -221,6 +231,9 @@ export function useProjectWizard() {
     state.context.summary = context.summary;
     state.context.architecture = context.architecture;
     state.context.conventions = context.conventions;
+    state.context.currentFocus = context.current_focus ?? '';
+    state.context.techStack =
+      context.tech_stack?.length ? context.tech_stack : (state.scanResult?.tech_stack ?? []);
     state.tasks = context.suggested_tasks.map(t => ({
       title: t.title,
       description: t.description,

@@ -8,6 +8,8 @@ use App\Models\Machine;
 use App\Models\SharedProject;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class ProjectApiTest extends TestCase
@@ -68,6 +70,65 @@ class ProjectApiTest extends TestCase
             'machine_id' => $machine->id,
             'name' => 'Test Project',
         ]);
+    }
+
+    #[Test]
+    public function creating_project_with_context_seeds_rag_chunks(): void
+    {
+        // Embedding service unreachable: chunks must still be created (without vectors).
+        Http::fake(['*' => Http::response([], 500)]);
+
+        $user = User::factory()->create();
+        $machine = Machine::factory()->for($user)->create();
+
+        $response = $this->actingAs($user)
+            ->postJson("/api/machines/{$machine->id}/projects", [
+                'name' => 'Context Project',
+                'project_path' => '/home/user/projects/context',
+                'summary' => 'A short summary of the app.',
+                'architecture' => 'Laravel API + Vue SPA.',
+                'conventions' => 'PSR-12, strict types.',
+                'current_focus' => 'Shipping the v1 wizard.',
+            ]);
+
+        $response->assertStatus(201);
+        $projectId = $response->json('data.id');
+
+        $this->assertDatabaseCount('context_chunks', 4);
+
+        foreach (['summary', 'architecture', 'conventions', 'current_focus'] as $type) {
+            $this->assertDatabaseHas('context_chunks', [
+                'project_id' => $projectId,
+                'type' => $type,
+                'importance_score' => 0.8,
+            ]);
+        }
+
+        $this->assertSame(
+            'A short summary of the app.',
+            DB::table('context_chunks')
+                ->where('project_id', $projectId)
+                ->where('type', 'summary')
+                ->value('content'),
+        );
+    }
+
+    #[Test]
+    public function creating_project_without_context_seeds_no_chunks(): void
+    {
+        Http::fake(['*' => Http::response([], 500)]);
+
+        $user = User::factory()->create();
+        $machine = Machine::factory()->for($user)->create();
+
+        $response = $this->actingAs($user)
+            ->postJson("/api/machines/{$machine->id}/projects", [
+                'name' => 'Bare Project',
+                'project_path' => '/home/user/projects/bare',
+            ]);
+
+        $response->assertStatus(201);
+        $this->assertDatabaseCount('context_chunks', 0);
     }
 
     #[Test]

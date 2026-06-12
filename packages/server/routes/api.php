@@ -95,6 +95,10 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
         Route::post('/{id}/capture-from-machine', [Api\CredentialController::class, 'captureFromMachine']);
     });
 
+    // ==================== PUSH TOKENS ====================
+    Route::post('/push-tokens', [Api\PushTokenController::class, 'store']);
+    Route::delete('/push-tokens', [Api\PushTokenController::class, 'destroy']);
+
     // ==================== MACHINES ====================
     Route::apiResource('machines', Api\MachineController::class);
     Route::post('machines/{machine}/regenerate-token', [Api\MachineController::class, 'regenerateToken']);

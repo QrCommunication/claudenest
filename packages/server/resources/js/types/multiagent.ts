@@ -28,6 +28,8 @@ export interface ProjectSettings {
   taskTimeoutMinutes: number;
   lockTimeoutMinutes: number;
   broadcastLevel: 'all' | 'managers' | 'none';
+  /** Normalized tech stack detected at project creation (wizard scan + AI). */
+  techStack?: string[];
 }
 
 export interface ProjectStats {
@@ -51,6 +53,7 @@ export interface CreateProjectForm {
   summary?: string;
   architecture?: string;
   conventions?: string;
+  current_focus?: string;
   settings?: Partial<ProjectSettings>;
 }
 

@@ -12,13 +12,19 @@ use App\Http\Resources\SessionResource;
 use App\Models\Machine;
 use App\Models\Session;
 use App\Models\SharedProject;
+use App\Services\ContextRAGService;
 use App\Services\WorkerPoolService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use OpenApi\Attributes as OA;
 
 class ProjectController extends Controller
 {
+    public function __construct(
+        private ContextRAGService $contextRAGService,
+    ) {}
+
     /** List projects for a machine. */
     #[OA\Get(
         path: '/api/machines/{machineId}/projects',
@@ -120,6 +126,7 @@ class ProjectController extends Controller
             'summary' => 'nullable|string',
             'architecture' => 'nullable|string',
             'conventions' => 'nullable|string',
+            'current_focus' => 'nullable|string',
             'settings' => 'array',
         ]);
 
@@ -139,8 +146,11 @@ class ProjectController extends Controller
             'summary' => $validated['summary'] ?? '',
             'architecture' => $validated['architecture'] ?? '',
             'conventions' => $validated['conventions'] ?? '',
+            'current_focus' => $validated['current_focus'] ?? '',
             'settings' => $validated['settings'] ?? [],
         ]);
+
+        $this->seedContextChunks($project, $validated);
 
         return response()->json([
             'success' => true,
@@ -150,6 +160,43 @@ class ProjectController extends Controller
                 'request_id' => $request->header('X-Request-ID', uniqid()),
             ],
         ], 201);
+    }
+
+    /**
+     * Seed the RAG store with one chunk per non-empty context section so the
+     * AI-generated project context is immediately searchable by instances.
+     * Best-effort: a RAG failure must never block project creation.
+     *
+     * @param array<string, mixed> $validated
+     */
+    private function seedContextChunks(SharedProject $project, array $validated): void
+    {
+        $sections = [
+            'summary' => $validated['summary'] ?? '',
+            'architecture' => $validated['architecture'] ?? '',
+            'conventions' => $validated['conventions'] ?? '',
+            'current_focus' => $validated['current_focus'] ?? '',
+        ];
+
+        foreach ($sections as $type => $content) {
+            $content = trim((string) $content);
+
+            if ($content === '') {
+                continue;
+            }
+
+            try {
+                $this->contextRAGService->addContext($project, $content, $type, [
+                    'importance_score' => 0.8,
+                ]);
+            } catch (\Throwable $e) {
+                Log::warning('Failed to seed project context chunk', [
+                    'project_id' => $project->id,
+                    'type' => $type,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
     }
 
     /** Show project details. */

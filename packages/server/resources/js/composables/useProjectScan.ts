@@ -14,6 +14,8 @@ export interface GeneratedContext {
   summary: string;
   architecture: string;
   conventions: string;
+  current_focus: string;
+  tech_stack: string[];
   suggested_tasks: Array<{
     title: string;
     priority: string;
@@ -55,6 +57,7 @@ export function useProjectScan() {
     techStack: string[],
     readme: string | null,
     structure: string[],
+    projectName?: string | null,
   ): Promise<GeneratedContext> {
     isGenerating.value = true;
     generateError.value = null;
@@ -62,7 +65,14 @@ export function useProjectScan() {
     try {
       const response = await api.post<ApiResponse<GeneratedContext>>(
         `/machines/${machineId}/projects/generate-context`,
-        { path, tech_stack: techStack, readme, structure },
+        {
+          path,
+          tech_stack: techStack,
+          readme,
+          structure,
+          // Server falls back to basename(path) when absent — send it anyway.
+          project_name: projectName || null,
+        },
       );
       generatedContext.value = response.data.data;
       return response.data.data;

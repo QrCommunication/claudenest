@@ -82,6 +82,9 @@ class ContextChunk extends Model
         'decision',
         'summary',
         'broadcast',
+        'architecture',
+        'conventions',
+        'current_focus',
     ];
 
     public const VECTOR_DIMENSION = 384;

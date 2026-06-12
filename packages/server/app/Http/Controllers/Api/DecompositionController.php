@@ -8,6 +8,7 @@ use App\Models\SharedProject;
 use App\Services\AgentGateway;
 use App\Services\CredentialService;
 use App\Services\DecompositionService;
+use App\Services\DecompositionStreamService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -17,6 +18,7 @@ class DecompositionController extends Controller
     public function __construct(
         private DecompositionService $decompositionService,
         private CredentialService $credentialService,
+        private DecompositionStreamService $decompositionStream,
     ) {}
 
     /**
@@ -72,6 +74,10 @@ class DecompositionController extends Controller
             $validated['prd'],
             $scanResult,
         );
+
+        // New run — release the one-result-per-run lock so this decomposition
+        // can emit its decompose:result (see DecompositionStreamService).
+        $this->decompositionStream->reset($project->id);
 
         // Send decompose command to agent (async — result comes via WebSocket)
         AgentGateway::send($machine->id, 'decompose:start', [

@@ -51,6 +51,16 @@
           :placeholder="t('projectsWizardStepcontext.conventionsPlaceholder')"
         ></textarea>
       </div>
+
+      <div class="field">
+        <label class="field-label">{{ t('projectsWizardStepcontext.currentFocus') }}</label>
+        <textarea
+          v-model="state.context.currentFocus"
+          class="field-textarea"
+          rows="2"
+          :placeholder="t('projectsWizardStepcontext.currentFocusPlaceholder')"
+        ></textarea>
+      </div>
     </div>
   </div>
 </template>
@@ -83,6 +93,7 @@ async function handleGenerate(): Promise<void> {
     props.state.scanResult?.tech_stack ?? [],
     props.state.scanResult?.readme ?? null,
     props.state.scanResult?.structure ?? [],
+    props.state.projectName,
   );
   emit('generated', result);
 }

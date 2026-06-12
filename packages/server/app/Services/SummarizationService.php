@@ -9,11 +9,13 @@ class SummarizationService
 {
     private string $baseUrl;
     private string $model;
+    private int $timeout;
 
     public function __construct()
     {
         $this->baseUrl = config('services.ollama.url', 'http://localhost:11434');
         $this->model = config('services.ollama.model', 'mistral');
+        $this->timeout = (int) config('services.ollama.timeout', 120);
     }
 
     /**
@@ -53,7 +55,7 @@ class SummarizationService
     public function generate(string $prompt, ?int $maxTokens = null): ?string
     {
         try {
-            $response = Http::timeout(60)->post("{$this->baseUrl}/api/generate", [
+            $response = Http::timeout($this->timeout)->post("{$this->baseUrl}/api/generate", [
                 'model' => $this->model,
                 'prompt' => $prompt,
                 'stream' => false,

@@ -238,7 +238,7 @@ class ContextController extends Controller
         $validated = $request->validate([
             'query' => 'required|string|min:1',
             'limit' => 'sometimes|integer|min:1|max:50',
-            'type' => 'string|in:task_completion,context_update,file_change,decision,summary,broadcast',
+            'type' => 'string|in:' . implode(',', ContextChunk::TYPES),
             'min_similarity' => 'numeric|min:0|max:1',
         ]);
 
@@ -370,7 +370,7 @@ class ContextController extends Controller
         }
 
         $validated = $request->validate([
-            'type' => 'nullable|string|in:task_completion,context_update,file_change,decision,summary,broadcast',
+            'type' => 'nullable|string|in:' . implode(',', ContextChunk::TYPES),
             'instance_id' => 'nullable|string',
             'limit' => 'nullable|integer|min:1|max:100',
         ]);
@@ -469,7 +469,7 @@ class ContextController extends Controller
 
         $validated = $request->validate([
             'content' => 'required|string|min:1',
-            'type' => 'required|string|in:task_completion,context_update,file_change,decision,summary,broadcast',
+            'type' => 'required|string|in:' . implode(',', ContextChunk::TYPES),
             'instance_id' => 'nullable|string',
             'task_id' => 'nullable|uuid|exists:shared_tasks,id',
             'files' => 'array',
@@ -655,7 +655,7 @@ class ContextController extends Controller
             'updates' => 'required|array|min:1|max:100',
             'updates.*.projectId' => 'required|uuid',
             'updates.*.content' => 'required|string|min:1',
-            'updates.*.type' => 'required|string|in:task_completion,context_update,file_change,decision,summary,broadcast',
+            'updates.*.type' => 'required|string|in:' . implode(',', ContextChunk::TYPES),
             'updates.*.files' => 'nullable|array',
             'updates.*.files.*' => 'string',
             'updates.*.importanceScore' => 'nullable|numeric|min:0|max:1',
