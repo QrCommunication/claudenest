@@ -25,8 +25,30 @@ class ProjectContextGeneratorController extends Controller
     private const STRUCTURE_MAX_FILES = 100;
 
     /**
+     * Token budget for the single JSON generation. mistral:7b on CPU runs at
+     * ~3.4 tokens/s — 600 tokens caps the worst case at ~3 min, with typical
+     * concise outputs landing around 1-2 min on a warm model.
+     */
+    private const CONTEXT_MAX_TOKENS = 600;
+
+    /**
+     * Maximum suggested tasks kept from the LLM output.
+     */
+    private const SUGGESTED_TASKS_MAX = 5;
+
+    /**
+     * Valid task priorities accepted from the LLM output.
+     */
+    private const TASK_PRIORITIES = ['low', 'medium', 'high'];
+
+    /**
      * Generate project context (summary, architecture, conventions,
      * current focus, normalized tech stack, suggested tasks) via Ollama.
+     *
+     * Single bounded LLM call: the previous implementation made 5 sequential
+     * generations (~70s each at 3.4 tok/s on CPU = 10-15 min total, guaranteed
+     * HTTP timeout). One `format: json` call returns all sections at once;
+     * any invalid/missing section falls back to the template — never a 500.
      *
      * POST /api/machines/{machine}/projects/generate-context
      */
@@ -62,70 +84,157 @@ class ProjectContextGeneratorController extends Controller
             ? substr($validated['readme'], 0, self::README_EXCERPT_LENGTH)
             : 'No README available.';
 
-        // Generate summary
-        $summary = $this->summarizationService->generate(
-            "You are analyzing a software project. Project name: {$validated['project_name']}. " .
-            "Tech stack: {$techStackStr}. " .
-            "README excerpt:\n{$readmeExcerpt}\n\n" .
-            "Write a concise project summary (2-3 sentences) describing what this project does and its main purpose.",
-            300
-        );
+        $generated = $this->summarizationService->generateJson(
+            $this->buildContextPrompt($validated['project_name'], $techStackStr, $readmeExcerpt, $structureStr),
+            self::CONTEXT_MAX_TOKENS,
+        ) ?? [];
 
-        // Generate architecture description
-        $architecture = $this->summarizationService->generate(
-            "Based on this file structure and tech stack ({$techStackStr}), describe the project architecture:\n\n{$structureStr}\n\n" .
-            "Describe the architecture in 3-5 sentences, mentioning key directories and their roles.",
-            500
-        );
+        $fallback = $this->fallbackSections($validated);
 
-        // Generate conventions
-        $conventions = $this->summarizationService->generate(
-            "Based on this tech stack ({$techStackStr}) and file structure:\n{$structureStr}\n\n" .
-            "List the likely coding conventions and best practices for this project. Keep it concise, 3-5 bullet points.",
-            400
-        );
+        $summary = $this->sectionText($generated['summary'] ?? null);
+        $architecture = $this->sectionText($generated['architecture'] ?? null);
+        $conventions = $this->sectionText($generated['conventions'] ?? null);
+        $currentFocus = $this->sectionText($generated['current_focus'] ?? null);
+        $suggestedTasks = $this->sectionTasks($generated['suggested_tasks'] ?? null);
 
-        // Generate current focus (inferred from README/changelog hints)
-        $currentFocus = $this->summarizationService->generate(
-            "You are analyzing a {$techStackStr} project named '{$validated['project_name']}'.\n" .
-            "README excerpt:\n{$readmeExcerpt}\n" .
-            "File structure:\n{$structureStr}\n\n" .
-            "Based on the README (roadmap, TODO, changelog or recent-changes sections if present) and the structure, " .
-            "infer what the team is most likely focused on right now. " .
-            "Answer in 1-2 sentences describing the current development focus. " .
-            "If nothing suggests a specific focus, describe the most plausible next step for this project.",
-            300
-        );
-
-        // Generate suggested tasks
-        $tasksRaw = $this->summarizationService->generate(
-            "You are a project manager analyzing a {$techStackStr} project named '{$validated['project_name']}'.\n" .
-            "README: {$readmeExcerpt}\n" .
-            "Structure:\n{$structureStr}\n\n" .
-            "Suggest 3-5 initial tasks for a development team starting work on this project. " .
-            "Format each task as: TASK: <title> | PRIORITY: <low|medium|high> | DESCRIPTION: <one sentence>\n" .
-            "Focus on setup, documentation review, and initial development tasks.",
-            800
-        );
-
-        $suggestedTasks = $this->parseSuggestedTasks($tasksRaw);
+        $anySectionFromLlm = $summary !== null
+            || $architecture !== null
+            || $conventions !== null
+            || $currentFocus !== null
+            || $suggestedTasks !== null;
 
         return response()->json([
             'success' => true,
             'data' => [
-                'summary' => $summary ?? "A {$techStackStr} project.",
-                'architecture' => $architecture ?? '',
-                'conventions' => $conventions ?? '',
-                'current_focus' => $currentFocus ?? '',
+                'summary' => $summary ?? $fallback['summary'],
+                'architecture' => $architecture ?? $fallback['architecture'],
+                'conventions' => $conventions ?? $fallback['conventions'],
+                'current_focus' => $currentFocus ?? $fallback['current_focus'],
                 'tech_stack' => $validated['tech_stack'],
-                'suggested_tasks' => $suggestedTasks,
+                'suggested_tasks' => $suggestedTasks ?? $fallback['suggested_tasks'],
             ],
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
-                'generated_by' => 'ollama',
+                'generated_by' => $anySectionFromLlm ? 'ollama' : 'fallback',
             ],
         ]);
+    }
+
+    /**
+     * Build the single-call prompt asking for a strict, concise JSON object.
+     */
+    private function buildContextPrompt(
+        string $projectName,
+        string $techStackStr,
+        string $readmeExcerpt,
+        string $structureStr,
+    ): string {
+        return <<<PROMPT
+You are analyzing a software project to produce concise onboarding context for a development team.
+
+Project name: {$projectName}
+Tech stack: {$techStackStr}
+README excerpt:
+{$readmeExcerpt}
+
+File structure (truncated):
+{$structureStr}
+
+Respond with a single JSON object containing exactly these keys and nothing else:
+- "summary": what the project does and its main purpose, 2 sentences maximum.
+- "architecture": the architecture and the role of key directories, 3 sentences maximum.
+- "conventions": likely coding conventions and best practices, 3 to 5 bullet points in one single string, one bullet per line, each line starting with "- ".
+- "current_focus": the most likely current development focus inferred from the README (roadmap, TODO, changelog) and the structure, 1 sentence.
+- "suggested_tasks": an array of 3 to 5 short task titles (plain strings) for a team starting work on this project, focused on setup, documentation review, and initial development.
+
+Be concise. Do not include markdown fences, comments, or any keys other than the five listed.
+PROMPT;
+    }
+
+    /**
+     * Coerce an LLM-provided section into a non-empty trimmed string.
+     *
+     * Models occasionally return bullet lists as arrays despite instructions —
+     * a list of strings is joined with newlines instead of being dropped.
+     * Returns null when the value is unusable (caller falls back).
+     */
+    private function sectionText(mixed $value): ?string
+    {
+        if (is_string($value)) {
+            $value = trim($value);
+
+            return $value !== '' ? $value : null;
+        }
+
+        if (is_array($value)) {
+            $lines = array_values(array_filter(
+                array_map(
+                    static fn ($line) => is_string($line) ? trim($line) : '',
+                    $value,
+                ),
+                static fn (string $line) => $line !== '',
+            ));
+
+            return $lines !== [] ? implode("\n", $lines) : null;
+        }
+
+        return null;
+    }
+
+    /**
+     * Coerce LLM-provided suggested tasks into structured task objects.
+     *
+     * The prompt asks for plain strings, but object-shaped entries are
+     * tolerated. Returns null when nothing usable remains (caller falls back).
+     *
+     * @return array<int, array{title: string, priority: string, description: string, files: array<int, string>}>|null
+     */
+    private function sectionTasks(mixed $value): ?array
+    {
+        if (!is_array($value)) {
+            return null;
+        }
+
+        $tasks = [];
+
+        foreach ($value as $entry) {
+            if (count($tasks) >= self::SUGGESTED_TASKS_MAX) {
+                break;
+            }
+
+            if (is_string($entry)) {
+                $title = trim($entry);
+
+                if ($title === '') {
+                    continue;
+                }
+
+                $tasks[] = [
+                    'title' => mb_substr($title, 0, 255),
+                    'priority' => 'medium',
+                    'description' => '',
+                    'files' => [],
+                ];
+
+                continue;
+            }
+
+            if (is_array($entry) && is_string($entry['title'] ?? null) && trim($entry['title']) !== '') {
+                $priority = is_string($entry['priority'] ?? null)
+                    ? strtolower(trim($entry['priority']))
+                    : 'medium';
+
+                $tasks[] = [
+                    'title' => mb_substr(trim($entry['title']), 0, 255),
+                    'priority' => in_array($priority, self::TASK_PRIORITIES, true) ? $priority : 'medium',
+                    'description' => is_string($entry['description'] ?? null) ? trim($entry['description']) : '',
+                    'files' => [],
+                ];
+            }
+        }
+
+        return $tasks !== [] ? $tasks : null;
     }
 
     /**
@@ -167,40 +276,60 @@ class ProjectContextGeneratorController extends Controller
     }
 
     /**
+     * Template-based section values used when Ollama is unavailable or a
+     * specific section of its JSON output is invalid/missing.
+     *
+     * @param array<string, mixed> $validated
+     * @return array{summary: string, architecture: string, conventions: string, current_focus: string, suggested_tasks: array<int, array{title: string, priority: string, description: string, files: array<int, string>}>}
+     */
+    private function fallbackSections(array $validated): array
+    {
+        $techStackStr = implode(', ', $validated['tech_stack']);
+
+        return [
+            'summary' => "A {$techStackStr} project located at {$validated['path']}.",
+            'architecture' => '',
+            'conventions' => '',
+            'current_focus' => '',
+            'suggested_tasks' => [
+                [
+                    'title' => 'Review project documentation',
+                    'priority' => 'high',
+                    'description' => 'Read through README and existing documentation.',
+                    'files' => [],
+                ],
+                [
+                    'title' => 'Setup development environment',
+                    'priority' => 'high',
+                    'description' => 'Install dependencies and verify the project builds.',
+                    'files' => [],
+                ],
+                [
+                    'title' => 'Run existing tests',
+                    'priority' => 'medium',
+                    'description' => 'Execute the test suite and review results.',
+                    'files' => [],
+                ],
+            ],
+        ];
+    }
+
+    /**
      * Fallback when Ollama is unavailable — returns template-based context.
      */
     private function generateFallback(array $validated): JsonResponse
     {
-        $techStackStr = implode(', ', $validated['tech_stack']);
+        $sections = $this->fallbackSections($validated);
 
         return response()->json([
             'success' => true,
             'data' => [
-                'summary' => "A {$techStackStr} project located at {$validated['path']}.",
-                'architecture' => '',
-                'conventions' => '',
-                'current_focus' => '',
+                'summary' => $sections['summary'],
+                'architecture' => $sections['architecture'],
+                'conventions' => $sections['conventions'],
+                'current_focus' => $sections['current_focus'],
                 'tech_stack' => $validated['tech_stack'],
-                'suggested_tasks' => [
-                    [
-                        'title' => 'Review project documentation',
-                        'priority' => 'high',
-                        'description' => 'Read through README and existing documentation.',
-                        'files' => [],
-                    ],
-                    [
-                        'title' => 'Setup development environment',
-                        'priority' => 'high',
-                        'description' => 'Install dependencies and verify the project builds.',
-                        'files' => [],
-                    ],
-                    [
-                        'title' => 'Run existing tests',
-                        'priority' => 'medium',
-                        'description' => 'Execute the test suite and review results.',
-                        'files' => [],
-                    ],
-                ],
+                'suggested_tasks' => $sections['suggested_tasks'],
             ],
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
@@ -209,41 +338,4 @@ class ProjectContextGeneratorController extends Controller
             ],
         ]);
     }
-
-    /**
-     * Parse raw Ollama output into structured task objects.
-     */
-    private function parseSuggestedTasks(?string $raw): array
-    {
-        if (!$raw) {
-            return [];
-        }
-
-        $tasks = [];
-        $lines = preg_split('/\n+/', trim($raw));
-
-        foreach ($lines as $line) {
-            if (preg_match('/TASK:\s*(.+?)\s*\|\s*PRIORITY:\s*(\w+)\s*\|\s*DESCRIPTION:\s*(.+)/i', $line, $m)) {
-                $tasks[] = [
-                    'title' => trim($m[1]),
-                    'priority' => strtolower(trim($m[2])),
-                    'description' => trim($m[3]),
-                    'files' => [],
-                ];
-            }
-        }
-
-        // If parsing failed, create a single task from the raw text
-        if (empty($tasks) && strlen($raw) > 10) {
-            $tasks[] = [
-                'title' => 'Review project and plan work',
-                'priority' => 'high',
-                'description' => $raw,
-                'files' => [],
-            ];
-        }
-
-        return $tasks;
-    }
-
 }

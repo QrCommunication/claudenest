@@ -2188,6 +2188,7 @@
     "projectContext": "Contexte du projet",
     "description": "Générez ou modifiez le contexte du projet. Cela aide les agents à comprendre le code.",
     "generatingWithAi": "Génération par IA...",
+    "generatingHint": "L'analyse IA tourne en local et peut prendre 1 à 2 minutes.",
     "generateWithAi": "Générer par IA",
     "summary": "Résumé",
     "summaryPlaceholder": "Brève description du projet...",

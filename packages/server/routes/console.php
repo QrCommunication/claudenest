@@ -121,6 +121,20 @@ Schedule::command('claudenest:refresh-credentials --hours=24')
     ->withoutOverlapping()
     ->runInBackground();
 
+// Keep the Ollama model warm: it unloads after 5 min by default and the
+// cold load costs ~23s (mistral:7b, CPU). A 1-token ping every 25 min with
+// keep_alive=30m means the project-context wizard never pays the cold load.
+// (*/25 fires at :00/:25/:50 — every gap stays under the 30 min keep_alive.)
+Schedule::call(function () {
+    $service = app(\App\Services\SummarizationService::class);
+
+    if (!$service->isAvailable()) {
+        return;
+    }
+
+    $service->warmUp();
+})->cron('*/25 * * * *')->name('ollama-warmup');
+
 // Artisan command for manual cleanup
 Artisan::command('claudenest:cleanup', function () {
     $this->info('Running ClaudeNest cleanup...');

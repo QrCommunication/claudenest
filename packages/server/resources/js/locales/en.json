@@ -2188,6 +2188,7 @@
     "projectContext": "Project Context",
     "description": "Generate or edit the project context. This helps agents understand the codebase.",
     "generatingWithAi": "Generating with AI...",
+    "generatingHint": "AI analysis runs locally and can take 1-2 minutes.",
     "generateWithAi": "Generate with AI",
     "summary": "Summary",
     "summaryPlaceholder": "Brief description of the project...",

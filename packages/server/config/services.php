@@ -59,9 +59,10 @@ return [
         'model' => env('OLLAMA_MODEL', 'mistral'),
         'embedding_model' => env('OLLAMA_EMBEDDING_MODEL', 'nomic-embed-text'),
         'embedding_dimensions' => env('EMBEDDING_DIMENSIONS', 768),
-        // Per-call generation timeout (seconds). Local 7B models can take well
-        // over a minute on long prompts; keep this generous and configurable.
-        'timeout' => (int) env('OLLAMA_TIMEOUT', 120),
+        // Per-call generation timeout (seconds). Local 7B models on CPU run
+        // at ~3.4 tokens/s: a single ~600-token JSON generation takes ~2 min
+        // on a warm model. 240s = one warm call + margin; configurable.
+        'timeout' => (int) env('OLLAMA_TIMEOUT', 240),
     ],
 
 ];

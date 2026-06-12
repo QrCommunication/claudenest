@@ -7,6 +7,13 @@ use Illuminate\Support\Facades\Log;
 
 class SummarizationService
 {
+    /**
+     * How long Ollama keeps the model loaded after a request. The default
+     * (5 min) forces a ~23s cold load on every wizard run; 30 min combined
+     * with the scheduled warm-up ping keeps the model permanently hot.
+     */
+    private const KEEP_ALIVE = '30m';
+
     private string $baseUrl;
     private string $model;
     private int $timeout;
@@ -15,7 +22,7 @@ class SummarizationService
     {
         $this->baseUrl = config('services.ollama.url', 'http://localhost:11434');
         $this->model = config('services.ollama.model', 'mistral');
-        $this->timeout = (int) config('services.ollama.timeout', 120);
+        $this->timeout = (int) config('services.ollama.timeout', 240);
     }
 
     /**
@@ -59,6 +66,7 @@ class SummarizationService
                 'model' => $this->model,
                 'prompt' => $prompt,
                 'stream' => false,
+                'keep_alive' => self::KEEP_ALIVE,
                 'options' => [
                     'num_predict' => $maxTokens ?? 1000,
                     'temperature' => 0.7,
@@ -78,6 +86,78 @@ class SummarizationService
         } catch (\Exception $e) {
             Log::error('Summarization service error', ['error' => $e->getMessage()]);
             return null;
+        }
+    }
+
+    /**
+     * Generate a structured JSON object from a prompt.
+     *
+     * Uses Ollama's `format: json` constraint so the model emits valid JSON.
+     * Returns the decoded array, or null when the call fails or the output
+     * is not a JSON object/array — callers must provide their own fallback.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function generateJson(string $prompt, int $maxTokens = 600): ?array
+    {
+        try {
+            $response = Http::timeout($this->timeout)->post("{$this->baseUrl}/api/generate", [
+                'model' => $this->model,
+                'prompt' => $prompt,
+                'stream' => false,
+                'format' => 'json',
+                'keep_alive' => self::KEEP_ALIVE,
+                'options' => [
+                    'num_predict' => $maxTokens,
+                    // Lower temperature than free-form generation: structured
+                    // extraction needs schema fidelity, not creativity.
+                    'temperature' => 0.3,
+                ],
+            ]);
+
+            if (!$response->successful()) {
+                Log::warning('JSON generation failed', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+
+                return null;
+            }
+
+            $raw = trim((string) $response->json('response'));
+
+            if ($raw === '') {
+                return null;
+            }
+
+            $decoded = json_decode($raw, true);
+
+            return is_array($decoded) ? $decoded : null;
+        } catch (\Exception $e) {
+            Log::error('Summarization service error', ['error' => $e->getMessage()]);
+            return null;
+        }
+    }
+
+    /**
+     * Best-effort warm-up ping: a 1-token generation that (re)loads the model
+     * and refreshes its keep_alive window. Scheduled every 25 minutes so the
+     * project-context wizard never pays the ~23s cold load.
+     */
+    public function warmUp(): void
+    {
+        try {
+            Http::timeout(90)->post("{$this->baseUrl}/api/generate", [
+                'model' => $this->model,
+                'prompt' => 'ok',
+                'stream' => false,
+                'keep_alive' => self::KEEP_ALIVE,
+                'options' => [
+                    'num_predict' => 1,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            // Warm-up is opportunistic — never let it pollute the scheduler.
         }
     }
 

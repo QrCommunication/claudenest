@@ -23,6 +23,14 @@ export interface GeneratedContext {
   }>;
 }
 
+/**
+ * Context generation runs a single bounded LLM pass server-side (local
+ * Ollama on CPU): ~2 min worst case on a warm model. Override the
+ * per-request timeout so the wizard outlives the generation instead of
+ * aborting on the shared axios default.
+ */
+const GENERATE_CONTEXT_TIMEOUT_MS = 300_000;
+
 export function useProjectScan() {
   const scanResult = ref<ScanResult | null>(null);
   const generatedContext = ref<GeneratedContext | null>(null);
@@ -73,6 +81,7 @@ export function useProjectScan() {
           // Server falls back to basename(path) when absent — send it anyway.
           project_name: projectName || null,
         },
+        { timeout: GENERATE_CONTEXT_TIMEOUT_MS },
       );
       generatedContext.value = response.data.data;
       return response.data.data;

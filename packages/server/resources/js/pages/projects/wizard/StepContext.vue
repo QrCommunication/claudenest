@@ -16,6 +16,10 @@
       {{ isGenerating ? t('projectsWizardStepcontext.generatingWithAi') : t('projectsWizardStepcontext.generateWithAi') }}
     </button>
 
+    <p class="generate-hint" v-if="isGenerating">
+      {{ t('projectsWizardStepcontext.generatingHint') }}
+    </p>
+
     <div class="generate-error" v-if="generateError">
       {{ generateError }}
     </div>
@@ -127,6 +131,10 @@ async function handleGenerate(): Promise<void> {
 
 .spinner {
   @apply w-4 h-4 border-2 border-brand-cyan/30 border-t-brand-cyan rounded-full animate-spin;
+}
+
+.generate-hint {
+  @apply text-xs text-skin-secondary;
 }
 
 .generate-error {
