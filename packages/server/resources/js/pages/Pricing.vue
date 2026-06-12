@@ -185,7 +185,7 @@ const plans = [
 ] as const;
 
 const featuresCount = (key: string) => {
-  const counts: Record<string, number> = { community: 5, pro: 7, enterprise: 8 };
+  const counts: Record<string, number> = { community: 4, pro: 3, enterprise: 3 };
   return counts[key] ?? 0;
 };
 

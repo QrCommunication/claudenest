@@ -158,9 +158,12 @@ onBeforeUnmount(() => {
   gap: 0.25rem;
 }
 
-/* Same specificity trap as .nav-burger: scoped .nav-link display beats
-   Tailwind's `hidden`. Desktop-only, shown with the 900px block below. */
-.nav-link-login {
+/* Spécificité 0,2,0 (.nav-right .nav-link-login) : la règle `.nav-link
+   { display:inline-flex }` déclarée PLUS BAS gagnait à spécificité égale
+   → login + CTA visibles à 375px et burger poussé hors écran. Le menu
+   burger contient déjà login/register pour le mobile. */
+.nav-right .nav-link-login,
+.nav-right .nav-cta {
   display: none;
 }
 
@@ -169,8 +172,12 @@ onBeforeUnmount(() => {
     display: flex;
   }
 
-  .nav-link-login {
+  .nav-right .nav-link-login {
     display: inline-flex;
+  }
+
+  .nav-right .nav-cta {
+    display: flex;
   }
 }
 

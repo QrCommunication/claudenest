@@ -863,36 +863,40 @@
       "pricing": "Tarifs"
     },
     "hero": {
-      "badge": "Open Source · Auto-heberge · Gratuit",
-      "title": "Vos agents IA,",
-      "title_highlight": "Orchestres.",
-      "subtitle": "Executez plusieurs instances Claude Code sur le meme projet avec contexte partage, verrouillage de fichiers et controle en temps reel — depuis n'importe quel appareil.",
-      "cta_primary": "Commencer gratuitement",
-      "cta_secondary": "Lire la documentation",
-      "micro_copy": "Sans carte bancaire. Auto-heberge. Licence PolyForm Noncommercial.",
-      "social_proof": "Adopte par les developpeurs qui construisent avec Claude Code dans le monde entier",
+      "badge": "Auto-hébergé · Source sur GitHub · v1.5",
+      "title": "Des workers Claude Code en parallèle.",
+      "title_highlight": "Sans le chaos.",
+      "subtitle": "ClaudeNest lance et orchestre plusieurs sessions Claude Code sur le même projet — réclamation atomique des tâches via MCP, verrous de fichiers appliqués au moment de l'édition, et une mémoire de projet partagée. Le tout sur votre propre serveur.",
+      "cta_primary": "Auto-hébergez en 15 minutes",
+      "cta_secondary": "Voir 3 workers livrer en parallèle",
+      "micro_copy": "Auto-hébergement gratuit · PolyForm Noncommercial · Votre code ne quitte jamais votre serveur.",
       "stats": {
         "agents": "Agents simultanes",
         "embeddings": "Embeddings vectoriels",
-        "latency": "Latence WebSocket",
-        "open_source": "Open Source"
+        "latency": "Latence WebSocket"
       }
     },
+    "proof": {
+      "mcp_tools": "outils MCP (13 cœur + 7 planification)",
+      "tests": "tests automatisés",
+      "wake": "réveil serveur→agent (pub/sub interne)",
+      "mobile": "applications mobiles (bêta)"
+    },
     "problem": {
-      "title": "Ca vous parle ?",
+      "title": "Ça vous parle ?",
       "conflict": {
-        "title": "Trois agents, un codebase, zero coordination",
-        "description": "Vous lancez plusieurs instances Claude sur le meme projet. Elles modifient les memes fichiers. Des conflits de merge partout. Des heures de travail IA, perdues."
+        "title": "Deux agents, un fichier, aucun arbitre.",
+        "description": "Vous ouvrez trois onglets Claude Code sur le même repo. Vingt minutes plus tard, ils ont tous les deux réécrit le même module — et vous démêlez qui a cassé quoi."
       },
       "vanishing": {
-        "title": "Un contexte qui disparait entre les sessions",
-        "description": "Chaque nouvelle session Claude repart de zero. Vous collez les memes instructions encore et encore. Vos agents oublient tout."
+        "title": "Le contexte s'évapore entre les sessions.",
+        "description": "Chaque nouvelle session repart de zéro. Vous collez les notes d'architecture, les conventions, les pièges — encore une fois. Vos agents n'apprennent jamais les uns des autres."
       },
       "blindfold": {
-        "title": "Naviguer a l'aveugle avec plusieurs agents",
-        "description": "Quel agent fait quoi ? Qui a modifie ce fichier ? Cette tache est-elle deja faite ? Vous n'en savez rien jusqu'a ce que quelque chose casse."
+        "title": "Aucune idée de qui fait quoi.",
+        "description": "Des terminaux éparpillés entre machines et panes tmux. Pas de board, pas de verrous, aucun signal quand un worker cale ou attend un prompt de permission."
       },
-      "transition": "Il y a une meilleure facon de faire."
+      "transition": "ClaudeNest leur donne un serveur, un board et des règles."
     },
     "solution": {
       "title": "Vos agents meritent un foyer.",
@@ -912,53 +916,51 @@
     },
     "features": {
       "badge": "Capacites",
-      "title": "Tout ce qu'il faut pour ",
-      "title_highlight": "orchestrer a grande echelle",
-      "subtitle": "D'un tableau de bord unique a un centre de commande multi-agents complet.",
-      "remote_access": {
-        "title": "Controlez de partout",
-        "description": "Accedez a vos instances Claude Code depuis n'importe quel navigateur, n'importe quel appareil. Le relais WebSocket transmet chaque frappe en temps reel."
+      "title": "La coordination est appliquée, ",
+      "title_highlight": "pas suggérée.",
+      "subtitle": "Chaque mécanisme ci-dessous est livré en v1.5 et couvert par la suite de tests.",
+      "locks": {
+        "title": "Verrous de fichiers, appliqués à l'édition.",
+        "description": "Quand un worker verrouille un fichier, les éditions des autres workers sont refusées par un hook Claude Code — avec le nom du détenteur dans le refus. Les verrous expirent, peuvent être libérés de force, et s'ouvrent en cas de coupure réseau (votre agent n'est jamais bloqué)."
       },
-      "multi_agent": {
-        "title": "Des agents qui collaborent",
-        "description": "Executez plusieurs instances Claude sur le meme projet. La reclamation atomique des taches empeche le travail en double, et un tableau de taches partage montre ce que fait chaque agent."
+      "mcp": {
+        "title": "Réclamation de tâches via MCP.",
+        "description": "13 outils MCP permettent aux sessions de réclamer, terminer et libérer des tâches de façon atomique — plus 7 outils de planification pour les épics et les sprints."
       },
-      "context_rag": {
-        "title": "Intelligence partagee",
-        "description": "Les embeddings vectoriels 384D via pgvector donnent a vos agents une comprehension semantique de tout le projet. Ils cherchent par le sens, pas par mots-cles."
+      "board": {
+        "title": "Un board qui avance tout seul.",
+        "description": "Tâches, verrous et workers streament via les WebSockets Reverb. Burndown, story points, vélocité — en direct."
       },
-      "real_time": {
-        "title": "Chaque frappe, en direct",
-        "description": "Les canaux WebSocket Laravel Reverb relaient la sortie du terminal en temps reel. Observez vos agents travailler de partout — meme depuis votre telephone."
+      "credentials": {
+        "title": "Des credentials isolés.",
+        "description": "Chaque session tourne avec son propre credential chiffré (clé API ou OAuth). MFA à la connexion. AES-256 au repos."
       },
-      "file_locking": {
-        "title": "Prevention des conflits integree",
-        "description": "Verrouillage automatique des fichiers avec expiration, liberation forcee et operations en masse. Des verrous au niveau fichier avec detection de conflits evitent que les agents se genent mutuellement."
+      "coordinator": {
+        "title": "Coordinateur d'incidents.",
+        "description": "Une tâche libérée deux fois ? Une contention de verrou ? ClaudeNest lance une session de coordination pour démêler la situation — budgétée à une par heure."
       },
-      "mcp_support": {
-        "title": "Extensibilite infinie",
-        "description": "Le support du Model Context Protocol permet a vos agents d'utiliser n'importe quel outil MCP. La decouverte est automatique, l'execution transparente."
+      "health": {
+        "title": "Bilans de santé planifiés.",
+        "description": "Un runner balaye les projets actifs toutes les 5 minutes : statuts périmés mis à jour, blocages et risques d'échéance remontés."
       }
     },
     "how_it_works": {
       "badge": "Pour commencer",
-      "title": "Operationnel en ",
-      "title_highlight": "trois etapes",
-      "subtitle": "De l'installation a l'orchestration multi-agents complete en minutes, pas en heures.",
+      "title": "Auto-hébergé en ",
+      "title_highlight": "trois étapes",
       "step_1": {
         "title": "Installez l'agent",
-        "description": "Une seule commande pour connecter votre machine a la plateforme ClaudeNest."
+        "description": "Une seule commande sur toute machine où Claude Code tourne."
       },
       "step_2": {
-        "title": "Demarrez une session",
-        "description": "Lancez Claude Code a distance depuis n'importe quel appareil — web, mobile ou CLI.",
-        "visual": "Session active"
+        "title": "Associez-la depuis le dashboard",
+        "description": "Enregistrez la machine dans l'interface web, collez le token à usage unique, et l'agent se connecte en WebSocket."
       },
       "step_3": {
-        "title": "Orchestrez",
-        "description": "Coordonnez plusieurs agents avec contexte partage, reclamation de taches et verrouillage de fichiers.",
-        "visual": "3 agents synchronises"
-      }
+        "title": "Créez un projet, lancez des workers",
+        "description": "Pointez un projet partagé vers votre repo, rédigez un brief ou ajoutez des tâches, puis démarrez l'orchestrateur. Les workers tournent avec vos propres credentials Claude, isolés par session."
+      },
+      "note": "Les workers consomment votre plan Claude existant — ClaudeNest orchestre vos sessions, il ne revend pas de tokens."
     },
     "comparison": {
       "badge": "Pourquoi ClaudeNest",
@@ -966,92 +968,109 @@
       "title_highlight": "comparons",
       "subtitle": "La plateforme d'orchestration la plus complete, construite specifiquement pour Claude Code.",
       "feature_label": "Fonctionnalite",
+      "columns": {
+        "swarm": "CLIs swarm (Claude-Flow…)",
+        "diy": "Scripts maison"
+      },
       "features": {
         "multi_agent": "Orchestration multi-agents",
         "web_dashboard": "Tableau de bord web",
         "mobile_app": "Application mobile native",
-        "rag_context": "Contexte RAG pgvector",
-        "file_locking": "Systeme de verrouillage de fichiers",
-        "claude_specific": "Specifique a Claude Code",
+        "rag_context": "Mémoire de projet persistante",
+        "file_locking": "Verrous appliqués à l'édition",
+        "attachable_terminals": "Terminaux live attachables",
         "websocket": "WebSocket temps reel",
         "mcp_support": "Support protocole MCP",
-        "open_source": "Auto-heberge / Open Source"
+        "open_source": "Auto-hébergé / source disponible"
       }
     },
-    "testimonials": {
-      "badge": "Ce qu'en disent les developpeurs",
-      "title": "Adore par les ",
-      "title_highlight": "developpeurs",
-      "items": {
+    "demo": {
+      "title": "À quoi ressemble un sprint orchestré ?",
+      "subtitle": "Vous écrivez les tâches. ClaudeNest lance des workers Claude Code interactifs, chacun réclame du travail de façon atomique via le serveur MCP, et le board avance tout seul — en temps réel, via WebSockets.",
+      "bullets": {
         "0": {
-          "quote": "ClaudeNest a change la facon dont notre equipe travaille avec les agents IA. Avoir plusieurs instances Claude qui se coordonnent sur le meme codebase avec un contexte partage est incroyablement puissant.",
-          "name": "Sarah M.",
-          "role": "Ingenieure Staff dans une entreprise tech Fortune 500"
+          "title": "Réclamation atomique",
+          "description": "deux workers ne peuvent pas saisir la même tâche. La réclamation est une transaction de base de données unique."
         },
         "1": {
-          "quote": "Enfin, une vraie orchestration pour Claude Code. Le verrouillage de fichiers et la coordination des taches empechent nos agents de se marcher dessus. Un game-changer pour notre pipeline CI.",
-          "name": "James K.",
-          "role": "Responsable DevOps dans une startup en forte croissance"
+          "title": "Les workers sont de vraies sessions Claude Code",
+          "description": "interactives, attachables, exécutées sur votre machine avec vos credentials."
         },
         "2": {
-          "quote": "Le systeme de contexte RAG avec pgvector est un game-changer. Chaque agent comprend le contexte complet du projet sans qu'on ait a le nourrir manuellement. L'auto-hebergement etait trivial.",
-          "name": "Alex R.",
-          "role": "CTO d'une equipe DevOps"
+          "title": "Board en direct",
+          "description": "épics, sprints, story points et burndown se mettent à jour à mesure que les workers rapportent."
         }
-      }
+      },
+      "link": "Voir les outils de planification dans la doc"
+    },
+    "memory": {
+      "title": "Comment les workers partagent-ils ce qu'ils apprennent ?",
+      "body": "Chaque projet a une mémoire. Quand un worker démarre, ClaudeNest compile le contexte pertinent et l'injecte dans la session. Quand un worker termine une tâche, son résumé est réingéré — embeddé avec un modèle Ollama local dans pgvector. Le worker suivant reprend là où le précédent s'est arrêté.",
+      "list": {
+        "0": "Contexte compilé injecté au démarrage",
+        "1": "Résumés de complétion auto-ingérés sur task_complete",
+        "2": "Recherche sémantique sur pgvector (bge-small, exécuté en local)"
+      },
+      "note": "Les embeddings sont calculés sur votre serveur via Ollama. Rien n'est envoyé à une API d'embedding tierce."
+    },
+    "planning": {
+      "title": "D'un brief d'un paragraphe à un sprint calibré",
+      "body": "Ouvrez une session de planification, décrivez ce que vous voulez livrer, et ClaudeNest rédige les épics, les tâches et un sprint — dimensionné sur la vélocité réelle de votre projet, pas sur une estimation. Chaque action qu'il entreprend est atomique et apparaît instantanément sur le board.",
+      "bullet": "Et quand ça dérape — une tâche rejetée deux fois, deux workers qui se disputent un verrou — le coordinateur d'incidents lance une session Claude pour résoudre le problème. Plafonné à une par heure, pour que ça ne s'emballe pas."
+    },
+    "what_is": {
+      "title": "C'est quoi ClaudeNest, exactement ?",
+      "body": "ClaudeNest est une plateforme d'orchestration auto-hébergée pour Claude Code. Elle exécute plusieurs workers Claude Code en parallèle sur le même dépôt et les coordonne via trois mécanismes : la réclamation atomique de tâches via un serveur MCP (20 outils), des verrous de fichiers appliqués au moment de l'édition par des hooks Claude Code, et une mémoire de projet partagée adossée à PostgreSQL pgvector. Le serveur lance des sessions worker interactives, injecte le contexte projet compilé au démarrage, et réingère le résumé de complétion de chaque worker dans la mémoire — les sessions suivantes héritent ainsi de ce que les précédentes ont appris. Un board temps réel (épics, sprints, burndown) suit chaque tâche via WebSockets, et des applications iOS/Android (bêta) exposent les mêmes terminaux à distance. ClaudeNest est gratuit sur votre propre serveur sous licence PolyForm Noncommercial ; les plans payants lèvent les plafonds de concurrence. Il nécessite PostgreSQL avec pgvector, Redis, et un agent Node.js sur chaque machine.",
+      "bullets": {
+        "0": "Votre serveur, vos clés — le code et les credentials ne transitent jamais par claudenest.io.",
+        "1": "Source sur GitHub — lisez chaque ligne avant de l'exécuter.",
+        "2": "PolyForm Noncommercial : gratuit pour un usage personnel et interne."
+      },
+      "github": "Lire le code source",
+      "updated": "Mis à jour juin 2026 · v1.5.0"
     },
     "pricing": {
       "badge": "Tarifs",
-      "title": "Gratuit pour toujours. ",
-      "title_highlight": "Premium quand vous grandissez.",
-      "subtitle": "ClaudeNest est open source et auto-heberge. Pas de frais d'utilisation, pas de tarif par siege, pas de surprises.",
+      "title": "L'auto-hébergement est gratuit. ",
+      "title_highlight": "Les plans payants lèvent les plafonds.",
+      "subtitle": "Les plafonds sont appliqués côté serveur — pas sur l'honneur.",
       "most_popular": "Le plus populaire",
-      "note": "L'auto-hebergement est toujours gratuit. Plans d'hebergement gere disponibles. Le parallelisme effectif depend aussi des limites de votre plan Claude.",
+      "note": "La concurrence effective dépend aussi des limites de débit de votre plan Claude.",
       "tiers": {
         "community": {
           "name": "Communaute",
           "price": "Gratuit",
           "target": "Pour les developpeurs solo et les petites equipes",
           "features": {
-            "0": "Jusqu'a 3 agents simultanes",
-            "1": "1 projet partage",
-            "2": "Verrouillage de fichiers basique",
-            "3": "Support communautaire (GitHub)",
-            "4": "Acces auto-heberge complet"
+            "0": "3 workers simultanés",
+            "1": "1 projet partagé",
+            "2": "Toutes les fonctionnalités",
+            "3": "Support GitHub"
           },
           "cta": "Commencer"
         },
         "pro": {
           "name": "Pro",
-          "price": "29€",
+          "price": "29 $",
           "period": "/mois",
           "target": "Pour les equipes et utilisateurs avances",
           "features": {
-            "0": "Jusqu'a 20 agents simultanes",
-            "1": "Projets partages illimites",
-            "2": "Verrouillage avance (masse, force)",
-            "3": "Support email prioritaire",
-            "4": "Acces auto-heberge complet",
-            "5": "Option d'hebergement gere",
-            "6": "Tableau de bord analytique"
+            "0": "20 workers simultanés",
+            "1": "Projets illimités",
+            "2": "Support email prioritaire"
           },
-          "cta": "Essai gratuit"
+          "cta": "Contactez-nous"
         },
         "enterprise": {
           "name": "Entreprise",
           "price": "Sur mesure",
           "target": "Pour les organisations a grande echelle",
           "features": {
-            "0": "Agents simultanes illimites",
-            "1": "Projets partages illimites",
-            "2": "Verrouillage avance + piste d'audit",
-            "3": "Support dedie + SLA",
-            "4": "Acces auto-heberge complet",
-            "5": "Hebergement gere inclus",
-            "6": "Tableau de bord analytique",
-            "7": "Integration SSO / SAML"
+            "0": "Workers illimités",
+            "1": "Piste d'audit (journal d'activité)",
+            "2": "Support dédié"
           },
-          "cta": "Contacter les ventes"
+          "cta": "Parlons-en"
         }
       }
     },
@@ -1061,50 +1080,47 @@
       "items": {
         "0": {
           "question": "ClaudeNest est-il vraiment gratuit ?",
-          "answer": "Oui. ClaudeNest est en source ouverte sous licence PolyForm Noncommercial 1.0.0 et auto-heberge. Le tier Communaute est gratuit pour toujours. Les tiers Pro et Entreprise concernent l'hebergement gere et le support prioritaire."
+          "answer": "Oui. L'auto-hébergement est gratuit sous licence PolyForm Noncommercial, avec toutes les fonctionnalités et un plafond de 3 workers simultanés. Pro (29 $/mois) monte le plafond à 20 workers et des projets illimités. Les plafonds sont appliqués par le serveur (vous recevrez un 403, pas un écran de rappel)."
         },
         "1": {
-          "question": "Ca fonctionne avec n'importe quel LLM ou juste Claude ?",
-          "answer": "ClaudeNest est concu specifiquement pour Claude Code par Anthropic. Cette specialisation nous permet d'optimiser chaque interaction, de la gestion PTY a l'injection de contexte. Nous ne diluons pas notre focus en supportant tous les modeles."
+          "question": "Mon abonnement Claude ou mes crédits API fonctionneront-ils ?",
+          "answer": "Oui — c'est le modèle. Les workers sont de vraies sessions Claude Code qui tournent avec vos propres credentials : une clé API ou votre session OAuth Claude Max. Les credentials sont stockés chiffrés (AES-256) et isolés par session, donc deux workers ne partagent jamais un contexte d'authentification."
         },
         "2": {
-          "question": "Comment fonctionne le systeme de contexte RAG ?",
-          "answer": "Quand un agent apprend quelque chose, nous generons un embedding vectoriel 384D avec BGE-small-en et le stockons dans PostgreSQL avec pgvector. Les autres agents cherchent par similarite semantique — le sens, pas les mots-cles. Resultat : une memoire projet partagee que chaque agent peut interroger."
+          "question": "Où va mon code ?",
+          "answer": "Nulle part. ClaudeNest est auto-hébergé : le serveur tourne sur votre infrastructure et l'agent sur vos machines de dev. Le code, la sortie des terminaux et les embeddings restent sur du matériel que vous contrôlez. claudenest.io sert ce site et le script d'installation — rien d'autre."
         },
         "3": {
-          "question": "Plusieurs agents peuvent-ils vraiment travailler sur les memes fichiers ?",
-          "answer": "Ils travaillent sur le meme projet, pas sur le meme fichier en meme temps. Un agent reclame un verrou sur un fichier avant de le modifier ; les reclamations concurrentes recoivent une reponse 409 et l'agent choisit un autre fichier. Les verrous ont une expiration, une liberation forcee et des operations en masse pour que les agents ne se genent pas."
+          "question": "Que se passe-t-il quand deux workers touchent le même fichier ?",
+          "answer": "Le premier worker prend un verrou. L'édition du second est refusée au moment de l'édition par un hook Claude Code, avec le nom du détenteur dans le message, et il passe à autre chose. Les verrous expirent automatiquement et peuvent être libérés de force. Une réserve honnête : si l'agent ne peut pas joindre le serveur, les hooks s'ouvrent plutôt que de geler votre session."
         },
         "4": {
-          "question": "Quelle infrastructure me faut-il ?",
-          "answer": "Un serveur Linux avec PHP 8.3+, PostgreSQL 16 (avec pgvector), Redis et Node.js 20. Un VPS standard a 20€/mois suffit pour la plupart des configurations. Docker Compose rend l'installation en une seule commande."
+          "question": "De quoi ai-je besoin pour le faire tourner ?",
+          "answer": "Un serveur Linux avec PHP/Laravel, PostgreSQL avec l'extension pgvector, et Redis. Chaque machine de dev exécute un petit agent Node.js. Ollama (pour les embeddings locaux) est optionnel mais recommandé pour les fonctionnalités de mémoire partagée."
         },
         "5": {
-          "question": "Mon code est-il envoye a vos serveurs ?",
-          "answer": "Jamais. ClaudeNest est auto-heberge. Votre code, vos agents, votre infrastructure. Nous ne voyons jamais votre code source ni vos prompts."
+          "question": "En quoi est-ce différent de Claude-Flow et des outils swarm ?",
+          "answer": "Un objectif différent. Les outils swarm déploient de nombreux agents éphémères depuis votre terminal. ClaudeNest est un serveur : des sessions interactives longue durée auxquelles vous pouvez vous attacher depuis le web ou le mobile, une mémoire de projet persistante, des verrous appliqués à l'édition, et un board temps réel. Voir le tableau comparatif ci-dessus."
         },
         "6": {
-          "question": "Comment ca se compare a Claude-Flow ?",
-          "answer": "Claude-Flow se concentre sur l'intelligence en essaim avec 60+ agents mais n'a pas de tableau de bord web ni d'application mobile. ClaudeNest fournit une plateforme complete : tableau de bord web, application mobile, RAG pgvector et verrouillage de fichiers — le tout construit specifiquement pour Claude Code."
+          "question": "Puis-je regarder ce que fait un worker ?",
+          "answer": "Oui. Chaque worker est un terminal attachable — ouvrez-le dans le dashboard ou l'application mobile, suivez la sortie en direct, et tapez dedans si vous devez reprendre la main."
         },
         "7": {
           "question": "Puis-je contribuer ?",
-          "answer": "Absolument. ClaudeNest est open source sous licence PolyForm Noncommercial 1.0.0 (usage non commercial). Consultez notre CONTRIBUTING.md pour les instructions de configuration, les standards de code et notre processus ADR."
+          "answer": "Le code source est public sur GitHub — issues et PR bienvenues. La licence est PolyForm Noncommercial 1.0.0 : gratuite pour un usage personnel et interne ; pour une licence commerciale, parlons-en."
         }
       }
     },
     "open_source": {
-      "title": "Open Source",
-      "headline": "Construit en toute transparence",
-      "description": "Inspectez chaque ligne, contribuez des fonctionnalites et auto-hebergez sur votre propre infrastructure. Pas de dependance fournisseur, jamais.",
-      "github": "Star sur GitHub"
+      "title": "Open Source"
     },
     "cta": {
-      "title": "Pret a orchestrer vos ",
-      "title_highlight": "agents IA ?",
-      "subtitle": "Deployez ClaudeNest en minutes. Controlez Claude Code de partout. Coordonnez des equipes d'agents IA sur un seul projet.",
-      "cta_primary": "Commencer gratuitement",
-      "cta_secondary": "Lire la documentation"
+      "title": "Donnez un serveur ",
+      "title_highlight": "à vos agents.",
+      "subtitle": "Une commande pour installer. Trois workers sur votre premier projet ce soir.",
+      "cta_primary": "Auto-hébergez en 15 minutes",
+      "cta_secondary": "Lire le code source sur GitHub"
     },
     "footer": {
       "description": "Plateforme d'orchestration Claude Code a distance. Open source et auto-hebergee.",
@@ -1319,7 +1335,9 @@
     "settings": "Paramètres",
     "darkMode": "Mode sombre",
     "lightMode": "Mode clair",
-    "systemTheme": "Thème système"
+    "systemTheme": "Thème système",
+    "openWorkspace": "Ouvrir le workspace du projet",
+    "projectCounters": "{workers} workers · {locks} verrous"
   },
   "layoutTabbar": {
     "newSession": "Nouvelle session"
@@ -1334,6 +1352,8 @@
     "multiAgent": "Multi-agent",
     "projects": "Projets",
     "tasks": "Tâches",
+    "workspace": "Workspace",
+    "board": "Board",
     "configuration": "Configuration",
     "credentials": "Identifiants",
     "skills": "Compétences",
@@ -1777,6 +1797,74 @@
     "comingSoon": "La vue détaillée de la session arrive bientôt",
     "sessionIdLabel": "ID de session :"
   },
+  "projectsWorkspace": {
+    "title": "Workspace",
+    "workersPill": "{count} workers",
+    "reconnecting": "Reconnexion…",
+    "mobileBanner": "Encore mieux sur l'app mobile",
+    "confirmKill": "Arrêter cette session ? Le worker Claude en cours sera stoppé.",
+    "header": {
+      "spawnWorker": "Lancer un worker",
+      "startOrchestrator": "Démarrer l'orchestrateur",
+      "stopOrchestrator": "Arrêter l'orchestrateur",
+      "gridLabel": "Disposition de la grille de terminaux",
+      "gridOption": "{count} panneaux",
+      "toggleRail": "Afficher/masquer le panneau latéral"
+    },
+    "empty": {
+      "title": "Aucun worker en cours",
+      "text": "Démarrez l'orchestrateur ou lancez un worker pour voir les terminaux en direct ici.",
+      "start": "Démarrer l'orchestrateur",
+      "spawn": "Lancer un worker",
+      "docs": "Lire la documentation"
+    },
+    "modal": {
+      "title": "Lancer des workers"
+    },
+    "pane": {
+      "needsInput": "attend une saisie",
+      "zoom": "Zoomer le panneau",
+      "detach": "Ouvrir en terminal complet",
+      "kill": "Arrêter la session",
+      "stateBusy": "occupé",
+      "stateIdle": "inactif",
+      "stateEnded": "terminée",
+      "sessionEnded": "Session terminée (exit {code})",
+      "viewLogs": "Voir les logs",
+      "closePane": "Fermer le panneau"
+    },
+    "rail": {
+      "tasks": "Tâches",
+      "locks": "Verrous",
+      "workers": "Workers",
+      "activity": "Activité",
+      "noTasks": "Aucune tâche dans ce projet pour le moment.",
+      "noLocks": "Aucun verrou de fichier actif.",
+      "noWorkers": "Aucun worker connecté.",
+      "spawnWorker": "+ Lancer un worker",
+      "forceRelease": "Forcer la libération de ce verrou",
+      "release": "Libérer",
+      "statusBacklog": "Backlog",
+      "statusPending": "En attente",
+      "statusInProgress": "En cours",
+      "statusBlocked": "Bloquées",
+      "statusReview": "En revue",
+      "statusDone": "Terminées"
+    },
+    "toasts": {
+      "started": "Orchestrateur démarré — {count} workers",
+      "startFailed": "Échec du démarrage de l'orchestrateur",
+      "stopped": "Orchestrateur arrêté",
+      "stopFailed": "Échec de l'arrêt de l'orchestrateur",
+      "sessionKilled": "Session arrêtée",
+      "sessionKillFailed": "Échec de l'arrêt de la session",
+      "lockReleased": "Verrou libéré",
+      "lockReleaseFailed": "Échec de la libération du verrou",
+      "loadFailed": "Échec du chargement du workspace",
+      "needsInputTitle": "Le worker {name} attend une saisie",
+      "needsInputMessage": "Une session attend votre saisie ou une permission."
+    }
+  },
   "projectsOrchestration": {
     "title": "Orchestration",
     "refresh": "Actualiser",
@@ -2025,6 +2113,8 @@
     "projectNotFound": "Projet introuvable",
     "backToProjects": "Retour aux projets",
     "tabOverview": "Vue d'ensemble",
+    "tabWorkspace": "Workspace",
+    "tabLocks": "Verrous",
     "tabTasks": "Tâches",
     "tabEpics": "Epics",
     "tabSprints": "Sprints",

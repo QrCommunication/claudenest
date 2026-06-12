@@ -4,25 +4,25 @@
     <PublicNav />
 
     <main class="page-main">
-      <!-- ============ HERO ============ -->
+      <!-- ============ 1. HERO ============ -->
       <section class="hero" id="top">
         <div class="hero-grid">
           <div class="hero-lede">
-            <span class="hero-badge" v-motion :initial="{ opacity: 0, y: 8 }" :enter="{ opacity: 1, y: 0, transition: { delay: 80 } }">
+            <span class="hero-badge" v-motion :initial="mInitial(8)" :enter="mEnter(80)">
               <span class="hero-badge-dot" />
               {{ t('landing.hero.badge') }}
             </span>
 
-            <h1 class="hero-title" v-motion :initial="{ opacity: 0, y: 16 }" :enter="{ opacity: 1, y: 0, transition: { delay: 140 } }">
+            <h1 class="hero-title" v-motion :initial="mInitial(16)" :enter="mEnter(140)">
               {{ t('landing.hero.title') }}<br />
-              <GradientText variant="aurora">{{ t('landing.hero.title_highlight') }}</GradientText>
+              <span class="hl">{{ t('landing.hero.title_highlight') }}</span>
             </h1>
 
-            <p class="hero-sub" v-motion :initial="{ opacity: 0, y: 12 }" :enter="{ opacity: 1, y: 0, transition: { delay: 220 } }">
+            <p class="hero-sub" v-motion :initial="mInitial()" :enter="mEnter(220)">
               {{ t('landing.hero.subtitle') }}
             </p>
 
-            <div class="hero-install" v-motion :initial="{ opacity: 0, y: 12 }" :enter="{ opacity: 1, y: 0, transition: { delay: 300 } }">
+            <div class="hero-install" v-motion :initial="mInitial()" :enter="mEnter(300)">
               <div class="hero-install-prompt">
                 <span class="hero-install-label">install-agent.sh</span>
                 <button type="button" class="hero-install-copy" @click="copyInstall" :aria-label="t('common.copy')">
@@ -41,14 +41,14 @@
               <pre class="hero-install-cmd"><span class="prompt-sign">$</span> <span class="cmd-text">{{ INSTALL_CMD }}</span></pre>
             </div>
 
-            <div class="hero-actions" v-motion :initial="{ opacity: 0, y: 12 }" :enter="{ opacity: 1, y: 0, transition: { delay: 360 } }">
-              <router-link to="/register" class="btn-primary">
+            <div class="hero-actions" v-motion :initial="mInitial()" :enter="mEnter(360)">
+              <router-link to="/docs/installation" class="btn-primary">
                 {{ t('landing.hero.cta_primary') }}
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
               </router-link>
-              <router-link to="/docs" class="btn-ghost">
+              <a href="#demo" class="btn-ghost">
                 {{ t('landing.hero.cta_secondary') }}
-              </router-link>
+              </a>
             </div>
 
             <p class="hero-micro" v-motion :initial="{ opacity: 0 }" :enter="{ opacity: 1, transition: { delay: 420 } }">
@@ -56,199 +56,145 @@
             </p>
           </div>
 
-          <div class="hero-visual" v-motion :initial="{ opacity: 0, x: 24 }" :enter="{ opacity: 1, x: 0, transition: { delay: 240 } }">
-            <div class="terminal">
-              <div class="terminal-chrome">
-                <span class="chrome-dot" data-c="r" />
-                <span class="chrome-dot" data-c="y" />
-                <span class="chrome-dot" data-c="g" />
-                <span class="terminal-title">claudenest ~ multi-agent session</span>
-                <span class="terminal-chip">
-                  <span class="chip-dot" />
-                  {{ $t('docLanding.terminalLive') }}
-                </span>
-              </div>
-              <div class="terminal-body">
-                <div
-                  v-for="(line, idx) in terminalLines"
-                  :key="idx"
-                  class="term-line"
-                  :style="{ animationDelay: `${line.delay}s` }"
-                >
-                  <span v-if="line.prompt" class="term-prompt">{{ line.prompt }}</span>
-                  <span :class="['term-text', line.class]">{{ line.text }}</span>
-                </div>
-                <div class="term-cursor">
-                  <span class="term-prompt">claudenest@pod</span>
-                  <span class="term-bar">|</span>
-                </div>
-              </div>
-              <div class="terminal-foot">
-                <div
-                  v-for="agent in agents"
-                  :key="agent.name"
-                  class="agent-chip"
-                  :style="{ '--agent-color': agent.color }"
-                >
-                  <span class="agent-dot" />
-                  <span class="agent-name">{{ agent.name }}</span>
-                  <span class="agent-file">{{ agent.file }}</span>
-                </div>
-              </div>
+          <div class="hero-visual" v-motion :initial="mInitial(20)" :enter="mEnter(240)">
+            <div ref="tiltRef" class="hero-tilt" :style="tiltStyle()">
+              <HeroOrchestrationDemo />
             </div>
-
-            <div class="terminal-glow" aria-hidden="true" />
+            <div class="hero-glow" aria-hidden="true" />
           </div>
         </div>
       </section>
 
-      <!-- ============ STATS STRIP ============ -->
-      <section class="stats">
-        <div class="stats-grid">
+      <!-- ============ 2. PROOF BAR ============ -->
+      <section class="proof">
+        <div class="proof-grid">
           <div
-            v-for="(stat, idx) in stats"
-            :key="stat.key"
-            class="stat"
+            v-for="(item, idx) in proofItems"
+            :key="item.key"
+            class="proof-item"
             v-motion
-            :initial="{ opacity: 0, y: 10 }"
-            :visible-once="{ opacity: 1, y: 0, transition: { delay: idx * 60 } }"
+            :initial="mInitial(10)"
+            :visible-once="mVisible(idx)"
           >
-            <div class="stat-value"><GradientText>{{ stat.value }}</GradientText></div>
-            <div class="stat-label">{{ t(`landing.hero.stats.${stat.key}`) }}</div>
+            <span class="proof-value">{{ item.value }}</span>
+            <span class="proof-label">{{ item.label }}</span>
           </div>
         </div>
       </section>
 
-      <!-- ============ PROBLEM ============ -->
+      <!-- ============ 3. PROBLEM ============ -->
       <section class="section section-problem" id="problem">
-        <SectionHeader
-          :badge="t('landing.features.badge')"
-          :title="t('landing.problem.title')"
-          :subtitle="t('landing.problem.transition')"
-        />
-        <div class="problem-grid">
-          <article v-for="(key, idx) in ['conflict','vanishing','blindfold']" :key="key" class="problem-card" v-motion :initial="{ opacity: 0, y: 12 }" :visible-once="{ opacity: 1, y: 0, transition: { delay: idx * 90 } }">
-            <span class="problem-num">{{ String(idx + 1).padStart(2, '0') }}</span>
-            <h3 class="problem-title">{{ t(`landing.problem.${key}.title`) }}</h3>
-            <p class="problem-desc">{{ t(`landing.problem.${key}.description`) }}</p>
+        <SectionHeader :title="t('landing.problem.title')" />
+        <div class="ledger">
+          <article
+            v-for="(key, idx) in PROBLEM_KEYS"
+            :key="key"
+            class="ledger-row"
+            v-motion
+            :initial="mInitial()"
+            :visible-once="mVisible(idx)"
+          >
+            <span class="ledger-num">{{ String(idx + 1).padStart(2, '0') }}</span>
+            <div class="ledger-body">
+              <h3 class="ledger-title">{{ t(`landing.problem.${key}.title`) }}</h3>
+              <p class="ledger-desc">{{ t(`landing.problem.${key}.description`) }}</p>
+            </div>
           </article>
         </div>
+        <p class="problem-transition" v-motion :initial="mInitial()" :visible-once="mVisible(3)">
+          {{ t('landing.problem.transition') }}
+        </p>
       </section>
 
-      <!-- ============ FEATURES BENTO ============ -->
-      <section class="section section-features" id="features">
-        <SectionHeader
-          :badge="t('landing.features.badge')"
-          align="center"
-        >
-          <template #title>
-            {{ t('landing.features.title') }}<GradientText>{{ t('landing.features.title_highlight') }}</GradientText>
-          </template>
-        </SectionHeader>
-        <p class="features-sub">{{ t('landing.features.subtitle') }}</p>
-
-        <div class="bento">
-          <article class="bento-item" v-motion :initial="{ opacity: 0, y: 18 }" :visible-once="{ opacity: 1, y: 0 }">
-            <div class="bento-icon is-purple">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18" /></svg>
-            </div>
-            <h3 class="bento-title">{{ t('landing.features.remote_access.title') }}</h3>
-            <p class="bento-desc">{{ t('landing.features.remote_access.description') }}</p>
-            <div class="bento-viz viz-globe">
-              <div v-for="n in 6" :key="n" class="ring" :style="{ '--i': n }" />
-            </div>
-          </article>
-
-          <article class="bento-item" v-motion :initial="{ opacity: 0, y: 18 }" :visible-once="{ opacity: 1, y: 0, transition: { delay: 80 } }">
-            <div class="bento-icon is-cyan">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>
-            </div>
-            <h3 class="bento-title">{{ t('landing.features.multi_agent.title') }}</h3>
-            <p class="bento-desc">{{ t('landing.features.multi_agent.description') }}</p>
-            <ul class="agent-queue">
-              <li v-for="(a, i) in agents" :key="a.name" class="queue-row" :style="{ '--agent-color': a.color, '--i': i }">
-                <span class="q-dot" />
-                <span class="q-name">{{ a.name }}</span>
-                <span class="q-file">{{ a.file }}</span>
-                <span class="q-status">{{ a.status }}</span>
+      <!-- ============ 4. ORCHESTRATION DEMO ============ -->
+      <section class="section section-demo" id="demo">
+        <div class="zig-grid">
+          <div class="zig-text" v-motion :initial="mInitial()" :visible-once="mVisible(0)">
+            <SectionHeader :title="t('landing.demo.title')" :subtitle="t('landing.demo.subtitle')" />
+            <ul class="demo-bullets">
+              <li v-for="(b, idx) in DEMO_BULLETS" :key="b.key" class="demo-bullet">
+                <span class="bullet-icon" v-html="b.icon" />
+                <p>
+                  <strong>{{ t(`landing.demo.bullets.${idx}.title`) }}</strong>
+                  — {{ t(`landing.demo.bullets.${idx}.description`) }}
+                </p>
               </li>
             </ul>
-          </article>
-
-          <article class="bento-item" v-motion :initial="{ opacity: 0, y: 18 }" :visible-once="{ opacity: 1, y: 0, transition: { delay: 120 } }">
-            <div class="bento-icon is-indigo">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" /></svg>
-            </div>
-            <h3 class="bento-title">{{ t('landing.features.context_rag.title') }}</h3>
-            <p class="bento-desc">{{ t('landing.features.context_rag.description') }}</p>
-          </article>
-
-          <article class="bento-item" v-motion :initial="{ opacity: 0, y: 18 }" :visible-once="{ opacity: 1, y: 0, transition: { delay: 160 } }">
-            <div class="bento-icon is-rose">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
-            </div>
-            <h3 class="bento-title">{{ t('landing.features.file_locking.title') }}</h3>
-            <p class="bento-desc">{{ t('landing.features.file_locking.description') }}</p>
-          </article>
-
-          <article class="bento-item" v-motion :initial="{ opacity: 0, y: 18 }" :visible-once="{ opacity: 1, y: 0, transition: { delay: 140 } }">
-            <div class="bento-icon is-emerald">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg>
-            </div>
-            <h3 class="bento-title">{{ t('landing.features.real_time.title') }}</h3>
-            <p class="bento-desc">{{ t('landing.features.real_time.description') }}</p>
-            <div class="bento-viz viz-stream">
-              <span v-for="n in 14" :key="n" class="stream-bar" :style="{ '--i': n }" />
-            </div>
-          </article>
-
-          <article class="bento-item" v-motion :initial="{ opacity: 0, y: 18 }" :visible-once="{ opacity: 1, y: 0, transition: { delay: 200 } }">
-            <div class="bento-icon is-cyan">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
-            </div>
-            <h3 class="bento-title">{{ t('landing.features.mcp_support.title') }}</h3>
-            <p class="bento-desc">{{ t('landing.features.mcp_support.description') }}</p>
-          </article>
+            <router-link to="/docs" class="text-link">
+              {{ t('landing.demo.link') }}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
+            </router-link>
+          </div>
+          <div class="zig-visual" v-motion :initial="mInitial(16)" :visible-once="mVisible(1)">
+            <KanbanAutoDemo />
+          </div>
         </div>
       </section>
 
-      <!-- ============ HOW IT WORKS ============ -->
+      <!-- ============ 5. HOW IT WORKS ============ -->
       <section class="section section-how" id="how">
-        <SectionHeader
-          :badge="t('landing.how_it_works.badge')"
-        >
+        <SectionHeader :badge="t('landing.how_it_works.badge')">
           <template #title>
-            {{ t('landing.how_it_works.title') }}<GradientText>{{ t('landing.how_it_works.title_highlight') }}</GradientText>
+            {{ t('landing.how_it_works.title') }}<span class="hl">{{ t('landing.how_it_works.title_highlight') }}</span>
           </template>
         </SectionHeader>
-        <p class="how-sub">{{ t('landing.how_it_works.subtitle') }}</p>
 
         <ol class="steps">
           <li
-            v-for="(step, idx) in steps"
+            v-for="(step, idx) in STEPS"
             :key="step.key"
             class="step"
             v-motion
-            :initial="{ opacity: 0, y: 18 }"
-            :visible-once="{ opacity: 1, y: 0, transition: { delay: idx * 110 } }"
+            :initial="mInitial(18)"
+            :visible-once="mVisible(idx)"
           >
             <span class="step-num">{{ String(idx + 1).padStart(2, '0') }}</span>
             <h3 class="step-title">{{ t(`landing.how_it_works.step_${idx + 1}.title`) }}</h3>
             <p class="step-desc">{{ t(`landing.how_it_works.step_${idx + 1}.description`) }}</p>
             <pre v-if="step.cmd" class="step-cmd"><span class="prompt-sign">$</span> {{ step.cmd }}</pre>
-            <span v-if="idx < steps.length - 1" class="step-connector" aria-hidden="true" />
+            <span v-if="idx < STEPS.length - 1" class="step-connector" aria-hidden="true" />
           </li>
         </ol>
+        <p class="how-note">{{ t('landing.how_it_works.note') }}</p>
       </section>
 
-      <!-- ============ COMPARISON ============ -->
-      <section class="section section-compare" id="compare">
+      <!-- ============ 6. FEATURES BENTO ============ -->
+      <section class="section section-features" id="features">
         <SectionHeader
-          :badge="t('landing.comparison.badge')"
-          :subtitle="t('landing.comparison.subtitle')"
+          :badge="t('landing.features.badge')"
+          :subtitle="t('landing.features.subtitle')"
+          align="center"
         >
           <template #title>
-            {{ t('landing.comparison.title') }}<GradientText>{{ t('landing.comparison.title_highlight') }}</GradientText>
+            {{ t('landing.features.title') }}<span class="hl">{{ t('landing.features.title_highlight') }}</span>
+          </template>
+        </SectionHeader>
+
+        <div class="bento">
+          <article
+            v-for="(card, idx) in BENTO_CARDS"
+            :key="card.key"
+            class="bento-item"
+            :class="`bento-${card.slot}`"
+            v-motion
+            :initial="mInitial(18)"
+            :visible-once="mVisible(idx)"
+          >
+            <div class="bento-icon" :class="card.iconClass" v-html="card.icon" />
+            <h3 class="bento-title">{{ t(`landing.features.${card.key}.title`) }}</h3>
+            <p class="bento-desc">{{ t(`landing.features.${card.key}.description`) }}</p>
+            <div v-if="card.key === 'locks'" class="bento-demo">
+              <LockDenyDemo />
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ============ 7. COMPARISON ============ -->
+      <section class="section section-compare" id="compare">
+        <SectionHeader :badge="t('landing.comparison.badge')" :subtitle="t('landing.comparison.subtitle')">
+          <template #title>
+            {{ t('landing.comparison.title') }}<span class="hl">{{ t('landing.comparison.title_highlight') }}</span>
           </template>
         </SectionHeader>
 
@@ -256,10 +202,10 @@
           <div class="compare-head">
             <div class="col-head">{{ t('landing.comparison.feature_label') }}</div>
             <div class="col-head is-us">ClaudeNest</div>
-            <div class="col-head">Swarm Tools</div>
-            <div class="col-head">DIY Scripts</div>
+            <div class="col-head">{{ t('landing.comparison.columns.swarm') }}</div>
+            <div class="col-head">{{ t('landing.comparison.columns.diy') }}</div>
           </div>
-          <div v-for="row in comparisonRows" :key="row.key" class="compare-row">
+          <div v-for="row in COMPARISON_ROWS" :key="row.key" class="compare-row">
             <div class="cell cell-label">{{ t(`landing.comparison.features.${row.key}`) }}</div>
             <div class="cell is-us"><Check /></div>
             <div class="cell">
@@ -276,77 +222,147 @@
         </div>
       </section>
 
-      <!-- ============ TESTIMONIALS ============ -->
-      <section class="section section-testi">
-        <SectionHeader
-          :badge="t('landing.testimonials.badge')"
-          align="center"
-        >
-          <template #title>
-            {{ t('landing.testimonials.title') }}<GradientText>{{ t('landing.testimonials.title_highlight') }}</GradientText>
-          </template>
-        </SectionHeader>
-
-        <div class="testi-grid">
-          <figure
-            v-for="i in [0, 1, 2]"
-            :key="i"
-            class="testi-card"
-            v-motion
-            :initial="{ opacity: 0, y: 16 }"
-            :visible-once="{ opacity: 1, y: 0, transition: { delay: i * 90 } }"
-          >
-            <svg class="testi-quote" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9.17 15H5a2 2 0 0 1-2-2V9a6 6 0 0 1 6-6v2a4 4 0 0 0-4 4h3a2 2 0 0 1 2 2v2a2 2 0 0 1-.83 2zm10 0H15a2 2 0 0 1-2-2V9a6 6 0 0 1 6-6v2a4 4 0 0 0-4 4h3a2 2 0 0 1 2 2v2a2 2 0 0 1-.83 2z" /></svg>
-            <blockquote class="testi-text">{{ t(`landing.testimonials.items.${i}.quote`) }}</blockquote>
-            <figcaption class="testi-foot">
-              <span class="testi-avatar" :style="{ background: avatarBg(i) }">{{ initial(t(`landing.testimonials.items.${i}.name`)) }}</span>
-              <span>
-                <span class="testi-name">{{ t(`landing.testimonials.items.${i}.name`) }}</span>
-                <span class="testi-role">{{ t(`landing.testimonials.items.${i}.role`) }}</span>
-              </span>
-            </figcaption>
-          </figure>
+      <!-- ============ 8. MEMORY ============ -->
+      <section class="section section-memory">
+        <div class="zig-grid is-reverse">
+          <div class="zig-visual" v-motion :initial="mInitial(16)" :visible-once="mVisible(1)">
+            <div class="mem-diagram" aria-hidden="true">
+              <div class="mem-node">worker session</div>
+              <svg class="mem-link" viewBox="0 0 2 36" width="2" height="36"><line x1="1" y1="0" x2="1" y2="36" /></svg>
+              <div class="mem-node is-core">
+                project memory
+                <span class="mem-sub">pgvector</span>
+              </div>
+              <svg class="mem-link" viewBox="0 0 2 36" width="2" height="36"><line x1="1" y1="0" x2="1" y2="36" /></svg>
+              <div class="mem-node">next worker</div>
+            </div>
+          </div>
+          <div class="zig-text" v-motion :initial="mInitial()" :visible-once="mVisible(0)">
+            <SectionHeader :title="t('landing.memory.title')" />
+            <p class="zig-body">{{ t('landing.memory.body') }}</p>
+            <ul class="check-list">
+              <li v-for="i in 3" :key="i">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
+                {{ t(`landing.memory.list.${i - 1}`) }}
+              </li>
+            </ul>
+            <p class="zig-note">{{ t('landing.memory.note') }}</p>
+          </div>
         </div>
       </section>
 
-      <!-- ============ PRICING TEASER ============ -->
+      <!-- ============ 9. PLANNING + COORDINATOR ============ -->
+      <section class="section section-planning">
+        <div class="zig-grid">
+          <div class="zig-text" v-motion :initial="mInitial()" :visible-once="mVisible(0)">
+            <SectionHeader :title="t('landing.planning.title')" />
+            <p class="zig-body">{{ t('landing.planning.body') }}</p>
+            <p class="planning-bullet">{{ t('landing.planning.bullet') }}</p>
+          </div>
+          <div class="zig-visual">
+            <div class="plan-visual" aria-hidden="true">
+              <div class="plan-chat">
+                <div
+                  v-for="(msg, idx) in PLAN_MESSAGES"
+                  :key="idx"
+                  class="chat-msg"
+                  :class="msg.kind"
+                  v-motion
+                  :initial="mInitial(10)"
+                  :visible-once="mVisibleAt(idx * 200)"
+                >{{ msg.text }}</div>
+              </div>
+              <div class="plan-cards">
+                <div
+                  v-for="(card, idx) in PLAN_CARDS"
+                  :key="card.title"
+                  class="plan-card"
+                  v-motion
+                  :initial="mInitial(10)"
+                  :visible-once="mVisibleAt(600 + idx * 100)"
+                >
+                  <span class="plan-card-title">{{ card.title }}</span>
+                  <span class="plan-card-pts">{{ card.pts }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 10. WHAT IS CLAUDENEST ============ -->
+      <section class="section section-whatis">
+        <div class="whatis-grid">
+          <div class="whatis-text" v-motion :initial="mInitial()" :visible-once="mVisible(0)">
+            <SectionHeader :title="t('landing.what_is.title')" />
+            <p class="whatis-body">{{ t('landing.what_is.body') }}</p>
+            <ul class="check-list">
+              <li v-for="i in 3" :key="i">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
+                {{ t(`landing.what_is.bullets.${i - 1}`) }}
+              </li>
+            </ul>
+            <p class="whatis-updated">{{ t('landing.what_is.updated') }}</p>
+          </div>
+          <div class="whatis-card" v-motion :initial="mInitial(16)" :visible-once="mVisible(1)">
+            <ul class="stack-list">
+              <li v-for="item in STACK_ITEMS" :key="item">{{ item }}</li>
+            </ul>
+            <pre class="stack-cmd"><span class="prompt-sign">$</span> {{ INSTALL_CMD }}</pre>
+            <a :href="GITHUB_URL" target="_blank" rel="noopener" class="text-link">
+              {{ t('landing.what_is.github') }}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 11. PRICING TEASER ============ -->
       <section class="section section-pricing-teaser" id="pricing">
-        <SectionHeader
-          :badge="t('landing.pricing.badge')"
-          :subtitle="t('landing.pricing.subtitle')"
-        >
+        <SectionHeader :badge="t('landing.pricing.badge')" :subtitle="t('landing.pricing.subtitle')">
           <template #title>
-            {{ t('landing.pricing.title') }}<GradientText>{{ t('landing.pricing.title_highlight') }}</GradientText>
+            {{ t('landing.pricing.title') }}<span class="hl">{{ t('landing.pricing.title_highlight') }}</span>
           </template>
         </SectionHeader>
 
-        <div class="tease-row">
+        <div class="tiers">
           <router-link
-            v-for="tier in (['community','pro','enterprise'] as const)"
-            :key="tier"
+            v-for="(tier, idx) in TIERS"
+            :key="tier.key"
             to="/pricing"
-            class="tease-card"
+            class="tier-card"
+            :class="{ 'is-pro': tier.key === 'pro' }"
+            v-motion
+            :initial="mInitial(14)"
+            :visible-once="mVisible(idx)"
           >
-            <span class="tease-name">{{ t(`landing.pricing.tiers.${tier}.name`) }}</span>
-            <span class="tease-price">
-              {{ t(`landing.pricing.tiers.${tier}.price`) }}
-              <small v-if="tier === 'pro'">{{ t('landing.pricing.tiers.pro.period') }}</small>
+            <span v-if="tier.key === 'pro'" class="tier-chip">{{ t('landing.pricing.most_popular') }}</span>
+            <span class="tier-name">{{ t(`landing.pricing.tiers.${tier.key}.name`) }}</span>
+            <span class="tier-price">
+              {{ t(`landing.pricing.tiers.${tier.key}.price`) }}
+              <small v-if="tier.key === 'pro'">{{ t('landing.pricing.tiers.pro.period') }}</small>
             </span>
-            <span class="tease-target">{{ t(`landing.pricing.tiers.${tier}.target`) }}</span>
-            <span class="tease-cta">
-              {{ t(`landing.pricing.tiers.${tier}.cta`) }}
+            <span class="tier-target">{{ t(`landing.pricing.tiers.${tier.key}.target`) }}</span>
+            <ul class="tier-features">
+              <li v-for="i in tier.featureCount" :key="i">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
+                {{ t(`landing.pricing.tiers.${tier.key}.features.${i - 1}`) }}
+              </li>
+            </ul>
+            <span class="tier-cta">
+              {{ t(`landing.pricing.tiers.${tier.key}.cta`) }}
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
             </span>
           </router-link>
         </div>
-        <p class="tease-note">{{ t('landing.pricing.note') }}</p>
+        <p class="tiers-note">{{ t('landing.pricing.note') }}</p>
       </section>
 
-      <!-- ============ FAQ ============ -->
+      <!-- ============ 12. FAQ ============ -->
       <section class="section section-faq">
         <SectionHeader align="center">
           <template #title>
-            {{ t('landing.faq.title') }}<GradientText>{{ t('landing.faq.title_highlight') }}</GradientText>
+            {{ t('landing.faq.title') }}<span class="hl">{{ t('landing.faq.title_highlight') }}</span>
           </template>
         </SectionHeader>
 
@@ -361,21 +377,21 @@
         </div>
       </section>
 
-      <!-- ============ FINAL CTA ============ -->
+      <!-- ============ 13. FINAL CTA ============ -->
       <section class="section section-cta">
         <div class="cta-panel">
           <div class="cta-text">
             <h2 class="cta-title">
-              {{ t('landing.cta.title') }}<GradientText>{{ t('landing.cta.title_highlight') }}</GradientText>
+              {{ t('landing.cta.title') }}<span class="hl">{{ t('landing.cta.title_highlight') }}</span>
             </h2>
             <p class="cta-sub">{{ t('landing.cta.subtitle') }}</p>
           </div>
           <div class="cta-actions">
-            <router-link to="/register" class="btn-primary">
+            <router-link to="/docs/installation" class="btn-primary">
               {{ t('landing.cta.cta_primary') }}
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
             </router-link>
-            <router-link to="/docs" class="btn-ghost">{{ t('landing.cta.cta_secondary') }}</router-link>
+            <a :href="GITHUB_URL" target="_blank" rel="noopener" class="btn-ghost">{{ t('landing.cta.cta_secondary') }}</a>
           </div>
           <div class="cta-mesh" aria-hidden="true" />
         </div>
@@ -387,20 +403,75 @@
 </template>
 
 <script setup lang="ts">
-import { ref, h, computed } from 'vue';
+import { computed, h, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import PublicNav from '@/components/public/PublicNav.vue';
 import PublicFooter from '@/components/public/PublicFooter.vue';
 import GrainOverlay from '@/components/public/GrainOverlay.vue';
 import SectionHeader from '@/components/public/SectionHeader.vue';
-import GradientText from '@/components/public/GradientText.vue';
+import HeroOrchestrationDemo from '@/components/public/demos/HeroOrchestrationDemo.vue';
+import KanbanAutoDemo from '@/components/public/demos/KanbanAutoDemo.vue';
+import LockDenyDemo from '@/components/public/demos/LockDenyDemo.vue';
+import { useTiltCard } from '@/composables/useTiltCard';
 
 const { t } = useI18n();
 
 const INSTALL_CMD = 'curl -fsSL https://claudenest.io/install-agent.sh | bash';
+const GITHUB_URL = 'https://github.com/QrCommunication/claudenest';
 
+// ---------------------------------------------------------------------------
+// Motion helpers — M-REVEAL (260ms, stagger 60ms) with reduced-motion fallback
+// (opacity only, 0.15s). matchMedia is checked at runtime, not only in CSS.
+// ---------------------------------------------------------------------------
+const prefersReduced = ref(false);
+let motionMq: MediaQueryList | null = null;
+
+function onMotionMqChange(): void {
+  prefersReduced.value = motionMq?.matches ?? false;
+}
+
+onMounted(() => {
+  motionMq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  prefersReduced.value = motionMq.matches;
+  motionMq.addEventListener('change', onMotionMqChange);
+});
+
+onUnmounted(() => {
+  motionMq?.removeEventListener('change', onMotionMqChange);
+  motionMq = null;
+});
+
+function mInitial(y = 12): Record<string, number> {
+  return prefersReduced.value ? { opacity: 0 } : { opacity: 0, y };
+}
+
+function mVisibleAt(delay: number): Record<string, unknown> {
+  return prefersReduced.value
+    ? { opacity: 1, transition: { duration: 150 } }
+    : { opacity: 1, y: 0, transition: { duration: 260, delay } };
+}
+
+function mVisible(idx = 0): Record<string, unknown> {
+  return mVisibleAt(idx * 60);
+}
+
+function mEnter(delay: number): Record<string, unknown> {
+  return prefersReduced.value
+    ? { opacity: 1, transition: { duration: 150 } }
+    : { opacity: 1, y: 0, transition: { duration: 260, delay } };
+}
+
+// ---------------------------------------------------------------------------
+// Hero tilt — ±3°, desktop pointer only (useTiltCard self-disables on touch
+// devices and under prefers-reduced-motion).
+// ---------------------------------------------------------------------------
+const { cardRef: tiltRef, tiltStyle } = useTiltCard({ maxTilt: 3, scale: 1.01 });
+
+// ---------------------------------------------------------------------------
+// Install copy
+// ---------------------------------------------------------------------------
 const copied = ref(false);
-async function copyInstall() {
+async function copyInstall(): Promise<void> {
   try {
     await navigator.clipboard.writeText(INSTALL_CMD);
     copied.value = true;
@@ -410,33 +481,57 @@ async function copyInstall() {
   }
 }
 
-const terminalLines = [
-  { prompt: 'claudenest@pod', text: ' claudenest sessions list --live', class: 'term-cmd', delay: 0.2 },
-  { prompt: '', text: 'Connected to 3 machines · 5 sessions · 2 shared projects', class: 'term-muted', delay: 0.6 },
-  { prompt: '', text: '[pod-01] atlas    src/api/auth.ts       holds lock · 34s', class: 'term-ok', delay: 1.1 },
-  { prompt: '', text: '[pod-01] nova     tests/auth.spec.ts    running suite', class: 'term-info', delay: 1.6 },
-  { prompt: '', text: '[pod-02] ember    rag.query("session token refresh")', class: 'term-magenta', delay: 2.1 },
-  { prompt: '', text: '>> task TSK-482 claimed by ember · files: 2 · ETA 00:42', class: 'term-warn', delay: 2.8 },
-  { prompt: '', text: '>> context updated · +47 chunks embedded via bge-small', class: 'term-ok', delay: 3.4 },
-];
-
-const stats = [
-  { key: 'agents', value: '5+' },
-  { key: 'embeddings', value: '384d' },
-  { key: 'latency', value: '<50ms' },
-  { key: 'open_source', value: '100%' },
-];
-
-const agents = computed(() => [
-  { name: 'atlas', file: 'src/api/auth.ts', status: t('docLanding.agentStatus.editing'), color: '#a855f7' },
-  { name: 'nova', file: 'tests/auth.spec.ts', status: t('docLanding.agentStatus.testing'), color: '#22d3ee' },
-  { name: 'ember', file: 'migrations/2026_04_users.sql', status: t('docLanding.agentStatus.waiting'), color: '#f472b6' },
+// ---------------------------------------------------------------------------
+// Section data (labels resolved through t() in computed/template — never in
+// top-level consts)
+// ---------------------------------------------------------------------------
+const proofItems = computed(() => [
+  { key: 'mcp_tools', value: '20', label: t('landing.proof.mcp_tools') },
+  { key: 'tests', value: '370+', label: t('landing.proof.tests') },
+  { key: 'wake', value: '~3 ms', label: t('landing.proof.wake') },
+  { key: 'mobile', value: 'iOS · Android', label: t('landing.proof.mobile') },
 ]);
 
-const steps = [
+const PROBLEM_KEYS = ['conflict', 'vanishing', 'blindfold'] as const;
+
+const ICONS = {
+  atomic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg>',
+  terminal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5" /><line x1="12" y1="19" x2="20" y2="19" /></svg>',
+  board: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><line x1="9" y1="3" x2="9" y2="21" /><line x1="15" y1="3" x2="15" y2="21" /></svg>',
+  lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>',
+  plug: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>',
+  stream: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>',
+  key: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" /></svg>',
+  siren: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>',
+  pulse: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /><polyline points="3.5 12 8 12 10 9 14 15 16 12 20.5 12" /></svg>',
+} as const;
+
+const DEMO_BULLETS = [
+  { key: 'atomic', icon: ICONS.atomic },
+  { key: 'sessions', icon: ICONS.terminal },
+  { key: 'board', icon: ICONS.board },
+] as const;
+
+const STEPS = [
   { key: 'install', cmd: INSTALL_CMD },
-  { key: 'pair', cmd: 'claudenest machines pair --token $CN_TOKEN' },
-  { key: 'orchestrate', cmd: 'claudenest projects open --share src/' },
+  { key: 'pair', cmd: null },
+  { key: 'orchestrate', cmd: null },
+] as const;
+
+interface BentoCard {
+  key: string;
+  slot: 'a' | 'b' | 'c' | 'd' | 'e' | 'f';
+  icon: string;
+  iconClass: string;
+}
+
+const BENTO_CARDS: readonly BentoCard[] = [
+  { key: 'locks', slot: 'a', icon: ICONS.lock, iconClass: 'is-purple' },
+  { key: 'mcp', slot: 'b', icon: ICONS.plug, iconClass: 'is-cyan' },
+  { key: 'board', slot: 'c', icon: ICONS.board, iconClass: 'is-indigo' },
+  { key: 'credentials', slot: 'd', icon: ICONS.key, iconClass: 'is-rose' },
+  { key: 'coordinator', slot: 'e', icon: ICONS.siren, iconClass: 'is-amber' },
+  { key: 'health', slot: 'f', icon: ICONS.pulse, iconClass: 'is-emerald' },
 ];
 
 type SupportState = boolean | 'partial';
@@ -447,18 +542,50 @@ interface ComparisonRow {
   diy: SupportState;
 }
 
-const comparisonRows: ComparisonRow[] = [
+const COMPARISON_ROWS: readonly ComparisonRow[] = [
   { key: 'multi_agent', swarm: true, diy: false },
   { key: 'web_dashboard', swarm: false, diy: false },
   { key: 'mobile_app', swarm: false, diy: false },
   { key: 'rag_context', swarm: 'partial', diy: false },
   { key: 'file_locking', swarm: false, diy: false },
-  { key: 'claude_specific', swarm: false, diy: false },
+  { key: 'attachable_terminals', swarm: false, diy: 'partial' },
   { key: 'websocket', swarm: 'partial', diy: 'partial' },
   { key: 'mcp_support', swarm: false, diy: false },
   { key: 'open_source', swarm: true, diy: true },
 ];
 
+// Simulated product content — hardcoded EN by design, like the demo mockups.
+const PLAN_MESSAGES = [
+  { kind: 'is-user', text: 'Ship API rate limiting before Friday — protect the public endpoints.' },
+  { kind: 'is-agent', text: 'Drafted 1 epic · 4 tasks · Sprint 15 scheduled against velocity 21' },
+  { kind: 'is-agent is-ok', text: '✓ All actions applied — board updated' },
+] as const;
+
+const PLAN_CARDS = [
+  { title: 'Add token-bucket middleware', pts: 3 },
+  { title: 'Redis counters with TTL', pts: 2 },
+  { title: '429 responses + Retry-After', pts: 2 },
+  { title: 'Load-test the limiter', pts: 5 },
+] as const;
+
+const STACK_ITEMS = [
+  'Laravel · Reverb',
+  'PostgreSQL + pgvector',
+  'Redis',
+  'Node.js agent',
+  'Vue 3 dashboard',
+  '370+ tests',
+] as const;
+
+const TIERS = [
+  { key: 'community', featureCount: 4 },
+  { key: 'pro', featureCount: 3 },
+  { key: 'enterprise', featureCount: 3 },
+] as const;
+
+// ---------------------------------------------------------------------------
+// Comparison cell icons
+// ---------------------------------------------------------------------------
 const Check = () =>
   h(
     'svg',
@@ -502,20 +629,6 @@ const Partial = () =>
     },
     [h('circle', { cx: 12, cy: 12, r: 9 }), h('path', { d: 'M12 3a9 9 0 0 1 0 18' })],
   );
-
-function initial(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  return (parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '');
-}
-
-function avatarBg(i: number): string {
-  const palettes = [
-    'linear-gradient(135deg, #a855f7, #6366f1)',
-    'linear-gradient(135deg, #22d3ee, #6366f1)',
-    'linear-gradient(135deg, #f472b6, #a855f7)',
-  ];
-  return palettes[i % palettes.length];
-}
 </script>
 
 <style scoped>
@@ -542,28 +655,122 @@ function avatarBg(i: number): string {
   gap: 2.5rem;
 }
 
-/* ============ HERO ============ */
+.hl {
+  color: var(--accent-purple);
+}
+
+/* ============ BUTTONS ============ */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  background: var(--accent-purple);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 0.7rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 10px 24px -10px rgba(168, 85, 247, 0.55);
+  transition: transform 0.08s ease, box-shadow 0.25s ease, background 0.2s ease;
+}
+
+.btn-primary svg {
+  width: 15px;
+  height: 15px;
+  transition: transform 0.25s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.btn-primary:hover {
+  background: color-mix(in srgb, var(--accent-purple) 88%, #ffffff);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    0 14px 30px -10px rgba(168, 85, 247, 0.65);
+}
+
+.btn-primary:hover svg {
+  transform: translateX(3px);
+}
+
+.btn-primary:active {
+  transform: scale(0.97);
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.2rem;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 0.7rem;
+  transition: transform 0.08s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-ghost:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-hover);
+}
+
+.btn-ghost:active {
+  transform: scale(0.97);
+}
+
+.text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  align-self: flex-start;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--accent-purple);
+  cursor: pointer;
+}
+
+.text-link svg {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.25s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.text-link:hover svg {
+  transform: translateX(3px);
+}
+
+.text-link:active {
+  transform: scale(0.97);
+}
+
+/* ============ 1. HERO ============ */
 .hero {
   position: relative;
   max-width: 1400px;
   margin: 0 auto;
   padding: clamp(3rem, 6vw, 6rem) clamp(1rem, 4vw, 2.5rem) clamp(4rem, 8vw, 7rem);
-  min-height: calc(100dvh - 64px);
   display: flex;
   align-items: center;
 }
 
 .hero-grid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: clamp(2rem, 4vw, 4rem);
+  /* minmax(0,1fr) : sans le min 0, la piste ne peut pas rétrécir sous le
+     min-content du <pre> de la commande curl → colonne 515px clippée à 375px */
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(2rem, 4vw, 3rem);
   width: 100%;
   align-items: center;
 }
 
-@media (min-width: 960px) {
+@media (min-width: 1024px) {
   .hero-grid {
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.95fr);
+    grid-template-columns: minmax(0, 46%) 1fr;
   }
 }
 
@@ -572,6 +779,7 @@ function avatarBg(i: number): string {
   flex-direction: column;
   gap: 1.3rem;
   max-width: 36rem;
+  min-width: 0;
 }
 
 .hero-badge {
@@ -605,10 +813,10 @@ function avatarBg(i: number): string {
 }
 
 .hero-title {
-  font-size: clamp(2.4rem, 5.6vw, 4.4rem);
-  line-height: 1.18;
+  font-size: clamp(2.3rem, 4.6vw, 3.75rem);
+  line-height: 1.12;
   font-weight: 700;
-  letter-spacing: -0.024em;
+  letter-spacing: -0.025em;
   color: var(--text-primary);
   word-break: normal;
   overflow-wrap: break-word;
@@ -617,7 +825,7 @@ function avatarBg(i: number): string {
 
 .hero-sub {
   max-width: 34rem;
-  font-size: clamp(1rem, 1.25vw, 1.18rem);
+  font-size: clamp(1rem, 1.25vw, 1.14rem);
   line-height: 1.6;
   color: var(--text-secondary);
 }
@@ -656,10 +864,11 @@ function avatarBg(i: number): string {
   font-size: 0.72rem;
   font-weight: 500;
   color: var(--text-secondary);
+  cursor: pointer;
   background: transparent;
   border: 1px solid var(--border-color);
   border-radius: 0.45rem;
-  transition: color 0.18s, background 0.18s, border-color 0.18s;
+  transition: color 0.18s, background 0.18s, border-color 0.18s, transform 0.08s ease;
 }
 
 .hero-install-copy:hover {
@@ -669,7 +878,7 @@ function avatarBg(i: number): string {
 }
 
 .hero-install-copy:active {
-  transform: translateY(1px);
+  transform: scale(0.97);
 }
 
 .copy-ic {
@@ -723,530 +932,237 @@ function avatarBg(i: number): string {
   align-items: center;
 }
 
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  font-size: 0.92rem;
-  font-weight: 600;
-  color: #fff;
-  background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-indigo) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 0.7rem;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    0 10px 24px -10px rgba(168, 85, 247, 0.6);
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
-}
-
-.btn-primary svg {
-  width: 15px;
-  height: 15px;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.24),
-    0 14px 30px -10px rgba(168, 85, 247, 0.7);
-}
-
-.btn-primary:hover svg {
-  transform: translateX(3px);
-}
-
-.btn-primary:active {
-  transform: translateY(0);
-}
-
-.btn-ghost {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.2rem;
-  font-size: 0.92rem;
-  font-weight: 500;
-  color: var(--text-primary);
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 0.7rem;
-  transition: background 0.2s ease, border-color 0.2s ease;
-}
-
-.btn-ghost:hover {
-  background: var(--bg-hover);
-  border-color: var(--border-hover);
-}
-
 .hero-micro {
   font-size: 0.78rem;
   color: var(--text-muted);
 }
 
-/* ============ HERO TERMINAL ============ */
 .hero-visual {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  min-width: 0;
 }
 
-.terminal-glow {
+.hero-tilt {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 42rem;
+}
+
+.hero-glow {
   position: absolute;
-  inset: -10% -5% -10% -5%;
+  inset: -8% -4%;
   background:
-    radial-gradient(50% 50% at 50% 50%, rgba(168, 85, 247, 0.18), transparent 70%),
-    radial-gradient(40% 40% at 80% 20%, rgba(34, 211, 238, 0.14), transparent 70%);
-  filter: blur(30px);
+    radial-gradient(50% 50% at 50% 50%, color-mix(in srgb, var(--accent-purple) 12%, transparent), transparent 70%);
+  filter: blur(32px);
   z-index: 0;
   pointer-events: none;
 }
 
-.terminal {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  max-width: 34rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 1rem;
-  box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  overflow: hidden;
-}
-
-.terminal-chrome {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.7rem 1rem;
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
-}
-
-.chrome-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
-
-.chrome-dot[data-c='r'] { background: #ff5f57; }
-.chrome-dot[data-c='y'] { background: #febc2e; }
-.chrome-dot[data-c='g'] { background: #28c840; }
-
-.terminal-title {
-  margin-left: 0.7rem;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  flex: 1;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.terminal-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.22rem 0.55rem;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem;
-  color: var(--status-success);
-  background: color-mix(in srgb, var(--status-success) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--status-success) 24%, transparent);
-  border-radius: 999px;
-}
-
-.chip-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--status-success);
-  animation: pulseDot 1.8s ease-in-out infinite;
-}
-
-.terminal-body {
-  position: relative;
-  padding: 1rem 1.1rem;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.82rem;
-  line-height: 1.65;
-  min-height: 240px;
-  background: var(--bg-primary);
-}
-
-.term-line {
-  opacity: 0;
-  transform: translateY(4px);
-  animation: lineIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes lineIn {
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.term-prompt {
-  color: var(--accent-cyan);
-  margin-right: 0.35rem;
-}
-
-.term-text.term-cmd { color: var(--text-primary); }
-.term-text.term-muted { color: var(--text-muted); }
-.term-text.term-ok { color: var(--status-success); }
-.term-text.term-info { color: var(--accent-cyan); }
-.term-text.term-warn { color: #fbbf24; }
-.term-text.term-magenta { color: #f472b6; }
-
-.term-cursor {
-  display: inline-flex;
-  gap: 0.3rem;
-  margin-top: 0.3rem;
-}
-
-.term-bar {
-  color: var(--accent-cyan);
-  animation: blink 1s step-end infinite;
-}
-
-@keyframes blink {
-  50% { opacity: 0; }
-}
-
-.terminal-foot {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.5rem;
-  padding: 0.75rem;
-  background: var(--bg-secondary);
-  border-top: 1px solid var(--border-color);
-}
-
-.agent-chip {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  padding: 0.55rem 0.65rem;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 0.55rem;
-  font-size: 0.68rem;
-  font-family: 'JetBrains Mono', monospace;
-}
-
-.agent-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--agent-color);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--agent-color) 22%, transparent);
-}
-
-.agent-name {
-  color: var(--agent-color);
-  font-weight: 600;
-}
-
-.agent-file {
-  color: var(--text-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* ============ STATS ============ */
-.stats {
+/* ============ 2. PROOF BAR ============ */
+.proof {
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 clamp(1rem, 4vw, 2.5rem);
 }
 
-.stats-grid {
+.proof-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 0;
+  gap: 1.25rem 1rem;
   padding: 2rem 0;
   border-top: 1px solid var(--border-color);
   border-bottom: 1px solid var(--border-color);
 }
 
-@media (min-width: 720px) {
-  .stats-grid { grid-template-columns: repeat(4, 1fr); }
+@media (min-width: 880px) {
+  .proof-grid {
+    display: flex;
+    justify-content: space-between;
+    gap: 2rem;
+  }
 }
 
-.stat {
+.proof-item {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  padding: 0.8rem 1.2rem;
-  border-right: 1px solid var(--border-color);
+  gap: 0.3rem;
 }
 
-.stat:last-child { border-right: none; }
-
-@media (max-width: 719px) {
-  .stat:nth-child(2n) { border-right: none; }
-  .stat:nth-child(-n+2) { border-bottom: 1px solid var(--border-color); padding-bottom: 1.2rem; }
-  .stat:nth-child(n+3) { padding-top: 1.2rem; }
-}
-
-.stat-value {
-  font-size: clamp(1.8rem, 3.4vw, 2.6rem);
-  font-weight: 700;
-  letter-spacing: -0.03em;
+.proof-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(1.3rem, 2.4vw, 1.8rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
-  line-height: 1;
+  color: var(--text-primary);
+  line-height: 1.1;
 }
 
-.stat-label {
-  font-size: 0.78rem;
+.proof-label {
+  font-size: 0.76rem;
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  max-width: 16rem;
+  line-height: 1.45;
 }
 
-/* ============ PROBLEM ============ */
-.problem-grid {
+/* ============ 3. PROBLEM ============ */
+.section-problem {
+  align-items: flex-start;
+}
+
+.ledger {
+  width: 100%;
+  max-width: 56rem;
+}
+
+.ledger-row {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 0.5rem;
+  padding: 1.6rem 0;
+  border-top: 1px solid var(--border-color);
+}
+
+.ledger-row:last-child {
+  border-bottom: 1px solid var(--border-color);
+}
+
+@media (max-width: 560px) {
+  .ledger-row {
+    grid-template-columns: 48px 1fr;
+  }
+}
+
+.ledger-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: color-mix(in srgb, var(--accent-purple) 40%, transparent);
+  padding-top: 0.2rem;
+}
+
+.ledger-title {
+  margin-bottom: 0.5rem;
+  font-size: clamp(1.1rem, 1.6vw, 1.3rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.ledger-desc {
+  max-width: 40rem;
+  font-size: 0.94rem;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+
+.problem-transition {
+  font-size: clamp(1.05rem, 1.5vw, 1.25rem);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--accent-purple);
+}
+
+/* ============ ZIG-ZAG LAYOUTS ============ */
+.zig-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1.25rem;
+  gap: clamp(2rem, 4vw, 3.5rem);
+  align-items: center;
 }
 
-@media (min-width: 840px) {
-  .problem-grid { grid-template-columns: repeat(3, 1fr); }
+@media (min-width: 1024px) {
+  .zig-grid {
+    grid-template-columns: 40% 1fr;
+  }
+
+  .zig-grid.is-reverse {
+    grid-template-columns: 1fr 42%;
+  }
 }
 
-.problem-card {
-  position: relative;
-  padding: 1.75rem 1.5rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 1rem;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+@media (max-width: 1023px) {
+  .zig-grid.is-reverse .zig-visual {
+    order: 2;
+  }
+  .zig-grid.is-reverse .zig-text {
+    order: 1;
+  }
 }
 
-.problem-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--border-hover);
+.zig-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0;
 }
 
-.problem-num {
-  display: inline-block;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.72rem;
-  color: var(--accent-purple);
-  letter-spacing: 0.08em;
-  margin-bottom: 0.9rem;
+.zig-visual {
+  min-width: 0;
 }
 
-.problem-title {
-  margin-bottom: 0.6rem;
-  font-size: 1.12rem;
-  font-weight: 600;
-  line-height: 1.3;
+.zig-body {
+  max-width: 38rem;
+  font-size: 0.98rem;
+  line-height: 1.7;
+  color: var(--text-secondary);
 }
 
-.problem-desc {
+.zig-note {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+/* ============ 4. DEMO ============ */
+.demo-bullets {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.demo-bullet {
+  display: flex;
+  gap: 0.8rem;
+  align-items: flex-start;
+}
+
+.demo-bullet p {
   font-size: 0.92rem;
   line-height: 1.6;
   color: var(--text-secondary);
 }
 
-/* ============ FEATURES BENTO ============ */
-.features-sub {
-  max-width: 42rem;
-  margin: 0 auto;
-  text-align: center;
-  font-size: clamp(0.98rem, 1.1vw, 1.1rem);
-  color: var(--text-secondary);
+.demo-bullet strong {
+  color: var(--text-primary);
+  font-weight: 600;
 }
 
-.bento {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.1rem;
-}
-
-@media (min-width: 720px) {
-  .bento {
-    grid-template-columns: repeat(6, 1fr);
-    grid-auto-rows: minmax(14rem, auto);
-  }
-  .bento-item { grid-column: span 3; }
-  .bento-item:nth-child(1) { grid-column: span 4; }
-  .bento-item:nth-child(2) { grid-column: span 2; grid-row: span 2; }
-  .bento-item:nth-child(3) { grid-column: span 2; }
-  .bento-item:nth-child(4) { grid-column: span 2; }
-  .bento-item:nth-child(5) { grid-column: span 4; }
-  .bento-item:nth-child(6) { grid-column: span 6; }
-}
-
-.bento-item {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  padding: 1.75rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 1.15rem;
-  overflow: hidden;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
-}
-
-.bento-item::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(60% 80% at 85% 0%, color-mix(in srgb, var(--accent-purple) 10%, transparent), transparent 60%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-}
-
-.bento-item:hover {
-  transform: translateY(-2px);
-  border-color: color-mix(in srgb, var(--accent-purple) 36%, var(--border-color));
-}
-
-.bento-item:hover::before { opacity: 1; }
-
-.bento-icon {
+.bullet-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 0.75rem;
-  margin-bottom: 0.45rem;
-}
-
-.bento-icon svg {
-  width: 20px;
-  height: 20px;
-}
-
-.bento-icon.is-purple { color: var(--accent-purple); background: color-mix(in srgb, var(--accent-purple) 12%, transparent); }
-.bento-icon.is-cyan { color: var(--accent-cyan); background: color-mix(in srgb, var(--accent-cyan) 12%, transparent); }
-.bento-icon.is-indigo { color: var(--accent-indigo); background: color-mix(in srgb, var(--accent-indigo) 12%, transparent); }
-.bento-icon.is-rose { color: #f472b6; background: rgba(244, 114, 182, 0.12); }
-.bento-icon.is-emerald { color: var(--status-success); background: color-mix(in srgb, var(--status-success) 12%, transparent); }
-
-.bento-title {
-  font-size: 1.14rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
-
-.bento-desc {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  line-height: 1.6;
-}
-
-.bento-viz {
-  position: relative;
-  margin-top: auto;
-  padding-top: 1.25rem;
-}
-
-.viz-globe {
-  height: 110px;
-  overflow: hidden;
-}
-
-.viz-globe .ring {
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  width: calc(50px * var(--i));
-  height: calc(50px * var(--i));
-  border: 1px solid color-mix(in srgb, var(--accent-purple) 24%, transparent);
-  border-radius: 50%;
-  transform: translate(-50%, 50%);
-  animation: ringPulse 4.5s ease-in-out infinite;
-  animation-delay: calc(var(--i) * 0.25s);
-}
-
-@keyframes ringPulse {
-  0%, 100% { opacity: 0.35; }
-  50% { opacity: 1; }
-}
-
-.agent-queue {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 0.6rem;
-  list-style: none;
-  padding: 0;
-}
-
-.queue-row {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 0.5rem;
-  align-items: center;
-  padding: 0.55rem 0.7rem;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  width: 32px;
+  height: 32px;
+  flex: none;
+  color: var(--accent-purple);
+  background: color-mix(in srgb, var(--accent-purple) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-purple) 20%, transparent);
   border-radius: 0.55rem;
-  font-size: 0.74rem;
-  font-family: 'JetBrains Mono', monospace;
-  animation: queueIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
-  animation-delay: calc(var(--i) * 0.1s + 0.2s);
 }
 
-@keyframes queueIn {
-  from { opacity: 0; transform: translateX(-8px); }
-  to { opacity: 1; transform: translateX(0); }
+.bullet-icon :deep(svg) {
+  width: 15px;
+  height: 15px;
 }
 
-.q-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--agent-color);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--agent-color) 22%, transparent);
-}
-
-.q-name { color: var(--agent-color); font-weight: 600; grid-column: 2; }
-.q-file { grid-column: 2; color: var(--text-muted); font-size: 0.68rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.q-status { color: var(--text-secondary); font-size: 0.66rem; }
-
-.viz-stream {
-  display: grid;
-  grid-template-columns: repeat(14, 1fr);
-  gap: 3px;
-  align-items: end;
-  height: 60px;
-}
-
-.stream-bar {
-  height: 100%;
-  background: linear-gradient(180deg, var(--accent-cyan), var(--accent-indigo));
-  border-radius: 2px;
-  opacity: 0.4;
-  transform-origin: bottom;
-  animation: barPulse 2.4s ease-in-out infinite;
-  animation-delay: calc(var(--i) * 0.1s);
-}
-
-@keyframes barPulse {
-  0%, 100% { transform: scaleY(0.35); opacity: 0.35; }
-  50% { transform: scaleY(1); opacity: 0.9; }
-}
-
-/* ============ HOW IT WORKS ============ */
-.how-sub {
-  max-width: 38rem;
-  font-size: 1rem;
-  color: var(--text-secondary);
-}
-
+/* ============ 5. HOW IT WORKS ============ */
 .steps {
   display: grid;
   grid-template-columns: 1fr;
@@ -1256,7 +1172,10 @@ function avatarBg(i: number): string {
 }
 
 @media (min-width: 840px) {
-  .steps { grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+  .steps {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
 }
 
 .step {
@@ -1274,10 +1193,7 @@ function avatarBg(i: number): string {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
   letter-spacing: 0.1em;
-  background: linear-gradient(135deg, var(--accent-purple), var(--accent-indigo), var(--accent-cyan));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--accent-purple);
   font-weight: 700;
 }
 
@@ -1321,7 +1237,100 @@ function avatarBg(i: number): string {
   }
 }
 
-/* ============ COMPARE ============ */
+.how-note {
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}
+
+/* ============ 6. BENTO ============ */
+.bento {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.1rem;
+}
+
+@media (min-width: 720px) and (max-width: 1023px) {
+  .bento {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .bento-a {
+    grid-column: span 2;
+  }
+  .bento-f {
+    grid-column: span 2;
+  }
+}
+
+@media (min-width: 1024px) {
+  .bento {
+    grid-template-columns: repeat(12, 1fr);
+  }
+  .bento-a { grid-column: span 7; grid-row: span 2; }
+  .bento-b { grid-column: span 5; }
+  .bento-c { grid-column: span 5; }
+  .bento-d { grid-column: span 4; }
+  .bento-e { grid-column: span 4; }
+  .bento-f { grid-column: span 4; }
+}
+
+.bento-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1.75rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 1.15rem;
+  overflow: hidden;
+  transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1), border-color 0.25s ease;
+}
+
+.bento-item:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--accent-purple) 36%, var(--border-color));
+}
+
+.bento-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 0.75rem;
+  margin-bottom: 0.45rem;
+}
+
+.bento-icon :deep(svg) {
+  width: 20px;
+  height: 20px;
+}
+
+.bento-icon.is-purple { color: var(--accent-purple); background: color-mix(in srgb, var(--accent-purple) 12%, transparent); }
+.bento-icon.is-cyan { color: var(--accent-cyan); background: color-mix(in srgb, var(--accent-cyan) 12%, transparent); }
+.bento-icon.is-indigo { color: var(--accent-indigo); background: color-mix(in srgb, var(--accent-indigo) 12%, transparent); }
+.bento-icon.is-rose { color: #f472b6; background: rgba(244, 114, 182, 0.12); }
+.bento-icon.is-amber { color: #fbbf24; background: rgba(251, 191, 36, 0.12); }
+.bento-icon.is-emerald { color: var(--status-success); background: color-mix(in srgb, var(--status-success) 12%, transparent); }
+
+.bento-title {
+  font-size: 1.14rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.bento-desc {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.bento-demo {
+  margin-top: auto;
+  padding-top: 1.1rem;
+}
+
+/* ============ 7. COMPARE ============ */
 .compare-table {
   overflow-x: auto;
   background: var(--bg-card);
@@ -1359,7 +1368,9 @@ function avatarBg(i: number): string {
   transition: background 0.18s ease;
 }
 
-.compare-row:hover { background: var(--bg-hover); }
+.compare-row:hover {
+  background: var(--bg-hover);
+}
 
 .cell {
   padding: 1rem 1.1rem;
@@ -1383,99 +1394,263 @@ function avatarBg(i: number): string {
 
 .ic-ok { color: var(--status-success); }
 .ic-off { color: var(--text-muted); opacity: 0.5; }
-.ic-partial { color: var(--status-warning); }
+.ic-partial { color: #fbbf24; }
 
-/* ============ TESTIMONIALS ============ */
-.testi-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.15rem;
-}
-
-@media (min-width: 840px) {
-  .testi-grid { grid-template-columns: repeat(3, 1fr); }
-}
-
-.testi-card {
-  position: relative;
-  padding: 1.75rem 1.6rem 1.5rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 1rem;
+/* ============ 8. MEMORY ============ */
+.check-list {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s;
-}
-
-.testi-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--border-hover);
-}
-
-.testi-quote {
-  width: 22px;
-  height: 22px;
-  color: var(--accent-purple);
-  opacity: 0.6;
-}
-
-.testi-text {
+  gap: 0.65rem;
+  list-style: none;
+  padding: 0;
   margin: 0;
-  font-size: 0.96rem;
-  line-height: 1.65;
-  color: var(--text-primary);
 }
 
-.testi-foot {
+.check-list li {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-top: auto;
-  padding-top: 0.9rem;
-  border-top: 1px solid var(--border-color);
+  align-items: flex-start;
+  gap: 0.55rem;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
 }
 
-.testi-avatar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: #fff;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-purple) 12%, transparent);
-  letter-spacing: 0.02em;
+.check-list svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  margin-top: 0.18rem;
+  color: var(--status-success);
 }
 
-.testi-name {
-  display: block;
-  font-size: 0.88rem;
+.mem-diagram {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 1.15rem;
+}
+
+.mem-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.8rem 1.6rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.7rem;
+}
+
+.mem-node.is-core {
+  color: var(--accent-purple);
   font-weight: 600;
-  color: var(--text-primary);
+  border-color: color-mix(in srgb, var(--accent-purple) 36%, transparent);
+  background: color-mix(in srgb, var(--accent-purple) 7%, var(--bg-secondary));
 }
 
-.testi-role {
-  display: block;
-  font-size: 0.76rem;
+.mem-sub {
+  font-size: 0.62rem;
+  font-weight: 400;
   color: var(--text-muted);
 }
 
-/* ============ PRICING TEASER ============ */
-.tease-row {
+.mem-link line {
+  stroke: color-mix(in srgb, var(--accent-purple) 45%, transparent);
+  stroke-width: 2;
+  stroke-dasharray: 4 6;
+  animation: memDash 4s linear infinite;
+}
+
+@keyframes memDash {
+  to { stroke-dashoffset: -40; }
+}
+
+/* ============ 9. PLANNING ============ */
+.planning-bullet {
+  max-width: 38rem;
+  padding-left: 1rem;
+  border-left: 2px solid var(--accent-purple);
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+
+.plan-visual {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: clamp(1.25rem, 2.5vw, 1.75rem);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 1.15rem;
+}
+
+.plan-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.chat-msg {
+  max-width: 85%;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  border-radius: 0.7rem;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.chat-msg.is-user {
+  align-self: flex-end;
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--accent-purple) 12%, var(--bg-secondary));
+  border-color: color-mix(in srgb, var(--accent-purple) 26%, transparent);
+}
+
+.chat-msg.is-ok {
+  color: var(--status-success);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+}
+
+.plan-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--border-color);
+}
+
+@media (max-width: 480px) {
+  .plan-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+.plan-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.55rem;
+}
+
+.plan-card-pts {
+  flex: none;
+  padding: 0 0.4rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.64rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-purple);
+  background: color-mix(in srgb, var(--accent-purple) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-purple) 22%, transparent);
+  border-radius: 999px;
+}
+
+/* ============ 10. WHAT IS ============ */
+.whatis-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(2rem, 4vw, 3.5rem);
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .whatis-grid {
+    grid-template-columns: 55% 1fr;
+  }
+}
+
+.whatis-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0;
+}
+
+.whatis-body {
+  max-width: 44rem;
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: var(--text-secondary);
+}
+
+.whatis-updated {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.whatis-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  padding: clamp(1.5rem, 2.5vw, 2rem);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 1.15rem;
+}
+
+.stack-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.stack-list li {
+  padding: 0.32rem 0.7rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+}
+
+.stack-cmd {
+  margin: 0;
+  padding: 0.75rem 0.9rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.74rem;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.6rem;
+  overflow-x: auto;
+}
+
+/* ============ 11. PRICING TEASER ============ */
+.tiers {
   display: grid;
   grid-template-columns: 1fr;
   gap: 1.1rem;
 }
 
 @media (min-width: 840px) {
-  .tease-row { grid-template-columns: repeat(3, 1fr); }
+  .tiers {
+    grid-template-columns: repeat(3, 1fr);
+    align-items: stretch;
+  }
 }
 
-.tease-card {
+.tier-card {
   position: relative;
   padding: 1.75rem 1.5rem;
   background: var(--bg-card);
@@ -1483,70 +1658,134 @@ function avatarBg(i: number): string {
   border-radius: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s;
+  gap: 0.55rem;
+  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(0.23, 1, 0.32, 1), border-color 0.2s;
 }
 
-.tease-card:hover {
+.tier-card:hover {
   transform: translateY(-2px);
   border-color: color-mix(in srgb, var(--accent-purple) 36%, var(--border-color));
 }
 
-.tease-name {
+.tier-card:active {
+  transform: scale(0.97);
+}
+
+.tier-card.is-pro {
+  border-color: color-mix(in srgb, var(--accent-purple) 55%, var(--border-color));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-purple) 40%, transparent), var(--shadow-md);
+}
+
+@media (min-width: 840px) {
+  .tier-card.is-pro {
+    transform: translateY(-0.5rem);
+  }
+
+  .tier-card.is-pro:hover {
+    transform: translateY(-0.625rem);
+  }
+
+  .tier-card.is-pro:active {
+    transform: translateY(-0.5rem) scale(0.97);
+  }
+}
+
+.tier-chip {
+  position: absolute;
+  top: -0.7rem;
+  left: 1.25rem;
+  padding: 0.22rem 0.7rem;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--accent-purple);
+  border-radius: 999px;
+}
+
+.tier-name {
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--text-muted);
 }
 
-.tease-price {
+.tier-price {
   font-size: 2.2rem;
   font-weight: 700;
   letter-spacing: -0.03em;
   color: var(--text-primary);
 }
 
-.tease-price small {
+.tier-price small {
   font-size: 0.9rem;
   color: var(--text-muted);
   font-weight: 500;
 }
 
-.tease-target {
+.tier-target {
   font-size: 0.85rem;
   color: var(--text-secondary);
   line-height: 1.55;
-  min-height: 2.8em;
 }
 
-.tease-cta {
+.tier-features {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin: 0.5rem 0 0;
+  padding: 0.8rem 0 0;
+  border-top: 1px solid var(--border-color);
+  list-style: none;
+}
+
+.tier-features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.tier-features svg {
+  width: 13px;
+  height: 13px;
+  flex: none;
+  margin-top: 0.2rem;
+  color: var(--status-success);
+}
+
+.tier-cta {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  margin-top: 0.75rem;
+  margin-top: auto;
+  padding-top: 0.9rem;
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--accent-purple);
-  transition: transform 0.25s;
 }
 
-.tease-cta svg {
+.tier-cta svg {
   width: 14px;
   height: 14px;
   transition: transform 0.25s;
 }
 
-.tease-card:hover .tease-cta svg {
+.tier-card:hover .tier-cta svg {
   transform: translateX(3px);
 }
 
-.tease-note {
+.tiers-note {
   font-size: 0.82rem;
   color: var(--text-muted);
   text-align: center;
 }
 
-/* ============ FAQ ============ */
+/* ============ 12. FAQ ============ */
 .faq-list {
   display: flex;
   flex-direction: column;
@@ -1580,13 +1819,16 @@ function avatarBg(i: number): string {
   color: var(--text-primary);
 }
 
-.faq-q::-webkit-details-marker { display: none; }
+.faq-q::-webkit-details-marker {
+  display: none;
+}
 
 .faq-q svg {
   width: 16px;
   height: 16px;
+  flex: none;
   color: var(--text-muted);
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.25s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .faq-row[open] .faq-q svg {
@@ -1601,7 +1843,7 @@ function avatarBg(i: number): string {
   color: var(--text-secondary);
 }
 
-/* ============ CTA FINAL ============ */
+/* ============ 13. CTA FINAL ============ */
 .cta-panel {
   position: relative;
   padding: clamp(2.5rem, 5vw, 4rem) clamp(1.5rem, 4vw, 3rem);
@@ -1616,7 +1858,9 @@ function avatarBg(i: number): string {
 }
 
 @media (min-width: 840px) {
-  .cta-panel { grid-template-columns: 1.4fr auto; }
+  .cta-panel {
+    grid-template-columns: 1.4fr auto;
+  }
 }
 
 .cta-title {
@@ -1646,8 +1890,8 @@ function avatarBg(i: number): string {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(35% 60% at 85% 30%, color-mix(in srgb, var(--accent-purple) 18%, transparent), transparent 65%),
-    radial-gradient(30% 50% at 15% 85%, color-mix(in srgb, var(--accent-cyan) 14%, transparent), transparent 65%);
+    radial-gradient(35% 60% at 85% 30%, color-mix(in srgb, var(--accent-purple) 16%, transparent), transparent 65%),
+    radial-gradient(30% 50% at 15% 85%, color-mix(in srgb, var(--accent-cyan) 12%, transparent), transparent 65%);
   pointer-events: none;
   z-index: 0;
   animation: meshDrift 18s ease-in-out infinite alternate;
@@ -1658,12 +1902,11 @@ function avatarBg(i: number): string {
   100% { transform: translate3d(-1.5%, 1.5%, 0); }
 }
 
+/* ============ REDUCED MOTION ============ */
 @media (prefers-reduced-motion: reduce) {
   .cta-mesh,
-  .stream-bar,
-  .ring,
   .hero-badge-dot,
-  .chip-dot {
+  .mem-link line {
     animation: none !important;
   }
 }
