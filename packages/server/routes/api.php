@@ -122,6 +122,7 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::post('sessions/{session}/attach', [Api\SessionController::class, 'attach']);
     Route::post('sessions/{session}/input', [Api\SessionController::class, 'input']);
     Route::post('sessions/{session}/resize', [Api\SessionController::class, 'resize']);
+    Route::post('sessions/{session}/notification', [Api\SessionController::class, 'notification']);
 
     // ==================== SHARED PROJECTS (MULTI-AGENT) ====================
     Route::get('machines/{machine}/projects', [Api\ProjectController::class, 'index']);
@@ -194,6 +195,7 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     // ==================== PLANNING AGENT ====================
     Route::get('projects/{project}/planning/context', [Api\PlanningController::class, 'context']);
     Route::post('projects/{project}/planning/execute', [Api\PlanningController::class, 'execute']);
+    Route::post('projects/{project}/planning/session', [Api\PlanningController::class, 'createSession']);
 
     // ==================== RUNNER AGENT ====================
     Route::get('projects/{project}/runner/health', [Api\RunnerController::class, 'healthCheck']);

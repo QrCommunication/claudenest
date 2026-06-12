@@ -9,6 +9,7 @@ use App\Models\Session;
 use App\Models\SharedProject;
 use App\Services\AgentGateway;
 use App\Services\DecompositionService;
+use App\Services\Redis\AgentWakeSubscriber;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
@@ -55,7 +56,39 @@ class AgentServe extends Command
      */
     private array $presenceTouched = [];
 
+    /**
+     * Throttle map for human-input cache writes (sessionId => last epoch
+     * second written). Terminal input arrives keystroke-by-keystroke; the
+     * worker-loop suspension window is 120s, so persisting the timestamp at
+     * most once per 5s keeps cache writes cheap with no precision loss.
+     *
+     * @var array<string, int>
+     */
+    private array $humanInputTouched = [];
+
     private int $nextConnId = 0;
+
+    /**
+     * Adaptive Redis poll cadence. The timer ticks every POLL_TICK seconds
+     * but only drains the queues every POLL_HOT_INTERVAL (messages were
+     * consumed within POLL_HOT_WINDOW) or POLL_IDLE_INTERVAL (idle).
+     *
+     * The pub/sub wake (AgentWakeSubscriber) drains queues immediately on
+     * publish, so the idle interval is only the worst-case fallback latency
+     * when the subscription is down.
+     */
+    private const POLL_TICK = 0.05;
+    private const POLL_HOT_INTERVAL = 0.05;
+    private const POLL_IDLE_INTERVAL = 0.25;
+    private const POLL_HOT_WINDOW = 2.0;
+
+    /** Last time at least one queued message was consumed (microtime). */
+    private float $lastConsumedAt = 0.0;
+
+    /** Last time the queues were actually drained by the timer (microtime). */
+    private float $lastPolledAt = 0.0;
+
+    private ?AgentWakeSubscriber $wakeSubscriber = null;
 
     public function handle(): int
     {
@@ -96,8 +129,29 @@ class AgentServe extends Command
             $conn->on('error', fn (\Exception $e) => $this->handleDisconnect($connId));
         });
 
-        // Poll Redis for server→agent messages (50ms)
-        Loop::addPeriodicTimer(0.05, fn () => $this->pollRedisQueues());
+        // Poll Redis for server→agent messages — adaptive cadence: 50ms while
+        // messages are flowing, 250ms when idle. The pub/sub wake subscriber
+        // (below) drains immediately on publish, so this poll is the delivery
+        // guarantee, not the latency path.
+        Loop::addPeriodicTimer(self::POLL_TICK, function (): void {
+            $now = microtime(true);
+            $interval = ($now - $this->lastConsumedAt) <= self::POLL_HOT_WINDOW
+                ? self::POLL_HOT_INTERVAL
+                : self::POLL_IDLE_INTERVAL;
+
+            // 5ms epsilon absorbs timer jitter so an idle drain runs on the
+            // 250ms tick instead of slipping to the 300ms one.
+            if (($now - $this->lastPolledAt) < $interval - 0.005) {
+                return;
+            }
+
+            $this->lastPolledAt = $now;
+            $this->pollRedisQueues();
+        });
+
+        // Instant wake on AgentGateway::send() — best-effort accelerator on
+        // top of the poll above. See AgentWakeSubscriber for the rationale.
+        $this->startWakeSubscriber();
 
         // Log stats every 60s
         Loop::addPeriodicTimer(60, function () {
@@ -401,6 +455,14 @@ class AgentServe extends Command
                 $data = $message['data'] ?? '';
                 if (!is_string($data)) return;
 
+                // Human took over the terminal — suspend the worker loop for
+                // this session (throttled: at most one cache write per 5s).
+                $nowTs = time();
+                if (($this->humanInputTouched[$sessionId] ?? 0) <= $nowTs - 5) {
+                    $this->humanInputTouched[$sessionId] = $nowTs;
+                    \App\Services\WorkerLoopService::markHumanInput($sessionId);
+                }
+
                 // Forward directly to agent in-memory (no Redis, no HTTP)
                 $this->sendToAgent($machineId, 'session:input', [
                     'sessionId' => $sessionId,
@@ -503,6 +565,19 @@ class AgentServe extends Command
 
         $exitCode = $data['exitCode'] ?? $data['exit_code'] ?? null;
         $session->markAsCompleted($exitCode);
+
+        // Multi-agent teardown (idempotent) — must NEVER break normal session
+        // termination, hence the catch-all guard.
+        if ($session->shared_project_id) {
+            try {
+                app(\App\Services\MultiAgentSessionService::class)->teardown($session);
+            } catch (\Throwable $e) {
+                Log::warning('Multi-agent teardown failed on session exit', [
+                    'session_id' => $session->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
 
         broadcast(new \App\Events\SessionTerminated($session));
 
@@ -825,14 +900,74 @@ class AgentServe extends Command
     private function pollRedisQueues(): void
     {
         foreach (array_keys($this->agents) as $machineId) {
-            $messages = AgentGateway::consume($machineId);
-            foreach ($messages as $message) {
-                $type = $message['type'] ?? 'unknown';
-                $this->line("[" . date('H:i:s') . "] Forwarding to agent: {$type}");
-                $frame = $this->encodeFrame(json_encode($message));
-                $this->agents[$machineId]['conn']->write($frame);
-            }
+            $this->drainQueue($machineId);
         }
+    }
+
+    /**
+     * Forward all queued server→agent messages for one machine.
+     * Shared by the adaptive poll timer and the pub/sub wake path.
+     */
+    private function drainQueue(string $machineId): void
+    {
+        $agent = $this->agents[$machineId] ?? null;
+        if (!$agent) {
+            // Not connected to this process — the queued message keeps its
+            // TTL and is delivered by the poll after the agent (re)connects.
+            return;
+        }
+
+        $messages = AgentGateway::consume($machineId);
+        if ($messages === []) {
+            return;
+        }
+
+        $this->lastConsumedAt = microtime(true);
+
+        foreach ($messages as $message) {
+            $type = $message['type'] ?? 'unknown';
+            $this->line("[" . date('H:i:s') . "] Forwarding to agent: {$type}");
+            $agent['conn']->write($this->encodeFrame(json_encode($message)));
+        }
+    }
+
+    /**
+     * Subscribe to the AgentGateway wake channel so a server→agent message
+     * is forwarded the moment it is queued instead of on the next poll tick.
+     *
+     * Best-effort by design: the subscriber never throws, reconnects with
+     * capped backoff, and the adaptive poll keeps delivering if Redis
+     * pub/sub is unavailable. Kill-switch: AGENT_WAKE_SUBSCRIBE=false.
+     */
+    private function startWakeSubscriber(): void
+    {
+        if (!config('claudenest.websocket.wake_subscribe', true)) {
+            $this->info('Wake subscriber disabled (AGENT_WAKE_SUBSCRIBE=false) — adaptive polling only.');
+
+            return;
+        }
+
+        $this->wakeSubscriber = new AgentWakeSubscriber(
+            onWake: function (string $machineId): void {
+                try {
+                    $this->drainQueue($machineId);
+                } catch (\Throwable $e) {
+                    // Not fatal: the poll timer picks the message up on its
+                    // next tick. Never let an eager drain kill the socket
+                    // handler (and with it the whole event loop).
+                    Log::warning('agent:serve: wake-triggered drain failed (poll will deliver)', [
+                        'machineId' => $machineId,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            },
+            onLog: function (string $level, string $message): void {
+                $line = '[' . date('H:i:s') . '] ' . $message;
+                $level === 'warn' ? $this->warn($line) : $this->info($line);
+            },
+        );
+
+        $this->wakeSubscriber->start();
     }
 
     // ==================== WebSocket Frame Codec (RFC 6455) ====================

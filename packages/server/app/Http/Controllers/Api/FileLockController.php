@@ -7,10 +7,14 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\FileLock;
 use App\Models\SharedProject;
+use App\Services\CoordinatorService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use OpenApi\Attributes as OA;
+use Throwable;
 
 class FileLockController extends Controller
 {
@@ -82,6 +86,36 @@ class FileLockController extends Controller
         $existingOwner = FileLock::getOwner($projectId, $validated['path']);
 
         if ($existingOwner && $existingOwner !== $validated['instance_id']) {
+            // Coordinator trigger: ≥3 conflicting acquires on the same path
+            // within 10 minutes signal contention. Best-effort — coordination
+            // must never break the 409 response.
+            try {
+                $conflictKey = 'claudenest:lockconflict:' . $projectId . ':' . md5($validated['path']);
+                // add() seeds the 10-minute window only on the first conflict;
+                // increment() alone would create a TTL-less key.
+                Cache::add($conflictKey, 0, now()->addMinutes(10));
+                $conflicts = (int) Cache::increment($conflictKey);
+
+                if ($conflicts >= 3) {
+                    app(CoordinatorService::class)->reportIncident(
+                        $project,
+                        CoordinatorService::INCIDENT_LOCK_CONTENTION,
+                        [
+                            'path' => $validated['path'],
+                            'conflict_count' => $conflicts,
+                            'holder' => $existingOwner,
+                            'requester' => $validated['instance_id'],
+                        ],
+                    );
+                }
+            } catch (Throwable $e) {
+                Log::warning('Coordinator trigger failed on lock conflict', [
+                    'project_id' => $projectId,
+                    'path' => $validated['path'],
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
             return $this->errorResponse(
                 'LCK_001',
                 'File already locked by ' . $existingOwner,

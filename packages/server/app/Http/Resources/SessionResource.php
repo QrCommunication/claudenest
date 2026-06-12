@@ -29,6 +29,8 @@ class SessionResource extends JsonResource
             'id' => $session->id,
             'machine_id' => $session->machine_id,
             'user_id' => $session->user_id,
+            'shared_project_id' => $session->shared_project_id,
+            'orchestrated' => (bool) $session->orchestrated,
             'mode' => $session->mode,
             'project_path' => $session->project_path,
             'initial_prompt' => $session->initial_prompt,

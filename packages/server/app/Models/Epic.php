@@ -70,6 +70,9 @@ class Epic extends Model
 
     public const PRIORITIES = ['low', 'medium', 'high', 'critical'];
 
+    /** Brand primary purple — mirrors the DB column default (NOT NULL). */
+    public const DEFAULT_COLOR = '#a855f7';
+
     // ==================== RELATIONSHIPS ====================
 
     public function project(): BelongsTo

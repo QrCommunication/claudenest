@@ -32,6 +32,10 @@
         <env name="DB_USERNAME" value="rony" force="true"/>
         <env name="DB_PASSWORD" value="" force="true"/>
         <env name="MAIL_MAILER" value="array"/>
+        <!-- Unroutable Ollama host: EmbeddingService::isAvailable() must fail fast
+             and deterministically (no real embedding inference in tests, even on
+             dev machines where Ollama is running). -->
+        <env name="OLLAMA_HOST" value="http://127.0.0.1:1" force="true"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>

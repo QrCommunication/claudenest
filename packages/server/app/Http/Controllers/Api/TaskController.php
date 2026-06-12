@@ -8,9 +8,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\TaskResource;
 use App\Models\SharedProject;
 use App\Models\SharedTask;
+use App\Services\ContextRAGService;
+use App\Services\CoordinatorService;
+use App\Services\WorkerLoopService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use OpenApi\Attributes as OA;
+use Throwable;
 
 class TaskController extends Controller
 {
@@ -341,6 +346,9 @@ class TaskController extends Controller
             return $this->errorResponse('TSK_002', 'Failed to claim task', 409);
         }
 
+        // Progress proven — reset the worker-loop no-progress state.
+        WorkerLoopService::resetNoProgress($validated['instance_id']);
+
         // Broadcast task claim
         broadcast(new \App\Events\TaskClaimed($task))->toOthers();
 
@@ -393,6 +401,33 @@ class TaskController extends Controller
 
         // Broadcast task release
         broadcast(new \App\Events\TaskReleased($task))->toOthers();
+
+        // Coordinator trigger: a task released 2+ times signals thrashing.
+        // Best-effort — coordination must never break the release itself.
+        try {
+            $releaseCount = $task->project->activityLogs()
+                ->where('type', 'task_released')
+                ->where('details->task_id', $task->id)
+                ->count();
+
+            if ($releaseCount >= 2) {
+                app(CoordinatorService::class)->reportIncident(
+                    $task->project,
+                    CoordinatorService::INCIDENT_TASK_THRASHING,
+                    [
+                        'task_id' => $task->id,
+                        'task_title' => $task->title,
+                        'release_count' => $releaseCount,
+                        'reason' => $validated['reason'] ?? null,
+                    ],
+                );
+            }
+        } catch (Throwable $e) {
+            Log::warning('Coordinator trigger failed on task release', [
+                'task_id' => $task->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         return response()->json([
             'success' => true,
@@ -449,15 +484,31 @@ class TaskController extends Controller
             $instance->markAsIdle();
         }
 
-        // Create context chunk for task completion
-        $task->project->contextChunks()->create([
-            'content' => "Task completed: {$task->title}\n\nSummary: {$validated['summary']}",
-            'type' => 'task_completion',
-            'instance_id' => $validated['instance_id'],
-            'task_id' => $task->id,
-            'files' => $validated['files_modified'] ?? [],
-            'importance_score' => 0.8,
-        ]);
+        // Progress proven — reset the worker-loop no-progress state.
+        WorkerLoopService::resetNoProgress($validated['instance_id']);
+
+        // Automatic RAG ingestion: the completion summary becomes a searchable
+        // context chunk (embedding generated when Ollama is available).
+        // Best-effort — a RAG/embedding failure must NEVER fail the completion.
+        try {
+            app(ContextRAGService::class)->addContext(
+                $task->project,
+                "{$task->title}: {$validated['summary']}",
+                'task_completion',
+                [
+                    'instance_id' => $validated['instance_id'],
+                    'task_id' => $task->id,
+                    'files' => $validated['files_modified'] ?? [],
+                    'importance_score' => 0.7,
+                ],
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Task completion RAG ingestion failed', [
+                'task_id' => $task->id,
+                'project_id' => $task->project_id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         // Broadcast task completion
         broadcast(new \App\Events\TaskCompleted($task))->toOthers();

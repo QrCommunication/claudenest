@@ -8,8 +8,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\SprintResource;
 use App\Models\SharedProject;
 use App\Models\Sprint;
+use App\Services\CoordinatorService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class SprintController extends Controller
 {
@@ -124,6 +127,9 @@ class SprintController extends Controller
 
         $sprint->update($validated);
 
+        // Broadcast sprint update to the project channel
+        broadcast(new \App\Events\SprintUpdated($sprint->fresh(), 'updated'))->toOthers();
+
         return response()->json([
             'success' => true,
             'data' => new SprintResource($sprint->fresh()),
@@ -180,6 +186,9 @@ class SprintController extends Controller
 
         $sprint->start();
 
+        // Broadcast sprint start to the project channel
+        broadcast(new \App\Events\SprintUpdated($sprint->fresh(), 'started'))->toOthers();
+
         return response()->json([
             'success' => true,
             'data' => new SprintResource($sprint->fresh()),
@@ -211,6 +220,28 @@ class SprintController extends Controller
         }
 
         $sprint->complete();
+
+        // Broadcast sprint completion to the project channel
+        broadcast(new \App\Events\SprintUpdated($sprint->fresh(), 'completed'))->toOthers();
+
+        // Coordinator trigger: a completed sprint is a review opportunity.
+        // Best-effort — coordination must never break the completion itself.
+        try {
+            app(CoordinatorService::class)->reportIncident(
+                $sprint->project,
+                CoordinatorService::INCIDENT_SPRINT_REVIEW,
+                [
+                    'sprint_id' => $sprint->id,
+                    'sprint_name' => $sprint->name,
+                    'velocity' => $sprint->velocity,
+                ],
+            );
+        } catch (Throwable $e) {
+            Log::warning('Coordinator trigger failed on sprint completion', [
+                'sprint_id' => $sprint->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         return response()->json([
             'success' => true,

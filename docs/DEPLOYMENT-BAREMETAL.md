@@ -513,6 +513,31 @@ sudo systemctl status claudenest-reverb
 sudo systemctl status claudenest-queue
 ```
 
+### Multi-Agent Runtime Requirements
+
+The multi-agent features (worker pool, planning agent sessions, task
+coordination, RAG context) **do not work without the following units**. They
+are not optional extras of the web app — treat them as hard dependencies:
+
+| Requirement | Unit / command | Why it is mandatory |
+|-------------|----------------|---------------------|
+| Queue worker | `claudenest-queue.service` (`php artisan queue:work`) | All broadcast events (`SessionOutput`, `TaskCreated/Claimed/Completed`, epic/sprint updates) implement `ShouldBroadcast` and are **queued**. Without a running worker, the dashboard and connected instances never receive real-time updates — terminals stay frozen, task boards never refresh. |
+| Scheduler | `claudenest-scheduler.timer` (`php artisan schedule:run` every minute) or a cron `* * * * * php artisan schedule:run` / `php artisan schedule:work` | Drives: expired **file lock release** + runner agent status reconciliation (`multiagent-maintenance`, every 5 min), offline machine detection (every minute), orphaned instance teardown (every minute), OAuth credential refresh (hourly), daily data cleanup. Without it, stale file locks block agents for good and crashed instances are never reaped. |
+| Ollama models | `ollama pull mistral:7b && ollama pull nomic-embed-text` (match `OLLAMA_MODEL` / `OLLAMA_EMBEDDING_MODEL` in `.env`) | RAG ingestion (automatic on task completion) and `context_query` need the embedding model; summarization needs the chat model. Missing models degrade gracefully (chunks stored without embeddings, vector search disabled) but the shared-context feature is effectively off. |
+
+Quick verification after deployment:
+
+```bash
+systemctl is-active claudenest-queue claudenest-reverb   # both "active"
+systemctl list-timers | grep claudenest-scheduler        # timer scheduled
+php artisan schedule:list | grep multiagent-maintenance  # entry present
+ollama list                                              # models pulled
+```
+
+> **Docker note:** the Docker stack (`DEPLOYMENT-DOCKER.md`) already ships
+> dedicated `claudenest-queue`, `claudenest-scheduler` and `claudenest-ollama`
+> containers — the same requirements apply, keep those services enabled.
+
 ---
 
 ## SSL/HTTPS Setup

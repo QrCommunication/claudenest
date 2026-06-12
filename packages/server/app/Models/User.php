@@ -36,6 +36,7 @@ class User extends Authenticatable
         'github_id',
         'email_verified_at',
         'role',
+        'plan',
         'mfa_method',
         'mfa_secret',
         'mfa_recovery_codes',
@@ -154,5 +155,22 @@ class User extends Authenticatable
     public function hasRole(string $role): bool
     {
         return $this->role === $role;
+    }
+
+    /**
+     * Maximum number of simultaneously active Claude sessions allowed by the
+     * user's plan (config claudenest.plans). `null` means unlimited.
+     * Unknown plans fall back to the community cap (most restrictive).
+     */
+    public function concurrentAgentCap(): ?int
+    {
+        $plans = (array) config('claudenest.plans', []);
+        $plan = $this->plan ?? 'community';
+
+        $cap = array_key_exists($plan, $plans)
+            ? $plans[$plan]
+            : ($plans['community'] ?? 3);
+
+        return $cap === null ? null : (int) $cap;
     }
 }

@@ -103,7 +103,9 @@ class EpicController extends Controller
         $epic = $project->epics()->create([
             'title' => $validated['title'],
             'description' => $validated['description'] ?? null,
-            'color' => $validated['color'] ?? null,
+            // epics.color is NOT NULL with a DB default — an explicit null
+            // would override the default and throw a 23502 violation.
+            'color' => $validated['color'] ?? Epic::DEFAULT_COLOR,
             'icon' => $validated['icon'] ?? null,
             'priority' => $validated['priority'] ?? 'medium',
             'status' => 'open',
@@ -181,7 +183,16 @@ class EpicController extends Controller
             'priority' => 'string|in:low,medium,high,critical',
         ]);
 
+        // epics.color is NOT NULL — an explicit `"color": null` payload would
+        // throw a 23502 violation; treat it as "reset to the default color".
+        if (array_key_exists('color', $validated) && $validated['color'] === null) {
+            $validated['color'] = Epic::DEFAULT_COLOR;
+        }
+
         $epic->update($validated);
+
+        // Broadcast epic update to the project channel
+        broadcast(new \App\Events\EpicUpdated($epic, 'updated'))->toOthers();
 
         return response()->json([
             'success' => true,
@@ -261,6 +272,9 @@ class EpicController extends Controller
         ]);
 
         $epic->reorder($validated['position']);
+
+        // Broadcast reorder to the project channel
+        broadcast(new \App\Events\EpicUpdated($epic, 'reordered'))->toOthers();
 
         return response()->json([
             'success' => true,

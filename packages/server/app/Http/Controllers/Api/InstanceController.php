@@ -10,8 +10,10 @@ use App\Models\ClaudeInstance;
 use App\Models\FileLock;
 use App\Models\SharedProject;
 use App\Services\OrchestratorService;
+use App\Services\WorkerLoopService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class InstanceController extends Controller
 {
@@ -70,7 +72,12 @@ class InstanceController extends Controller
         }
 
         if (isset($data['status'])) {
+            $statusChanged = $instance->status !== $data['status'];
             $instance->update(['status' => $data['status']]);
+
+            if ($statusChanged) {
+                event(new \App\Events\InstanceUpdated($instance));
+            }
         }
 
         $instance->updateActivity();
@@ -82,6 +89,19 @@ class InstanceController extends Controller
                 $instance->project_id,
                 $instanceId
             );
+        }
+
+        // Worker loop tick (Stop hook → idle): nudge/recycle/pause/scale-down
+        // orchestrated workers. Fail-safe — must never break the heartbeat.
+        if (($data['status'] ?? null) === 'idle') {
+            try {
+                app(WorkerLoopService::class)->onIdle($instance->fresh());
+            } catch (\Throwable $e) {
+                Log::warning('Worker loop tick failed on idle heartbeat', [
+                    'instance_id' => $instanceId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
 
         return response()->json([

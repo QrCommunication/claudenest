@@ -8,10 +8,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\SessionResource;
 use App\Models\Machine;
 use App\Models\Session;
+use App\Models\SharedProject;
 use App\Services\AgentGateway;
-use App\Services\CredentialService;
+use App\Services\MultiAgentSessionService;
+use App\Services\SessionPayloadBuilder;
+use App\Services\WorkerLoopService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use OpenApi\Attributes as OA;
 
@@ -112,6 +116,20 @@ class SessionController extends Controller
             return $this->errorResponse('MCH_002', 'Machine is offline', 400);
         }
 
+        // Per-plan concurrent agent cap (human + orchestrated sessions combined)
+        $cap = $request->user()->concurrentAgentCap();
+        if ($cap !== null) {
+            $activeSessions = Session::forUser($request->user()->id)->active()->count();
+
+            if ($activeSessions >= $cap) {
+                return $this->errorResponse(
+                    'PLAN_001',
+                    "Your plan allows at most {$cap} concurrent Claude sessions. Terminate a session or upgrade your plan.",
+                    403,
+                );
+            }
+        }
+
         $validated = $request->validate([
             'mode' => 'sometimes|string|in:interactive,headless,oneshot,bash',
             'project_path' => 'nullable|string|max:512',
@@ -121,40 +139,49 @@ class SessionController extends Controller
                 'uuid',
                 Rule::exists('claude_credentials', 'id')->where('user_id', $request->user()->id),
             ],
+            'shared_project_id' => ['nullable', 'uuid'],
+            'permission_mode' => 'nullable|in:default,plan,acceptEdits,bypassPermissions',
             'pty_size' => 'array',
             'pty_size.cols' => 'integer|min:20|max:500',
             'pty_size.rows' => 'integer|min:10|max:200',
         ]);
 
+        // Multi-agent: resolve the shared project (must belong to this user AND this machine)
+        $project = null;
+        if (!empty($validated['shared_project_id'])) {
+            $project = SharedProject::find($validated['shared_project_id']);
+
+            if (!$project
+                || $project->user_id !== $request->user()->id
+                || $project->machine_id !== $machine->id
+            ) {
+                return $this->errorResponse('SES_004', 'Invalid shared project for this machine', 422);
+            }
+        }
+
         $session = $machine->sessions()->create([
             'user_id' => $request->user()->id,
+            'shared_project_id' => $project?->id,
             'mode' => $validated['mode'] ?? 'interactive',
-            'project_path' => $validated['project_path'] ?? null,
+            // When bound to a shared project, the working dir comes from the project.
+            'project_path' => $project?->project_path ?? $validated['project_path'] ?? null,
             'initial_prompt' => $validated['initial_prompt'] ?? null,
             'credential_id' => $validated['credential_id'] ?? null,
             'status' => 'created',
             'pty_size' => $validated['pty_size'] ?? ['cols' => 120, 'rows' => 40],
         ]);
 
-        // Resolve credential env vars if a credential is attached
-        $credentialEnv = [];
-        if ($session->credential_id) {
-            $credential = $request->user()->credentials()->find($session->credential_id);
-            if ($credential) {
-                $credentialService = app(CredentialService::class);
-                $credentialEnv = $credentialService->getSessionEnv($credential);
-            }
-        }
+        // Agent payload (camelCase contract, shared with WorkerPoolService).
+        // mcpEnv carries a scoped Sanctum token: agent-only via AgentGateway,
+        // NEVER broadcast nor in resources.
+        $payload = app(SessionPayloadBuilder::class)->build(
+            $session,
+            $project,
+            $validated['permission_mode'] ?? null,
+        );
 
         // Send to agent via dedicated WebSocket server
-        AgentGateway::send($machine->id, 'session:create', [
-            'sessionId' => $session->id,
-            'mode' => $session->mode,
-            'projectPath' => $session->project_path,
-            'initialPrompt' => $session->initial_prompt,
-            'ptySize' => $session->pty_size,
-            'credentialEnv' => $credentialEnv,
-        ]);
+        AgentGateway::send($machine->id, 'session:create', $payload);
 
         // Broadcast to dashboard via Reverb (credentials excluded — agent-only via AgentGateway)
         broadcast(new \App\Events\SessionCreated($session))->toOthers();
@@ -237,6 +264,18 @@ class SessionController extends Controller
 
         // Mark as terminated
         $session->markAsTerminated();
+
+        // Multi-agent teardown (idempotent) — must never block termination
+        if ($session->shared_project_id) {
+            try {
+                app(MultiAgentSessionService::class)->teardown($session);
+            } catch (\Throwable $e) {
+                Log::warning('Multi-agent teardown failed on session destroy', [
+                    'session_id' => $session->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
 
         // Send to agent via dedicated WebSocket server
         AgentGateway::send($session->machine_id, 'session:terminate', [
@@ -423,6 +462,9 @@ class SessionController extends Controller
             return $this->errorResponse('VAL_001', 'The data field is required', 422);
         }
 
+        // Human took over the terminal — suspend the worker loop for this session.
+        WorkerLoopService::markHumanInput($session->id);
+
         // Send input to agent via dedicated WebSocket server
         AgentGateway::send($session->machine_id, 'session:input', [
             'sessionId' => $session->id,
@@ -520,6 +562,76 @@ class SessionController extends Controller
             'success' => true,
             'data' => [
                 'pty_size' => $session->pty_size,
+            ],
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
+    }
+
+    /**
+     * Emit a notification from/about a session (multi-agent: Claude hooks
+     * report permission requests, task updates, etc.).
+     */
+    #[OA\Post(
+        path: '/api/sessions/{id}/notification',
+        summary: 'Broadcast a notification for a session',
+        security: [['bearerAuth' => []]],
+        tags: ['Sessions'],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Session UUID', schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['message'],
+                properties: [
+                    new OA\Property(property: 'title', type: 'string', nullable: true, maxLength: 255),
+                    new OA\Property(property: 'message', type: 'string', maxLength: 2000),
+                    new OA\Property(property: 'notification_type', type: 'string', nullable: true, example: 'info'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Notification broadcasted'),
+            new OA\Response(response: 403, description: 'Not allowed for this session'),
+            new OA\Response(response: 404, description: 'Session not found'),
+        ],
+    )]
+    public function notification(Request $request, string $id): JsonResponse
+    {
+        $session = Session::findOrFail($id);
+
+        // Allowed: the session owner, or the scoped token minted for this
+        // session (name mcp:{sessionId} — the RestrictScopedTokens middleware
+        // already pins scoped tokens to the session's project).
+        $token = $request->user()->currentAccessToken();
+        $isScopedSessionToken = $token instanceof \App\Models\PersonalAccessToken
+            && $token->name === MultiAgentSessionService::tokenNameFor($session);
+
+        if ($session->user_id !== $request->user()->id && !$isScopedSessionToken) {
+            return $this->errorResponse('AUTH_002', 'You do not have permission to access this resource', 403);
+        }
+
+        $validated = $request->validate([
+            'title' => 'nullable|string|max:255',
+            'message' => 'required|string|max:2000',
+            'notification_type' => 'nullable|string|max:50',
+        ]);
+
+        broadcast(new \App\Events\SessionNotification(
+            $session,
+            $validated['message'],
+            $validated['title'] ?? null,
+            $validated['notification_type'] ?? 'info',
+        ));
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'session_id' => $session->id,
+                'broadcasted_at' => now()->toIso8601String(),
             ],
             'meta' => [
                 'timestamp' => now()->toIso8601String(),

@@ -38,6 +38,81 @@ Schedule::call(function () {
         ->update(['status' => 'offline']);
 })->everyMinute();
 
+// Multi-agent maintenance: release expired file locks promptly (locks carry a
+// ~30 min TTL — the daily cleanup is far too slow for active coordination) and
+// let the runner agent reconcile task/epic/sprint statuses on active projects
+// (projects with at least one connected Claude instance, capped at 20/run).
+Schedule::call(function () {
+    \App\Models\FileLock::cleanupExpired();
+
+    $runner = app(\App\Services\RunnerAgentService::class);
+
+    \App\Models\SharedProject::whereHas('claudeInstances', fn ($query) => $query->connected())
+        ->limit(20)
+        ->get()
+        ->each(function (\App\Models\SharedProject $project) use ($runner): void {
+            try {
+                $updates = $runner->autoUpdateStatuses($project);
+
+                if (count($updates) > 0) {
+                    $project->logActivity('runner_auto_update', null, [
+                        'updates_count' => count($updates),
+                        'updates' => $updates,
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Scheduled runner auto-update failed', [
+                    'project_id' => $project->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        });
+})->everyFiveMinutes()->name('multiagent-maintenance');
+
+// Multi-agent safety net: tear down instances still marked connected while
+// their session is dead (covers crashed agents / missed teardown paths).
+Schedule::call(function () {
+    $service = app(\App\Services\MultiAgentSessionService::class);
+
+    $instances = \App\Models\ClaudeInstance::whereNull('disconnected_at')
+        ->whereNotNull('session_id')
+        ->with('session')
+        ->get();
+
+    foreach ($instances as $instance) {
+        $session = $instance->session;
+
+        $sessionDead = $session === null
+            || in_array($session->status, ['completed', 'error', 'terminated'], true);
+
+        if (!$sessionDead) {
+            continue;
+        }
+
+        // Session terminated → immediate teardown. Session row gone → only
+        // after a 30 min inactivity grace period (avoid racing transient states).
+        $shouldTeardown = $session !== null
+            || ($instance->last_activity_at && $instance->last_activity_at->lt(now()->subMinutes(30)));
+
+        if (!$shouldTeardown) {
+            continue;
+        }
+
+        try {
+            if ($session) {
+                $service->teardown($session);
+            } else {
+                $service->teardownInstance($instance);
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Multi-agent scheduled teardown failed', [
+                'instance_id' => $instance->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+})->everyMinute();
+
 // Proactively refresh OAuth credentials nearing expiration (< 24h) and
 // reconnect their active Claude sessions, so long-running sessions never
 // hit an expired token mid-task.

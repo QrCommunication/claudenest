@@ -12,6 +12,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Plans — Concurrent Agent Caps
+    |--------------------------------------------------------------------------
+    | Maximum number of simultaneously active Claude sessions (human-created
+    | AND orchestrated workers combined) per user plan. `null` = unlimited.
+    */
+
+    'plans' => [
+        'community' => 3,
+        'pro' => 20,
+        'enterprise' => null,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | WebSocket Configuration
     |--------------------------------------------------------------------------
     */
@@ -20,6 +34,11 @@ return [
         'port' => env('CLAUDENEST_WS_PORT', 8080),
         'heartbeat_interval' => 30,
         'reconnect_attempts' => 5,
+
+        // agent:serve subscribes to the AgentGateway wake channel (Redis
+        // pub/sub) for instant server→agent forwarding. Disable to fall back
+        // to adaptive polling only (50ms active / 250ms idle).
+        'wake_subscribe' => env('AGENT_WAKE_SUBSCRIBE', true),
     ],
 
     /*

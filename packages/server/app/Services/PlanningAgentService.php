@@ -69,13 +69,57 @@ class PlanningAgentService
                 ])->toArray(),
             'stats' => [
                 'total_tasks' => $project->tasks()->count(),
+                'pending_tasks' => $project->tasks()->pending()->count(),
                 'completed_tasks' => $project->tasks()->done()->count(),
                 'total_story_points' => $project->tasks()->sum('story_points'),
                 'completed_story_points' => $project->tasks()->done()->sum('story_points'),
                 'active_sprint' => $project->active_sprint?->name,
                 'epics_count' => $project->epics()->count(),
+                'average_velocity' => $this->averageVelocity($project),
             ],
         ];
+    }
+
+    /**
+     * System prompt for an interactive planning agent session: role + MCP
+     * toolset + velocity guardrail + compact backlog snapshot. Replaces the
+     * default multi-agent worker prompt (claim/code/complete rules).
+     */
+    public function buildPlannerSystemPrompt(SharedProject $project): string
+    {
+        $stats = $this->getProjectContext($project)['stats'];
+
+        $velocityLine = $stats['average_velocity'] !== null
+            ? "Average velocity (last 3 sprints): {$stats['average_velocity']} points — do not plan a sprint above it."
+            : 'Average velocity (last 3 sprints): unknown (no completed sprints yet) — plan the first sprint conservatively.';
+
+        $activeSprint = $stats['active_sprint'] ?? 'none';
+
+        return <<<PROMPT
+You are a planning agent for project "{$project->name}". Analyse the brief and the current backlog, then structure the work using the claudenest MCP tools: epic_create, task_create (with story_points, priority, files), task_decompose for subtasks, sprint_assign. {$velocityLine} Ask the human in this terminal when arbitration is needed. Do NOT edit files; planning only.
+
+## Backlog snapshot
+- Tasks: {$stats['total_tasks']} total ({$stats['pending_tasks']} pending, {$stats['completed_tasks']} done)
+- Story points: {$stats['completed_story_points']}/{$stats['total_story_points']} completed
+- Epics: {$stats['epics_count']}
+- Active sprint: {$activeSprint}
+PROMPT;
+    }
+
+    /**
+     * Average completed-sprint velocity over the 3 most recent completed
+     * sprints (null when no completed sprint carries a velocity yet).
+     */
+    private function averageVelocity(SharedProject $project): ?float
+    {
+        $velocities = $project->sprints()
+            ->completed()
+            ->orderByDesc('created_at')
+            ->limit(3)
+            ->pluck('velocity')
+            ->filter(fn ($velocity) => $velocity !== null);
+
+        return $velocities->isEmpty() ? null : round((float) $velocities->avg(), 1);
     }
 
     /**
@@ -124,7 +168,7 @@ class PlanningAgentService
         $epic = $project->epics()->create([
             'title'       => $data['title'],
             'description' => $data['description'] ?? null,
-            'color'       => $data['color'] ?? '#a855f7',
+            'color'       => $data['color'] ?? Epic::DEFAULT_COLOR,
             'priority'    => $data['priority'] ?? 'medium',
             'sort_order'  => $project->epics()->max('sort_order') + 1,
         ]);

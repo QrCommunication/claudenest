@@ -19,6 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->api(append: [
             \App\Http\Middleware\LogApiRequests::class,
+            // Restricts multi-agent scoped tokens to their project's API surface.
+            // Append only (runs after auth resolution paths) — never prepend.
+            \App\Http\Middleware\RestrictScopedTokens::class,
         ]);
 
         $middleware->alias([

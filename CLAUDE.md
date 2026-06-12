@@ -181,7 +181,11 @@ claudenest/
 │   │   │       ├── SkillDiscoveryService.php
 │   │   │       ├── SummarizationService.php
 │   │   │       ├── PlanningAgentService.php
-│   │   │       └── RunnerAgentService.php
+│   │   │       ├── RunnerAgentService.php
+│   │   │       ├── CoordinatorService.php
+│   │   │       ├── SessionPayloadBuilder.php
+│   │   │       ├── WorkerPoolService.php
+│   │   │       └── WorkerLoopService.php
 │   │   ├── 📁 bootstrap/
 │   │   ├── 📁 config/
 │   │   │   └── claudenest.php              # App config
@@ -447,6 +451,16 @@ Two server-side services orchestrate automated project intelligence:
 **PlanningAgentService**: Conversational project planning backed by full SQL context. Accepts natural-language input and executes up to 8 atomic action types (create task, assign epic, schedule sprint, set priority, add dependency, update status, add label, broadcast announcement) all within a single database transaction.
 
 **RunnerAgentService**: Background health monitor. Polls active projects, auto-updates stale task statuses, detects blockers and deadline risks, and surfaces recommendations. Exposed via lightweight REST endpoints so the frontend can display agent health and trigger on-demand scans.
+
+### 3.9b Server-Driven Worker Orchestration
+
+Workers are **regular interactive Claude sessions created BY THE SERVER** (no agent-side orchestrator). The loop is driven by the Claude **Stop hook → `POST /api/instances/{i}/heartbeat {status:'idle'}`**.
+
+- **WorkerPoolService**: `start` (spawns `min(max_workers, plan cap remaining, max(1, pending tasks))` orchestrated sessions through `MultiAgentSessionService::attach()` — instance + scoped token + MCP env + system prompt), `stop`, `status`, `spawnWorker`, `terminateWorker`. Orchestration state lives in `shared_projects.settings['orchestration']` (`active`, `max_workers`, `permission_mode`, `coordinator`, `started_at`).
+- **CoordinatorService**: event-driven incident coordinator. On `task_thrashing` (task released ≥2×, trigger in `TaskController::release`), `lock_contention` (≥3 conflicting acquires on a path in 10 min, trigger in `FileLockController::store` 409 branch) or `sprint_review` (trigger in `SprintController::complete`), spawns an **ephemeral interactive planning session** (same mechanics as `PlanningController::createSession`: scoped token with `planning` ability, coordinator role system prompt, owner's default credential, `orchestrated=false`). Guards in order: orchestration active (`sprint_review` allowed outside orchestration when `settings['coordinator']['on_sprint_review']` is true), kill-switch `settings['orchestration']['coordinator'] ?? true`, 1h spawn budget (cache `claudenest:coordinator:{project}:last_spawn`), single active coordinator. It never spawns workers and never edits files — it fixes the PLAN via MCP planning tools and broadcasts recommendations (`SessionNotification`, activity type `coordinator_spawned`).
+- **WorkerLoopService**: state machine on idle heartbeat — nudge to finish/claim a task (`session:input` + `\r`), recycle after 5 completed tasks or 2h of session lifetime, pause after 3 nudges without progress (broadcasts `SessionNotification`, reset on task claim/complete), scale down when all tasks are done. Human input (HTTP `sessions/{id}/input` or WS terminal) suspends the loop 120s via cache key `claudenest:session:{id}:human_input_at`.
+- **SessionPayloadBuilder**: single source of truth for the camelCase `session:create` agent payload (shared by `SessionController::store` and `WorkerPoolService::spawnWorker`).
+- **Plan caps**: `users.plan` × `config('claudenest.plans')` (`community=3`, `pro=20`, `enterprise=unlimited`) — enforced on session store AND orchestrator start (`403 PLAN_001`). `claude_sessions.orchestrated` flags worker sessions.
 
 ### 3.10 Internationalization (i18n)
 
@@ -1088,6 +1102,7 @@ erDiagram
 | id | UUID (PK) | Session ID |
 | machine_id | UUID (FK) | Host machine |
 | user_id | UUID (FK) | Owner |
+| shared_project_id | UUID (FK, nullable) | Multi-agent: linked shared project |
 | mode | VARCHAR(50) | interactive/headless/oneshot |
 | project_path | VARCHAR(512) | Working directory |
 | initial_prompt | TEXT | Starting prompt |
@@ -1282,13 +1297,14 @@ erDiagram
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/machines/{id}/sessions` | List sessions |
-| POST | `/api/machines/{id}/sessions` | Create session |
+| POST | `/api/machines/{id}/sessions` | Create session (optional `shared_project_id` binds it to a shared project: registers a ClaudeInstance + mints a scoped MCP token) |
 | GET | `/api/sessions/{id}` | Get session |
-| DELETE | `/api/sessions/{id}` | Terminate session |
+| DELETE | `/api/sessions/{id}` | Terminate session (tears down multi-agent instance/locks/token if bound) |
 | GET | `/api/sessions/{id}/logs` | Get logs |
 | POST | `/api/sessions/{id}/attach` | Attach to session |
 | POST | `/api/sessions/{id}/input` | Send input |
 | POST | `/api/sessions/{id}/resize` | Resize PTY |
+| POST | `/api/sessions/{id}/notification` | Broadcast a session notification (owner or session-scoped token) |
 
 ### 6.4 Projects (Multi-Agent)
 
@@ -1426,8 +1442,9 @@ erDiagram
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/projects/{id}/planning/context` | Get full planning context (tasks, epics, sprints, stats) |
+| GET | `/api/projects/{id}/planning/context` | Get full planning context (tasks, epics, sprints, stats incl. `average_velocity`) |
 | POST | `/api/projects/{id}/planning/execute` | Execute a planning action (natural-language + action type, atomic transaction) |
+| POST | `/api/projects/{id}/planning/session` | Spawn an interactive planning agent session (`{brief, credential_id?}`). Scoped token gains the `planning` ability (epics/sprints CRUD + task PATCH via RestrictScopedTokens), `mcpEnv.CLAUDENEST_ABILITIES = "multiagent,planning"`, system prompt = planner role + velocity guardrail + backlog snapshot, brief = initial prompt. Returns 201 with SessionResource. |
 
 ### 6.13 Runner Agent
 

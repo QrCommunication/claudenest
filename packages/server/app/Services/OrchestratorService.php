@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\InstanceUpdated;
 use App\Events\TaskClaimed;
 use App\Models\ClaudeInstance;
 use App\Models\SharedProject;
@@ -121,6 +122,8 @@ class OrchestratorService
 
         $instance->markAsDisconnected();
 
+        event(new InstanceUpdated($instance));
+
         Log::info('Instance disconnected, tasks released', [
             'instance_id' => $instanceId,
         ]);
@@ -135,7 +138,7 @@ class OrchestratorService
         string $machineId,
         ?string $sessionId = null,
     ): ClaudeInstance {
-        return ClaudeInstance::updateOrCreate(
+        $instance = ClaudeInstance::updateOrCreate(
             ['id' => $instanceId],
             [
                 'project_id' => $projectId,
@@ -150,6 +153,10 @@ class OrchestratorService
                 'disconnected_at' => null,
             ],
         );
+
+        event(new InstanceUpdated($instance));
+
+        return $instance;
     }
 
     /**

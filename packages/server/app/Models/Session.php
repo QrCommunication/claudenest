@@ -37,6 +37,7 @@ class Session extends Model
     protected $fillable = [
         'machine_id',
         'user_id',
+        'shared_project_id',
         'mode',
         'project_path',
         'initial_prompt',
@@ -49,6 +50,7 @@ class Session extends Model
         'started_at',
         'completed_at',
         'credential_id',
+        'orchestrated',
     ];
 
     /**
@@ -56,6 +58,7 @@ class Session extends Model
      */
     protected $casts = [
         'pty_size' => 'array',
+        'orchestrated' => 'boolean',
         'pid' => 'integer',
         'exit_code' => 'integer',
         'total_tokens' => 'integer',
@@ -87,6 +90,12 @@ class Session extends Model
 
     public const STATUSES = ['created', 'starting', 'running', 'waiting_input', 'completed', 'error', 'terminated'];
 
+    /**
+     * Statuses counted as "active" for the per-plan concurrent agent cap:
+     * everything that is not terminal (completed/error/terminated).
+     */
+    public const ACTIVE_STATUSES = ['created', 'starting', 'running', 'waiting_input'];
+
     // ==================== RELATIONSHIPS ====================
 
     public function machine(): BelongsTo
@@ -114,11 +123,26 @@ class Session extends Model
         return $this->belongsTo(ClaudeCredential::class, 'credential_id');
     }
 
+    public function sharedProject(): BelongsTo
+    {
+        return $this->belongsTo(SharedProject::class, 'shared_project_id');
+    }
+
     // ==================== SCOPES ====================
 
     public function scopeRunning($query)
     {
         return $query->whereIn('status', ['running', 'waiting_input']);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->whereIn('status', self::ACTIVE_STATUSES);
+    }
+
+    public function scopeOrchestrated($query)
+    {
+        return $query->where('orchestrated', true);
     }
 
     public function scopeCompleted($query)

@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Exceptions\WorkerPoolException;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProjectResource;
 use App\Models\Machine;
 use App\Models\SharedProject;
-use App\Services\AgentGateway;
+use App\Services\WorkerPoolService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
@@ -633,48 +634,41 @@ class ProjectController extends Controller
         ]);
     }
 
-    // ==================== ORCHESTRATOR ====================
+    // ==================== ORCHESTRATOR (server-driven worker pool) ====================
 
     /**
-     * Start the orchestrator for a project.
+     * Start orchestration: the SERVER spawns interactive worker sessions
+     * (WorkerPoolService) — the loop is driven by idle heartbeats, no
+     * agent-side orchestrator anymore.
      */
-    public function startOrchestrator(Request $request, string $id): JsonResponse
+    public function startOrchestrator(Request $request, WorkerPoolService $workerPool, string $id): JsonResponse
     {
         $project = $this->getUserProject($request, $id);
         if (!$project) {
             return $this->errorResponse('CTX_001', 'Project not found', 404);
-        }
-
-        $machine = $project->machine;
-        if (!$machine || $machine->status !== 'online') {
-            return $this->errorResponse('MACHINE_OFFLINE', 'Machine is not online', 422);
         }
 
         $validated = $request->validate([
-            'min_workers' => 'integer|min:1|max:5',
             'max_workers' => 'integer|min:1|max:10',
-            'poll_interval_ms' => 'integer|min:1000|max:60000',
+            'permission_mode' => 'nullable|in:default,plan,acceptEdits,bypassPermissions',
+            'coordinator' => 'nullable|boolean',
         ]);
 
-        $result = AgentGateway::sendAndWait($machine->id, 'orchestrator:start', [
-            'projectId' => $project->id,
-            'projectPath' => $project->project_path,
-            'minWorkers' => $validated['min_workers'] ?? 1,
-            'maxWorkers' => $validated['max_workers'] ?? 3,
-            'pollIntervalMs' => $validated['poll_interval_ms'] ?? 5000,
-        ], 15);
-
-        if ($result === null) {
-            return $this->errorResponse('AGENT_TIMEOUT', 'Agent did not respond in time', 504);
-        }
-
-        if (!empty($result['error'])) {
-            return $this->errorResponse('ORCHESTRATOR_ERROR', $result['error'], 422);
+        try {
+            $status = $workerPool->start(
+                $project,
+                $request->user(),
+                (int) ($validated['max_workers'] ?? 3),
+                $validated['permission_mode'] ?? WorkerPoolService::DEFAULT_PERMISSION_MODE,
+                (bool) ($validated['coordinator'] ?? true),
+            );
+        } catch (WorkerPoolException $e) {
+            return $this->errorResponse($e->errorCode, $e->getMessage(), $e->httpStatus);
         }
 
         return response()->json([
             'success' => true,
-            'data' => $result,
+            'data' => $status,
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
@@ -683,27 +677,22 @@ class ProjectController extends Controller
     }
 
     /**
-     * Stop the orchestrator for a project.
+     * Stop orchestration: mark the state inactive and terminate every
+     * orchestrated worker session. Works even if the machine is offline
+     * (terminate messages expire in the agent queue).
      */
-    public function stopOrchestrator(Request $request, string $id): JsonResponse
+    public function stopOrchestrator(Request $request, WorkerPoolService $workerPool, string $id): JsonResponse
     {
         $project = $this->getUserProject($request, $id);
         if (!$project) {
             return $this->errorResponse('CTX_001', 'Project not found', 404);
         }
 
-        $machine = $project->machine;
-        if (!$machine || $machine->status !== 'online') {
-            return $this->errorResponse('MACHINE_OFFLINE', 'Machine is not online', 422);
-        }
-
-        AgentGateway::send($machine->id, 'orchestrator:stop', [
-            'projectId' => $project->id,
-        ]);
+        $workerPool->stop($project);
 
         return response()->json([
             'success' => true,
-            'data' => ['message' => 'Stop signal sent'],
+            'data' => ['message' => 'Orchestrator stopped', 'status' => 'stopped'],
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
@@ -712,39 +701,19 @@ class ProjectController extends Controller
     }
 
     /**
-     * Get orchestrator status for a project.
+     * Orchestrator status — pure DB read (orchestrated sessions, instances,
+     * task counters, persisted settings). No agent round-trip.
      */
-    public function orchestratorStatus(Request $request, string $id): JsonResponse
+    public function orchestratorStatus(Request $request, WorkerPoolService $workerPool, string $id): JsonResponse
     {
         $project = $this->getUserProject($request, $id);
         if (!$project) {
             return $this->errorResponse('CTX_001', 'Project not found', 404);
         }
 
-        $machine = $project->machine;
-        if (!$machine || $machine->status !== 'online') {
-            return response()->json([
-                'success' => true,
-                'data' => ['status' => 'offline', 'workers' => [], 'pendingTasks' => 0, 'completedTasks' => 0],
-                'meta' => ['timestamp' => now()->toIso8601String()],
-            ]);
-        }
-
-        $result = AgentGateway::sendAndWait($machine->id, 'orchestrator:status', [
-            'projectId' => $project->id,
-        ], 5);
-
-        if ($result === null) {
-            return response()->json([
-                'success' => true,
-                'data' => ['status' => 'unknown', 'workers' => [], 'pendingTasks' => 0, 'completedTasks' => 0],
-                'meta' => ['timestamp' => now()->toIso8601String()],
-            ]);
-        }
-
         return response()->json([
             'success' => true,
-            'data' => $result,
+            'data' => $workerPool->status($project),
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
