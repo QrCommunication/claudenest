@@ -2118,6 +2118,7 @@
     "tabTasks": "Tasks",
     "tabEpics": "Epics",
     "tabSprints": "Sprints",
+    "tabPlanning": "Planning",
     "tabContext": "Context",
     "tabOrchestration": "Orchestration",
     "tabInstances": "Instances",

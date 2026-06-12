@@ -182,26 +182,54 @@
           <TasksBoard :project-id="projectId" />
         </div>
 
-        <!-- Epics Tab -->
-        <div v-else-if="activeTab === 'epics'" class="tab-panel">
-          <EpicBoard
-            :epics="epicsStore.epics"
-            :selected-epic-id="epicsStore.selectedEpic?.id || ''"
-            @select="epicsStore.selectEpic($event)"
-            @create="showCreateEpicModal = true"
-          />
-        </div>
+        <!-- Planning Tab (merged Epics + Sprints) -->
+        <div v-else-if="activeTab === 'planning'" class="tab-panel">
+          <div class="planning-segments" role="tablist" :aria-label="t('projectsShow.tabPlanning')">
+            <button
+              type="button"
+              class="segment"
+              :class="{ active: planningSegment === 'epics' }"
+              role="tab"
+              :aria-selected="planningSegment === 'epics'"
+              @click="planningSegment = 'epics'"
+            >
+              {{ t('projectsShow.tabEpics') }}
+              <span class="segment-count">{{ epicsStore.epics.length }}</span>
+            </button>
+            <button
+              type="button"
+              class="segment"
+              :class="{ active: planningSegment === 'sprints' }"
+              role="tab"
+              :aria-selected="planningSegment === 'sprints'"
+              @click="planningSegment = 'sprints'"
+            >
+              {{ t('projectsShow.tabSprints') }}
+              <span class="segment-count">{{ sprintsStore.sprints.length }}</span>
+            </button>
+          </div>
 
-        <!-- Sprints Tab -->
-        <div v-else-if="activeTab === 'sprints'" class="tab-panel">
-          <SprintBoard :sprint="sprintsStore.currentSprint || null">
-            <TasksBoard :project-id="projectId" />
-          </SprintBoard>
-          <BurndownChart
-            v-if="sprintsStore.burndownData.length > 0"
-            :data="sprintsStore.burndownData"
-            class="mt-6"
-          />
+          <!-- Epics segment -->
+          <div v-if="planningSegment === 'epics'">
+            <EpicBoard
+              :epics="epicsStore.epics"
+              :selected-epic-id="epicsStore.selectedEpic?.id || ''"
+              @select="epicsStore.selectEpic($event)"
+              @create="showCreateEpicModal = true"
+            />
+          </div>
+
+          <!-- Sprints segment -->
+          <div v-else>
+            <SprintBoard :sprint="sprintsStore.currentSprint || null">
+              <TasksBoard :project-id="projectId" />
+            </SprintBoard>
+            <BurndownChart
+              v-if="sprintsStore.burndownData.length > 0"
+              :data="sprintsStore.burndownData"
+              class="mt-6"
+            />
+          </div>
         </div>
 
         <!-- Context Tab -->
@@ -359,20 +387,21 @@ const instances = computed(() => projectsStore.instances);
 const activityLogs = computed(() => projectsStore.activityLogs);
 
 const activeTab = ref('overview');
+const planningSegment = ref<'epics' | 'sprints'>('epics');
 const epicFilter = ref('');
 const sprintFilter = ref('');
 const showCreateEpicModal = ref(false);
 const planningChatRef = ref<InstanceType<typeof PlanningChat> | null>(null);
 
-// Standardized project tab order: Overview · Workspace · Tasks · Epics ·
-// Sprints · Context · Locks · Orchestration · Instances · Activity.
+// Standardized project tab order: Overview · Workspace · Tasks · Planning ·
+// Context · Locks · Orchestration · Instances · Activity.
 // "workspace" is a navigating tab (dedicated multi-terminal route).
+// "planning" merges the former Epics and Sprints tabs (internal segmented control).
 const tabs = computed(() => [
   { id: 'overview', label: t('projectsShow.tabOverview'), icon: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z' },
   { id: 'workspace', label: t('projectsShow.tabWorkspace'), icon: 'M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8h16v10zm-9.5-8L7 13.5l1.41 1.41L10.5 12.83l-2.09-2.08zm3 4.5h5v1.5h-5V14.5z' },
   { id: 'tasks', label: t('projectsShow.tabTasks'), icon: 'M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z', count: projectStats.value?.total_tasks },
-  { id: 'epics', label: t('projectsShow.tabEpics'), icon: 'M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z', count: epicsStore.epics.length },
-  { id: 'sprints', label: t('projectsShow.tabSprints'), icon: 'M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z', count: sprintsStore.sprints.length },
+  { id: 'planning', label: t('projectsShow.tabPlanning'), icon: 'M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z', count: epicsStore.epics.length + sprintsStore.sprints.length },
   { id: 'context', label: t('projectsShow.tabContext'), icon: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z' },
   { id: 'locks', label: t('projectsShow.tabLocks'), icon: 'M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z', count: projectStats.value?.active_locks },
   { id: 'orchestration', label: t('projectsShow.tabOrchestration'), icon: 'M22 11V3h-7v3H9V3H2v8h7V8h2v10h4v3h7v-8h-7v3h-2V8h2v3h7zM7 9H4V5h3v4zm10 6h3v4h-3v-4zm0-10h3v4h-3V5z' },
@@ -387,6 +416,15 @@ function handleTabClick(tabId: string): void {
   }
   activeTab.value = tabId;
 }
+
+// Legacy tab ids compat: "epics" and "sprints" are merged into "planning".
+// Any code path that still targets the old ids lands on the right segment.
+watch(activeTab, (tab) => {
+  if (tab === 'epics' || tab === 'sprints') {
+    planningSegment.value = tab;
+    activeTab.value = 'planning';
+  }
+});
 
 const machineName = computed(() => {
   if (!project.value) return t('projectsShow.unknown');
@@ -592,6 +630,36 @@ function formatDuration(seconds: number): string {
 }
 
 .tab.active .tab-count {
+  @apply bg-brand-purple/20 text-brand-purple;
+}
+
+.planning-segments {
+  @apply inline-flex items-center gap-1 p-1 mb-4 bg-surface-3 border border-skin rounded-lg;
+}
+
+.segment {
+  @apply flex items-center gap-2 px-3.5 py-1.5 text-sm font-medium text-skin-secondary rounded-md cursor-pointer select-none;
+  @apply transition-all duration-150 ease-out;
+}
+
+.segment:hover {
+  @apply text-skin-primary;
+}
+
+.segment:active {
+  @apply scale-[0.97];
+}
+
+.segment.active {
+  @apply bg-brand-purple/10 text-brand-purple;
+}
+
+.segment-count {
+  @apply text-xs bg-white/10 px-1.5 py-0 rounded-full;
+  font-variant-numeric: tabular-nums;
+}
+
+.segment.active .segment-count {
   @apply bg-brand-purple/20 text-brand-purple;
 }
 
