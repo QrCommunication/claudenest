@@ -9,10 +9,7 @@
         :placeholder="t('commandsCommandpalette.searchCommands')"
         class="pl-10 pr-10"
         @focus="isOpen = true"
-        @keydown.down.prevent="highlightNext"
-        @keydown.up.prevent="highlightPrev"
-        @keydown.enter.prevent="selectHighlighted"
-        @keydown.esc="isOpen = false"
+        @keydown="handleSearchKeydown"
       />
       <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
         <span v-if="searchQuery" class="text-xs text-skin-secondary">
@@ -129,6 +126,30 @@ watch(() => props.modelValue, (value) => {
 watch(filteredCommands, () => {
   highlightedIndex.value = 0;
 });
+
+/**
+ * Single keydown handler: multiple `@keydown.modifier` bindings on a component
+ * compile to duplicate `onKeydown` props (TS1117 under vue-tsc).
+ */
+function handleSearchKeydown(event: KeyboardEvent): void {
+  switch (event.key) {
+    case 'ArrowDown':
+      event.preventDefault();
+      highlightNext();
+      break;
+    case 'ArrowUp':
+      event.preventDefault();
+      highlightPrev();
+      break;
+    case 'Enter':
+      event.preventDefault();
+      selectHighlighted();
+      break;
+    case 'Escape':
+      isOpen.value = false;
+      break;
+  }
+}
 
 function highlightNext(): void {
   if (highlightedIndex.value < filteredCommands.value.length - 1) {

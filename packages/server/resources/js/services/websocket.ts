@@ -35,7 +35,7 @@ export interface WebSocketService {
 // WebSocket Manager
 // ============================================================================
 
-class WebSocketManager {
+export class WebSocketManager {
   private echo: Echo<"reverb"> | null = null;
   private terminalWs: WebSocket | null = null;
   private callbacks: WebSocketCallbacks = {};

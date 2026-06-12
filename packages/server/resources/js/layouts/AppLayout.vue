@@ -50,7 +50,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watchEffect } from 'vue';
 import { useRoute } from 'vue-router';
 import AppSidebar from '@/components/layout/AppSidebar.vue';
 import TabBar from '@/components/layout/TabBar.vue';
@@ -59,9 +59,12 @@ import Breadcrumb from '@/components/common/Breadcrumb.vue';
 import { useTabs } from '@/composables/useTabs';
 import { useBreadcrumb } from '@/composables/useBreadcrumb';
 import { useFullscreen } from '@/composables/useFullscreen';
+import { setLastProject } from '@/composables/useLastProject';
+import { useProjectsStore } from '@/stores/projects';
 
 const route = useRoute();
 const { isFullscreen } = useFullscreen();
+const projectsStore = useProjectsStore();
 const sidebarCollapsed = ref(false);
 const mobileSidebarOpen = ref(false);
 
@@ -71,6 +74,33 @@ const { breadcrumbItems } = useBreadcrumb();
 const showBreadcrumb = computed(() =>
   breadcrumbItems.value.length > 0 && route.name !== 'dashboard'
 );
+
+// Project context of the current route (any /projects/:id page), resolved
+// once the projects store knows the project name.
+const routeProject = computed(() => {
+  const id = route.params.id;
+  if (typeof id !== 'string' || !route.path.startsWith('/projects/')) return null;
+  const selected = projectsStore.selectedProject;
+  return selected?.id === id ? selected : null;
+});
+
+// document.title: `{page} — {projet} — ClaudeNest`
+watchEffect(() => {
+  const page = breadcrumbItems.value.length > 0
+    ? breadcrumbItems.value[breadcrumbItems.value.length - 1].label
+    : null;
+  const parts = [page, routeProject.value?.name, 'ClaudeNest'].filter(
+    (part): part is string => Boolean(part),
+  );
+  document.title = parts.join(' — ');
+});
+
+// Pin the last visited project for the sidebar quick links.
+watchEffect(() => {
+  if (routeProject.value) {
+    setLastProject({ id: routeProject.value.id, name: routeProject.value.name });
+  }
+});
 
 const toggleSidebar = () => {
   sidebarCollapsed.value = !sidebarCollapsed.value;

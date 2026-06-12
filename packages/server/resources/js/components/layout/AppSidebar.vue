@@ -51,6 +51,32 @@
           <span v-if="!collapsed" class="nav-label">{{ item.name }}</span>
           <div v-if="isActive(item.path)" class="active-indicator" />
         </router-link>
+
+        <!-- Pinned last project (Multi-Agent group) -->
+        <template v-if="group.pinnedProject && lastProject">
+          <router-link
+            :to="`/projects/${lastProject.id}`"
+            :class="['nav-item', 'nav-item--pinned', { active: isProjectActive('') }]"
+            :title="collapsed ? lastProject.name : ''"
+          >
+            <BookmarkIcon class="nav-icon" />
+            <span v-if="!collapsed" class="nav-label">{{ lastProject.name }}</span>
+          </router-link>
+          <template v-if="!collapsed">
+            <router-link
+              :to="`/projects/${lastProject.id}/workspace`"
+              :class="['nav-subitem', { active: isProjectActive('/workspace') }]"
+            >
+              {{ t('layoutAppsidebar.workspace') }}
+            </router-link>
+            <router-link
+              :to="`/projects/${lastProject.id}/tasks`"
+              :class="['nav-subitem', { active: isProjectActive('/tasks') }]"
+            >
+              {{ t('layoutAppsidebar.board') }}
+            </router-link>
+          </template>
+        </template>
       </template>
     </nav>
 
@@ -70,6 +96,7 @@ import { computed, type Component } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import { useTheme } from '@/composables/useTheme';
+import { useLastProject } from '@/composables/useLastProject';
 import {
   HomeIcon,
   CommandLineIcon,
@@ -82,6 +109,7 @@ import {
   Squares2X2Icon,
   Cog6ToothIcon,
   EyeIcon,
+  BookmarkIcon,
 } from '@heroicons/vue/24/outline';
 
 interface Props {
@@ -100,6 +128,7 @@ const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const { isDark } = useTheme();
+const { lastProject } = useLastProject();
 
 interface NavItem {
   name: string;
@@ -110,6 +139,8 @@ interface NavItem {
 interface NavGroup {
   label: string;
   items: NavItem[];
+  /** Render the pinned last-project entry (Workspace/Board) under this group. */
+  pinnedProject?: boolean;
 }
 
 // Built inside a computed so t() is re-evaluated whenever the locale changes.
@@ -136,6 +167,7 @@ const navGroups = computed<NavGroup[]>(() => [
       { name: t('layoutAppsidebar.projects'), path: '/projects', icon: FolderIcon },
       { name: t('layoutAppsidebar.tasks'), path: '/tasks', icon: CheckCircleIcon },
     ],
+    pinnedProject: true,
   },
   {
     label: t('layoutAppsidebar.configuration'),
@@ -159,6 +191,16 @@ const isActive = (path: string) => {
     return route.path === '/dashboard';
   }
   return route.path.startsWith(path);
+};
+
+/** Active state of the pinned project entry / its sub-links. */
+const isProjectActive = (suffix: string): boolean => {
+  if (!lastProject.value) return false;
+  const base = `/projects/${lastProject.value.id}`;
+  if (suffix === '') {
+    return route.path === base;
+  }
+  return route.path.startsWith(base + suffix);
 };
 
 const navigateToDashboard = () => {
@@ -343,6 +385,37 @@ const navigateToDashboard = () => {
   height: 20px;
   background-color: var(--accent-purple);
   border-radius: 0 2px 2px 0;
+}
+
+/* Pinned last project + its quick links */
+.nav-item--pinned .nav-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+.nav-subitem {
+  display: block;
+  padding: 6px 12px 6px 44px;
+  margin-bottom: 2px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: all 0.2s ease;
+}
+
+.nav-subitem:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.nav-subitem.active {
+  color: var(--accent-purple, #a855f7);
+  background-color: color-mix(in srgb, var(--accent-purple, #a855f7) 8%, transparent);
 }
 
 /* Footer */

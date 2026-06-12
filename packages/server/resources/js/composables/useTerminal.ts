@@ -12,7 +12,7 @@ import type {
   ConnectionStatus,
   WebSocketConfig
 } from '@/types';
-import { websocketManager } from '@/services/websocket';
+import { WebSocketManager } from '@/services/websocket';
 import { sessionsApi } from '@/services/api';
 
 // Import xterm.css styles
@@ -90,7 +90,12 @@ export interface UseTerminalReturn {
 
 export function useTerminal(options: UseTerminalOptions): UseTerminalReturn {
   const { sessionId, autoConnect = true } = options;
-  
+
+  // Dedicated connection manager per terminal instance: the workspace mounts
+  // up to 4 terminals at once — a shared singleton would have each connect()
+  // override the previous session's WebSocket and route input to the wrong PTY.
+  const websocketManager = new WebSocketManager();
+
   // Refs
   const terminal = ref<Terminal | null>(null);
   const containerRef = ref<HTMLElement | null>(null);

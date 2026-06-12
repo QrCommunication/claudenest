@@ -133,6 +133,7 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::patch('projects/{project}', [Api\ProjectController::class, 'update']);
     Route::delete('projects/{project}', [Api\ProjectController::class, 'destroy']);
     Route::get('projects/{project}/stats', [Api\ProjectController::class, 'stats']);
+    Route::get('projects/{project}/sessions', [Api\ProjectController::class, 'sessions']);
 
     // ==================== DECOMPOSITION (PRD → Master Plan) ====================
     Route::post('projects/{project}/decompose', [Api\DecompositionController::class, 'decompose']);

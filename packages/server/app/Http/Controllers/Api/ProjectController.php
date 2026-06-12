@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\ProjectBroadcast;
 use App\Exceptions\WorkerPoolException;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProjectResource;
+use App\Http\Resources\SessionResource;
 use App\Models\Machine;
+use App\Models\Session;
 use App\Models\SharedProject;
 use App\Services\WorkerPoolService;
 use Illuminate\Http\JsonResponse;
@@ -243,7 +246,7 @@ class ProjectController extends Controller
         ]);
 
         $updateData = array_diff_key($validated, array_flip(['settings']));
-        if (!empty($updateData)) {
+        if (! empty($updateData)) {
             $project->update($updateData);
         }
 
@@ -367,6 +370,80 @@ class ProjectController extends Controller
         return response()->json([
             'success' => true,
             'data' => $instances,
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
+    }
+
+    /** List sessions attached to a shared project (workspace terminals). */
+    #[OA\Get(
+        path: '/api/projects/{id}/sessions',
+        summary: 'List sessions of a shared project',
+        security: [['bearerAuth' => []]],
+        tags: ['Projects'],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                in: 'path',
+                required: true,
+                description: 'Project UUID',
+                schema: new OA\Schema(type: 'string', format: 'uuid'),
+            ),
+            new OA\Parameter(
+                name: 'status',
+                in: 'query',
+                required: false,
+                description: 'Comma-separated list of session statuses to keep (e.g. "running,waiting_input")',
+                schema: new OA\Schema(type: 'string'),
+            ),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Sessions attached to the project',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'array',
+                            items: new OA\Items(ref: '#/components/schemas/Session'),
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(response: 404, description: 'Project not found'),
+        ],
+    )]
+    public function sessions(Request $request, string $id): JsonResponse
+    {
+        $project = SharedProject::findOrFail($id);
+        $this->authorize('view', $project);
+
+        $validated = $request->validate([
+            'status' => 'sometimes|string|max:255',
+        ]);
+
+        $query = Session::where('shared_project_id', $project->id)
+            ->with('machine')
+            ->orderByDesc('created_at');
+
+        if (! empty($validated['status'])) {
+            $statuses = array_values(array_intersect(
+                array_map('trim', explode(',', $validated['status'])),
+                Session::STATUSES,
+            ));
+
+            if ($statuses !== []) {
+                $query->whereIn('status', $statuses);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => SessionResource::collection($query->get()),
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
@@ -537,7 +614,7 @@ class ProjectController extends Controller
         $project->logActivity('broadcast', null, $message);
 
         // Broadcast to instances
-        broadcast(new \App\Events\ProjectBroadcast($project, $message, $validated['target_instances'] ?? null))->toOthers();
+        broadcast(new ProjectBroadcast($project, $message, $validated['target_instances'] ?? null))->toOthers();
 
         return response()->json([
             'success' => true,
@@ -644,7 +721,7 @@ class ProjectController extends Controller
     public function startOrchestrator(Request $request, WorkerPoolService $workerPool, string $id): JsonResponse
     {
         $project = $this->getUserProject($request, $id);
-        if (!$project) {
+        if (! $project) {
             return $this->errorResponse('CTX_001', 'Project not found', 404);
         }
 
@@ -684,7 +761,7 @@ class ProjectController extends Controller
     public function stopOrchestrator(Request $request, WorkerPoolService $workerPool, string $id): JsonResponse
     {
         $project = $this->getUserProject($request, $id);
-        if (!$project) {
+        if (! $project) {
             return $this->errorResponse('CTX_001', 'Project not found', 404);
         }
 
@@ -707,7 +784,7 @@ class ProjectController extends Controller
     public function orchestratorStatus(Request $request, WorkerPoolService $workerPool, string $id): JsonResponse
     {
         $project = $this->getUserProject($request, $id);
-        if (!$project) {
+        if (! $project) {
             return $this->errorResponse('CTX_001', 'Project not found', 404);
         }
 
@@ -728,5 +805,4 @@ class ProjectController extends Controller
     {
         return SharedProject::forUser($request->user()->id)->find($id);
     }
-
 }

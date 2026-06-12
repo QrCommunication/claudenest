@@ -183,14 +183,15 @@ const handleLogout = async () => {
   outline: none;
 }
 
+/* Compact 24px avatar — fits the 40px VS Code-style tab bar */
 .user-avatar {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   flex-shrink: 0;
   overflow: hidden;

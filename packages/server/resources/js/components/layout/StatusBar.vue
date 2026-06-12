@@ -23,6 +23,19 @@
         <CommandLineIcon class="status-icon" />
         <span class="status-text">{{ sessionCount }} {{ sessionCount !== 1 ? t('layoutStatusbar.sessions') : t('layoutStatusbar.session') }}</span>
       </div>
+
+      <!-- Project workers/locks (project routes only) — click → workspace -->
+      <button
+        v-if="projectRouteId"
+        class="status-btn status-project"
+        :title="t('layoutStatusbar.openWorkspace')"
+        @click="navigateToWorkspace"
+      >
+        <span class="status-dot" :class="projectWorkerCount > 0 ? 'online' : 'offline'" />
+        <span class="status-text">
+          {{ t('layoutStatusbar.projectCounters', { workers: projectWorkerCount, locks: projectLockCount }) }}
+        </span>
+      </button>
     </div>
 
     <!-- Right Section -->
@@ -47,11 +60,13 @@
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useTheme } from '@/composables/useTheme';
 import { useMachinesStore } from '@/stores/machines';
 import { useCredentialsStore } from '@/stores/credentials';
+import { useOrchestratorStore } from '@/stores/orchestrator';
+import { useLocksStore } from '@/stores/locks';
 import { setLocale, type SupportedLocale } from '@/i18n';
 import {
   KeyIcon,
@@ -64,10 +79,13 @@ import {
 } from '@heroicons/vue/24/outline';
 
 const router = useRouter();
+const route = useRoute();
 const { theme, toggleTheme } = useTheme();
 const { locale, t } = useI18n();
 const machinesStore = useMachinesStore();
 const credentialsStore = useCredentialsStore();
+const orchestratorStore = useOrchestratorStore();
+const locksStore = useLocksStore();
 
 // Real data from stores
 const activeCredentialName = computed(() => credentialsStore.defaultCredential?.name ?? null);
@@ -77,6 +95,21 @@ const machineStatus = computed<'online' | 'offline'>(() =>
 );
 const sessionCount = computed(() => machinesStore.totalActiveSessions);
 const currentLanguage = computed(() => (locale.value as string).toUpperCase());
+
+// Project counters: only meaningful on /projects/:id routes, where the
+// project pages populate the orchestrator/locks stores.
+const projectRouteId = computed(() => {
+  const id = route.params.id;
+  return route.path.startsWith('/projects/') && typeof id === 'string' ? id : null;
+});
+const projectWorkerCount = computed(() => orchestratorStore.orchestratorStatus?.workers.length ?? 0);
+const projectLockCount = computed(() => locksStore.activeLocks.length);
+
+const navigateToWorkspace = () => {
+  if (projectRouteId.value) {
+    router.push(`/projects/${projectRouteId.value}/workspace`);
+  }
+};
 
 onMounted(async () => {
   if (machinesStore.machines.length === 0) {
