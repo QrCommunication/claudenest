@@ -175,6 +175,23 @@ function parseError(error: unknown): ParsedError {
   };
 }
 
+/**
+ * Extract the domain error code from an API error response.
+ *
+ * The server envelope is `{ success: false, error: { code, message } }`
+ * (controllers' errorResponse helper); legacy endpoints may use a flat
+ * `{ code }`. Returns null when no code can be determined.
+ */
+export function getApiErrorCode(error: unknown): string | null {
+  if (!axios.isAxiosError(error)) return null;
+
+  const data = error.response?.data as
+    | { error?: { code?: string }; code?: string }
+    | undefined;
+
+  return data?.error?.code ?? data?.code ?? null;
+}
+
 // ============================================================================
 // Exports
 // ============================================================================

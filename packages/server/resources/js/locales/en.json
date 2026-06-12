@@ -284,9 +284,7 @@
       "error": "Error"
     },
     "mode": {
-      "interactive": "Interactive",
-      "headless": "Headless",
-      "oneshot": "One-shot"
+      "interactive": "Interactive"
     },
     "details": {
       "machine": "Machine",
@@ -317,6 +315,7 @@
       "mode_label": "Mode:",
       "duration_label": "Duration:",
       "exit_code_label": "Exit Code:",
+      "project_label": "Project:",
       "reconnect_now": "Reconnect Now",
       "connection_lost": "Connection lost. Reconnecting...",
       "connection_failed": "Connection failed after multiple attempts. Please try again later.",
@@ -334,14 +333,27 @@
       "select_mode": "Select Mode",
       "session_mode": "Session Mode",
       "mode_interactive_desc": "Full interactive terminal session",
-      "mode_headless_desc": "Run without terminal UI",
-      "mode_oneshot_desc": "Execute a single prompt and exit",
+      "permission_mode": "Permission Mode",
+      "permission_default": "Supervised",
+      "permission_default_desc": "Asks for confirmation before each sensitive action.",
+      "permission_accept_edits": "Autonomous",
+      "permission_accept_edits_desc": "File edits are auto-accepted — recommended for workers.",
+      "permission_plan": "Plan only",
+      "permission_plan_desc": "Claude plans without applying any change.",
+      "permission_bypass": "Unattended",
+      "permission_bypass_desc": "All permission prompts are skipped.",
+      "permission_bypass_warning": "This session will run without any confirmation. Use only in a trusted, isolated environment.",
+      "shared_project": "Shared Project (optional)",
+      "shared_project_placeholder": "No project — standalone session",
+      "loading_projects": "Loading projects...",
+      "no_projects_on_machine": "No shared projects on this machine.",
+      "failed_load_projects": "Failed to load shared projects.",
+      "path_locked_hint": "Path locked by the selected shared project.",
       "project_path": "Project Path",
       "project_path_optional": "Project Path (optional)",
       "project_path_placeholder": "/path/to/your/project",
       "initial_prompt": "Initial Prompt",
       "initial_prompt_placeholder": "Enter your initial prompt...",
-      "prompt_required": "(required)",
       "prompt_optional": "(optional)",
       "credential": "Credential",
       "credential_default": "Default",
@@ -891,7 +903,7 @@
       },
       "pillar_2": {
         "title": "Conflict Prevention",
-        "description": "File locking + atomic task claiming = zero merge conflicts, zero duplicated work."
+        "description": "File locking + atomic task claiming = no duplicated work and far fewer conflicts."
       },
       "pillar_3": {
         "title": "Total Visibility",
@@ -905,11 +917,11 @@
       "subtitle": "From a single dashboard to a full multi-agent command center.",
       "remote_access": {
         "title": "Control from anywhere",
-        "description": "Access your Claude Code instances from any browser, any device. WebSocket relay means every keystroke arrives in real-time, with <50ms latency."
+        "description": "Access your Claude Code instances from any browser, any device. WebSocket relay means every keystroke arrives in real-time."
       },
       "multi_agent": {
         "title": "Agents that collaborate",
-        "description": "Run 5+ Claude instances on the same project. Atomic task claiming prevents duplicated work. Each agent knows what the others are doing."
+        "description": "Run multiple Claude instances on the same project. Atomic task claiming prevents duplicated work, and a shared task board shows what every agent is doing."
       },
       "context_rag": {
         "title": "Shared intelligence",
@@ -920,8 +932,8 @@
         "description": "Laravel Reverb WebSocket channels relay terminal output in real-time. Watch your agents work from anywhere — even your phone."
       },
       "file_locking": {
-        "title": "Zero merge conflicts",
-        "description": "Automatic file locking with expiration, force-release, and bulk operations. Two agents can never edit the same file simultaneously."
+        "title": "Conflict prevention, built in",
+        "description": "Automatic file locking with expiration, force-release, and bulk operations. File-level locks with conflict detection keep agents out of each other's way."
       },
       "mcp_support": {
         "title": "Infinite extensibility",
@@ -994,7 +1006,7 @@
       "title_highlight": "Premium when you scale.",
       "subtitle": "ClaudeNest is open source and self-hosted. No usage fees, no per-seat pricing, no surprises.",
       "most_popular": "Most Popular",
-      "note": "Self-hosted is always free. Managed hosting plans available.",
+      "note": "Self-hosted is always free. Managed hosting plans available. Concurrent parallelism is also bounded by your Claude plan's rate limits.",
       "tiers": {
         "community": {
           "name": "Community",
@@ -1057,11 +1069,11 @@
         },
         "2": {
           "question": "How does the RAG context system work?",
-          "answer": "When an agent learns something, we generate a 384-dimensional vector embedding using BGE-small-en and store it in PostgreSQL with pgvector. Other agents search by semantic similarity — meaning, not keywords. The result: agents build on each other's understanding."
+          "answer": "When an agent learns something, we generate a 384-dimensional vector embedding using BGE-small-en and store it in PostgreSQL with pgvector. Other agents search by semantic similarity — meaning, not keywords. The result: a shared project memory every agent can search."
         },
         "3": {
           "question": "Can multiple agents really work on the same files?",
-          "answer": "Not at the same time — that's the point. Our file locking system prevents two agents from editing the same file simultaneously. Locks have expiration, force-release, and bulk operations. Zero merge conflicts."
+          "answer": "They work on the same project, not the same file at once. An agent claims a lock on a file before editing it; conflicting claims get a 409 response and the agent picks another file. Locks have expiration, force-release, and bulk operations to keep agents out of each other's way."
         },
         "4": {
           "question": "What infrastructure do I need?",
@@ -1787,7 +1799,35 @@
     "connectedInstances": "Connected Instances",
     "noInstancesConnected": "No instances connected",
     "noInstancesHint": "Start an agent with this project to see instances here",
-    "recentActivity": "Recent Activity"
+    "recentActivity": "Recent Activity",
+    "startModalTitle": "Start Orchestrator",
+    "maxWorkers": "Workers",
+    "maxWorkersHint": "Number of parallel Claude workers (1-10)",
+    "permissionMode": "Permission mode",
+    "permissionModeDefault": "Default (ask before edits)",
+    "permissionModeAcceptEdits": "Accept edits automatically",
+    "permissionModePlan": "Plan mode (read-only)",
+    "permissionModeBypass": "Bypass permissions (dangerous)",
+    "coordinatorLabel": "Incident coordinator",
+    "coordinatorHint": "A Claude session opens automatically when an incident occurs (task released twice, lock contention)",
+    "start": "Start",
+    "cancel": "Cancel",
+    "toastStarted": "Orchestrator started — {count} worker(s) active",
+    "toastStartFailed": "Failed to start the orchestrator",
+    "toastStopped": "Orchestrator stopped",
+    "toastStopFailed": "Failed to stop the orchestrator",
+    "planLimitReached": "Your plan limit has been reached — terminate a session or upgrade your plan",
+    "machineOffline": "Machine is offline — start the agent before launching the orchestrator",
+    "workersTitle": "Orchestrated Workers",
+    "statusRunning": "Running",
+    "statusStopped": "Stopped",
+    "currentTask": "Current task",
+    "noCurrentTask": "Idle — waiting for a task",
+    "tasksCompletedCount": "{count} task(s) completed",
+    "noWorkers": "No active workers"
+  },
+  "projectChannel": {
+    "workerNotification": "Worker notification"
   },
   "projectsContext": {
     "summarize": "Summarize",
@@ -2460,6 +2500,16 @@
     "tag_perf": "perf",
     "tag_fix": "fix",
     "tag_breaking": "breaking",
+    "v150Date": "June 12, 2026",
+    "v150Title": "Multi-agent orchestration & AI planning",
+    "v150Desc": "Parallel Claude workers on shared projects, a built-in MCP server, hook-enforced file locks, AI-driven planning and an automatic incident coordinator — all updating live over WebSockets.",
+    "v150Change1": "Multi-agent orchestration is live: spawn parallel interactive Claude workers on a shared project, watch them claim tasks and report in real time.",
+    "v150Change2": "ClaudeNest MCP server: every project-linked session gets task, lock, context and broadcast tools out of the box.",
+    "v150Change3": "File locks are now enforced at edit time by hooks — a denied edit tells you which instance owns the file.",
+    "v150Change4": "AI planning sessions: describe a brief, get epics, tasks and a sprint sized to your real velocity.",
+    "v150Change5": "Incident coordinator: a Claude session is spawned automatically on task thrashing or lock contention to reorganise the plan.",
+    "v150Change6": "Project board, locks and workers update live over WebSockets — no more polling.",
+    "v150Change7": "Agent v2.7.0: repaired session spawning flags, per-session runtime config, faster server-to-agent delivery (~3 ms wake).",
     "v060mDate": "June 11, 2026",
     "v060mTitle": "Mobile app 0.6.0",
     "v060mDesc": "A brand-new visual identity and a faster, more reliable mobile terminal — with Claude sessions you can resume from anywhere.",
@@ -5282,7 +5332,7 @@
   },
   "docDocsGuidesFilelocking": {
     "title": "File Locking",
-    "lead": "Prevent conflicts when multiple agents edit the same files. File locks guarantee exclusive write access for a configurable duration.",
+    "lead": "Prevent conflicts when multiple agents edit the same files. File-level locks give an agent an exclusive claim on a path for a configurable duration; hooks enforce it at edit time.",
     "whyHeading": "Why File Locking?",
     "whyPara1": "When several Claude instances work on the same project simultaneously, two agents might try to modify the same file at the same time. Without coordination the result is merge conflicts, overwritten work, or inconsistent state.",
     "whyPara2": "ClaudeNest's file locking system solves this by letting an instance acquire an exclusive lock on a file path before editing it. Other instances can check whether a file is locked and either wait or choose a different file to work on.",
@@ -5483,7 +5533,7 @@
     "howItWorksStep3": "It returns structured suggestions (create tasks, assign points, group into epics)",
     "howItWorksStep4": "You approve or modify the suggestions before they are applied",
     "exampleSprintPlanningHeading": "Example: Sprint Planning",
-    "planningAgentTip": "The Planning Agent considers the team's average velocity when suggesting sprint scope. If the last 3 sprints averaged 18 story points, it will not suggest 30 points for the next sprint.",
+    "planningAgentTip": "Sprint & velocity tracking — story points, burndown data and velocity stats ready for sprint planning.",
     "runnerAgentHeading": "Runner Agent",
     "runnerAgentPara1": "The Runner Agent is an automated monitoring service that runs in the background and keeps your project dashboard in sync. It watches Claude instance activity and automatically updates task statuses.",
     "capabilitiesHeading": "Capabilities",
@@ -5675,9 +5725,9 @@
     "agentsTitle": "Planning Agent & Runner Agent",
     "agentsIntro": "ClaudeNest ships two built-in automation agents that operate at the project level:",
     "planningAgentName": "Planning Agent",
-    "planningAgentItem": "{planningAgent} — Analyses the current backlog and suggests how to split work into epics, assign story points, and populate the next sprint. Access its context snapshot at {contextEndpoint} and trigger a planning run with {executeEndpoint}.",
+    "planningAgentItem": "Sprint & velocity tracking — story points, burndown data and velocity stats ready for sprint planning.",
     "runnerAgentName": "Runner Agent",
-    "runnerAgentItem": "{runnerAgent} — Monitors sprint progress in real time and auto-updates task statuses based on Claude instance activity. Check its health at {healthEndpoint}, force a status sweep with {autoUpdateEndpoint}, and view live progress at {progressEndpoint}.",
+    "runnerAgentItem": "Runner health checks — on-demand status updates, stale-task detection and sprint progress metrics.",
     "agentsTip": "Let the Planning Agent propose the sprint scope, then have each Claude instance call {nextAvailable} to claim tasks automatically. The Runner Agent keeps the dashboard in sync without any manual status updates.",
     "nextStepsTitle": "Next Steps",
     "nextStepTasksApiTitle": "Tasks API Reference",

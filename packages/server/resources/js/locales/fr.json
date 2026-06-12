@@ -284,9 +284,7 @@
       "error": "Erreur"
     },
     "mode": {
-      "interactive": "Interactif",
-      "headless": "Sans interface",
-      "oneshot": "Commande unique"
+      "interactive": "Interactif"
     },
     "details": {
       "machine": "Machine",
@@ -317,6 +315,7 @@
       "mode_label": "Mode :",
       "duration_label": "Duree :",
       "exit_code_label": "Code de sortie :",
+      "project_label": "Projet :",
       "reconnect_now": "Reconnecter maintenant",
       "connection_lost": "Connexion perdue. Reconnexion...",
       "connection_failed": "La connexion a echoue apres plusieurs tentatives. Veuillez reessayer plus tard.",
@@ -334,14 +333,27 @@
       "select_mode": "Selectionner le mode",
       "session_mode": "Mode de session",
       "mode_interactive_desc": "Session terminal interactive complete",
-      "mode_headless_desc": "Executer sans interface terminal",
-      "mode_oneshot_desc": "Executer un seul prompt et quitter",
+      "permission_mode": "Mode permissions",
+      "permission_default": "Supervise",
+      "permission_default_desc": "Demande confirmation avant chaque action sensible.",
+      "permission_accept_edits": "Autonome",
+      "permission_accept_edits_desc": "Editions de fichiers auto-acceptees — recommande pour les workers.",
+      "permission_plan": "Plan uniquement",
+      "permission_plan_desc": "Claude planifie sans appliquer de changement.",
+      "permission_bypass": "Sans surveillance",
+      "permission_bypass_desc": "Toutes les demandes de permission sont ignorees.",
+      "permission_bypass_warning": "Cette session s'executera sans aucune confirmation. A utiliser uniquement dans un environnement isole et de confiance.",
+      "shared_project": "Projet partage (optionnel)",
+      "shared_project_placeholder": "Aucun projet — session autonome",
+      "loading_projects": "Chargement des projets...",
+      "no_projects_on_machine": "Aucun projet partage sur cette machine.",
+      "failed_load_projects": "Echec du chargement des projets partages.",
+      "path_locked_hint": "Chemin verrouille par le projet partage selectionne.",
       "project_path": "Chemin du projet",
       "project_path_optional": "Chemin du projet (optionnel)",
       "project_path_placeholder": "/chemin/vers/votre/projet",
       "initial_prompt": "Prompt initial",
       "initial_prompt_placeholder": "Entrez votre prompt initial...",
-      "prompt_required": "(requis)",
       "prompt_optional": "(optionnel)",
       "credential": "Identifiant",
       "credential_default": "Par defaut",
@@ -891,7 +903,7 @@
       },
       "pillar_2": {
         "title": "Prevention des conflits",
-        "description": "Verrouillage de fichiers + reclamation atomique des taches = zero conflits de merge, zero travail en double."
+        "description": "Verrouillage de fichiers + reclamation atomique des taches = aucun travail en double et beaucoup moins de conflits."
       },
       "pillar_3": {
         "title": "Visibilite totale",
@@ -905,11 +917,11 @@
       "subtitle": "D'un tableau de bord unique a un centre de commande multi-agents complet.",
       "remote_access": {
         "title": "Controlez de partout",
-        "description": "Accedez a vos instances Claude Code depuis n'importe quel navigateur, n'importe quel appareil. Le relais WebSocket transmet chaque frappe en temps reel, avec une latence <50ms."
+        "description": "Accedez a vos instances Claude Code depuis n'importe quel navigateur, n'importe quel appareil. Le relais WebSocket transmet chaque frappe en temps reel."
       },
       "multi_agent": {
         "title": "Des agents qui collaborent",
-        "description": "Executez 5+ instances Claude sur le meme projet. La reclamation atomique des taches empeche le travail en double. Chaque agent sait ce que font les autres."
+        "description": "Executez plusieurs instances Claude sur le meme projet. La reclamation atomique des taches empeche le travail en double, et un tableau de taches partage montre ce que fait chaque agent."
       },
       "context_rag": {
         "title": "Intelligence partagee",
@@ -920,8 +932,8 @@
         "description": "Les canaux WebSocket Laravel Reverb relaient la sortie du terminal en temps reel. Observez vos agents travailler de partout — meme depuis votre telephone."
       },
       "file_locking": {
-        "title": "Zero conflits de merge",
-        "description": "Verrouillage automatique des fichiers avec expiration, liberation forcee et operations en masse. Deux agents ne peuvent jamais modifier le meme fichier simultanement."
+        "title": "Prevention des conflits integree",
+        "description": "Verrouillage automatique des fichiers avec expiration, liberation forcee et operations en masse. Des verrous au niveau fichier avec detection de conflits evitent que les agents se genent mutuellement."
       },
       "mcp_support": {
         "title": "Extensibilite infinie",
@@ -994,7 +1006,7 @@
       "title_highlight": "Premium quand vous grandissez.",
       "subtitle": "ClaudeNest est open source et auto-heberge. Pas de frais d'utilisation, pas de tarif par siege, pas de surprises.",
       "most_popular": "Le plus populaire",
-      "note": "L'auto-hebergement est toujours gratuit. Plans d'hebergement gere disponibles.",
+      "note": "L'auto-hebergement est toujours gratuit. Plans d'hebergement gere disponibles. Le parallelisme effectif depend aussi des limites de votre plan Claude.",
       "tiers": {
         "community": {
           "name": "Communaute",
@@ -1057,11 +1069,11 @@
         },
         "2": {
           "question": "Comment fonctionne le systeme de contexte RAG ?",
-          "answer": "Quand un agent apprend quelque chose, nous generons un embedding vectoriel 384D avec BGE-small-en et le stockons dans PostgreSQL avec pgvector. Les autres agents cherchent par similarite semantique — le sens, pas les mots-cles. Resultat : les agents construisent sur la comprehension des autres."
+          "answer": "Quand un agent apprend quelque chose, nous generons un embedding vectoriel 384D avec BGE-small-en et le stockons dans PostgreSQL avec pgvector. Les autres agents cherchent par similarite semantique — le sens, pas les mots-cles. Resultat : une memoire projet partagee que chaque agent peut interroger."
         },
         "3": {
           "question": "Plusieurs agents peuvent-ils vraiment travailler sur les memes fichiers ?",
-          "answer": "Pas en meme temps — c'est justement le but. Notre systeme de verrouillage de fichiers empeche deux agents de modifier le meme fichier simultanement. Les verrous ont une expiration, une liberation forcee et des operations en masse. Zero conflits de merge."
+          "answer": "Ils travaillent sur le meme projet, pas sur le meme fichier en meme temps. Un agent reclame un verrou sur un fichier avant de le modifier ; les reclamations concurrentes recoivent une reponse 409 et l'agent choisit un autre fichier. Les verrous ont une expiration, une liberation forcee et des operations en masse pour que les agents ne se genent pas."
         },
         "4": {
           "question": "Quelle infrastructure me faut-il ?",
@@ -1787,7 +1799,35 @@
     "connectedInstances": "Instances connectées",
     "noInstancesConnected": "Aucune instance connectée",
     "noInstancesHint": "Démarrez un agent avec ce projet pour voir les instances ici",
-    "recentActivity": "Activité récente"
+    "recentActivity": "Activité récente",
+    "startModalTitle": "Démarrer l'orchestrateur",
+    "maxWorkers": "Workers",
+    "maxWorkersHint": "Nombre de workers Claude en parallèle (1-10)",
+    "permissionMode": "Mode de permissions",
+    "permissionModeDefault": "Défaut (confirmation avant édition)",
+    "permissionModeAcceptEdits": "Accepter les éditions automatiquement",
+    "permissionModePlan": "Mode plan (lecture seule)",
+    "permissionModeBypass": "Ignorer les permissions (dangereux)",
+    "coordinatorLabel": "Coordinateur d'incidents",
+    "coordinatorHint": "Une session Claude est ouverte automatiquement en cas d'incident (tâche relâchée 2×, contention de verrous)",
+    "start": "Démarrer",
+    "cancel": "Annuler",
+    "toastStarted": "Orchestrateur démarré — {count} worker(s) actif(s)",
+    "toastStartFailed": "Échec du démarrage de l'orchestrateur",
+    "toastStopped": "Orchestrateur arrêté",
+    "toastStopFailed": "Échec de l'arrêt de l'orchestrateur",
+    "planLimitReached": "Limite de votre plan atteinte — terminez une session ou passez à un plan supérieur",
+    "machineOffline": "Machine hors ligne — démarrez l'agent avant de lancer l'orchestrateur",
+    "workersTitle": "Workers orchestrés",
+    "statusRunning": "En cours",
+    "statusStopped": "Arrêté",
+    "currentTask": "Tâche en cours",
+    "noCurrentTask": "Inactif — en attente d'une tâche",
+    "tasksCompletedCount": "{count} tâche(s) terminée(s)",
+    "noWorkers": "Aucun worker actif"
+  },
+  "projectChannel": {
+    "workerNotification": "Notification du worker"
   },
   "projectsContext": {
     "summarize": "Résumer",
@@ -2460,6 +2500,16 @@
     "tag_perf": "perf",
     "tag_fix": "fix",
     "tag_breaking": "cassant",
+    "v150Date": "12 juin 2026",
+    "v150Title": "Orchestration multi-agents & planification IA",
+    "v150Desc": "Des workers Claude parallèles sur projets partagés, un serveur MCP intégré, des file locks appliqués par hooks, une planification pilotée par IA et un coordinateur d'incidents automatique — le tout mis à jour en direct via WebSockets.",
+    "v150Change1": "L'orchestration multi-agents est en production : lancez des workers Claude interactifs en parallèle sur un projet partagé, et regardez-les s'attribuer les tâches et rendre compte en temps réel.",
+    "v150Change2": "Serveur MCP ClaudeNest : chaque session liée à un projet reçoit nativement les outils de tâches, de locks, de contexte et de broadcast.",
+    "v150Change3": "Les file locks sont désormais appliqués au moment de l'édition par des hooks — une édition refusée indique quelle instance détient le fichier.",
+    "v150Change4": "Sessions de planification IA : décrivez un brief, obtenez des epics, des tâches et un sprint calibré sur votre vélocité réelle.",
+    "v150Change5": "Coordinateur d'incidents : une session Claude est lancée automatiquement en cas de tâches qui s'enlisent ou de contention sur les locks pour réorganiser le plan.",
+    "v150Change6": "Le board projet, les locks et les workers se mettent à jour en direct via WebSockets — fini le polling.",
+    "v150Change7": "Agent v2.7.0 : flags de lancement de session réparés, config runtime par session, livraison serveur→agent plus rapide (réveil ~3 ms).",
     "v060mDate": "11 juin 2026",
     "v060mTitle": "Application mobile 0.6.0",
     "v060mDesc": "Une toute nouvelle identité visuelle et un terminal mobile plus rapide et plus fiable — avec des sessions Claude reprenables où que vous soyez.",
@@ -5282,7 +5332,7 @@
   },
   "docDocsGuidesFilelocking": {
     "title": "Verrouillage de fichiers",
-    "lead": "Évitez les conflits lorsque plusieurs agents modifient les mêmes fichiers. Les verrous de fichiers garantissent un accès en écriture exclusif pendant une durée configurable.",
+    "lead": "Évitez les conflits lorsque plusieurs agents modifient les mêmes fichiers. Les verrous au niveau fichier donnent à un agent une réservation exclusive sur un chemin pendant une durée configurable ; les hooks l'appliquent au moment de l'édition.",
     "whyHeading": "Pourquoi le verrouillage de fichiers ?",
     "whyPara1": "Lorsque plusieurs instances Claude travaillent simultanément sur le même projet, deux agents peuvent tenter de modifier le même fichier en même temps. Sans coordination, le résultat est des conflits de fusion, du travail écrasé ou un état incohérent.",
     "whyPara2": "Le système de verrouillage de fichiers de ClaudeNest résout ce problème en permettant à une instance d'acquérir un verrou exclusif sur un chemin de fichier avant de le modifier. Les autres instances peuvent vérifier si un fichier est verrouillé et soit attendre, soit choisir un autre fichier sur lequel travailler.",
@@ -5483,7 +5533,7 @@
     "howItWorksStep3": "Il renvoie des suggestions structurées (créer des tâches, attribuer des points, regrouper en epics)",
     "howItWorksStep4": "Vous approuvez ou modifiez les suggestions avant qu'elles ne soient appliquées",
     "exampleSprintPlanningHeading": "Exemple : planification de sprint",
-    "planningAgentTip": "Le Planning Agent prend en compte la vélocité moyenne de l'équipe pour suggérer le périmètre d'un sprint. Si les 3 derniers sprints ont atteint en moyenne 18 story points, il ne suggérera pas 30 points pour le prochain sprint.",
+    "planningAgentTip": "Suivi des sprints et de la vélocité — story points, données de burndown et statistiques de vélocité, prêts pour la planification de sprint.",
     "runnerAgentHeading": "Runner Agent",
     "runnerAgentPara1": "Le Runner Agent est un service de surveillance automatisé qui s'exécute en arrière-plan et maintient votre tableau de bord de projet synchronisé. Il surveille l'activité des instances Claude et met à jour automatiquement les statuts des tâches.",
     "capabilitiesHeading": "Capacités",
@@ -5675,9 +5725,9 @@
     "agentsTitle": "Agent de planification et agent d'exécution",
     "agentsIntro": "ClaudeNest est livré avec deux agents d'automatisation intégrés qui opèrent au niveau du projet :",
     "planningAgentName": "Agent de planification",
-    "planningAgentItem": "{planningAgent} — Analyse le backlog actuel et suggère comment répartir le travail en epics, attribuer des story points et remplir le prochain sprint. Accédez à son instantané de contexte via {contextEndpoint} et déclenchez une exécution de planification avec {executeEndpoint}.",
+    "planningAgentItem": "Suivi des sprints et de la vélocité — story points, données de burndown et statistiques de vélocité, prêts pour la planification de sprint.",
     "runnerAgentName": "Agent d'exécution",
-    "runnerAgentItem": "{runnerAgent} — Surveille la progression du sprint en temps réel et met à jour automatiquement les statuts des tâches en fonction de l'activité des instances Claude. Vérifiez sa santé via {healthEndpoint}, forcez un balayage des statuts avec {autoUpdateEndpoint} et consultez la progression en direct via {progressEndpoint}.",
+    "runnerAgentItem": "Contrôles de santé du Runner — mises à jour de statut à la demande, détection des tâches obsolètes et métriques de progression du sprint.",
     "agentsTip": "Laissez l'agent de planification proposer le périmètre du sprint, puis faites en sorte que chaque instance Claude appelle {nextAvailable} pour réserver les tâches automatiquement. L'agent d'exécution maintient le tableau de bord synchronisé sans aucune mise à jour de statut manuelle.",
     "nextStepsTitle": "Étapes suivantes",
     "nextStepTasksApiTitle": "Référence de l'API Tasks",

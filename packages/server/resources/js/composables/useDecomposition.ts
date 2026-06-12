@@ -1,5 +1,6 @@
 import { ref, onUnmounted } from 'vue';
 import { api } from '@/composables/useApi';
+import { getEchoClient } from '@/services/echo';
 import type { ApiResponse } from '@/types';
 import type Echo from 'laravel-echo';
 
@@ -36,8 +37,13 @@ type BroadcastMessage = {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function getEcho(): Echo<'reverb'> | undefined {
-  return (window as unknown as Record<string, unknown>).Echo as Echo<'reverb'> | undefined;
+function getEcho(): Echo<'reverb'> | null {
+  try {
+    return getEchoClient();
+  } catch {
+    // Reverb config missing (tests, degraded boot) — real-time disabled.
+    return null;
+  }
 }
 
 function resolveErrorMessage(err: unknown, fallback: string): string {
@@ -74,15 +80,28 @@ export function useDecomposition() {
     }
   }
 
+  function handleBroadcastEvent(event: { message: BroadcastMessage }): void {
+    handleBroadcastMessage(event.message);
+  }
+
   function subscribeToProject(projectId: string): void {
     const echo = getEcho();
     if (!echo) return;
 
-    echoChannel = null;
+    // Detach any previous listener first (regenerate after a start would
+    // otherwise stack duplicate handlers on the same channel).
+    unsubscribe();
     echoChannel = echo.private(`projects.${projectId}`);
-    echoChannel.listen('.project.broadcast', (event: { message: BroadcastMessage }) => {
-      handleBroadcastMessage(event.message);
-    });
+    echoChannel.listen('.project.broadcast', handleBroadcastEvent);
+  }
+
+  function unsubscribe(): void {
+    if (!echoChannel) return;
+
+    // Only detach our handler — the `projects.{id}` channel is shared with
+    // useProjectChannel subscribers; an echo.leave() would kill their listeners.
+    echoChannel.stopListening('.project.broadcast', handleBroadcastEvent);
+    echoChannel = null;
   }
 
   function resetDecompositionState(): void {
@@ -184,10 +203,7 @@ export function useDecomposition() {
   }
 
   function cleanup(): void {
-    const echo = getEcho();
-    if (echo && echoChannel) {
-      echoChannel = null;
-    }
+    unsubscribe();
   }
 
   onUnmounted(cleanup);

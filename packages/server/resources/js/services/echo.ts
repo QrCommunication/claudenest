@@ -20,7 +20,11 @@ interface ReverbWindowConfig {
 
 let echo: Echo<'reverb'> | null = null;
 
-function getEcho(): Echo<'reverb'> {
+/**
+ * Lazily-created shared Echo client (singleton). Throws if the Reverb
+ * window config is missing (e.g. unit tests without the Blade bootstrap).
+ */
+export function getEchoClient(): Echo<'reverb'> {
   if (echo) return echo;
 
   const reverb = (window as unknown as { ClaudeNest?: { reverb?: ReverbWindowConfig } })
@@ -56,7 +60,7 @@ export function subscribePrivate<T>(
   event: string,
   handler: (payload: T) => void,
 ): () => void {
-  const e = getEcho();
+  const e = getEchoClient();
   e.private(channel).listen(event, handler as (payload: unknown) => void);
 
   return () => {

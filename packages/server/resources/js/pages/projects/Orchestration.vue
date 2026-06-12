@@ -20,7 +20,7 @@
         <button
           v-if="!isOrchestratorRunning"
           class="btn btn-primary"
-          @click="handleStartOrchestrator"
+          @click="openStartModal"
           :disabled="isOrchestratorLoading"
         >
           <svg viewBox="0 0 24 24" fill="currentColor" class="btn-icon">
@@ -134,6 +134,56 @@
       </div>
     </div>
 
+    <!-- Orchestrated Workers -->
+    <div class="section" v-if="orchestratorStatus">
+      <div class="section-header">
+        <h2 class="section-title">{{ t('projectsOrchestration.workersTitle') }}</h2>
+        <span class="section-count">{{ orchestratorStatus.workers.length }}</span>
+        <span
+          class="orchestrator-pill"
+          :class="isOrchestratorRunning ? 'is-running' : 'is-stopped'"
+        >
+          {{ isOrchestratorRunning
+            ? t('projectsOrchestration.statusRunning')
+            : t('projectsOrchestration.statusStopped') }}
+        </span>
+      </div>
+
+      <div class="workers-grid" v-if="orchestratorStatus.workers.length > 0">
+        <div
+          v-for="worker in orchestratorStatus.workers"
+          :key="worker.id"
+          class="worker-card"
+        >
+          <div class="worker-header">
+            <code class="worker-id">{{ worker.id.slice(0, 14) }}…</code>
+            <span class="worker-status" :class="worker.status">{{ worker.status }}</span>
+          </div>
+          <div class="worker-task">
+            <span class="worker-task-label">{{ t('projectsOrchestration.currentTask') }}</span>
+            <span class="worker-task-title" v-if="worker.currentTaskTitle">
+              {{ worker.currentTaskTitle }}
+            </span>
+            <code class="worker-task-title" v-else-if="worker.currentTaskId">
+              {{ worker.currentTaskId.slice(0, 8) }}…
+            </code>
+            <span class="worker-task-idle" v-else>
+              {{ t('projectsOrchestration.noCurrentTask') }}
+            </span>
+          </div>
+          <div class="worker-meta">
+            <span>{{ t('projectsOrchestration.tasksCompletedCount', { count: worker.tasksCompleted }) }}</span>
+            <code class="worker-session" v-if="worker.sessionId">
+              {{ worker.sessionId.slice(0, 8) }}
+            </code>
+          </div>
+        </div>
+      </div>
+      <div class="empty-state empty-state-compact" v-else>
+        <p>{{ t('projectsOrchestration.noWorkers') }}</p>
+      </div>
+    </div>
+
     <!-- Instances Grid -->
     <div class="section">
       <div class="section-header">
@@ -167,20 +217,94 @@
         :activities="activityLogs"
       />
     </div>
+
+    <!-- Start Orchestrator Modal -->
+    <Modal v-model="showStartModal" :title="t('projectsOrchestration.startModalTitle')">
+      <form @submit.prevent="handleStartOrchestrator" class="start-form">
+        <div class="form-group">
+          <label for="orchestrator-max-workers">{{ t('projectsOrchestration.maxWorkers') }}</label>
+          <input
+            id="orchestrator-max-workers"
+            v-model.number="startForm.maxWorkers"
+            type="number"
+            min="1"
+            max="10"
+            step="1"
+            required
+          />
+          <span class="form-hint">{{ t('projectsOrchestration.maxWorkersHint') }}</span>
+        </div>
+
+        <div class="form-group">
+          <label for="orchestrator-permission-mode">{{ t('projectsOrchestration.permissionMode') }}</label>
+          <select id="orchestrator-permission-mode" v-model="startForm.permissionMode">
+            <option
+              v-for="option in PERMISSION_MODE_OPTIONS"
+              :key="option.value"
+              :value="option.value"
+            >
+              {{ t(option.labelKey) }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label" for="orchestrator-coordinator">
+            <input
+              id="orchestrator-coordinator"
+              v-model="startForm.coordinator"
+              type="checkbox"
+            />
+            <span>{{ t('projectsOrchestration.coordinatorLabel') }}</span>
+          </label>
+          <span class="form-hint">{{ t('projectsOrchestration.coordinatorHint') }}</span>
+        </div>
+
+        <div v-if="planLimitError" class="plan-limit-error" role="alert">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+          </svg>
+          <span>{{ planLimitError }}</span>
+        </div>
+
+        <div class="form-actions">
+          <Button type="button" variant="secondary" @click="showStartModal = false">
+            {{ t('projectsOrchestration.cancel') }}
+          </Button>
+          <Button
+            type="submit"
+            variant="primary"
+            :loading="isOrchestratorLoading"
+          >
+            {{ t('projectsOrchestration.start') }}
+          </Button>
+        </div>
+      </form>
+    </Modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { useOrchestratorStore } from '@/stores/orchestrator';
+import {
+  useOrchestratorStore,
+  type PermissionMode,
+} from '@/stores/orchestrator';
 import { useProjectsStore } from '@/stores/projects';
+import { useToast } from '@/composables/useToast';
+import { getApiErrorCode } from '@/composables/useApi';
+import { useProjectChannel } from '@/composables/useProjectChannel';
+import { useProjectNotifications } from '@/composables/useProjectNotifications';
 import InstanceCard from '@/components/multiagent/InstanceCard.vue';
 import ActivityFeed from '@/components/multiagent/ActivityFeed.vue';
+import Modal from '@/components/common/Modal.vue';
+import Button from '@/components/common/Button.vue';
 
 const route = useRoute();
 const { t } = useI18n();
+const toast = useToast();
 const orchestratorStore = useOrchestratorStore();
 const projectsStore = useProjectsStore();
 
@@ -193,10 +317,33 @@ const isDispatching = computed(() => orchestratorStore.isDispatching);
 const hasAvailableCapacity = computed(() => orchestratorStore.hasAvailableCapacity);
 const lastDispatchResult = computed(() => orchestratorStore.lastDispatchResult);
 const activityLogs = computed(() => projectsStore.activityLogs);
+const orchestratorStatus = computed(() => orchestratorStore.orchestratorStatus);
 const isOrchestratorRunning = computed(() =>
   orchestratorStore.orchestratorStatus?.status === 'running'
 );
 const isOrchestratorLoading = computed(() => orchestratorStore.isOrchestratorLoading);
+
+// ── Start form (POST /orchestrator/start contract) ───────────────────────────
+
+const PERMISSION_MODE_OPTIONS: ReadonlyArray<{ value: PermissionMode; labelKey: string }> = [
+  { value: 'acceptEdits', labelKey: 'projectsOrchestration.permissionModeAcceptEdits' },
+  { value: 'default', labelKey: 'projectsOrchestration.permissionModeDefault' },
+  { value: 'plan', labelKey: 'projectsOrchestration.permissionModePlan' },
+  { value: 'bypassPermissions', labelKey: 'projectsOrchestration.permissionModeBypass' },
+];
+
+const showStartModal = ref(false);
+const planLimitError = ref<string | null>(null);
+const startForm = ref<{ maxWorkers: number; permissionMode: PermissionMode; coordinator: boolean }>({
+  maxWorkers: 3,
+  permissionMode: 'acceptEdits',
+  coordinator: true,
+});
+
+function openStartModal(): void {
+  planLimitError.value = null;
+  showStartModal.value = true;
+}
 
 async function refreshAll(): Promise<void> {
   await Promise.all([
@@ -212,24 +359,88 @@ async function handleDispatch(): Promise<void> {
 }
 
 async function handleStartOrchestrator(): Promise<void> {
-  await orchestratorStore.startOrchestrator(projectId.value);
+  planLimitError.value = null;
+
+  try {
+    const status = await orchestratorStore.startOrchestrator(projectId.value, {
+      max_workers: startForm.value.maxWorkers,
+      permission_mode: startForm.value.permissionMode,
+      coordinator: startForm.value.coordinator,
+    });
+    showStartModal.value = false;
+    toast.success(
+      t('projectsOrchestration.toastStarted', { count: status.workers.length }),
+    );
+    void orchestratorStore.fetchInstances(projectId.value);
+    void orchestratorStore.syncStats(projectId.value);
+  } catch (err: unknown) {
+    const code = getApiErrorCode(err);
+    if (code === 'PLAN_001') {
+      planLimitError.value = t('projectsOrchestration.planLimitReached');
+      toast.error(t('projectsOrchestration.planLimitReached'));
+    } else if (code === 'MACHINE_OFFLINE') {
+      toast.error(t('projectsOrchestration.machineOffline'));
+    } else {
+      toast.error(t('projectsOrchestration.toastStartFailed'));
+    }
+  }
 }
 
 async function handleStopOrchestrator(): Promise<void> {
-  await orchestratorStore.stopOrchestrator(projectId.value);
+  try {
+    await orchestratorStore.stopOrchestrator(projectId.value);
+    toast.success(t('projectsOrchestration.toastStopped'));
+    void orchestratorStore.fetchInstances(projectId.value);
+    void orchestratorStore.syncStats(projectId.value);
+  } catch {
+    toast.error(t('projectsOrchestration.toastStopFailed'));
+  }
 }
+
+// ── Real-time updates (private projects.{id} channel — replaces polling) ─────
+
+const { on } = useProjectChannel(projectId);
+useProjectNotifications(projectId);
+
+// Debounced counters/instances refresh: bursts of task events collapse into a
+// single round of light GETs (event-driven, never periodic).
+let refreshTimer: number | null = null;
+
+function scheduleRefresh(): void {
+  if (refreshTimer !== null) {
+    window.clearTimeout(refreshTimer);
+  }
+  refreshTimer = window.setTimeout(() => {
+    refreshTimer = null;
+    void orchestratorStore.syncStats(projectId.value);
+    void orchestratorStore.fetchInstances(projectId.value);
+    void orchestratorStore.fetchOrchestratorStatus(projectId.value);
+  }, 400);
+}
+
+on('instance.updated', (payload) => {
+  // Instant local patch (status + current task pointer)…
+  orchestratorStore.applyInstanceUpdate(payload);
+  // …then converge task titles/counters shortly after.
+  scheduleRefresh();
+});
+
+on('task.created', scheduleRefresh);
+on('task.claimed', scheduleRefresh);
+on('task.released', scheduleRefresh);
+on('task.completed', scheduleRefresh);
 
 onMounted(async () => {
   if (!project.value || project.value.id !== projectId.value) {
     await projectsStore.fetchProject(projectId.value);
   }
-  orchestratorStore.fetchOrchestratorStatus(projectId.value);
-  orchestratorStore.startPolling(projectId.value);
-  projectsStore.fetchActivity(projectId.value);
+  void refreshAll();
 });
 
 onUnmounted(() => {
-  orchestratorStore.stopPolling();
+  if (refreshTimer !== null) {
+    window.clearTimeout(refreshTimer);
+  }
 });
 </script>
 
@@ -401,6 +612,124 @@ onUnmounted(() => {
 /* Instances Grid */
 .instances-grid {
   @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4;
+}
+
+/* Orchestrator status pill */
+.orchestrator-pill {
+  @apply text-xs px-2.5 py-0.5 rounded-full font-medium ml-auto;
+}
+
+.orchestrator-pill.is-running {
+  @apply bg-green-500/10 text-green-400;
+}
+
+.orchestrator-pill.is-stopped {
+  @apply bg-surface-3 text-skin-secondary;
+}
+
+/* Workers Grid */
+.workers-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4;
+}
+
+.worker-card {
+  @apply bg-surface-2 rounded-xl border border-skin p-4 space-y-3;
+}
+
+.worker-header {
+  @apply flex items-center justify-between gap-2;
+}
+
+.worker-id {
+  @apply text-xs text-skin-secondary truncate;
+}
+
+.worker-status {
+  @apply text-xs px-2 py-0.5 rounded-full capitalize flex-shrink-0;
+}
+
+.worker-status.idle {
+  @apply bg-blue-500/10 text-blue-400;
+}
+
+.worker-status.busy,
+.worker-status.active {
+  @apply bg-brand-purple/10 text-brand-purple;
+}
+
+.worker-status.disconnected {
+  @apply bg-red-500/10 text-red-400;
+}
+
+.worker-task {
+  @apply space-y-1;
+}
+
+.worker-task-label {
+  @apply block text-xs text-skin-secondary uppercase tracking-wide;
+}
+
+.worker-task-title {
+  @apply block text-sm text-skin-primary truncate;
+}
+
+.worker-task-idle {
+  @apply block text-sm text-skin-secondary italic;
+}
+
+.worker-meta {
+  @apply flex items-center justify-between text-xs text-skin-secondary pt-2 border-t border-skin;
+}
+
+.worker-session {
+  @apply text-xs text-skin-secondary;
+}
+
+.empty-state-compact {
+  @apply py-6;
+}
+
+/* Start Form */
+.start-form {
+  @apply space-y-4;
+}
+
+.form-group {
+  @apply space-y-2;
+}
+
+.form-group label {
+  @apply block text-sm font-medium text-skin-primary;
+}
+
+.form-group input:not([type='checkbox']),
+.form-group select {
+  @apply w-full px-4 py-2 bg-surface-2 border border-skin rounded-lg text-skin-primary;
+  @apply focus:outline-none focus:border-brand-purple;
+}
+
+.form-group label.checkbox-label {
+  @apply flex items-center gap-2 cursor-pointer;
+}
+
+.checkbox-label input[type='checkbox'] {
+  @apply w-4 h-4 accent-brand-purple cursor-pointer;
+}
+
+.form-hint {
+  @apply block text-xs text-skin-secondary;
+}
+
+.plan-limit-error {
+  @apply flex items-start gap-2 bg-red-500/5 border border-red-500/20 rounded-lg p-3 text-sm text-red-400;
+}
+
+.plan-limit-error svg {
+  @apply w-5 h-5 flex-shrink-0;
+}
+
+.form-actions {
+  @apply flex items-center justify-end gap-3 pt-4;
 }
 
 /* Empty State */

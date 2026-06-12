@@ -224,6 +224,8 @@ import { useRoute } from 'vue-router';
 import { useTasksStore } from '@/stores/tasks';
 import { useProjectsStore } from '@/stores/projects';
 import { useToast } from '@/composables/useToast';
+import { useProjectChannel } from '@/composables/useProjectChannel';
+import { useProjectNotifications } from '@/composables/useProjectNotifications';
 import Button from '@/components/common/Button.vue';
 import Modal from '@/components/common/Modal.vue';
 import TaskCard from '@/components/projects/TaskCard.vue';
@@ -282,6 +284,65 @@ const filteredTasks = computed(() => {
 const availableInstances = computed(() => 
   projectsStore.instances.filter(i => i.is_available || i.status === 'idle')
 );
+
+// ── Real-time board sync (private projects.{id} channel) ─────────────────────
+// Targeted store mutations per event — no full refetch; unknown items fall
+// back to a single-task fetch (syncTaskFromServer).
+
+const { on } = useProjectChannel(projectId);
+useProjectNotifications(projectId);
+
+function hasTask(taskId: string): boolean {
+  return tasksStore.tasks.some(t => t.id === taskId);
+}
+
+on('task.created', (payload) => {
+  // Payload is partial (no status/labels) — fetch the real item once.
+  if (!hasTask(payload.task_id)) {
+    void tasksStore.syncTaskFromServer(payload.task_id);
+  }
+});
+
+on('task.claimed', (payload) => {
+  if (!hasTask(payload.task_id)) {
+    void tasksStore.syncTaskFromServer(payload.task_id);
+    return;
+  }
+  tasksStore.updateTaskLocal(payload.task_id, {
+    status: 'in_progress',
+    is_claimed: true,
+    assigned_to: payload.assigned_to,
+    claimed_at: payload.claimed_at,
+  });
+});
+
+on('task.released', (payload) => {
+  if (!hasTask(payload.task_id)) {
+    void tasksStore.syncTaskFromServer(payload.task_id);
+    return;
+  }
+  tasksStore.updateTaskLocal(payload.task_id, {
+    status: payload.status,
+    is_claimed: false,
+    assigned_to: null,
+    claimed_at: null,
+  });
+});
+
+on('task.completed', (payload) => {
+  if (!hasTask(payload.task_id)) {
+    void tasksStore.syncTaskFromServer(payload.task_id);
+    return;
+  }
+  tasksStore.updateTaskLocal(payload.task_id, {
+    status: 'done',
+    is_completed: true,
+    is_claimed: false,
+    completion_summary: payload.completion_summary ?? undefined,
+    files_modified: payload.files_modified ?? undefined,
+    completed_at: payload.completed_at,
+  });
+});
 
 onMounted(async () => {
   await loadTasks();

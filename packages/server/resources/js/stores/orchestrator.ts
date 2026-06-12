@@ -3,10 +3,48 @@ import { ref, computed } from 'vue';
 import { api } from '@/composables/useApi';
 import type {
   ClaudeInstance,
+  InstanceStatus,
   OrchestrationStats,
   DispatchResult,
   ApiResponse,
 } from '@/types';
+
+// ── Orchestrator REST contract (POST /projects/{id}/orchestrator/start) ──────
+
+export type PermissionMode = 'default' | 'acceptEdits' | 'plan' | 'bypassPermissions';
+
+export const PERMISSION_MODES: readonly PermissionMode[] = [
+  'default',
+  'acceptEdits',
+  'plan',
+  'bypassPermissions',
+];
+
+export interface StartOrchestratorConfig {
+  max_workers: number;
+  permission_mode?: PermissionMode;
+  /** Enable the incident coordinator (auto-opens a Claude session on incidents). */
+  coordinator?: boolean;
+}
+
+export interface OrchestratorWorker {
+  id: string;
+  sessionId: string;
+  status: string;
+  currentTaskId: string | null;
+  currentTaskTitle: string | null;
+  tasksCompleted: number;
+}
+
+export interface OrchestratorStatus {
+  status: 'running' | 'stopped';
+  active: boolean;
+  workers: OrchestratorWorker[];
+  tasks: { pending: number; in_progress: number; done: number };
+  pendingTasks: number;
+  completedTasks: number;
+  orchestration: Record<string, unknown>;
+}
 
 export const useOrchestratorStore = defineStore('orchestrator', () => {
   // ==================== STATE ====================
@@ -16,7 +54,6 @@ export const useOrchestratorStore = defineStore('orchestrator', () => {
   const isDispatching = ref(false);
   const error = ref<string | null>(null);
   const lastDispatchResult = ref<DispatchResult | null>(null);
-  const pollingInterval = ref<ReturnType<typeof setInterval> | null>(null);
 
   // ==================== GETTERS ====================
   const connectedInstances = computed(() =>
@@ -115,28 +152,31 @@ export const useOrchestratorStore = defineStore('orchestrator', () => {
 
   // ==================== ORCHESTRATOR CONTROLS ====================
 
-  const orchestratorStatus = ref<{
-    status: string;
-    workers: Array<{ id: string; status: string; currentTaskTitle?: string; tasksCompleted: number }>;
-    pendingTasks: number;
-    completedTasks: number;
-  } | null>(null);
+  const orchestratorStatus = ref<OrchestratorStatus | null>(null);
   const isOrchestratorLoading = ref(false);
 
-  async function startOrchestrator(projectId: string, config?: {
-    min_workers?: number;
-    max_workers?: number;
-    poll_interval_ms?: number;
-  }): Promise<void> {
+  /**
+   * Start the server-driven worker pool.
+   *
+   * Contract: body `{ max_workers (1-10), permission_mode?, coordinator? }`.
+   * The server responds with the full orchestrator status; a 403 `PLAN_001` envelope
+   * means the plan's concurrent-session cap is reached (callers should map
+   * it to a dedicated message via getApiErrorCode).
+   */
+  async function startOrchestrator(
+    projectId: string,
+    config: StartOrchestratorConfig,
+  ): Promise<OrchestratorStatus> {
     isOrchestratorLoading.value = true;
     error.value = null;
 
     try {
-      const response = await api.post<ApiResponse<Record<string, unknown>>>(
+      const response = await api.post<ApiResponse<OrchestratorStatus>>(
         `/projects/${projectId}/orchestrator/start`,
-        config ?? {},
+        config,
       );
-      orchestratorStatus.value = response.data.data as typeof orchestratorStatus.value;
+      orchestratorStatus.value = response.data.data;
+      return response.data.data;
     } catch (err: unknown) {
       error.value = err instanceof Error ? err.message : 'Failed to start orchestrator';
       throw err;
@@ -162,31 +202,27 @@ export const useOrchestratorStore = defineStore('orchestrator', () => {
 
   async function fetchOrchestratorStatus(projectId: string): Promise<void> {
     try {
-      const response = await api.get<ApiResponse<Record<string, unknown>>>(
+      const response = await api.get<ApiResponse<OrchestratorStatus>>(
         `/projects/${projectId}/orchestrator/status`,
       );
-      orchestratorStatus.value = response.data.data as typeof orchestratorStatus.value;
+      orchestratorStatus.value = response.data.data;
     } catch {
       // Silently fail — status is informational
     }
   }
 
-  function startPolling(projectId: string, intervalMs: number = 10_000): void {
-    stopPolling();
-    // Initial fetch
-    fetchStats(projectId);
-    fetchInstances(projectId);
-    // Periodic refresh
-    pollingInterval.value = setInterval(() => {
-      fetchStats(projectId);
-      fetchInstances(projectId);
-    }, intervalMs);
-  }
-
-  function stopPolling(): void {
-    if (pollingInterval.value) {
-      clearInterval(pollingInterval.value);
-      pollingInterval.value = null;
+  /**
+   * Quiet stats refresh for event-driven updates (no isLoading toggling,
+   * never throws) — used by the `.task.*` broadcast handlers.
+   */
+  async function syncStats(projectId: string): Promise<void> {
+    try {
+      const response = await api.get<ApiResponse<OrchestrationStats>>(
+        `/projects/${projectId}/orchestration-stats`,
+      );
+      stats.value = response.data.data;
+    } catch {
+      // Real-time refresh is best-effort.
     }
   }
 
@@ -196,6 +232,38 @@ export const useOrchestratorStore = defineStore('orchestrator', () => {
     const instance = instances.value.find(i => i.id === instanceId);
     if (instance) {
       Object.assign(instance, updates);
+    }
+  }
+
+  /**
+   * Apply a `.instance.updated` broadcast: patch both the instances grid and
+   * the matching orchestrator worker entry (status + current task pointer).
+   * Task titles are unknown from the payload — they converge on the next
+   * status fetch; only the id pointer is patched here.
+   */
+  function applyInstanceUpdate(payload: {
+    id: string;
+    status: InstanceStatus;
+    current_task_id: string | null;
+    session_id: string | null;
+  }): void {
+    const instance = instances.value.find(i => i.id === payload.id);
+    if (instance) {
+      instance.status = payload.status;
+      if (!payload.current_task_id) {
+        instance.current_task = null;
+      } else if (instance.current_task?.id !== payload.current_task_id) {
+        instance.current_task = { id: payload.current_task_id, title: '' };
+      }
+    }
+
+    const worker = orchestratorStatus.value?.workers.find(w => w.id === payload.id);
+    if (worker) {
+      worker.status = payload.status;
+      if (worker.currentTaskId !== payload.current_task_id) {
+        worker.currentTaskId = payload.current_task_id;
+        worker.currentTaskTitle = null;
+      }
     }
   }
 
@@ -225,13 +293,14 @@ export const useOrchestratorStore = defineStore('orchestrator', () => {
   }
 
   function $reset(): void {
-    stopPolling();
     stats.value = null;
     instances.value = [];
     isLoading.value = false;
     isDispatching.value = false;
     error.value = null;
     lastDispatchResult.value = null;
+    orchestratorStatus.value = null;
+    isOrchestratorLoading.value = false;
   }
 
   return {
@@ -255,8 +324,7 @@ export const useOrchestratorStore = defineStore('orchestrator', () => {
     fetchInstances,
     dispatch,
     getInstance,
-    startPolling,
-    stopPolling,
+    syncStats,
     clearError,
     $reset,
 
@@ -267,10 +335,11 @@ export const useOrchestratorStore = defineStore('orchestrator', () => {
     stopOrchestrator,
     fetchOrchestratorStatus,
 
-    // Local updates
+    // Local updates (real-time WS)
     updateInstanceLocal,
     addInstanceLocal,
     removeInstanceLocal,
     updateStatsLocal,
+    applyInstanceUpdate,
   };
 });

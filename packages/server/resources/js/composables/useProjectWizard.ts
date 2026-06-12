@@ -140,10 +140,11 @@ async function apiMaybeStartOrchestrator(
 ): Promise<void> {
   if (!config.autoStart) return;
 
+  // Server contract: { max_workers (1-10), permission_mode? } — min_workers
+  // and poll_interval_ms were never part of the validated payload.
   await orchestratorStore.startOrchestrator(projectId, {
-    min_workers: config.minWorkers,
     max_workers: config.maxWorkers,
-    poll_interval_ms: config.pollIntervalMs,
+    permission_mode: 'acceptEdits',
   });
 }
 

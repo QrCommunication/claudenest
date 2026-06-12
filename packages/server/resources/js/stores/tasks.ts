@@ -318,6 +318,34 @@ export const useTasksStore = defineStore('tasks', () => {
   }
 
   /**
+   * Lightweight single-task refetch for real-time events whose payload is
+   * partial (e.g. `.task.created`) or targets an unknown item. Quiet by
+   * design: no loading flags, never throws (a 404 means the task vanished
+   * before we could sync — nothing to do).
+   */
+  async function syncTaskFromServer(taskId: string): Promise<SharedTask | null> {
+    try {
+      const response = await api.get<ApiResponse<SharedTask>>(`/tasks/${taskId}`);
+      const task = response.data.data;
+
+      const index = tasks.value.findIndex(t => t.id === taskId);
+      if (index !== -1) {
+        tasks.value[index] = task;
+      } else {
+        tasks.value.unshift(task);
+      }
+
+      if (selectedTask.value?.id === taskId) {
+        selectedTask.value = task;
+      }
+
+      return task;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
    * Update task locally (for real-time updates)
    */
   function updateTaskLocal(taskId: string, updates: Partial<SharedTask>): void {
@@ -428,6 +456,7 @@ export const useTasksStore = defineStore('tasks', () => {
     selectTask,
     clearSelectedTask,
     clearError,
+    syncTaskFromServer,
     updateTaskLocal,
     addTaskLocal,
     removeTaskLocal,

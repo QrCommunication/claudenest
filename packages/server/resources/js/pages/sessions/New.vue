@@ -43,6 +43,35 @@
         </div>
 
         <div class="form-group">
+          <label for="shared_project_select">{{ $t('sessions.create.shared_project') }}</label>
+          <select
+            id="shared_project_select"
+            v-model="selectedProjectId"
+            :disabled="!selectedMachineId || isFetchingProjects"
+          >
+            <option value="">
+              {{ isFetchingProjects ? $t('sessions.create.loading_projects') : $t('sessions.create.shared_project_placeholder') }}
+            </option>
+            <option
+              v-for="project in machineProjects"
+              :key="project.id"
+              :value="project.id"
+            >
+              {{ project.name }} — {{ project.project_path }}
+            </option>
+          </select>
+          <p v-if="projectsLoadFailed" class="field-warning">
+            {{ $t('sessions.create.failed_load_projects') }}
+          </p>
+          <p
+            v-else-if="selectedMachineId && !isFetchingProjects && machineProjects.length === 0"
+            class="field-hint"
+          >
+            {{ $t('sessions.create.no_projects_on_machine') }}
+          </p>
+        </div>
+
+        <div class="form-group">
           <label>{{ $t('sessions.create.session_mode') }}</label>
           <div class="mode-options">
             <label class="mode-option" :class="{ 'mode-selected': mode === 'interactive' }">
@@ -52,28 +81,30 @@
                 <span class="mode-desc">{{ $t('sessions.create.mode_interactive_desc') }}</span>
               </div>
             </label>
-            <label class="mode-option" :class="{ 'mode-selected': mode === 'headless' }">
-              <input type="radio" value="headless" v-model="mode" />
-              <div>
-                <span class="mode-label">{{ $t('sessions.mode.headless') }}</span>
-                <span class="mode-desc">{{ $t('sessions.create.mode_headless_desc') }}</span>
-              </div>
-            </label>
-            <label class="mode-option" :class="{ 'mode-selected': mode === 'oneshot' }">
-              <input type="radio" value="oneshot" v-model="mode" />
-              <div>
-                <span class="mode-label">{{ $t('sessions.mode.oneshot') }}</span>
-                <span class="mode-desc">{{ $t('sessions.create.mode_oneshot_desc') }}</span>
-              </div>
-            </label>
           </div>
+        </div>
+
+        <div class="form-group">
+          <label for="permission_mode">{{ $t('sessions.create.permission_mode') }}</label>
+          <select id="permission_mode" v-model="permissionMode">
+            <option value="default">{{ $t('sessions.create.permission_default') }}</option>
+            <option value="acceptEdits">{{ $t('sessions.create.permission_accept_edits') }}</option>
+            <option value="plan">{{ $t('sessions.create.permission_plan') }}</option>
+            <option value="bypassPermissions">{{ $t('sessions.create.permission_bypass') }}</option>
+          </select>
+          <p v-if="permissionMode === 'bypassPermissions'" class="bypass-warning">
+            ⚠ {{ $t('sessions.create.permission_bypass_warning') }}
+          </p>
+          <p v-else class="field-hint">
+            {{ permissionModeDescription }}
+          </p>
         </div>
 
         <div class="form-group">
           <div class="path-header">
             <label>{{ $t('sessions.create.project_path_optional') }}</label>
             <button
-              v-if="isSelectedMachineOnline"
+              v-if="isSelectedMachineOnline && !isPathLocked"
               class="toggle-input-btn"
               @click="useManualInput = !useManualInput"
             >
@@ -81,8 +112,22 @@
             </button>
           </div>
 
+          <!-- Path locked by the selected shared project -->
+          <div v-if="isPathLocked">
+            <input
+              id="project_path"
+              :value="projectPath"
+              type="text"
+              readonly
+              class="locked-input"
+            />
+            <p class="field-hint">
+              {{ $t('sessions.create.path_locked_hint') }}
+            </p>
+          </div>
+
           <!-- Manual text input -->
-          <div v-if="useManualInput || !isSelectedMachineOnline">
+          <div v-else-if="useManualInput || !isSelectedMachineOnline">
             <input
               id="project_path"
               v-model="projectPath"
@@ -127,7 +172,7 @@
         <div class="form-group">
           <label for="prompt">
             {{ $t('sessions.create.initial_prompt') }}
-            {{ mode === 'oneshot' ? $t('sessions.create.prompt_required') : $t('sessions.create.prompt_optional') }}
+            {{ $t('sessions.create.prompt_optional') }}
           </label>
           <textarea
             id="prompt"
@@ -154,15 +199,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useSessionsStore } from '@/stores/sessions';
 import { useMachinesStore } from '@/stores/machines';
 import { useCredentialsStore } from '@/stores/credentials';
+import { useProjectsStore } from '@/stores/projects';
 import { useToast } from '@/composables/useToast';
 import RemoteFileTree from '@/components/sessions/RemoteFileTree.vue';
-import type { SessionMode } from '@/types';
+import type { PermissionMode, SessionMode, SharedProject } from '@/types';
 
 const route = useRoute();
 const router = useRouter();
@@ -170,9 +216,11 @@ const { t } = useI18n();
 const sessionsStore = useSessionsStore();
 const machinesStore = useMachinesStore();
 const credentialsStore = useCredentialsStore();
+const projectsStore = useProjectsStore();
 const toast = useToast();
 
 const mode = ref<SessionMode>('interactive');
+const permissionMode = ref<PermissionMode>('default');
 const projectPath = ref('');
 const initialPrompt = ref('');
 const selectedCredentialId = ref('');
@@ -180,8 +228,32 @@ const isStarting = ref(false);
 const isFetchingMachines = ref(false);
 const selectedMachineId = ref('');
 const useManualInput = ref(false);
+const selectedProjectId = ref('');
+const isFetchingProjects = ref(false);
+const projectsLoadFailed = ref(false);
+const manualPathBackup = ref('');
 
 const availableMachines = computed(() => machinesStore.machines);
+
+const machineProjects = computed<SharedProject[]>(() =>
+  projectsStore.projects.filter(p => p.machine_id === selectedMachineId.value)
+);
+
+const selectedProject = computed<SharedProject | null>(() =>
+  machineProjects.value.find(p => p.id === selectedProjectId.value) ?? null
+);
+
+const isPathLocked = computed(() => selectedProject.value !== null);
+
+const permissionModeDescription = computed(() => {
+  const descriptionKeys: Record<PermissionMode, string> = {
+    default: 'sessions.create.permission_default_desc',
+    acceptEdits: 'sessions.create.permission_accept_edits_desc',
+    plan: 'sessions.create.permission_plan_desc',
+    bypassPermissions: 'sessions.create.permission_bypass_desc',
+  };
+  return t(descriptionKeys[permissionMode.value]);
+});
 
 const isSelectedMachineOnline = computed(() => {
   if (!selectedMachineId.value) return false;
@@ -200,10 +272,33 @@ const machineName = computed(() => {
   return machine ? machine.name : t('sessions.create.none_selected');
 });
 
-const canStart = computed(() => {
-  if (!selectedMachineId.value) return false;
-  if (mode.value === 'oneshot' && !initialPrompt.value.trim()) return false;
-  return true;
+const canStart = computed(() => selectedMachineId.value !== '');
+
+watch(selectedMachineId, async (machineId) => {
+  selectedProjectId.value = '';
+  projectsLoadFailed.value = false;
+
+  if (!machineId) return;
+
+  isFetchingProjects.value = true;
+  try {
+    await projectsStore.fetchProjects(machineId);
+  } catch {
+    projectsLoadFailed.value = true;
+  } finally {
+    isFetchingProjects.value = false;
+  }
+});
+
+watch(selectedProject, (project, previous) => {
+  if (project) {
+    if (!previous) {
+      manualPathBackup.value = projectPath.value;
+    }
+    projectPath.value = project.project_path;
+  } else if (previous) {
+    projectPath.value = manualPathBackup.value;
+  }
 });
 
 onMounted(async () => {
@@ -249,6 +344,8 @@ async function startSession() {
     const session = await sessionsStore.createSession(selectedMachineId.value, {
       mode: mode.value,
       project_path: projectPath.value.trim() || undefined,
+      shared_project_id: selectedProjectId.value || undefined,
+      permission_mode: permissionMode.value,
       initial_prompt: initialPrompt.value.trim() || undefined,
       credential_id: selectedCredentialId.value || undefined,
     });
@@ -342,6 +439,14 @@ async function startSession() {
 
 .field-hint {
   @apply text-xs text-skin-secondary mt-1;
+}
+
+.form-group .locked-input {
+  @apply opacity-70 cursor-not-allowed bg-surface-2;
+}
+
+.bypass-warning {
+  @apply text-xs text-red-400 mt-2 p-2 rounded-lg bg-red-400/10 border border-red-400/30;
 }
 
 .path-header {

@@ -15,6 +15,7 @@ export type MachineStatus = 'online' | 'offline' | 'connecting';
 export type MachinePlatform = 'darwin' | 'win32' | 'linux';
 export type SessionStatus = 'created' | 'starting' | 'running' | 'waiting_input' | 'completed' | 'error' | 'terminated';
 export type SessionMode = 'interactive' | 'headless' | 'oneshot' | 'bash';
+export type PermissionMode = 'default' | 'plan' | 'acceptEdits' | 'bypassPermissions';
 export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error' | 'reconnecting';
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
 
@@ -66,6 +67,7 @@ export interface Session {
   user_id: string;
   mode: SessionMode;
   project_path: string | null;
+  shared_project_id?: string | null;
   initial_prompt: string | null;
   status: SessionStatus;
   pid: number | null;
@@ -99,6 +101,8 @@ export interface SessionLog {
 export interface CreateSessionPayload {
   mode?: SessionMode;
   project_path?: string;
+  shared_project_id?: string;
+  permission_mode?: PermissionMode;
   initial_prompt?: string;
   credential_id?: string;
   pty_size?: { cols: number; rows: number };

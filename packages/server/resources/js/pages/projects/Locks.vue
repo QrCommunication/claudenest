@@ -3,7 +3,7 @@
     <div class="locks-header">
       <div class="header-stats">
         <div class="stat-box">
-          <span class="stat-number">{{ locksStore.activeLocks.length }}</span>
+          <span class="stat-number">{{ activeLocks.length }}</span>
           <span class="stat-label">{{ t('projectsLocks.activeLocks') }}</span>
         </div>
         <div class="stat-box">
@@ -26,7 +26,7 @@
     </div>
 
     <!-- Empty State -->
-    <div v-else-if="locksStore.activeLocks.length === 0" class="empty-state">
+    <div v-else-if="activeLocks.length === 0" class="empty-state">
       <svg viewBox="0 0 24 24" fill="currentColor">
         <path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM12 6c1.1 0 2 .9 2 2v2h-4V8c0-1.1.9-2 2-2z"/>
       </svg>
@@ -110,8 +110,8 @@
                   {{ lock.reason || t('projectsLocks.noReasonProvided') }}
                 </td>
                 <td class="time-cell">
-                  <span :class="{ 'is-expiring': lock.remaining_seconds < 300 }">
-                    {{ formatRemaining(lock.remaining_seconds) }}
+                  <span :class="{ 'is-expiring': remainingSeconds(lock) < 300 }">
+                    {{ formatRemaining(remainingSeconds(lock)) }}
                   </span>
                 </td>
                 <td class="actions-cell">
@@ -175,8 +175,8 @@
         </div>
         <div class="detail-row">
           <span class="detail-label">{{ t('projectsLocks.remaining') }}</span>
-          <span class="detail-value" :class="{ 'is-expiring': selectedLock.remaining_seconds < 300 }">
-            {{ formatRemaining(selectedLock.remaining_seconds) }}
+          <span class="detail-value" :class="{ 'is-expiring': remainingSeconds(selectedLock) < 300 }">
+            {{ formatRemaining(remainingSeconds(selectedLock)) }}
           </span>
         </div>
       </div>
@@ -249,6 +249,8 @@ import { useRoute } from 'vue-router';
 import { useLocksStore } from '@/stores/locks';
 import { useProjectsStore } from '@/stores/projects';
 import { useToast } from '@/composables/useToast';
+import { useProjectChannel } from '@/composables/useProjectChannel';
+import { useProjectNotifications } from '@/composables/useProjectNotifications';
 import Card from '@/components/common/Card.vue';
 import Button from '@/components/common/Button.vue';
 import Modal from '@/components/common/Modal.vue';
@@ -270,7 +272,6 @@ const projectId = computed(() => props.projectId || route.params.id as string);
 const showLockModal = ref(false);
 const selectedLock = ref<FileLock | null>(null);
 const expandedDirs = ref<string[]>(['']);
-const updateInterval = ref<number | null>(null);
 
 const lockForm = ref({
   path: '',
@@ -279,43 +280,87 @@ const lockForm = ref({
   duration_minutes: 30,
 });
 
+// ── Countdown render clock ────────────────────────────────────────────────────
+// Purely presentational: a single ref ticking once per second so remaining
+// times derive live from `expires_at`. No server traffic, no store mutation
+// (replaces the old interval that rebuilt the whole locks array each second).
+
+const nowMs = ref(Date.now());
+let renderClockId: number | null = null;
+
+function remainingSeconds(lock: FileLock): number {
+  return Math.max(0, Math.floor((Date.parse(lock.expires_at) - nowMs.value) / 1000));
+}
+
+// ── Real-time lock sync (private projects.{id} channel) ──────────────────────
+
+const { on } = useProjectChannel(projectId);
+useProjectNotifications(projectId);
+
+on('file.locked', (payload) => {
+  locksStore.addLockLocal({
+    id: payload.lock_id,
+    path: payload.path,
+    locked_by: payload.locked_by,
+    reason: payload.reason,
+    locked_at: new Date().toISOString(),
+    expires_at: payload.expires_at,
+    remaining_seconds: Math.max(
+      0,
+      Math.floor((Date.parse(payload.expires_at) - Date.now()) / 1000),
+    ),
+  });
+});
+
+on('file.unlocked', (payload) => {
+  locksStore.removeLockLocal(payload.path);
+  if (selectedLock.value?.path === payload.path) {
+    selectedLock.value = null;
+  }
+});
+
 const uniqueInstances = computed(() => {
   const instanceIds = new Set(locksStore.locks.map(l => l.locked_by));
   return Array.from(instanceIds);
 });
 
+// Active = not yet expired against the render clock (auto-evicts visually
+// even when no `.file.unlocked` event is broadcast for passive expiry).
+const activeLocks = computed(() =>
+  locksStore.locks.filter(lock => remainingSeconds(lock) > 0)
+);
+
 const locksByDirectory = computed(() => {
   const grouped: Record<string, FileLock[]> = {};
-  
-  locksStore.activeLocks.forEach(lock => {
+
+  activeLocks.value.forEach(lock => {
     const parts = lock.path.split('/');
     parts.pop(); // Remove filename
     const dir = parts.join('/') || '/';
-    
+
     if (!grouped[dir]) {
       grouped[dir] = [];
     }
     grouped[dir].push(lock);
   });
-  
+
   return grouped;
 });
 
 const sortedLocks = computed(() => {
-  return [...locksStore.activeLocks].sort((a, b) => {
+  return [...activeLocks.value].sort((a, b) => {
     // Sort by remaining time (ascending)
-    return a.remaining_seconds - b.remaining_seconds;
+    return remainingSeconds(a) - remainingSeconds(b);
   });
 });
 
 onMounted(async () => {
   await loadLocks();
-  
-  // Start countdown timer
-  updateInterval.value = window.setInterval(() => {
-    locksStore.updateRemainingTimes();
+
+  renderClockId = window.setInterval(() => {
+    nowMs.value = Date.now();
   }, 1000);
-  
+
   // Fetch instances if needed
   if (projectsStore.instances.length === 0) {
     await projectsStore.fetchInstances(projectId.value);
@@ -323,8 +368,8 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
-  if (updateInterval.value) {
-    clearInterval(updateInterval.value);
+  if (renderClockId !== null) {
+    clearInterval(renderClockId);
   }
 });
 

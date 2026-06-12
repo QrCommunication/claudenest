@@ -266,16 +266,6 @@ export const useLocksStore = defineStore('locks', () => {
     locks.value = locks.value.filter(l => l.path !== path);
   }
 
-  /**
-   * Update remaining times (call periodically)
-   */
-  function updateRemainingTimes(): void {
-    locks.value = locks.value.map(lock => ({
-      ...lock,
-      remaining_seconds: Math.max(0, lock.remaining_seconds - 1),
-    }));
-  }
-
   return {
     // State
     locks,
@@ -304,6 +294,5 @@ export const useLocksStore = defineStore('locks', () => {
     clearError,
     addLockLocal,
     removeLockLocal,
-    updateRemainingTimes,
   };
 });

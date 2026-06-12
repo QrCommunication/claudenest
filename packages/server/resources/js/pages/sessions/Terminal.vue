@@ -69,6 +69,10 @@
               {{ session.exit_code }}
             </span>
           </div>
+          <div v-if="session.shared_project_id" class="detail-item">
+            <span class="detail-label">{{ $t('sessions.terminal.project_label') }}</span>
+            <span class="detail-value project-badge">{{ session.shared_project_id.slice(0, 8) }}</span>
+          </div>
         </div>
         <button class="back-btn" @click="handleBack">
           {{ $t('sessions.terminal.back_to_sessions') }}
@@ -508,6 +512,15 @@ watch(() => session.value?.is_running, (isRunning, wasRunning) => {
 .detail-value {
   color: var(--text-primary);
   font-family: 'JetBrains Mono', monospace;
+}
+
+.project-badge {
+  padding: 2px 8px;
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 25%, transparent);
+  border-radius: 6px;
+  color: var(--accent-purple, #a855f7);
+  font-size: 12px;
 }
 
 .text-error {
