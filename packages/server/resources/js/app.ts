@@ -4,6 +4,7 @@ import { MotionPlugin } from '@vueuse/motion';
 import { RouterView } from 'vue-router';
 import router from './router/index';
 import i18n from './i18n';
+import NewVersionBanner from './components/common/NewVersionBanner.vue';
 // NOTE: no CSS import here — the single canonical stylesheet is
 // resources/css/app.css, loaded by the Blade @vite entry. A legacy Tailwind
 // v3 file (resources/js/css/app.css) used to be imported here, generating a
@@ -33,9 +34,13 @@ const initializeTheme = () => {
 // Initialize theme immediately
 initializeTheme();
 
-// Create Vue app
+// Create Vue app.
+// NewVersionBanner is mounted ONCE at the root (alongside RouterView) so the
+// "new version deployed" detector covers the dashboard AND every public page
+// (Landing, docs, legal) with a single composable instance — mounting it in
+// AppLayout only would stop the check when navigating to public routes.
 const app = createApp({
-  render: () => h(RouterView),
+  render: () => [h(RouterView), h(NewVersionBanner)],
 });
 
 // Use plugins

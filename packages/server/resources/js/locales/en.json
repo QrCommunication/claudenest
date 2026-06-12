@@ -35,7 +35,11 @@
     "description": "Description",
     "date": "Date",
     "time": "Time",
-    "type": "Type"
+    "type": "Type",
+    "newVersion": {
+      "message": "A new version of ClaudeNest is available",
+      "reload": "Reload"
+    }
   },
   "auth": {
     "welcome": "Welcome to ClaudeNest",
