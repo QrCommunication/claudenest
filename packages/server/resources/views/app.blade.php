@@ -1,3 +1,99 @@
+@php
+    /*
+     * SEO meta resolution — longest-prefix match against config('seo.routes').
+     *
+     * The '/' entry only matches the landing page exactly; every other entry
+     * matches itself and any sub-path (e.g. '/docs/api' covers
+     * '/docs/api/machines'). Unmatched paths are private app routes: they
+     * receive the defaults plus a noindex robots meta.
+     */
+    $seoConfig = config('seo', []);
+    $appUrl = rtrim(config('app.url'), '/');
+
+    $path = request()->getPathInfo();
+    if ($path !== '/' && str_ends_with($path, '/')) {
+        $path = rtrim($path, '/');
+    }
+
+    $seoMatch = null;
+    $seoMatchLength = -1;
+    foreach (($seoConfig['routes'] ?? []) as $seoPrefix => $seoMeta) {
+        $prefixMatches = $seoPrefix === '/'
+            ? $path === '/'
+            : ($path === $seoPrefix || str_starts_with($path, $seoPrefix . '/'));
+        if ($prefixMatches && strlen($seoPrefix) > $seoMatchLength) {
+            $seoMatch = $seoMeta;
+            $seoMatchLength = strlen($seoPrefix);
+        }
+    }
+
+    $isPublicPage = $seoMatch !== null;
+    $seo = array_merge($seoConfig['defaults'] ?? [], $seoMatch ?? []);
+    $canonicalUrl = $appUrl . $path;
+    $ogImageUrl = $appUrl . ($seoConfig['og_image'] ?? '/og-image.png');
+
+    // JSON-LD graph: Organization on every public page, SoftwareApplication
+    // on / and /pricing, TechArticle on /docs/*. FAQPage and HowTo are
+    // deliberately excluded.
+    $organization = [
+        '@type' => 'Organization',
+        '@id' => $appUrl . '/#organization',
+        'name' => 'ClaudeNest',
+        'url' => $appUrl,
+        'logo' => $appUrl . '/favicon.svg',
+        'sameAs' => [$seoConfig['github_url'] ?? 'https://github.com/QrCommunication/claudenest'],
+    ];
+    $jsonLdGraph = [$organization];
+
+    if (in_array($path, ['/', '/pricing'], true)) {
+        $jsonLdGraph[] = [
+            '@type' => 'SoftwareApplication',
+            'name' => 'ClaudeNest',
+            'applicationCategory' => 'DeveloperApplication',
+            'operatingSystem' => 'Linux, macOS, Windows',
+            'softwareVersion' => $seoConfig['version'] ?? '1.5.0',
+            'license' => $seoConfig['license_url'] ?? 'https://polyformproject.org/licenses/noncommercial/1.0.0/',
+            'url' => $appUrl,
+            'description' => $seoConfig['routes']['/']['description'] ?? ($seoConfig['defaults']['description'] ?? ''),
+            'offers' => [
+                [
+                    '@type' => 'Offer',
+                    'name' => 'Community',
+                    'price' => '0',
+                    'priceCurrency' => 'USD',
+                ],
+                [
+                    '@type' => 'Offer',
+                    'name' => 'Pro',
+                    'price' => '29',
+                    'priceCurrency' => 'USD',
+                    'priceSpecification' => [
+                        '@type' => 'UnitPriceSpecification',
+                        'price' => '29',
+                        'priceCurrency' => 'USD',
+                        'billingDuration' => 'P1M',
+                    ],
+                ],
+            ],
+        ];
+    }
+
+    if ($path === '/docs' || str_starts_with($path, '/docs/')) {
+        $jsonLdGraph[] = [
+            '@type' => 'TechArticle',
+            'headline' => $seo['title'],
+            'description' => $seo['description'],
+            'url' => $canonicalUrl,
+            'dateModified' => $seo['updated'],
+            'publisher' => ['@id' => $appUrl . '/#organization'],
+        ];
+    }
+
+    $jsonLd = [
+        '@context' => 'https://schema.org',
+        '@graph' => $jsonLdGraph,
+    ];
+@endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
@@ -5,43 +101,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'ClaudeNest') }} - Remote Claude Code Orchestration</title>
-    <meta name="description" content="ClaudeNest - Remote orchestration platform for Claude Code. Run multiple AI agents simultaneously with shared context, file locking & real-time sync.">
-    <meta name="keywords" content="Claude Code, AI, orchestration, remote, multi-agent, RAG, pgvector, terminal, developer tools">
+    <title>{{ $seo['title'] }}</title>
+    <meta name="description" content="{{ $seo['description'] }}">
     <meta name="author" content="ClaudeNest">
     <meta name="theme-color" content="#a855f7">
-    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
-    <meta name="generator" content="ClaudeNest">
+    @if ($isPublicPage)
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+    @else
+    <meta name="robots" content="noindex, nofollow">
+    @endif
 
     <!-- Canonical URL -->
-    <link rel="canonical" href="{{ config('app.url') }}{{ request()->getPathInfo() }}">
+    <link rel="canonical" href="{{ $canonicalUrl }}">
 
     <!-- hreflang: EN / FR -->
-    <link rel="alternate" hreflang="en" href="{{ config('app.url') }}{{ request()->getPathInfo() }}">
-    <link rel="alternate" hreflang="fr" href="{{ config('app.url') }}{{ request()->getPathInfo() }}?lang=fr">
-    <link rel="alternate" hreflang="x-default" href="{{ config('app.url') }}{{ request()->getPathInfo() }}">
+    <link rel="alternate" hreflang="en" href="{{ $canonicalUrl }}">
+    <link rel="alternate" hreflang="fr" href="{{ $canonicalUrl }}?lang=fr">
+    <link rel="alternate" hreflang="x-default" href="{{ $canonicalUrl }}">
 
     <!-- Favicon & Manifest -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="apple-touch-icon" href="/apple-touch-icon.svg">
     <link rel="manifest" href="/manifest.webmanifest">
 
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="{{ config('app.url') }}{{ request()->getPathInfo() }}">
-    <meta property="og:title" content="{{ config('app.name', 'ClaudeNest') }} - Remote Claude Code Orchestration">
-    <meta property="og:description" content="ClaudeNest - Remote orchestration platform for Claude Code. Run multiple AI agents simultaneously with shared context, file locking & real-time sync.">
-    <meta property="og:image" content="{{ config('app.url') }}/og-image.svg">
+    <!-- Open Graph -->
+    <meta property="og:type" content="{{ $seo['og_type'] }}">
+    <meta property="og:url" content="{{ $canonicalUrl }}">
+    <meta property="og:title" content="{{ $seo['title'] }}">
+    <meta property="og:description" content="{{ $seo['description'] }}">
+    <meta property="og:image" content="{{ $ogImageUrl }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
     <meta property="og:site_name" content="ClaudeNest">
     <meta property="og:locale" content="en_US">
     <meta property="og:locale:alternate" content="fr_FR">
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:site" content="@@claudenest">
-    <meta name="twitter:title" content="{{ config('app.name', 'ClaudeNest') }} - Remote Claude Code Orchestration">
-    <meta name="twitter:description" content="ClaudeNest - Remote orchestration platform for Claude Code. Run multiple AI agents simultaneously with shared context, file locking & real-time sync.">
-    <meta name="twitter:image" content="{{ config('app.url') }}/twitter-card.svg">
+    <meta name="twitter:title" content="{{ $seo['title'] }}">
+    <meta name="twitter:description" content="{{ $seo['description'] }}">
+    <meta name="twitter:image" content="{{ $ogImageUrl }}">
 
     <!-- Fonts: preconnect + preload (actual loading via CSS import in app.css) -->
     <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
@@ -49,110 +148,7 @@
     <link rel="preload" href="https://fonts.bunny.net/css?family=ibm-plex-sans:400,500,600,700|jetbrains-mono:400,500,600,700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
 
     <!-- JSON-LD Structured Data -->
-    @php
-    $appUrl = config('app.url');
-    $jsonLd = [
-        '@context' => 'https://schema.org',
-        '@graph' => [
-            [
-                '@type' => 'WebSite',
-                'name' => 'ClaudeNest',
-                'url' => $appUrl,
-                'description' => 'Remote Claude Code orchestration platform',
-                'potentialAction' => [
-                    '@type' => 'SearchAction',
-                    'target' => $appUrl . '/docs?q={search_term_string}',
-                    'query-input' => 'required name=search_term_string',
-                ],
-            ],
-            [
-                '@type' => 'Organization',
-                'name' => 'ClaudeNest',
-                'url' => $appUrl,
-                'logo' => $appUrl . '/favicon.svg',
-                'sameAs' => [
-                    'https://github.com/QrCommunication/claudenest',
-                ],
-            ],
-            [
-                '@type' => 'SoftwareApplication',
-                'name' => 'ClaudeNest',
-                'applicationCategory' => 'DeveloperApplication',
-                'operatingSystem' => 'Linux, macOS, Windows',
-                'offers' => [
-                    '@type' => 'Offer',
-                    'price' => '0',
-                    'priceCurrency' => 'USD',
-                ],
-                'description' => 'Remote orchestration platform for Claude Code with multi-agent coordination, RAG-powered context sharing, and real-time WebSocket communication.',
-                'featureList' => [
-                    'Remote Claude Code access',
-                    'Multi-agent coordination',
-                    'RAG context with pgvector',
-                    'File locking',
-                    'Real-time WebSocket',
-                    'MCP support',
-                    'Mobile apps',
-                ],
-            ],
-            [
-                '@type' => 'FAQPage',
-                'mainEntity' => [
-                    [
-                        '@type' => 'Question',
-                        'name' => 'What is ClaudeNest?',
-                        'acceptedAnswer' => [
-                            '@type' => 'Answer',
-                            'text' => 'ClaudeNest is an open-source remote orchestration platform for Claude Code. It lets you control Claude Code instances from anywhere, coordinate multiple AI agents on the same project, and share context via RAG-powered embeddings.',
-                        ],
-                    ],
-                    [
-                        '@type' => 'Question',
-                        'name' => 'Is ClaudeNest free?',
-                        'acceptedAnswer' => [
-                            '@type' => 'Answer',
-                            'text' => 'Yes, ClaudeNest Community edition is 100% free and open-source. You can self-host it on your own infrastructure with no limits.',
-                        ],
-                    ],
-                    [
-                        '@type' => 'Question',
-                        'name' => 'How does multi-agent coordination work?',
-                        'acceptedAnswer' => [
-                            '@type' => 'Answer',
-                            'text' => 'ClaudeNest uses file locking to prevent conflicts, shared context via pgvector embeddings for knowledge sharing, and atomic task claiming for coordinated work distribution between Claude Code instances.',
-                        ],
-                    ],
-                    [
-                        '@type' => 'Question',
-                        'name' => 'What tech stack does ClaudeNest use?',
-                        'acceptedAnswer' => [
-                            '@type' => 'Answer',
-                            'text' => 'ClaudeNest uses Laravel 12 for the backend API, Vue.js 3 for the web dashboard, React Native for mobile apps, PostgreSQL with pgvector for RAG, and Laravel Reverb for real-time WebSocket communication.',
-                        ],
-                    ],
-                ],
-            ],
-            [
-                '@type' => 'BreadcrumbList',
-                'itemListElement' => [
-                    [
-                        '@type' => 'ListItem',
-                        'position' => 1,
-                        'name' => 'Home',
-                        'item' => $appUrl,
-                    ],
-                    [
-                        '@type' => 'ListItem',
-                        'position' => 2,
-                        'name' => 'Documentation',
-                        'item' => $appUrl . '/docs',
-                    ],
-                ],
-            ],
-        ],
-    ];
-    @endphp
-    <script type="application/ld+json">{!! json_encode($jsonLd, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}</script>
+    <script type="application/ld+json">{!! json_encode($jsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) !!}</script>
 
     <!-- Instant theme application (prevent FOUC) -->
     <script>
