@@ -37,6 +37,10 @@ public/storage
 storage/*.key
 storage/pail
 
+# Local databases & Expo artifacts
+*.sqlite
+packages/mobile/.expo/
+
 # PHP & Laravel
 .phpactor.json
 .phpunit.result.cache

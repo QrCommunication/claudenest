@@ -39,7 +39,7 @@ api.claudenest.io {
     # Broadcasting auth (needed for private channels)
     @broadcasting path /broadcasting/auth
     handle @broadcasting {
-        reverse_proxy unix//run/php/php8.3-fpm.sock {
+        reverse_proxy unix//run/php/php8.4-fpm.sock {
             transport fastcgi {
                 root /var/www/claudenest/packages/server/public
                 split .php
@@ -52,7 +52,7 @@ api.claudenest.io {
         root * /var/www/claudenest/packages/server/public
         try_files {path} {path}/ /index.php
         file_server
-        php_fastcgi unix//run/php/php8.3-fpm.sock
+        php_fastcgi unix//run/php/php8.4-fpm.sock
     }
 
     # Compression only for non-WebSocket routes
@@ -82,7 +82,7 @@ claudenest.io {
         root * /var/www/claudenest/packages/server/public
         try_files {path} {path}/ /index.php
         file_server
-        php_fastcgi unix//run/php/php8.3-fpm.sock
+        php_fastcgi unix//run/php/php8.4-fpm.sock
     }
 
     # Compression (outside handles = applies to all)
@@ -102,6 +102,6 @@ app.claudenest.io {
     root * /var/www/claudenest/packages/server/public
     try_files {path} {path}/ /index.php
     file_server
-    php_fastcgi unix//run/php/php8.3-fpm.sock
+    php_fastcgi unix//run/php/php8.4-fpm.sock
     encode gzip zstd
 }

@@ -40,12 +40,17 @@ npm install
 npm run build
 
 echo "Restarting services..."
-sudo systemctl restart php8.3-fpm
+# Caddy sert via php8.4-fpm (migration 2026-06-11) — redémarrer le bon FPM,
+# sinon l'opcache continue de servir l'ancien code après deploy.
+sudo systemctl restart php8.4-fpm
 sudo systemctl reload caddy
 sudo supervisorctl reread
 sudo supervisorctl update
 sudo supervisorctl restart claudenest-worker:*
 sudo supervisorctl restart claudenest-agent-ws
+# enable = survit aux reboots (le reboot kernel du 2026-06-11 avait laissé
+# Reverb éteint car l'unit n'était pas enabled → temps réel UI mort).
+sudo systemctl enable claudenest-reverb
 sudo systemctl restart claudenest-reverb
 
 echo "Deployment complete!"
