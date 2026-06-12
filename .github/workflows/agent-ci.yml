@@ -41,11 +41,13 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Test
-        run: npm run test:run
-
+      # Build AVANT les tests : certains tests (env gate MCP) spawnent
+      # l'artefact compilé dist/mcp/index.js.
       - name: Build
         run: npm run build
+
+      - name: Test
+        run: npm run test:run
 
       - name: Verify bin entry exists
         run: |

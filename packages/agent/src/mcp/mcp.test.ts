@@ -11,6 +11,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { execFile } from "node:child_process";
+import { existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { registerTools, parseAbilities } from "./tools.js";
 import type { McpEnv } from "./api.js";
@@ -124,7 +126,11 @@ function make4xxResponse(status: number, code: string, message: string): MockRes
 
 // ─── Environment gate ─────────────────────────────────────────────────────────
 
-describe("Environment gate (index.ts)", () => {
+// Ces tests spawnent l'artefact COMPILÉ — skip si le build n'a pas encore tourné
+// (fresh clone / CI avant le step Build).
+const distMcpEntry = fileURLToPath(new URL("../../dist/mcp/index.js", import.meta.url));
+
+describe.skipIf(!existsSync(distMcpEntry))("Environment gate (index.ts)", () => {
   it("exits 1 with stderr message when all required vars are missing", async () => {
     // Spawn the compiled entry (dist/mcp/index.js) with no CLAUDENEST_* env vars.
     // We strip all CLAUDENEST_* vars to ensure a clean test.
