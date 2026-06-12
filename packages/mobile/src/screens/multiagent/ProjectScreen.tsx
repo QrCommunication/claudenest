@@ -1,7 +1,8 @@
 /**
  * ProjectScreen
  * Detailed view of a multi-agent project with scrollable horizontal tabs.
- * Tabs: Overview, Tasks, Epics, Sprints, Context, Locks, Orchestration, Planning
+ * Tabs: Overview, Tasks, Planning (Epics+Sprints merged — web parity),
+ * Context, Locks, Orchestration, Assistant (planning chat).
  */
 
 import React, {
@@ -12,7 +13,14 @@ import React, {
   useRef,
   memo,
 } from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Animated,
+} from "react-native";
 import { showAlert, showPrompt } from "@/services/dialog";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 type IconName = React.ComponentProps<typeof MaterialIcons>["name"];
@@ -42,12 +50,11 @@ type Props = NativeStackScreenProps<ProjectsStackParamList, "ProjectDetail">;
 type TabKey =
   | "overview"
   | "tasks"
-  | "epics"
-  | "sprints"
+  | "planning"
   | "context"
   | "locks"
   | "orchestration"
-  | "planning";
+  | "assistant";
 
 interface TabConfig {
   key: TabKey;
@@ -58,12 +65,12 @@ interface TabConfig {
 const TABS: TabConfig[] = [
   { key: "overview", label: "Overview", icon: "dashboard" },
   { key: "tasks", label: "Tasks", icon: "assignment" },
-  { key: "epics", label: "Epics", icon: "flag" },
-  { key: "sprints", label: "Sprints", icon: "loop" },
+  // Merged Epics + Sprints (web parity — segmented control on the screen).
+  { key: "planning", label: "Planning", icon: "event-note" },
   { key: "context", label: "Context", icon: "description" },
   { key: "locks", label: "Locks", icon: "lock" },
   { key: "orchestration", label: "Orchestration", icon: "account-tree" },
-  { key: "planning", label: "Planning", icon: "chat" },
+  { key: "assistant", label: "Assistant", icon: "chat" },
 ];
 
 // ---------------------------------------------------------------------------
@@ -617,10 +624,8 @@ export const ProjectScreen: React.FC<Props> = ({ route, navigation }) => {
         case "tasks":
           fetchTasks(projectId);
           break;
-        case "epics":
+        case "planning":
           fetchEpics(projectId);
-          break;
-        case "sprints":
           fetchSprints(projectId);
           break;
         case "locks":
@@ -634,27 +639,6 @@ export const ProjectScreen: React.FC<Props> = ({ route, navigation }) => {
       }
     },
     [projectId, fetchTasks, fetchEpics, fetchSprints, fetchLocks],
-  );
-
-  // ---------------------------------------------------------------------------
-  // Tab navigation handlers (tabs that open dedicated screens)
-  // ---------------------------------------------------------------------------
-
-  const navigateToScreen = useCallback(
-    (
-      screen:
-        | "Tasks"
-        | "Context"
-        | "Locks"
-        | "Epics"
-        | "Sprints"
-        | "PlanningChat"
-        | "Orchestration",
-    ) => {
-      // All these screens receive { projectId }
-      (navigation as any).navigate(screen, { projectId });
-    },
-    [navigation, projectId],
   );
 
   // ---------------------------------------------------------------------------
@@ -695,8 +679,8 @@ export const ProjectScreen: React.FC<Props> = ({ route, navigation }) => {
   const badges = useMemo<Partial<Record<TabKey, number>>>(
     () => ({
       tasks: tasks.filter((t) => t.status !== "done").length,
-      epics: epics.filter((e) => e.status !== "done").length,
-      sprints: sprints.length,
+      // Web parity: the Planning tab badge counts epics + sprints.
+      planning: epics.length + sprints.length,
       locks: locks.length,
       orchestration: instances.length,
     }),
@@ -727,29 +711,18 @@ export const ProjectScreen: React.FC<Props> = ({ route, navigation }) => {
             title="Tasks"
             description={`${tasks.length} task${tasks.length !== 1 ? "s" : ""} in this project`}
             actionLabel="Open Tasks"
-            onAction={() => navigateToScreen("Tasks")}
+            onAction={() => navigation.navigate("Tasks", { projectId })}
           />
         );
 
-      case "epics":
+      case "planning":
         return (
           <PlaceholderTab
-            icon="flag"
-            title="Epics"
-            description={`${epics.length} epic${epics.length !== 1 ? "s" : ""} defined`}
-            actionLabel="Open Epics"
-            onAction={() => navigateToScreen("Epics")}
-          />
-        );
-
-      case "sprints":
-        return (
-          <PlaceholderTab
-            icon="loop"
-            title="Sprints"
-            description={`${sprints.length} sprint${sprints.length !== 1 ? "s" : ""} planned`}
-            actionLabel="Open Sprints"
-            onAction={() => navigateToScreen("Sprints")}
+            icon="event-note"
+            title="Planning"
+            description={`${epics.length} epic${epics.length !== 1 ? "s" : ""} · ${sprints.length} sprint${sprints.length !== 1 ? "s" : ""}`}
+            actionLabel="Open Planning"
+            onAction={() => navigation.navigate("Planning", { projectId })}
           />
         );
 
@@ -760,7 +733,7 @@ export const ProjectScreen: React.FC<Props> = ({ route, navigation }) => {
             title="Context"
             description="RAG-powered shared context for all agents"
             actionLabel="Open Context"
-            onAction={() => navigateToScreen("Context")}
+            onAction={() => navigation.navigate("Context", { projectId })}
           />
         );
 
@@ -771,7 +744,7 @@ export const ProjectScreen: React.FC<Props> = ({ route, navigation }) => {
             title="File Locks"
             description={`${locks.length} active lock${locks.length !== 1 ? "s" : ""}`}
             actionLabel="Open Locks"
-            onAction={() => navigateToScreen("Locks")}
+            onAction={() => navigation.navigate("Locks", { projectId })}
           />
         );
 
@@ -782,18 +755,18 @@ export const ProjectScreen: React.FC<Props> = ({ route, navigation }) => {
             title="Orchestration"
             description={`${instances.length} active instance${instances.length !== 1 ? "s" : ""}`}
             actionLabel="Open Orchestration"
-            onAction={() => navigateToScreen("Orchestration")}
+            onAction={() => navigation.navigate("Orchestration", { projectId })}
           />
         );
 
-      case "planning":
+      case "assistant":
         return (
           <PlaceholderTab
             icon="chat"
-            title="Planning Chat"
+            title="Planning Assistant"
             description="AI-assisted project planning and sprint creation"
-            actionLabel="Open Planning"
-            onAction={() => navigateToScreen("PlanningChat")}
+            actionLabel="Open Assistant"
+            onAction={() => navigation.navigate("PlanningChat", { projectId })}
           />
         );
 

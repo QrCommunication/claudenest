@@ -1,6 +1,6 @@
 {
   "name": "@claude-remote/mobile",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "private": true,
   "main": "index.js",
   "scripts": {
@@ -27,9 +27,11 @@
     "expo": "^56.0.9",
     "expo-clipboard": "~56.0.4",
     "expo-constants": "~56.0.17",
+    "expo-device": "~56.0.4",
     "expo-font": "~56.0.5",
     "expo-linear-gradient": "~56.0.4",
     "expo-linking": "~56.0.13",
+    "expo-notifications": "~56.0.17",
     "expo-splash-screen": "~56.0.10",
     "expo-status-bar": "~56.0.4",
     "expo-system-ui": "~56.0.5",
@@ -51,7 +53,10 @@
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",
+    "@react-native/eslint-config": "^0.85.3",
     "@types/react": "~19.2.10",
+    "@typescript-eslint/eslint-plugin": "^8.61.0",
+    "@typescript-eslint/parser": "^8.61.0",
     "babel-plugin-module-resolver": "^5.0.0",
     "babel-preset-expo": "~56.0.0",
     "eslint": "^8.57.0",

@@ -28,6 +28,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MaterialIcons as Icon } from "@expo/vector-icons";
 import { colors, spacing } from "@/theme";
 import { useSessionsStore } from "@/stores/sessionsStore";
+import { useAttentionStore } from "@/stores/attentionStore";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { SessionsStackParamList } from "@/navigation/types";
 
@@ -79,6 +80,8 @@ export const SessionScreen: React.FC<Props> = ({ route, navigation }) => {
 
   useEffect(() => {
     fetchSession(sessionId);
+    // Opening the terminal answers the needs-attention badge.
+    useAttentionStore.getState().clearAttention(sessionId);
     // Reverb subscription: status + ended transitions, and output fallback
     // while the direct socket is down.
     const unsubscribe = subscribeToSession(sessionId);

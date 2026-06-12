@@ -98,6 +98,30 @@ export const api = {
     apiClient.delete<ApiResponse<T>>(url, config).then((res) => res.data),
 };
 
+/**
+ * Extract the server-side API error code (e.g. "PLAN_001", "MCH_002") from
+ * any error raised by this client. Handles both the flattened ApiError shape
+ * produced by the response interceptor ({ code, message, status }) and a raw
+ * AxiosError (error.response.data.error.code). Returns null when the server
+ * did not provide a code.
+ */
+export const getApiErrorCode = (err: unknown): string | null => {
+  if (typeof err !== "object" || err === null) return null;
+
+  // Flattened ApiError from the response interceptor above. "UNKNOWN_ERROR"
+  // is the interceptor's fallback when the server sent no code — report null
+  // so callers can distinguish "no server code" from a real contract code.
+  const flat = err as Partial<ApiError>;
+  if (typeof flat.code === "string" && flat.code !== "UNKNOWN_ERROR") {
+    return flat.code;
+  }
+
+  // Raw AxiosError shape (errors that bypassed the interceptor).
+  const raw = err as { response?: { data?: { error?: { code?: unknown } } } };
+  const code = raw.response?.data?.error?.code;
+  return typeof code === "string" ? code : null;
+};
+
 // Auth contract shapes
 export interface LoginSuccessData {
   user: import("@/types").User;
@@ -327,6 +351,14 @@ export const projectsApi = {
 
   broadcast: (id: string, message: string) =>
     api.post(`/projects/${id}/broadcast`, { message }),
+
+  // Sessions attached to a shared project. The optional status filter is
+  // sent as CSV per the server contract (?status=running,waiting_input).
+  sessions: (projectId: string, status?: string[]) =>
+    api.get<import("@/types").Session[]>(`/projects/${projectId}/sessions`, {
+      params:
+        status && status.length > 0 ? { status: status.join(",") } : undefined,
+    }),
 };
 
 export const tasksApi = {
@@ -386,6 +418,17 @@ export const planningApi = {
       `/projects/${projectId}/planning/execute`,
       data,
     ),
+
+  // Spawns an interactive planning session for the project (HTTP 201).
+  // Errors: 400 machine offline, 403 PLAN_001 — see getApiErrorCode().
+  createSession: (
+    projectId: string,
+    data: import("@/types").PlanningSessionRequest,
+  ) =>
+    api.post<import("@/types").Session>(
+      `/projects/${projectId}/planning/session`,
+      data,
+    ),
 };
 
 export const runnerApi = {
@@ -405,6 +448,31 @@ export const runnerApi = {
       current_task: string | null;
       details: Record<string, unknown>;
     }>(`/projects/${projectId}/runner/progress`),
+};
+
+// Multi-agent orchestrator (server contract v1.5). Orchestration no longer
+// goes through runnerApi — these endpoints own the worker pool lifecycle.
+// Error codes: 403 PLAN_001 (plan cap exceeded), 422 MCH_002 (machine
+// offline) — read them with getApiErrorCode().
+export const orchestratorApi = {
+  start: (
+    projectId: string,
+    data: import("@/types").OrchestratorStartRequest,
+  ) =>
+    api.post<import("@/types").OrchestratorStatus>(
+      `/projects/${projectId}/orchestrator/start`,
+      data,
+    ),
+
+  stop: (projectId: string) =>
+    api.post<import("@/types").OrchestratorStatus>(
+      `/projects/${projectId}/orchestrator/stop`,
+    ),
+
+  status: (projectId: string) =>
+    api.get<import("@/types").OrchestratorStatus>(
+      `/projects/${projectId}/orchestrator/status`,
+    ),
 };
 
 export const epicsApi = {

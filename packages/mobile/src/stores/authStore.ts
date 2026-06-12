@@ -201,9 +201,16 @@ export const useAuthStore = create<AuthState>()(
       logout: async () => {
         set({ isLoading: true });
         try {
-          await authApi.logout();
-        } catch (error) {
-          // Logout API failure is not blocking — clear local state anyway
+          // Server-side cleanup needs the bearer token, so it runs BEFORE
+          // the local state is cleared. Loaded lazily to avoid a module
+          // cycle (pushNotifications imports this store for its cold-start
+          // navigation guard). Both calls are best-effort.
+          const { unregisterPush } = await import(
+            "@/services/pushNotifications"
+          );
+          await Promise.allSettled([unregisterPush(), authApi.logout()]);
+        } catch {
+          // Logout cleanup failure is not blocking — clear local state anyway
         } finally {
           set({
             user: null,

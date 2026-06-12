@@ -1,15 +1,11 @@
 /**
  * PlanningChatScreen
- * Chat interface with the planning agent for a given project.
+ * Chat interface with the planning agent for a given project, plus a
+ * launcher for the v1.5 interactive planning session
+ * (POST /projects/{id}/planning/session → opens the session terminal).
  */
 
-import React, {
-  memo,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import {
   Animated,
   FlatList,
@@ -23,20 +19,22 @@ import {
   TouchableOpacity,
   View,
   type ListRenderItemInfo,
-} from 'react-native';
-import { MaterialIcons as Icon } from '@expo/vector-icons';
-import { colors, spacing, borderRadius, typography } from '@/theme';
-import { planningApi } from '@/services/api';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { ProjectsStackParamList } from '@/navigation/types';
+} from "react-native";
+import { MaterialIcons as Icon } from "@expo/vector-icons";
+import { colors, spacing, borderRadius, typography } from "@/theme";
+import { getApiErrorCode, planningApi } from "@/services/api";
+import { Modal } from "@/components/common";
+import { navigateToSession } from "@/navigation/navigationRef";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type { ProjectsStackParamList } from "@/navigation/types";
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-type Props = NativeStackScreenProps<ProjectsStackParamList, 'PlanningChat'>;
+type Props = NativeStackScreenProps<ProjectsStackParamList, "PlanningChat">;
 
-type Role = 'user' | 'assistant';
+type Role = "user" | "assistant";
 
 interface ChatMessage {
   id: string;
@@ -64,12 +62,143 @@ interface Suggestion {
 // ---------------------------------------------------------------------------
 
 const QUICK_SUGGESTIONS: Suggestion[] = [
-  { label: 'Summarize project', prompt: 'Give me a summary of the current project status.' },
-  { label: 'Next tasks',        prompt: 'What are the most important tasks to work on next?' },
-  { label: 'Blockers',          prompt: 'What is currently blocking progress?' },
-  { label: 'Sprint plan',       prompt: 'Help me plan the next sprint.' },
-  { label: 'Review tasks',      prompt: 'Which tasks are ready for review?' },
+  {
+    label: "Summarize project",
+    prompt: "Give me a summary of the current project status.",
+  },
+  {
+    label: "Next tasks",
+    prompt: "What are the most important tasks to work on next?",
+  },
+  { label: "Blockers", prompt: "What is currently blocking progress?" },
+  { label: "Sprint plan", prompt: "Help me plan the next sprint." },
+  { label: "Review tasks", prompt: "Which tasks are ready for review?" },
 ];
+
+/** Server caps the planning session brief at 4000 characters. */
+const BRIEF_MAX_LENGTH = 4000;
+
+// ---------------------------------------------------------------------------
+// PlanningSessionModal — brief input for the interactive planning session
+// ---------------------------------------------------------------------------
+
+interface PlanningSessionModalProps {
+  visible: boolean;
+  initialBrief: string;
+  onClose: () => void;
+  /** Resolves on 201; rejections are mapped to a field error here. */
+  onSubmit: (brief: string) => Promise<void>;
+}
+
+const PlanningSessionModal = memo(function PlanningSessionModal({
+  visible,
+  initialBrief,
+  onClose,
+  onSubmit,
+}: PlanningSessionModalProps) {
+  const [brief, setBrief] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fieldError, setFieldError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (visible) {
+      setBrief(initialBrief);
+      setFieldError(null);
+    }
+  }, [visible, initialBrief]);
+
+  const handleSubmit = useCallback(async () => {
+    const trimmed = brief.trim();
+    if (!trimmed) {
+      setFieldError("A project brief is required");
+      return;
+    }
+    setIsSubmitting(true);
+    setFieldError(null);
+    try {
+      await onSubmit(trimmed);
+    } catch (err: unknown) {
+      const code = getApiErrorCode(err);
+      setFieldError(
+        code === "PLAN_001"
+          ? "Plan limit reached (PLAN_001) — your plan caps concurrent sessions. Stop other sessions or upgrade your plan."
+          : "Failed to start the planning session. Check that the machine is online.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [brief, onSubmit]);
+
+  return (
+    <Modal
+      visible={visible}
+      onClose={onClose}
+      title="Planning Session"
+      footer={
+        <View style={sessionModalStyles.actions}>
+          <TouchableOpacity
+            style={sessionModalStyles.cancelBtn}
+            onPress={onClose}
+            activeOpacity={0.7}
+            disabled={isSubmitting}
+          >
+            <Text style={sessionModalStyles.cancelText}>Cancel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              sessionModalStyles.submitBtn,
+              isSubmitting && sessionModalStyles.btnDisabled,
+            ]}
+            onPress={handleSubmit}
+            disabled={isSubmitting}
+            activeOpacity={0.8}
+          >
+            <Icon
+              name={isSubmitting ? "hourglass-empty" : "terminal"}
+              size={16}
+              color={colors.text.primary}
+            />
+            <Text style={sessionModalStyles.submitText}>
+              {isSubmitting ? "Starting…" : "Launch"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      }
+    >
+      <Text style={sessionModalStyles.subtitle}>
+        Spawns an interactive Claude planning agent in a terminal, scoped to
+        this project (epics, sprints, tasks). The session counts against your
+        plan's cap.
+      </Text>
+
+      {fieldError ? (
+        <View style={sessionModalStyles.errorRow}>
+          <Icon name="error-outline" size={14} color={colors.semantic.error} />
+          <Text style={sessionModalStyles.errorText}>{fieldError}</Text>
+        </View>
+      ) : null}
+
+      <View style={sessionModalStyles.inputGroup}>
+        <Text style={sessionModalStyles.inputLabel}>Brief *</Text>
+        <TextInput
+          style={sessionModalStyles.textInput}
+          placeholder="What should the planning agent work on?"
+          placeholderTextColor={colors.text.muted}
+          value={brief}
+          onChangeText={setBrief}
+          multiline
+          numberOfLines={5}
+          textAlignVertical="top"
+          maxLength={BRIEF_MAX_LENGTH}
+          autoFocus
+        />
+        <Text style={sessionModalStyles.charCount}>
+          {brief.length}/{BRIEF_MAX_LENGTH}
+        </Text>
+      </View>
+    </Modal>
+  );
+});
 
 // ---------------------------------------------------------------------------
 // TypingIndicator — 3 pulsing dots
@@ -87,15 +216,23 @@ const TypingIndicator = memo(function TypingIndicator() {
       Animated.loop(
         Animated.sequence([
           Animated.delay(i * 160),
-          Animated.timing(dot, { toValue: 1, duration: 300, useNativeDriver: true }),
-          Animated.timing(dot, { toValue: 0, duration: 300, useNativeDriver: true }),
+          Animated.timing(dot, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+          Animated.timing(dot, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+          }),
           Animated.delay(500 - i * 160),
-        ])
-      )
+        ]),
+      ),
     );
     animations.forEach((a) => a.start());
     return () => animations.forEach((a) => a.stop());
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -155,10 +292,18 @@ const ActionPreviewCard = memo(function ActionPreviewCard({
       ))}
       {!applied ? (
         <View style={actionStyles.buttons}>
-          <TouchableOpacity style={actionStyles.dismissBtn} onPress={onDismiss} activeOpacity={0.7}>
+          <TouchableOpacity
+            style={actionStyles.dismissBtn}
+            onPress={onDismiss}
+            activeOpacity={0.7}
+          >
             <Text style={actionStyles.dismissText}>Dismiss</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={actionStyles.applyBtn} onPress={onApply} activeOpacity={0.7}>
+          <TouchableOpacity
+            style={actionStyles.applyBtn}
+            onPress={onApply}
+            activeOpacity={0.7}
+          >
             <Icon name="check" size={14} color="#fff" />
             <Text style={actionStyles.applyText}>Apply</Text>
           </TouchableOpacity>
@@ -188,16 +333,24 @@ const MessageBubble = memo(function MessageBubble({
   onApplyActions,
   onDismissActions,
 }: MessageBubbleProps) {
-  const isUser = message.role === 'user';
+  const isUser = message.role === "user";
   const fadeOpacity = useRef(new Animated.Value(0)).current;
   const slideY = useRef(new Animated.Value(12)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeOpacity, { toValue: 1, duration: 250, useNativeDriver: true }),
-      Animated.timing(slideY, { toValue: 0, duration: 250, useNativeDriver: true }),
+      Animated.timing(fadeOpacity, {
+        toValue: 1,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideY, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
+      }),
     ]).start();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -214,8 +367,18 @@ const MessageBubble = memo(function MessageBubble({
         </View>
       )}
       <View style={bubbleStyles.messageColumn}>
-        <View style={[bubbleStyles.bubble, isUser ? bubbleStyles.bubbleUser : bubbleStyles.bubbleAssistant]}>
-          <Text style={[bubbleStyles.content, isUser ? bubbleStyles.contentUser : bubbleStyles.contentAssistant]}>
+        <View
+          style={[
+            bubbleStyles.bubble,
+            isUser ? bubbleStyles.bubbleUser : bubbleStyles.bubbleAssistant,
+          ]}
+        >
+          <Text
+            style={[
+              bubbleStyles.content,
+              isUser ? bubbleStyles.contentUser : bubbleStyles.contentAssistant,
+            ]}
+          >
             {message.content}
           </Text>
         </View>
@@ -228,7 +391,10 @@ const MessageBubble = memo(function MessageBubble({
           />
         )}
         <Text style={[bubbleStyles.time, isUser && bubbleStyles.timeUser]}>
-          {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          {new Date(message.timestamp).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
         </Text>
       </View>
       {isUser && (
@@ -248,10 +414,12 @@ export const PlanningChatScreen: React.FC<Props> = ({ route }) => {
   const { projectId } = route.params;
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [inputText, setInputText] = useState('');
+  const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [suggestions, setSuggestions] = useState<Suggestion[]>(QUICK_SUGGESTIONS);
+  const [isSessionModalVisible, setIsSessionModalVisible] = useState(false);
+  const [suggestions, setSuggestions] =
+    useState<Suggestion[]>(QUICK_SUGGESTIONS);
 
   const listRef = useRef<FlatList<ChatMessage>>(null);
   const inputRef = useRef<TextInput>(null);
@@ -259,17 +427,29 @@ export const PlanningChatScreen: React.FC<Props> = ({ route }) => {
   // Load initial context / suggestions from the API
   useEffect(() => {
     let cancelled = false;
-    planningApi.getContext(projectId).then((res) => {
-      if (cancelled) return;
-      if (res.data?.suggestions && res.data.suggestions.length > 0) {
-        setSuggestions(
-          res.data.suggestions.map((s, i) => ({ label: s.slice(0, 30), prompt: s, key: String(i) } as unknown as Suggestion))
-        );
-      }
-    }).catch(() => {
-      // fallback to static suggestions — already set
-    });
-    return () => { cancelled = true; };
+    planningApi
+      .getContext(projectId)
+      .then((res) => {
+        if (cancelled) return;
+        if (res.data?.suggestions && res.data.suggestions.length > 0) {
+          setSuggestions(
+            res.data.suggestions.map(
+              (s, i) =>
+                ({
+                  label: s.slice(0, 30),
+                  prompt: s,
+                  key: String(i),
+                }) as unknown as Suggestion,
+            ),
+          );
+        }
+      })
+      .catch(() => {
+        // fallback to static suggestions — already set
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [projectId]);
 
   const scrollToBottom = useCallback(() => {
@@ -278,79 +458,104 @@ export const PlanningChatScreen: React.FC<Props> = ({ route }) => {
     }, 80);
   }, []);
 
-  const sendMessage = useCallback(async (text: string) => {
-    const trimmed = text.trim();
-    if (!trimmed || isTyping) return;
+  const sendMessage = useCallback(
+    async (text: string) => {
+      const trimmed = text.trim();
+      if (!trimmed || isTyping) return;
 
-    setError(null);
-    setInputText('');
+      setError(null);
+      setInputText("");
 
-    const userMsg: ChatMessage = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: trimmed,
-      timestamp: new Date().toISOString(),
-    };
-
-    setMessages((prev) => [...prev, userMsg]);
-    setIsTyping(true);
-    scrollToBottom();
-
-    try {
-      const res = await planningApi.execute(projectId, { prompt: trimmed });
-      const result = res.data?.result ?? '';
-
-      // Naive action detection: look for JSON-fenced blocks
-      let content = result;
-      let actions: ActionPreview[] | undefined;
-      const actionMatch = result.match(/```actions\n([\s\S]*?)```/);
-      if (actionMatch) {
-        try {
-          actions = JSON.parse(actionMatch[1]) as ActionPreview[];
-          content = result.replace(actionMatch[0], '').trim();
-        } catch {
-          // not valid JSON, treat as plain text
-        }
-      }
-
-      const assistantMsg: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: content || 'Done.',
+      const userMsg: ChatMessage = {
+        id: Date.now().toString(),
+        role: "user",
+        content: trimmed,
         timestamp: new Date().toISOString(),
-        actions,
-        actionsApplied: false,
       };
 
-      setMessages((prev) => [...prev, assistantMsg]);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to contact planning agent';
-      setError(msg);
-    } finally {
-      setIsTyping(false);
+      setMessages((prev) => [...prev, userMsg]);
+      setIsTyping(true);
       scrollToBottom();
-    }
-  }, [isTyping, projectId, scrollToBottom]);
+
+      try {
+        const res = await planningApi.execute(projectId, { prompt: trimmed });
+        const result = res.data?.result ?? "";
+
+        // Naive action detection: look for JSON-fenced blocks
+        let content = result;
+        let actions: ActionPreview[] | undefined;
+        const actionMatch = result.match(/```actions\n([\s\S]*?)```/);
+        if (actionMatch) {
+          try {
+            actions = JSON.parse(actionMatch[1]) as ActionPreview[];
+            content = result.replace(actionMatch[0], "").trim();
+          } catch {
+            // not valid JSON, treat as plain text
+          }
+        }
+
+        const assistantMsg: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content: content || "Done.",
+          timestamp: new Date().toISOString(),
+          actions,
+          actionsApplied: false,
+        };
+
+        setMessages((prev) => [...prev, assistantMsg]);
+      } catch (err: unknown) {
+        const msg =
+          err instanceof Error
+            ? err.message
+            : "Failed to contact planning agent";
+        setError(msg);
+      } finally {
+        setIsTyping(false);
+        scrollToBottom();
+      }
+    },
+    [isTyping, projectId, scrollToBottom],
+  );
 
   const handleSend = useCallback(() => {
     sendMessage(inputText);
   }, [inputText, sendMessage]);
 
-  const handleSuggestion = useCallback((suggestion: Suggestion) => {
-    sendMessage(suggestion.prompt);
-  }, [sendMessage]);
+  const handleSuggestion = useCallback(
+    (suggestion: Suggestion) => {
+      sendMessage(suggestion.prompt);
+    },
+    [sendMessage],
+  );
 
   const handleApplyActions = useCallback((messageId: string) => {
     setMessages((prev) =>
-      prev.map((m) => m.id === messageId ? { ...m, actionsApplied: true } : m)
+      prev.map((m) =>
+        m.id === messageId ? { ...m, actionsApplied: true } : m,
+      ),
     );
   }, []);
 
   const handleDismissActions = useCallback((messageId: string) => {
     setMessages((prev) =>
-      prev.map((m) => m.id === messageId ? { ...m, actions: undefined } : m)
+      prev.map((m) => (m.id === messageId ? { ...m, actions: undefined } : m)),
     );
   }, []);
+
+  // Interactive planning session (v1.5): 201 → open the session terminal.
+  // Errors are caught and rendered by the modal (PLAN_001 mapped there).
+  const handleLaunchSession = useCallback(
+    async (brief: string) => {
+      const res = await planningApi.createSession(projectId, { brief });
+      const session = res.data;
+      setIsSessionModalVisible(false);
+      if (session) {
+        navigateToSession(session.id);
+      }
+    },
+    [projectId],
+  );
 
   const renderMessage = useCallback(
     ({ item }: ListRenderItemInfo<ChatMessage>) => (
@@ -360,7 +565,7 @@ export const PlanningChatScreen: React.FC<Props> = ({ route }) => {
         onDismissActions={handleDismissActions}
       />
     ),
-    [handleApplyActions, handleDismissActions]
+    [handleApplyActions, handleDismissActions],
   );
 
   const keyExtractor = useCallback((item: ChatMessage) => item.id, []);
@@ -369,9 +574,29 @@ export const PlanningChatScreen: React.FC<Props> = ({ route }) => {
     <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView
         style={styles.root}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 88 : 0}
       >
+        {/* Interactive planning session launcher */}
+        <TouchableOpacity
+          style={styles.sessionBanner}
+          onPress={() => setIsSessionModalVisible(true)}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel="Launch a planning session"
+        >
+          <View style={styles.sessionBannerIcon}>
+            <Icon name="terminal" size={18} color={colors.primary.cyan} />
+          </View>
+          <View style={styles.sessionBannerText}>
+            <Text style={styles.sessionBannerTitle}>Planning session</Text>
+            <Text style={styles.sessionBannerSubtitle} numberOfLines={1}>
+              Spawn an interactive planning agent in a terminal
+            </Text>
+          </View>
+          <Icon name="chevron-right" size={20} color={colors.text.muted} />
+        </TouchableOpacity>
+
         {/* Message list */}
         <FlatList
           ref={listRef}
@@ -383,10 +608,15 @@ export const PlanningChatScreen: React.FC<Props> = ({ route }) => {
           onContentSizeChange={scrollToBottom}
           ListEmptyComponent={
             <View style={styles.emptyState}>
-              <Icon name="smart-toy" size={48} color={colors.primary.purple + '60'} />
+              <Icon
+                name="smart-toy"
+                size={48}
+                color={colors.primary.purple + "60"}
+              />
               <Text style={styles.emptyTitle}>Planning Agent</Text>
               <Text style={styles.emptySubtitle}>
-                Ask the agent to plan tasks, analyze blockers, or draft a sprint.
+                Ask the agent to plan tasks, analyze blockers, or draft a
+                sprint.
               </Text>
             </View>
           }
@@ -394,7 +624,11 @@ export const PlanningChatScreen: React.FC<Props> = ({ route }) => {
             isTyping ? (
               <View style={styles.typingWrapper}>
                 <View style={styles.typingAvatar}>
-                  <Icon name="smart-toy" size={14} color={colors.primary.purple} />
+                  <Icon
+                    name="smart-toy"
+                    size={14}
+                    color={colors.primary.purple}
+                  />
                 </View>
                 <TypingIndicator />
               </View>
@@ -405,7 +639,11 @@ export const PlanningChatScreen: React.FC<Props> = ({ route }) => {
         {/* Error banner */}
         {error ? (
           <View style={styles.errorBanner}>
-            <Icon name="error-outline" size={16} color={colors.semantic.error} />
+            <Icon
+              name="error-outline"
+              size={16}
+              color={colors.semantic.error}
+            />
             <Text style={styles.errorText}>{error}</Text>
             <TouchableOpacity onPress={() => setError(null)}>
               <Icon name="close" size={16} color={colors.semantic.error} />
@@ -461,11 +699,18 @@ export const PlanningChatScreen: React.FC<Props> = ({ route }) => {
             <Icon
               name="send"
               size={18}
-              color={!inputText.trim() || isTyping ? colors.text.muted : '#fff'}
+              color={!inputText.trim() || isTyping ? colors.text.muted : "#fff"}
             />
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+
+      <PlanningSessionModal
+        visible={isSessionModalVisible}
+        initialBrief={inputText}
+        onClose={() => setIsSessionModalVisible(false)}
+        onSubmit={handleLaunchSession}
+      />
     </SafeAreaView>
   );
 };
@@ -482,6 +727,40 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
   },
+  sessionBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    backgroundColor: colors.background.card,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: `${colors.primary.cyan}40`,
+    marginHorizontal: spacing.md,
+    marginTop: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  sessionBannerIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: `${colors.primary.cyan}18`,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  sessionBannerText: {
+    flex: 1,
+    gap: 1,
+  },
+  sessionBannerTitle: {
+    fontSize: typography.size.base,
+    fontWeight: "600",
+    color: colors.text.primary,
+  },
+  sessionBannerSubtitle: {
+    fontSize: typography.size.xs,
+    color: colors.text.muted,
+  },
   listContent: {
     padding: spacing.md,
     paddingBottom: spacing.sm,
@@ -489,27 +768,27 @@ const styles = StyleSheet.create({
   },
   emptyState: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: spacing['2xl'],
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: spacing["2xl"],
     gap: spacing.sm,
   },
   emptyTitle: {
     fontSize: typography.size.xl,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.text.primary,
     marginTop: spacing.sm,
   },
   emptySubtitle: {
     fontSize: typography.size.base,
     color: colors.text.secondary,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 22,
     paddingHorizontal: spacing.xl,
   },
   typingWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.sm,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
@@ -519,17 +798,17 @@ const styles = StyleSheet.create({
     height: 28,
     borderRadius: 14,
     backgroundColor: colors.background.dark3,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: colors.primary.purple + '40',
+    borderColor: colors.primary.purple + "40",
   },
   errorBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.semantic.error + '20',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.semantic.error + "20",
     borderTopWidth: 1,
-    borderTopColor: colors.semantic.error + '40',
+    borderTopColor: colors.semantic.error + "40",
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     gap: spacing.sm,
@@ -548,18 +827,18 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.dark3,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.primary.purple + '40',
+    borderColor: colors.primary.purple + "40",
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
   },
   suggestionText: {
     fontSize: typography.size.sm,
     color: colors.primary.purple,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   inputBar: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
+    flexDirection: "row",
+    alignItems: "flex-end",
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     gap: spacing.sm,
@@ -585,8 +864,8 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     backgroundColor: colors.primary.purple,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   sendButtonDisabled: {
     backgroundColor: colors.background.dark3,
@@ -595,30 +874,30 @@ const styles = StyleSheet.create({
 
 const bubbleStyles = StyleSheet.create({
   wrapper: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
+    flexDirection: "row",
+    alignItems: "flex-end",
     marginBottom: spacing.sm,
     gap: spacing.sm,
   },
   wrapperUser: {
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
   },
   wrapperAssistant: {
-    justifyContent: 'flex-start',
+    justifyContent: "flex-start",
   },
   avatar: {
     width: 28,
     height: 28,
     borderRadius: 14,
     backgroundColor: colors.background.dark3,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 1,
     borderColor: colors.border.default,
     flexShrink: 0,
   },
   messageColumn: {
-    maxWidth: '75%',
+    maxWidth: "75%",
     gap: spacing.xs,
   },
   bubble: {
@@ -627,15 +906,15 @@ const bubbleStyles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   bubbleUser: {
-    backgroundColor: colors.primary.cyan + '25',
+    backgroundColor: colors.primary.cyan + "25",
     borderWidth: 1,
-    borderColor: colors.primary.cyan + '50',
+    borderColor: colors.primary.cyan + "50",
     borderBottomRightRadius: 4,
   },
   bubbleAssistant: {
-    backgroundColor: colors.primary.purple + '20',
+    backgroundColor: colors.primary.purple + "20",
     borderWidth: 1,
-    borderColor: colors.primary.purple + '40',
+    borderColor: colors.primary.purple + "40",
     borderBottomLeftRadius: 4,
   },
   content: {
@@ -651,23 +930,23 @@ const bubbleStyles = StyleSheet.create({
   time: {
     fontSize: typography.size.xs,
     color: colors.text.muted,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
   timeUser: {
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
   },
 });
 
 const typingStyles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
-    backgroundColor: colors.primary.purple + '20',
+    backgroundColor: colors.primary.purple + "20",
     borderRadius: borderRadius.lg,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
   dot: {
     width: 7,
@@ -682,25 +961,25 @@ const actionStyles = StyleSheet.create({
     backgroundColor: colors.background.dark3,
     borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: colors.primary.purple + '40',
+    borderColor: colors.primary.purple + "40",
     padding: spacing.sm,
     gap: spacing.xs,
     marginTop: spacing.xs,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.xs,
     marginBottom: spacing.xs,
   },
   headerText: {
     fontSize: typography.size.sm,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.primary.purple,
   },
   actionRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     gap: spacing.xs,
   },
   typeBadge: {
@@ -720,10 +999,10 @@ const actionStyles = StyleSheet.create({
     color: colors.text.secondary,
   },
   buttons: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: spacing.sm,
     marginTop: spacing.xs,
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
   },
   dismissBtn: {
     paddingHorizontal: spacing.sm,
@@ -737,8 +1016,8 @@ const actionStyles = StyleSheet.create({
     color: colors.text.secondary,
   },
   applyBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
@@ -747,19 +1026,107 @@ const actionStyles = StyleSheet.create({
   },
   applyText: {
     fontSize: typography.size.sm,
-    color: '#fff',
-    fontWeight: '600',
+    color: "#fff",
+    fontWeight: "600",
   },
   applied: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.xs,
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
     marginTop: spacing.xs,
   },
   appliedText: {
     fontSize: typography.size.sm,
     color: colors.semantic.success,
-    fontWeight: '600',
+    fontWeight: "600",
+  },
+});
+
+const sessionModalStyles = StyleSheet.create({
+  subtitle: {
+    fontSize: typography.size.sm,
+    color: colors.text.secondary,
+    lineHeight: 20,
+    marginBottom: spacing.md,
+  },
+  errorRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    backgroundColor: `${colors.semantic.error}18`,
+    borderRadius: borderRadius.base,
+    padding: spacing.sm,
+    marginBottom: spacing.sm,
+    borderWidth: 1,
+    borderColor: `${colors.semantic.error}40`,
+  },
+  errorText: {
+    flex: 1,
+    fontSize: typography.size.sm,
+    color: colors.semantic.error,
+    lineHeight: 18,
+  },
+  inputGroup: {
+    marginBottom: spacing.md,
+  },
+  inputLabel: {
+    fontSize: typography.size.sm,
+    fontWeight: "600",
+    color: colors.text.secondary,
+    marginBottom: spacing.xs,
+  },
+  textInput: {
+    backgroundColor: colors.background.dark2,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+    color: colors.text.primary,
+    fontSize: typography.size.base,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    minHeight: 110,
+  },
+  charCount: {
+    fontSize: typography.size.xs,
+    color: colors.text.muted,
+    textAlign: "right",
+    marginTop: spacing.xs,
+  },
+  actions: {
+    flexDirection: "row",
+    gap: spacing.sm,
+  },
+  cancelBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.background.dark2,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+    alignItems: "center",
+  },
+  cancelText: {
+    fontSize: typography.size.base,
+    fontWeight: "600",
+    color: colors.text.secondary,
+  },
+  submitBtn: {
+    flex: 2,
+    flexDirection: "row",
+    paddingVertical: 12,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.primary.purple,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.xs,
+  },
+  btnDisabled: {
+    opacity: 0.6,
+  },
+  submitText: {
+    fontSize: typography.size.base,
+    fontWeight: "700",
+    color: colors.text.primary,
   },
 });

@@ -38,6 +38,9 @@ export type SessionsStackParamList = {
   NewSession: { machineId: string };
 };
 
+// Planning screen segments (merged Epics + Sprints view — web parity)
+export type PlanningSegment = "epics" | "sprints";
+
 // Projects Stack
 export type ProjectsStackParamList = {
   ProjectsList: undefined;
@@ -46,8 +49,8 @@ export type ProjectsStackParamList = {
   Tasks: { projectId: string };
   Context: { projectId: string };
   Locks: { projectId: string };
-  Epics: { projectId: string };
-  Sprints: { projectId: string };
+  // Replaces the former separate Epics / Sprints routes.
+  Planning: { projectId: string; segment?: PlanningSegment };
   PlanningChat: { projectId: string };
   Orchestration: { projectId: string };
 };

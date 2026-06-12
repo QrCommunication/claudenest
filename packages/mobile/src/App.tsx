@@ -5,7 +5,7 @@
 
 import "./global.css"; // Tailwind CSS 4 + Uniwind (must be first import)
 
-import React from "react";
+import React, { useEffect } from "react";
 import { LogBox, Text, TextInput } from "react-native";
 import {
   useFonts,
@@ -22,7 +22,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { RootNavigator } from "@/navigation/RootNavigator";
-import { DialogHost } from "@/components/common";
+import { DialogHost, NotificationBanner } from "@/components/common";
+import { handleAttentionNotification } from "@/stores/attentionStore";
+import { websocket } from "@/services/websocket";
+import { attachNotificationListeners } from "@/services/pushNotifications";
 
 LogBox.ignoreLogs([
   "Non-serializable values were found in the navigation state",
@@ -67,6 +70,18 @@ export default function App() {
     SpaceMono_700Bold,
   });
 
+  // Needs-attention session badges: wire the realtime feed once app-wide
+  // (parallel to the NotificationBanner banner feed mounted below).
+  useEffect(
+    () => websocket.on("session:notification", handleAttentionNotification),
+    [],
+  );
+
+  // Push notification taps (incl. cold start) → open the target session.
+  // Returns its own cleanup. Token registration lives in RootNavigator
+  // (auth-driven); this only routes responses.
+  useEffect(() => attachNotificationListeners(), []);
+
   if (!fontsLoaded) {
     return null; // keep the native splash until the typeface is ready
   }
@@ -79,6 +94,8 @@ export default function App() {
         </QueryClientProvider>
         {/* In-app dialogs (replaces native Alert.alert / Alert.prompt) */}
         <DialogHost />
+        {/* Realtime in-app notifications (session.notification banners) */}
+        <NotificationBanner />
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

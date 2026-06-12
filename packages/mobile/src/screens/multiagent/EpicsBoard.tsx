@@ -1,15 +1,24 @@
 /**
- * EpicsScreen
+ * EpicsBoard
  * List of epics for a given project, with progress indicators and creation FAB.
+ * Rendered inside PlanningScreen (Epics | Sprints segmented control) — not a
+ * navigation route on its own anymore.
  */
 
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
-import { View, Text, FlatList, StyleSheet, RefreshControl, TouchableOpacity, TextInput, Animated } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  RefreshControl,
+  TouchableOpacity,
+  TextInput,
+  Animated,
+} from "react-native";
 import { showAlert } from "@/services/dialog";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons as Icon } from "@expo/vector-icons";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import type { ProjectsStackParamList } from "@/navigation/types";
 import { colors, spacing, borderRadius, typography } from "@/theme";
 import { useEpicsStore } from "@/stores/epicsStore";
 import { useFadeIn } from "@/utils/animations";
@@ -18,9 +27,11 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { Modal } from "@/components/common";
 import type { Epic } from "@/types";
 
-// ==================== NAVIGATION TYPE ====================
+// ==================== PROPS ====================
 
-type Props = NativeStackScreenProps<ProjectsStackParamList, "Epics">;
+interface EpicsBoardProps {
+  projectId: string;
+}
 
 // ==================== CREATE EPIC MODAL ====================
 
@@ -239,13 +250,11 @@ const ListHeaderComponent = memo(function ListHeaderComponent({
   );
 });
 
-// ==================== MAIN SCREEN ====================
+// ==================== MAIN BOARD ====================
 
-export const EpicsScreen = memo(function EpicsScreen({
-  route,
-  navigation,
-}: Props) {
-  const { projectId } = route.params;
+export const EpicsBoard = memo(function EpicsBoard({
+  projectId,
+}: EpicsBoardProps) {
   const {
     getEpicsByProject,
     fetchEpics,
@@ -323,9 +332,13 @@ export const EpicsScreen = memo(function EpicsScreen({
 
   const renderItem = useCallback(
     ({ item }: { item: Epic }) => (
-      <EpicCard epic={item} onPress={handleEpicPress} />
+      <EpicCard
+        epic={item}
+        onPress={handleEpicPress}
+        onLongPress={handleDeleteEpic}
+      />
     ),
-    [handleEpicPress],
+    [handleEpicPress, handleDeleteEpic],
   );
 
   const keyExtractor = useCallback((item: Epic) => item.id, []);

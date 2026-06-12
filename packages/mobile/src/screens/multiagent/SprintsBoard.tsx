@@ -1,26 +1,36 @@
 /**
- * SprintsScreen
+ * SprintsBoard
  * Lists sprints for a project. Active sprint is featured prominently at the top
  * with progress, story points and remaining days. Other sprints follow in a FlatList.
+ * Rendered inside PlanningScreen (Epics | Sprints segmented control) — not a
+ * navigation route on its own anymore.
  */
 
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, RefreshControl, TouchableOpacity, Animated } from 'react-native';
+import React, { memo, useCallback, useEffect, useRef, useState } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  RefreshControl,
+  TouchableOpacity,
+  Animated,
+} from "react-native";
 import { showAlert } from "@/services/dialog";
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons as Icon } from '@expo/vector-icons';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { ProjectsStackParamList } from '@/navigation/types';
-import { colors, spacing, borderRadius, typography } from '@/theme';
-import { useSprintsStore } from '@/stores/sprintsStore';
-import { useFadeIn } from '@/utils/animations';
-import { SprintCard } from '@/components/multiagent/SprintCard';
-import { EmptyState } from '@/components/common/EmptyState';
-import type { Sprint } from '@/types';
+import { SafeAreaView } from "react-native-safe-area-context";
+import { MaterialIcons as Icon } from "@expo/vector-icons";
+import { colors, spacing, borderRadius, typography } from "@/theme";
+import { useSprintsStore } from "@/stores/sprintsStore";
+import { useFadeIn } from "@/utils/animations";
+import { SprintCard } from "@/components/multiagent/SprintCard";
+import { EmptyState } from "@/components/common/EmptyState";
+import type { Sprint } from "@/types";
 
-// ==================== NAVIGATION TYPE ====================
+// ==================== PROPS ====================
 
-type Props = NativeStackScreenProps<ProjectsStackParamList, 'Sprints'>;
+interface SprintsBoardProps {
+  projectId: string;
+}
 
 // ==================== SKELETON ====================
 
@@ -30,9 +40,17 @@ const SprintSkeleton = memo(function SprintSkeleton() {
   useEffect(() => {
     const pulse = Animated.loop(
       Animated.sequence([
-        Animated.timing(opacity, { toValue: 0.85, duration: 700, useNativeDriver: true }),
-        Animated.timing(opacity, { toValue: 0.4, duration: 700, useNativeDriver: true }),
-      ])
+        Animated.timing(opacity, {
+          toValue: 0.85,
+          duration: 700,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 0.4,
+          duration: 700,
+          useNativeDriver: true,
+        }),
+      ]),
     );
     pulse.start();
     return () => pulse.stop();
@@ -57,22 +75,21 @@ const ActiveSprintCard = memo(function ActiveSprintCard({
   const fadeStyle = useFadeIn();
 
   const formatDate = (d: string | null) => {
-    if (!d) return '—';
-    return new Date(d).toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'short',
+    if (!d) return "—";
+    return new Date(d).toLocaleDateString("fr-FR", {
+      day: "numeric",
+      month: "short",
     });
   };
 
   const progressPct = sprint.progress_percentage;
   const isOverdue = sprint.is_overdue;
-  const isActive = sprint.status === 'active';
-  const isPlanning = sprint.status === 'planning';
+  const isActive = sprint.status === "active";
+  const isPlanning = sprint.status === "planning";
 
-  const progressColor =
-    isOverdue
-      ? colors.semantic.error
-      : progressPct >= 80
+  const progressColor = isOverdue
+    ? colors.semantic.error
+    : progressPct >= 80
       ? colors.semantic.success
       : colors.primary.purple;
 
@@ -84,7 +101,7 @@ const ActiveSprintCard = memo(function ActiveSprintCard({
           <View style={[styles.activeBadge, { opacity: isActive ? 1 : 0.5 }]}>
             <View style={styles.activeBadgeDot} />
             <Text style={styles.activeBadgeText}>
-              {isActive ? 'Active' : sprint.status}
+              {isActive ? "Active" : sprint.status}
             </Text>
           </View>
           <Text style={styles.activeCardName} numberOfLines={1}>
@@ -95,20 +112,22 @@ const ActiveSprintCard = memo(function ActiveSprintCard({
           <View
             style={[
               styles.daysChip,
-              isOverdue
-                ? styles.daysChipOverdue
-                : styles.daysChipNormal,
+              isOverdue ? styles.daysChipOverdue : styles.daysChipNormal,
             ]}
           >
             <Icon
-              name={isOverdue ? 'warning' : 'schedule'}
+              name={isOverdue ? "warning" : "schedule"}
               size={12}
               color={isOverdue ? colors.semantic.error : colors.primary.cyan}
             />
             <Text
               style={[
                 styles.daysChipText,
-                { color: isOverdue ? colors.semantic.error : colors.primary.cyan },
+                {
+                  color: isOverdue
+                    ? colors.semantic.error
+                    : colors.primary.cyan,
+                },
               ]}
             >
               {isOverdue
@@ -179,7 +198,7 @@ const ActiveSprintCard = memo(function ActiveSprintCard({
             ]}
             numberOfLines={1}
           >
-            {sprint.velocity ?? '—'}
+            {sprint.velocity ?? "—"}
           </Text>
           <Text style={styles.metricLabel}>Velocity</Text>
         </View>
@@ -212,12 +231,11 @@ const ActiveSprintCard = memo(function ActiveSprintCard({
   );
 });
 
-// ==================== MAIN SCREEN ====================
+// ==================== MAIN BOARD ====================
 
-export const SprintsScreen = memo(function SprintsScreen({
-  route,
-}: Props) {
-  const { projectId } = route.params;
+export const SprintsBoard = memo(function SprintsBoard({
+  projectId,
+}: SprintsBoardProps) {
   const {
     getSprintsByProject,
     getActiveSprintForProject,
@@ -232,11 +250,11 @@ export const SprintsScreen = memo(function SprintsScreen({
   const allSprints = getSprintsByProject(projectId);
   const activeSprint = getActiveSprintForProject(projectId);
   const otherSprints = allSprints.filter(
-    (s) => s.id !== activeSprint?.id && s.status !== 'planning'
+    (s) => s.id !== activeSprint?.id && s.status !== "planning",
   );
   // Planning sprints (not active) — shown below others
   const planningSprints = allSprints.filter(
-    (s) => s.status === 'planning' && s.id !== activeSprint?.id
+    (s) => s.status === "planning" && s.id !== activeSprint?.id,
   );
   const listSprints = [...planningSprints, ...otherSprints];
 
@@ -266,48 +284,51 @@ export const SprintsScreen = memo(function SprintsScreen({
   const handleStart = useCallback(
     (sprint: Sprint) => {
       showAlert(
-        'Start Sprint',
+        "Start Sprint",
         `Start "${sprint.name}"? This will mark it as active.`,
         [
-          { text: 'Cancel', style: 'cancel' },
+          { text: "Cancel", style: "cancel" },
           {
-            text: 'Start',
+            text: "Start",
             onPress: async () => {
               try {
                 await startSprint(sprint.id);
               } catch {
-                showAlert('Error', 'Failed to start sprint. Please try again.');
+                showAlert("Error", "Failed to start sprint. Please try again.");
               }
             },
           },
-        ]
+        ],
       );
     },
-    [startSprint]
+    [startSprint],
   );
 
   const handleComplete = useCallback(
     (sprint: Sprint) => {
       showAlert(
-        'Complete Sprint',
+        "Complete Sprint",
         `Complete "${sprint.name}"? Unfinished tasks will remain in backlog.`,
         [
-          { text: 'Cancel', style: 'cancel' },
+          { text: "Cancel", style: "cancel" },
           {
-            text: 'Complete',
-            style: 'destructive',
+            text: "Complete",
+            style: "destructive",
             onPress: async () => {
               try {
                 await completeSprint(sprint.id);
               } catch {
-                showAlert('Error', 'Failed to complete sprint. Please try again.');
+                showAlert(
+                  "Error",
+                  "Failed to complete sprint. Please try again.",
+                );
               }
             },
           },
-        ]
+        ],
       );
     },
-    [completeSprint]
+    [completeSprint],
   );
 
   const handleSprintPress = useCallback((_sprint: Sprint) => {
@@ -318,23 +339,24 @@ export const SprintsScreen = memo(function SprintsScreen({
     ({ item }: { item: Sprint }) => (
       <SprintCard sprint={item} onPress={handleSprintPress} />
     ),
-    [handleSprintPress]
+    [handleSprintPress],
   );
 
   const keyExtractor = useCallback((item: Sprint) => item.id, []);
 
   // Active or planning sprint to feature at top
   const featuredSprint =
-    activeSprint ??
-    allSprints.find((s) => s.status === 'planning') ??
-    null;
+    activeSprint ?? allSprints.find((s) => s.status === "planning") ?? null;
 
   if (isLoading && allSprints.length === 0) {
     return (
-      <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+      <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
         <View style={styles.skeletonContainer}>
           <Animated.View
-            style={[styles.skeletonFeatured, { opacity: new Animated.Value(0.5) }]}
+            style={[
+              styles.skeletonFeatured,
+              { opacity: new Animated.Value(0.5) },
+            ]}
           />
           {[1, 2].map((k) => (
             <SprintSkeleton key={k} />
@@ -379,7 +401,7 @@ export const SprintsScreen = memo(function SprintsScreen({
   );
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+    <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
       <FlatList
         data={listSprints}
         renderItem={renderItem}
@@ -439,15 +461,15 @@ const styles = StyleSheet.create({
   },
   // Error banner
   errorBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.sm,
-    backgroundColor: colors.semantic.error + '18',
+    backgroundColor: colors.semantic.error + "18",
     borderRadius: borderRadius.md,
     padding: spacing.sm,
     marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: colors.semantic.error + '40',
+    borderColor: colors.semantic.error + "40",
   },
   errorText: {
     flex: 1,
@@ -457,9 +479,9 @@ const styles = StyleSheet.create({
   // Section title
   sectionTitle: {
     fontSize: typography.size.sm,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.text.muted,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 0.6,
     marginTop: spacing.md,
     marginBottom: spacing.sm,
@@ -479,9 +501,9 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   activeCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
     marginBottom: spacing.sm,
     gap: spacing.sm,
   },
@@ -490,10 +512,10 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   activeBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 5,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
   activeBadgeDot: {
     width: 7,
@@ -503,19 +525,19 @@ const styles = StyleSheet.create({
   },
   activeBadgeText: {
     fontSize: typography.size.xs,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.primary.purple,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   activeCardName: {
     fontSize: typography.size.lg,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.text.primary,
   },
   daysChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
@@ -533,8 +555,8 @@ const styles = StyleSheet.create({
   },
   daysChipText: {
     fontSize: typography.size.xs,
-    fontWeight: '600',
-    fontVariant: ['tabular-nums'],
+    fontWeight: "600",
+    fontVariant: ["tabular-nums"],
   },
   activeCardGoal: {
     fontSize: typography.size.sm,
@@ -543,8 +565,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   datesRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.xs,
     marginBottom: spacing.md,
   },
@@ -557,35 +579,35 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   progressLabelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: spacing.xs,
   },
   progressLabel: {
     fontSize: typography.size.xs,
     color: colors.text.muted,
-    fontWeight: '500',
-    textTransform: 'uppercase',
+    fontWeight: "500",
+    textTransform: "uppercase",
     letterSpacing: 0.4,
   },
   progressPct: {
     fontSize: typography.size.sm,
-    fontWeight: '700',
-    fontVariant: ['tabular-nums'],
+    fontWeight: "700",
+    fontVariant: ["tabular-nums"],
   },
   progressBarBg: {
     height: 6,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: "rgba(255,255,255,0.06)",
     borderRadius: 3,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   progressBarFill: {
-    height: '100%',
+    height: "100%",
     borderRadius: 3,
   },
   // Metrics
   metricsGrid: {
-    flexDirection: 'row',
+    flexDirection: "row",
     backgroundColor: colors.background.dark1,
     borderRadius: borderRadius.md,
     padding: spacing.sm,
@@ -593,13 +615,13 @@ const styles = StyleSheet.create({
   },
   metricCell: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
   },
   metricValue: {
     fontSize: typography.size.lg,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.text.primary,
-    fontVariant: ['tabular-nums'],
+    fontVariant: ["tabular-nums"],
   },
   metricLabel: {
     fontSize: typography.size.xs,
@@ -610,18 +632,18 @@ const styles = StyleSheet.create({
     width: 1,
     height: 32,
     backgroundColor: colors.border.subtle,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
   // Action buttons
   activeCardActions: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: spacing.sm,
   },
   actionBtn: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: spacing.xs,
     paddingVertical: 10,
     borderRadius: borderRadius.md,
@@ -634,7 +656,7 @@ const styles = StyleSheet.create({
   },
   actionBtnText: {
     fontSize: typography.size.sm,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.text.primary,
   },
 });

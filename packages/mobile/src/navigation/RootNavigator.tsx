@@ -3,17 +3,19 @@
  * Main entry point for navigation - handles auth state
  */
 
-import React, { useEffect } from 'react';
-import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import type { RootStackParamList } from './types';
-import { colors } from '@/theme';
-import { useAuthStore } from '@/stores/authStore';
-import { websocket } from '@/services/websocket';
+import React, { useEffect } from "react";
+import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import type { RootStackParamList } from "./types";
+import { navigationRef } from "./navigationRef";
+import { colors } from "@/theme";
+import { useAuthStore } from "@/stores/authStore";
+import { websocket } from "@/services/websocket";
+import { registerForPush } from "@/services/pushNotifications";
 
 // Navigators
-import { AuthNavigator } from './AuthNavigator';
-import { MainNavigator } from './MainNavigator';
+import { AuthNavigator } from "./AuthNavigator";
+import { MainNavigator } from "./MainNavigator";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -40,6 +42,9 @@ export const RootNavigator: React.FC = () => {
     if (isAuthenticated && accessToken) {
       websocket.connect(accessToken);
       fetchUser();
+      // Covers both a fresh login and an already-authenticated app boot.
+      // Fire-and-forget: registerForPush never throws and never blocks.
+      void registerForPush();
     } else {
       websocket.disconnect();
     }
@@ -50,7 +55,7 @@ export const RootNavigator: React.FC = () => {
   }, [isAuthenticated, accessToken]);
 
   return (
-    <NavigationContainer theme={navigationTheme}>
+    <NavigationContainer ref={navigationRef} theme={navigationTheme}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {isAuthenticated ? (
           <Stack.Screen name="Main" component={MainNavigator} />

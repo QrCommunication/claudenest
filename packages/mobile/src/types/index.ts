@@ -81,6 +81,17 @@ export interface BrowseResult {
 // ==================== SESSION TYPES ====================
 
 export type SessionMode = "interactive" | "headless" | "oneshot";
+
+/**
+ * Claude Code permission mode forwarded to the agent when spawning sessions
+ * (server contract v1.5 — orchestrator/start and session create).
+ */
+export type PermissionMode =
+  | "default"
+  | "acceptEdits"
+  | "plan"
+  | "bypassPermissions";
+
 export type SessionStatus =
   | "created"
   | "starting"
@@ -106,6 +117,10 @@ export interface Session {
   };
   total_tokens: number | null;
   total_cost: number | null;
+  /** Shared project this session belongs to (orchestrator/planning sessions). */
+  shared_project_id: string | null;
+  /** True when the session was spawned by the multi-agent orchestrator. */
+  orchestrated: boolean;
   started_at: string | null;
   completed_at: string | null;
   created_at: string;
@@ -128,6 +143,9 @@ export interface CreateSessionRequest {
   project_path?: string;
   initial_prompt?: string;
   credential_id?: string;
+  /** Attach the session to a shared project (multi-agent context). */
+  shared_project_id?: string;
+  permission_mode?: PermissionMode;
   pty_size?: {
     cols: number;
     rows: number;
@@ -392,6 +410,55 @@ export interface MCPTool {
   name: string;
   description: string;
   parameters: Record<string, unknown>;
+}
+
+// ==================== ORCHESTRATOR TYPES ====================
+// Server contract v1.5 — /api/projects/{id}/orchestrator/*. Unlike most
+// resources, the status payload is returned in camelCase and kept as-is.
+
+export interface OrchestratorWorker {
+  id: string;
+  sessionId: string | null;
+  status: string;
+  currentTaskId: string | null;
+  currentTaskTitle: string | null;
+  tasksCompleted: number;
+}
+
+export interface OrchestratorStatus {
+  status: "running" | "stopped";
+  active: boolean;
+  workers: OrchestratorWorker[];
+  tasks: {
+    pending: number;
+    in_progress: number;
+    done: number;
+  };
+  pendingTasks: number;
+  completedTasks: number;
+  orchestration: Record<string, unknown> | null;
+}
+
+/**
+ * Body of POST /projects/{id}/orchestrator/start (snake_case request).
+ * Errors: 403 PLAN_001 (plan cap exceeded), 422 MCH_002 (machine offline).
+ */
+export interface OrchestratorStartRequest {
+  /** Parallel worker count — server validates the 1-10 range. */
+  max_workers: number;
+  permission_mode?: PermissionMode;
+  /** Also spawn a coordinator session supervising the workers. */
+  coordinator?: boolean;
+}
+
+/**
+ * Body of POST /projects/{id}/planning/session — spawns an interactive
+ * planning session (HTTP 201). Errors: 400 machine offline, 403 PLAN_001.
+ */
+export interface PlanningSessionRequest {
+  /** Project brief — server caps at 4000 characters. */
+  brief: string;
+  credential_id?: string;
 }
 
 // ==================== API RESPONSE TYPES ====================

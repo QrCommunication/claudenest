@@ -202,17 +202,24 @@ class WebSocketService {
     }
   }
 
-  /** Live terminal output for a session (channel `sessions.{id}`). */
+  /** Live terminal output + notifications for a session (channel `sessions.{id}`). */
   subscribeToSession(sessionId: string): void {
-    this.privateChannel(`sessions.${sessionId}`)?.listen(
-      ".session.output",
-      (e: ReverbPayload) =>
+    const channel = this.privateChannel(`sessions.${sessionId}`);
+    if (!channel) return;
+    channel
+      .listen(".session.output", (e: ReverbPayload) =>
         this.emit("session:output", {
           sessionId: e.session_id ?? sessionId,
           data: e.data ?? "",
           chunkId: e.chunk_id,
         }),
-    );
+      )
+      .listen(".session.notification", (e: ReverbPayload) =>
+        this.emit("session:notification", {
+          ...e,
+          session_id: e.session_id ?? sessionId,
+        }),
+      );
   }
 
   unsubscribeFromSession(sessionId: string): void {
@@ -281,6 +288,18 @@ class WebSocketService {
       )
       .listen(".sprint.completed", (e: ReverbPayload) =>
         this.emit("sprint:updated", e),
+      )
+      .listen(".instance.updated", (e: ReverbPayload) =>
+        this.emit("instance:updated", {
+          ...e,
+          project_id: e.project_id ?? projectId,
+        }),
+      )
+      .listen(".session.notification", (e: ReverbPayload) =>
+        this.emit("session:notification", {
+          ...e,
+          project_id: e.project_id ?? projectId,
+        }),
       )
       .listen(".project.broadcast", (e: ReverbPayload) =>
         this.emit("project:broadcast", e),

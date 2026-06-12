@@ -1,168 +1,400 @@
 /**
  * OrchestrationScreen
- * Monitor Claude instances, dispatch tasks, and control the orchestrator.
+ * Server-driven worker orchestration (v1.5 contract):
+ * - Start opens a config modal (max_workers, permission_mode, coordinator)
+ *   posting to /projects/{id}/orchestrator/start.
+ * - Worker list reflects the pool live (`.instance.updated` events are
+ *   forwarded to the orchestrator store by projectsStore.subscribeToProject,
+ *   wired by the underlying ProjectScreen) with a status poll as fallback.
+ * - Tapping a worker opens its session terminal.
  */
 
-import React, {
-  memo,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
-import { Animated, FlatList, RefreshControl, SafeAreaView, StyleSheet, Text, TouchableOpacity, View, type ListRenderItemInfo } from 'react-native';
+import React, { memo, useCallback, useEffect, useRef, useState } from "react";
+import {
+  FlatList,
+  RefreshControl,
+  SafeAreaView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
+  type ListRenderItemInfo,
+} from "react-native";
+import { MaterialIcons as Icon } from "@expo/vector-icons";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type { ProjectsStackParamList } from "@/navigation/types";
+import { borderRadius, colors, spacing, typography } from "@/theme";
 import { showAlert } from "@/services/dialog";
-import { MaterialIcons as Icon } from '@expo/vector-icons';
-import { colors, spacing, borderRadius, typography } from '@/theme';
-import { projectsApi, runnerApi, api } from '@/services/api';
-import { StatusDot } from '@/components/common';
-import { useFadeIn } from '@/utils/animations';
-import { useOrchestratorStore } from '@/stores/orchestratorStore';
-import type { ClaudeInstance, InstanceStatus } from '@/types';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { ProjectsStackParamList } from '@/navigation/types';
+import { Modal } from "@/components/common";
+import { useOrchestratorStore } from "@/stores/orchestratorStore";
+import { navigateToSession } from "@/navigation/navigationRef";
+import type { OrchestratorWorker, PermissionMode } from "@/types";
 
 // ---------------------------------------------------------------------------
-// Types
+// Types & constants
 // ---------------------------------------------------------------------------
 
-type Props = NativeStackScreenProps<ProjectsStackParamList, 'Orchestration'>;
+type Props = NativeStackScreenProps<ProjectsStackParamList, "Orchestration">;
 
-interface DispatchResult {
-  dispatched: number;
-  message: string;
-}
+const STATUS_POLL_MS = 10_000;
+const MIN_WORKERS = 1;
+const MAX_WORKERS = 5;
+const DEFAULT_WORKERS = 3;
 
-// ---------------------------------------------------------------------------
-// StatCard
-// ---------------------------------------------------------------------------
-
-interface StatCardProps {
-  icon: string;
-  value: string | number;
+interface PermissionModeOption {
+  value: PermissionMode;
   label: string;
-  color?: string;
+  description: string;
 }
 
-const StatCard = memo(function StatCard({ icon, value, label, color }: StatCardProps) {
-  const fadeStyle = useFadeIn();
-  const accent = color ?? colors.primary.purple;
+const PERMISSION_MODES: PermissionModeOption[] = [
+  {
+    value: "default",
+    label: "Default",
+    description: "Ask before sensitive actions",
+  },
+  {
+    value: "acceptEdits",
+    label: "Accept edits",
+    description: "Auto-approve file edits",
+  },
+  {
+    value: "plan",
+    label: "Plan",
+    description: "Read-only planning mode",
+  },
+  {
+    value: "bypassPermissions",
+    label: "Bypass",
+    description: "Skip every permission prompt",
+  },
+];
+
+/** User-facing messages for the server contract error codes. */
+const ERROR_CODE_MESSAGES: Record<string, string> = {
+  PLAN_001:
+    "Plan limit reached (PLAN_001) — your plan caps concurrent sessions. Stop other sessions or upgrade your plan.",
+  MCH_002:
+    "The project's machine is offline (MCH_002). Wake it before starting the orchestrator.",
+};
+
+const WORKER_STATUS_COLOR: Record<string, string> = {
+  active: colors.semantic.success,
+  busy: colors.primary.purple,
+  idle: colors.status.idle,
+  disconnected: colors.semantic.error,
+};
+
+const workerStatusColor = (status: string): string =>
+  WORKER_STATUS_COLOR[status] ?? colors.status.connecting;
+
+// ---------------------------------------------------------------------------
+// StartOrchestratorModal
+// ---------------------------------------------------------------------------
+
+interface StartOrchestratorModalProps {
+  visible: boolean;
+  isSubmitting: boolean;
+  onClose: () => void;
+  onSubmit: (opts: {
+    max_workers: number;
+    permission_mode: PermissionMode;
+    coordinator: boolean;
+  }) => void;
+}
+
+const StartOrchestratorModal = memo(function StartOrchestratorModal({
+  visible,
+  isSubmitting,
+  onClose,
+  onSubmit,
+}: StartOrchestratorModalProps) {
+  const [maxWorkers, setMaxWorkers] = useState(DEFAULT_WORKERS);
+  const [permissionMode, setPermissionMode] =
+    useState<PermissionMode>("default");
+  const [coordinator, setCoordinator] = useState(false);
+
+  useEffect(() => {
+    if (visible) {
+      setMaxWorkers(DEFAULT_WORKERS);
+      setPermissionMode("default");
+      setCoordinator(false);
+    }
+  }, [visible]);
+
+  const decrement = useCallback(
+    () => setMaxWorkers((n) => Math.max(MIN_WORKERS, n - 1)),
+    [],
+  );
+  const increment = useCallback(
+    () => setMaxWorkers((n) => Math.min(MAX_WORKERS, n + 1)),
+    [],
+  );
+
+  const handleSubmit = useCallback(() => {
+    onSubmit({
+      max_workers: maxWorkers,
+      permission_mode: permissionMode,
+      coordinator,
+    });
+  }, [onSubmit, maxWorkers, permissionMode, coordinator]);
+
   return (
-    <Animated.View style={[statStyles.card, fadeStyle]}>
-      <View style={[statStyles.iconWrap, { backgroundColor: accent + '20' }]}>
-        <Icon name={icon as any} size={20} color={accent} />
+    <Modal
+      visible={visible}
+      onClose={onClose}
+      title="Start Orchestrator"
+      footer={
+        <View style={modalStyles.actions}>
+          <TouchableOpacity
+            style={modalStyles.cancelBtn}
+            onPress={onClose}
+            activeOpacity={0.7}
+            disabled={isSubmitting}
+          >
+            <Text style={modalStyles.cancelText}>Cancel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              modalStyles.submitBtn,
+              isSubmitting && modalStyles.btnDisabled,
+            ]}
+            onPress={handleSubmit}
+            disabled={isSubmitting}
+            activeOpacity={0.8}
+          >
+            <Icon
+              name={isSubmitting ? "hourglass-empty" : "play-arrow"}
+              size={16}
+              color={colors.text.primary}
+            />
+            <Text style={modalStyles.submitText}>
+              {isSubmitting ? "Starting…" : "Start"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      }
+    >
+      <Text style={modalStyles.subtitle}>
+        Spawns worker sessions that claim and execute the project's pending
+        tasks. Workers count against your plan's session cap.
+      </Text>
+
+      {/* Max workers stepper */}
+      <View style={modalStyles.fieldGroup}>
+        <Text style={modalStyles.fieldLabel}>Max workers</Text>
+        <View style={modalStyles.stepper}>
+          <TouchableOpacity
+            style={[
+              modalStyles.stepperBtn,
+              maxWorkers <= MIN_WORKERS && modalStyles.btnDisabled,
+            ]}
+            onPress={decrement}
+            disabled={maxWorkers <= MIN_WORKERS}
+            activeOpacity={0.7}
+            accessibilityLabel="Decrease worker count"
+          >
+            <Icon name="remove" size={20} color={colors.text.primary} />
+          </TouchableOpacity>
+          <Text style={modalStyles.stepperValue}>{maxWorkers}</Text>
+          <TouchableOpacity
+            style={[
+              modalStyles.stepperBtn,
+              maxWorkers >= MAX_WORKERS && modalStyles.btnDisabled,
+            ]}
+            onPress={increment}
+            disabled={maxWorkers >= MAX_WORKERS}
+            activeOpacity={0.7}
+            accessibilityLabel="Increase worker count"
+          >
+            <Icon name="add" size={20} color={colors.text.primary} />
+          </TouchableOpacity>
+        </View>
+        <Text style={modalStyles.fieldHelper}>
+          The server also caps the pool at your plan limit and the number of
+          pending tasks.
+        </Text>
       </View>
-      <Text style={statStyles.value}>{value}</Text>
-      <Text style={statStyles.label}>{label}</Text>
-    </Animated.View>
+
+      {/* Permission mode */}
+      <View style={modalStyles.fieldGroup}>
+        <Text style={modalStyles.fieldLabel}>Permission mode</Text>
+        <View style={modalStyles.permissionList}>
+          {PERMISSION_MODES.map((mode) => {
+            const isSelected = permissionMode === mode.value;
+            return (
+              <TouchableOpacity
+                key={mode.value}
+                style={[
+                  modalStyles.permissionRow,
+                  isSelected && modalStyles.permissionRowSelected,
+                ]}
+                onPress={() => setPermissionMode(mode.value)}
+                activeOpacity={0.7}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: isSelected }}
+              >
+                <Icon
+                  name={
+                    isSelected
+                      ? "radio-button-checked"
+                      : "radio-button-unchecked"
+                  }
+                  size={18}
+                  color={isSelected ? colors.primary.purple : colors.text.muted}
+                />
+                <View style={modalStyles.permissionTextWrap}>
+                  <Text
+                    style={[
+                      modalStyles.permissionLabel,
+                      isSelected && modalStyles.permissionLabelSelected,
+                    ]}
+                  >
+                    {mode.label}
+                  </Text>
+                  <Text style={modalStyles.permissionDescription}>
+                    {mode.description}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+
+      {/* Coordinator toggle */}
+      <View style={modalStyles.switchRow}>
+        <View style={modalStyles.switchTextWrap}>
+          <Text style={modalStyles.fieldLabel}>Coordinator</Text>
+          <Text style={modalStyles.fieldHelper}>
+            React to incidents (task thrashing, lock contention) with an
+            ephemeral planning session.
+          </Text>
+        </View>
+        <Switch
+          value={coordinator}
+          onValueChange={setCoordinator}
+          trackColor={{
+            false: colors.background.dark4,
+            true: `${colors.primary.purple}80`,
+          }}
+          thumbColor={coordinator ? colors.primary.purple : colors.text.muted}
+        />
+      </View>
+    </Modal>
   );
 });
 
 // ---------------------------------------------------------------------------
-// InstanceRow
+// WorkerRow
 // ---------------------------------------------------------------------------
 
-const STATUS_COLOR: Record<InstanceStatus, string> = {
-  active:       colors.semantic.success,
-  idle:         colors.status.idle,
-  busy:         colors.primary.purple,
-  disconnected: colors.semantic.error,
-};
+interface WorkerRowProps {
+  worker: OrchestratorWorker;
+  onPress: (worker: OrchestratorWorker) => void;
+}
 
-const STATUS_LABEL: Record<InstanceStatus, string> = {
-  active:       'Active',
-  idle:         'Idle',
-  busy:         'Busy',
-  disconnected: 'Offline',
-};
+const WorkerRow = memo(function WorkerRow({ worker, onPress }: WorkerRowProps) {
+  const statusColor = workerStatusColor(worker.status);
+  const hasSession = worker.sessionId !== null;
 
-const InstanceRow = memo(function InstanceRow({ instance }: { instance: ClaudeInstance }) {
-  const fadeStyle = useFadeIn();
-  const statusColor = STATUS_COLOR[instance.status];
-  const contextPct = Math.min(
-    100,
-    Math.round((instance.contextTokens / Math.max(instance.maxContextTokens, 1)) * 100)
-  );
-
-  const progressWidth = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.timing(progressWidth, {
-      toValue: contextPct,
-      duration: 600,
-      useNativeDriver: false,
-    }).start();
-  }, [contextPct, progressWidth]);
+  const handlePress = useCallback(() => {
+    onPress(worker);
+  }, [onPress, worker]);
 
   return (
-    <Animated.View style={[rowStyles.container, fadeStyle]}>
-      {/* Avatar + status dot */}
-      <View style={rowStyles.avatarWrap}>
-        <View style={rowStyles.avatar}>
-          <Icon name="smart-toy" size={18} color={colors.primary.cyan} />
-        </View>
-        <View style={[rowStyles.dotWrap, { borderColor: colors.background.card }]}>
-          <StatusDot
-            status={
-              instance.status === 'active'
-                ? 'online'
-                : instance.status === 'disconnected'
-                ? 'offline'
-                : 'connecting'
-            }
-            size={8}
-            pulse={instance.status === 'busy'}
-          />
-        </View>
+    <TouchableOpacity
+      style={rowStyles.container}
+      onPress={handlePress}
+      disabled={!hasSession}
+      activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={`Worker ${worker.id}`}
+    >
+      <View style={rowStyles.avatar}>
+        <Icon name="smart-toy" size={18} color={colors.primary.cyan} />
       </View>
 
-      {/* Details */}
       <View style={rowStyles.details}>
         <View style={rowStyles.topRow}>
-          <Text style={rowStyles.instanceId} numberOfLines={1}>
-            {instance.id.slice(0, 12)}…
+          <Text style={rowStyles.workerId} numberOfLines={1}>
+            {worker.id.slice(0, 14)}…
           </Text>
-          <View style={[rowStyles.badge, { backgroundColor: statusColor + '25', borderColor: statusColor + '60' }]}>
+          <View
+            style={[
+              rowStyles.badge,
+              {
+                backgroundColor: `${statusColor}25`,
+                borderColor: `${statusColor}60`,
+              },
+            ]}
+          >
             <Text style={[rowStyles.badgeText, { color: statusColor }]}>
-              {STATUS_LABEL[instance.status]}
+              {worker.status}
             </Text>
           </View>
         </View>
 
-        {/* Context progress */}
-        <View style={rowStyles.contextRow}>
-          <Text style={rowStyles.contextLabel}>Context</Text>
-          <View style={rowStyles.track}>
-            <Animated.View
-              style={[
-                rowStyles.fill,
-                {
-                  width: progressWidth.interpolate({
-                    inputRange: [0, 100],
-                    outputRange: ['0%', '100%'],
-                  }),
-                  backgroundColor: contextPct > 80 ? colors.semantic.warning : colors.primary.purple,
-                },
-              ]}
-            />
-          </View>
-          <Text style={rowStyles.contextPct}>{contextPct}%</Text>
+        <View style={rowStyles.taskRow}>
+          <Icon
+            name={worker.currentTaskId ? "pending-actions" : "hourglass-empty"}
+            size={13}
+            color={
+              worker.currentTaskId ? colors.primary.cyan : colors.text.muted
+            }
+          />
+          <Text
+            style={[
+              rowStyles.taskText,
+              worker.currentTaskId !== null && rowStyles.taskTextActive,
+            ]}
+            numberOfLines={1}
+          >
+            {worker.currentTaskTitle ??
+              worker.currentTaskId ??
+              "No task claimed"}
+          </Text>
         </View>
 
         <View style={rowStyles.metaRow}>
-          <View style={rowStyles.meta}>
-            <Icon name="task-alt" size={12} color={colors.text.muted} />
-            <Text style={rowStyles.metaText}>{instance.tasksCompleted} done</Text>
-          </View>
-          {instance.currentTaskId && (
-            <View style={rowStyles.meta}>
-              <Icon name="pending" size={12} color={colors.primary.cyan} />
-              <Text style={[rowStyles.metaText, { color: colors.primary.cyan }]}>Working…</Text>
-            </View>
-          )}
+          <Icon name="task-alt" size={12} color={colors.text.muted} />
+          <Text style={rowStyles.metaText}>
+            {worker.tasksCompleted} completed
+          </Text>
+          {hasSession ? (
+            <Text style={rowStyles.openHint}>Open terminal</Text>
+          ) : null}
         </View>
       </View>
-    </Animated.View>
+
+      {hasSession ? (
+        <Icon name="chevron-right" size={20} color={colors.text.muted} />
+      ) : null}
+    </TouchableOpacity>
+  );
+});
+
+// ---------------------------------------------------------------------------
+// TaskCountPill
+// ---------------------------------------------------------------------------
+
+interface TaskCountPillProps {
+  label: string;
+  value: number;
+  color: string;
+}
+
+const TaskCountPill = memo(function TaskCountPill({
+  label,
+  value,
+  color,
+}: TaskCountPillProps) {
+  return (
+    <View style={pillStyles.pill}>
+      <Text style={[pillStyles.value, { color }]}>{value}</Text>
+      <Text style={pillStyles.label}>{label}</Text>
+    </View>
   );
 });
 
@@ -173,244 +405,207 @@ const InstanceRow = memo(function InstanceRow({ instance }: { instance: ClaudeIn
 export const OrchestrationScreen: React.FC<Props> = ({ route }) => {
   const { projectId } = route.params;
 
-  // Orchestrator store (start/stop/stats)
-  const {
-    isRunning,
-    stats,
-    isLoading: storeLoading,
-    error: storeError,
-    startOrchestrator,
-    stopOrchestrator,
-    fetchStats,
-    dispatchTasks,
-    clearError,
-  } = useOrchestratorStore();
+  const status = useOrchestratorStore((s) => s.status);
+  const error = useOrchestratorStore((s) => s.error);
+  const errorCode = useOrchestratorStore((s) => s.errorCode);
+  const start = useOrchestratorStore((s) => s.start);
+  const stop = useOrchestratorStore((s) => s.stop);
+  const fetchStatus = useOrchestratorStore((s) => s.fetchStatus);
+  const clearError = useOrchestratorStore((s) => s.clearError);
 
-  // Instance list (local state — refreshed independently)
-  const [instances, setInstances] = useState<ClaudeInstance[]>([]);
-  const [instancesLoading, setInstancesLoading] = useState(false);
-  const [dispatchMsg, setDispatchMsg] = useState<string | null>(null);
-  const [isDispatching, setIsDispatching] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isActing, setIsActing] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const loadInstances = useCallback(async () => {
-    setInstancesLoading(true);
-    try {
-      const res = await projectsApi.getInstances(projectId);
-      setInstances(res.data ?? []);
-    } catch {
-      // non-critical
-    } finally {
-      setInstancesLoading(false);
-    }
-  }, [projectId]);
-
-  const handleRefresh = useCallback(() => {
-    fetchStats(projectId);
-    loadInstances();
-  }, [projectId, fetchStats, loadInstances]);
-
+  // Initial load + poll fallback (live `.instance.updated` events already
+  // patch the store via projectsStore.subscribeToProject — the poll refreshes
+  // task counts and worker task titles, which the push payload lacks).
   useEffect(() => {
-    fetchStats(projectId);
-    loadInstances();
-
+    fetchStatus(projectId).catch(() => {
+      /* error state handled by the store */
+    });
     pollingRef.current = setInterval(() => {
-      loadInstances();
-    }, 8000);
+      fetchStatus(projectId).catch(() => {
+        /* transient — next tick retries */
+      });
+    }, STATUS_POLL_MS);
 
     return () => {
       if (pollingRef.current) clearInterval(pollingRef.current);
     };
-  }, [projectId, fetchStats, loadInstances]);
+  }, [projectId, fetchStatus]);
 
-  // Toggle orchestrator
-  const handleToggle = useCallback(() => {
-    if (isRunning) {
-      showAlert(
-        'Stop Orchestrator',
-        'Stop automated orchestration for this project?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Stop',
-            style: 'destructive',
-            onPress: async () => {
-              try {
-                await stopOrchestrator(projectId);
-              } catch {
-                showAlert('Error', 'Failed to stop orchestrator');
-              }
-            },
-          },
-        ]
-      );
-    } else {
-      showAlert(
-        'Start Orchestrator',
-        'Enable automated task orchestration for this project?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Start',
-            onPress: async () => {
-              try {
-                await startOrchestrator(projectId);
-              } catch {
-                showAlert('Error', 'Failed to start orchestrator');
-              }
-            },
-          },
-        ]
-      );
-    }
-  }, [isRunning, projectId, startOrchestrator, stopOrchestrator]);
-
-  // Dispatch tasks
-  const handleDispatch = useCallback(async () => {
-    if (isDispatching) return;
-    setIsDispatching(true);
-    setDispatchMsg(null);
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
     try {
-      // Try store action first; fall back to raw API call
-      await dispatchTasks(projectId);
-      setDispatchMsg('Tasks dispatched successfully');
-      loadInstances();
+      await fetchStatus(projectId);
     } catch {
-      try {
-        const res = await api.post<DispatchResult>(`/projects/${projectId}/dispatch`);
-        const dispatched = res.data?.dispatched ?? 0;
-        setDispatchMsg(`${dispatched} task${dispatched !== 1 ? 's' : ''} dispatched`);
-        loadInstances();
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : 'Dispatch failed';
-        setDispatchMsg(`Error: ${msg}`);
-      }
+      // error state handled by the store
     } finally {
-      setIsDispatching(false);
+      setIsRefreshing(false);
     }
-  }, [isDispatching, projectId, dispatchTasks, loadInstances]);
+  }, [projectId, fetchStatus]);
 
-  // Derived stats
-  const activeCount = instances.filter(
-    (i) => i.status === 'active' || i.status === 'busy'
-  ).length;
-  const totalCompleted = instances.reduce((sum, i) => sum + i.tasksCompleted, 0);
-
-  const renderInstance = useCallback(
-    ({ item }: ListRenderItemInfo<ClaudeInstance>) => <InstanceRow instance={item} />,
-    []
+  const handleStart = useCallback(
+    async (opts: {
+      max_workers: number;
+      permission_mode: PermissionMode;
+      coordinator: boolean;
+    }) => {
+      setIsActing(true);
+      try {
+        await start(projectId, opts);
+        setIsModalVisible(false);
+      } catch {
+        // Keep the modal closed and surface the mapped error banner
+        // (PLAN_001 / MCH_002 / generic) — the store carries the code.
+        setIsModalVisible(false);
+      } finally {
+        setIsActing(false);
+      }
+    },
+    [projectId, start],
   );
-  const keyExtractor = useCallback((item: ClaudeInstance) => item.id, []);
 
-  const isRefreshing = storeLoading || instancesLoading;
+  const handleStop = useCallback(() => {
+    showAlert(
+      "Stop Orchestrator",
+      "Terminate all worker sessions for this project?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Stop",
+          style: "destructive",
+          onPress: async () => {
+            setIsActing(true);
+            try {
+              await stop(projectId);
+            } catch {
+              // error state handled by the store
+            } finally {
+              setIsActing(false);
+            }
+          },
+        },
+      ],
+    );
+  }, [projectId, stop]);
 
-  // Header rendered above the FlatList
+  const handleWorkerPress = useCallback((worker: OrchestratorWorker) => {
+    if (worker.sessionId) {
+      navigateToSession(worker.sessionId);
+    }
+  }, []);
+
+  const renderWorker = useCallback(
+    ({ item }: ListRenderItemInfo<OrchestratorWorker>) => (
+      <WorkerRow worker={item} onPress={handleWorkerPress} />
+    ),
+    [handleWorkerPress],
+  );
+  const keyExtractor = useCallback((item: OrchestratorWorker) => item.id, []);
+
+  const isActive = status?.active ?? false;
+  const workers = status?.workers ?? [];
+  const errorMessage =
+    (errorCode !== null ? ERROR_CODE_MESSAGES[errorCode] : undefined) ?? error;
+
   const ListHeader = (
-    <View>
-      {/* Error banner */}
-      {storeError ? (
+    <View style={styles.headerWrap}>
+      {/* Error banner (PLAN_001 / MCH_002 mapped to clear messages) */}
+      {errorMessage ? (
         <View style={styles.errorBanner}>
           <Icon name="error-outline" size={16} color={colors.semantic.error} />
-          <Text style={styles.errorText}>{storeError}</Text>
-          <TouchableOpacity onPress={clearError}>
+          <Text style={styles.errorText}>{errorMessage}</Text>
+          <TouchableOpacity onPress={clearError} hitSlop={8}>
             <Icon name="close" size={16} color={colors.semantic.error} />
           </TouchableOpacity>
         </View>
       ) : null}
 
-      {/* Stats row */}
-      <View style={styles.statsRow}>
-        <StatCard
-          icon="groups"
-          value={instances.length}
-          label="Instances"
-          color={colors.primary.indigo}
-        />
-        <StatCard
-          icon="bolt"
-          value={activeCount}
-          label="Active"
-          color={colors.primary.cyan}
-        />
-        <StatCard
-          icon="check-circle"
-          value={totalCompleted}
-          label="Completed"
-          color={colors.semantic.success}
-        />
-      </View>
-
-      {/* Orchestrator status card */}
+      {/* Status card */}
       <View style={styles.statusCard}>
         <View style={styles.statusHeader}>
-          <View style={[styles.statusDot, { backgroundColor: isRunning ? colors.semantic.success : colors.status.offline }]} />
+          <View
+            style={[
+              styles.statusDot,
+              {
+                backgroundColor: isActive
+                  ? colors.semantic.success
+                  : colors.status.offline,
+              },
+            ]}
+          />
           <View style={styles.statusInfo}>
             <Text style={styles.statusTitle}>
-              {isRunning ? 'Orchestrator Active' : 'Orchestrator Stopped'}
+              {isActive ? "Orchestrator running" : "Orchestrator stopped"}
             </Text>
             <Text style={styles.statusDescription}>
-              {isRunning
-                ? 'Agents are automatically picking up and executing tasks.'
-                : 'Start the orchestrator to enable automated task execution.'}
+              {isActive
+                ? "Worker sessions claim and execute pending tasks automatically."
+                : "Start the orchestrator to spawn worker sessions on this project."}
             </Text>
           </View>
         </View>
 
-        {/* Health details */}
-        {stats && Object.keys(stats.details).length > 0 && (
-          <View style={styles.healthDetails}>
-            {Object.entries(stats.details).slice(0, 4).map(([key, value]) => (
-              <View key={key} style={styles.healthRow}>
-                <Text style={styles.healthKey}>{key.replace(/_/g, ' ')}</Text>
-                <Text style={styles.healthValue}>{String(value)}</Text>
-              </View>
-            ))}
+        {/* Task counts */}
+        {status ? (
+          <View style={styles.pillsRow}>
+            <TaskCountPill
+              label="Pending"
+              value={status.tasks.pending}
+              color={colors.semantic.warning}
+            />
+            <TaskCountPill
+              label="In progress"
+              value={status.tasks.in_progress}
+              color={colors.primary.cyan}
+            />
+            <TaskCountPill
+              label="Done"
+              value={status.tasks.done}
+              color={colors.semantic.success}
+            />
           </View>
-        )}
-
-        <TouchableOpacity
-          style={[styles.toggleBtn, isRunning ? styles.toggleBtnStop : styles.toggleBtnStart, storeLoading && styles.btnDisabled]}
-          onPress={handleToggle}
-          disabled={storeLoading}
-          activeOpacity={0.8}
-        >
-          <Icon name={isRunning ? 'stop' : 'play-arrow'} size={18} color="#fff" />
-          <Text style={styles.toggleBtnText}>
-            {isRunning ? 'Stop Orchestrator' : 'Start Orchestrator'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Dispatch */}
-      <View style={styles.dispatchSection}>
-        <TouchableOpacity
-          style={[styles.dispatchBtn, isDispatching && styles.btnDisabled]}
-          onPress={handleDispatch}
-          disabled={isDispatching}
-          activeOpacity={0.8}
-        >
-          <Icon name={isDispatching ? 'hourglass-empty' : 'send'} size={18} color="#fff" />
-          <Text style={styles.dispatchBtnText}>
-            {isDispatching ? 'Dispatching…' : 'Dispatch Tasks'}
-          </Text>
-        </TouchableOpacity>
-        {dispatchMsg ? (
-          <Text
-            style={[
-              styles.dispatchMsg,
-              dispatchMsg.startsWith('Error') ? styles.dispatchMsgError : styles.dispatchMsgSuccess,
-            ]}
-          >
-            {dispatchMsg}
-          </Text>
         ) : null}
+
+        {isActive ? (
+          <TouchableOpacity
+            style={[
+              styles.actionBtn,
+              styles.actionBtnStop,
+              isActing && styles.btnDisabled,
+            ]}
+            onPress={handleStop}
+            disabled={isActing}
+            activeOpacity={0.8}
+          >
+            <Icon name="stop" size={18} color={colors.text.primary} />
+            <Text style={styles.actionBtnText}>Stop Orchestrator</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={[
+              styles.actionBtn,
+              styles.actionBtnStart,
+              isActing && styles.btnDisabled,
+            ]}
+            onPress={() => setIsModalVisible(true)}
+            disabled={isActing}
+            activeOpacity={0.8}
+          >
+            <Icon name="play-arrow" size={18} color={colors.text.primary} />
+            <Text style={styles.actionBtnText}>Start Orchestrator</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
-      {/* Instances section title */}
+      {/* Workers section title */}
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Claude Instances</Text>
-        <Text style={styles.sectionCount}>{instances.length}</Text>
+        <Text style={styles.sectionTitle}>Workers</Text>
+        <Text style={styles.sectionCount}>{workers.length}</Text>
       </View>
     </View>
   );
@@ -418,8 +613,8 @@ export const OrchestrationScreen: React.FC<Props> = ({ route }) => {
   return (
     <SafeAreaView style={styles.safe}>
       <FlatList
-        data={instances}
-        renderItem={renderInstance}
+        data={workers}
+        renderItem={renderWorker}
         keyExtractor={keyExtractor}
         ListHeaderComponent={ListHeader}
         contentContainerStyle={styles.listContent}
@@ -433,16 +628,25 @@ export const OrchestrationScreen: React.FC<Props> = ({ route }) => {
           />
         }
         ListEmptyComponent={
-          !isRefreshing ? (
-            <View style={styles.emptyState}>
-              <Icon name="smart-toy" size={40} color={colors.text.muted} />
-              <Text style={styles.emptyTitle}>No instances connected</Text>
-              <Text style={styles.emptySubtitle}>
-                Start the orchestrator and connect agents to see them here.
-              </Text>
-            </View>
-          ) : null
+          <View style={styles.emptyState}>
+            <Icon name="smart-toy" size={40} color={colors.text.muted} />
+            <Text style={styles.emptyTitle}>
+              {isActive ? "No workers yet" : "No workers running"}
+            </Text>
+            <Text style={styles.emptySubtitle}>
+              {isActive
+                ? "The pool is spinning up — workers appear here as they connect."
+                : "Start the orchestrator to spawn workers that pick up pending tasks."}
+            </Text>
+          </View>
         }
+      />
+
+      <StartOrchestratorModal
+        visible={isModalVisible}
+        isSubmitting={isActing}
+        onClose={() => setIsModalVisible(false)}
+        onSubmit={handleStart}
       />
     </SafeAreaView>
   );
@@ -461,12 +665,17 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     paddingBottom: spacing.xl,
     flexGrow: 1,
+  },
+  headerWrap: {
     gap: spacing.md,
+    marginBottom: spacing.sm,
   },
   errorBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.semantic.error + '20',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: `${colors.semantic.error}20`,
+    borderWidth: 1,
+    borderColor: `${colors.semantic.error}40`,
     borderRadius: borderRadius.md,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
@@ -476,10 +685,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: typography.size.sm,
     color: colors.semantic.error,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
+    lineHeight: 18,
   },
   statusCard: {
     backgroundColor: colors.background.card,
@@ -487,11 +693,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border.default,
     padding: spacing.md,
-    gap: spacing.sm,
+    gap: spacing.md,
   },
   statusHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     gap: spacing.sm,
   },
   statusDot: {
@@ -507,7 +713,7 @@ const styles = StyleSheet.create({
   },
   statusTitle: {
     fontSize: typography.size.base,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.text.primary,
   },
   statusDescription: {
@@ -515,84 +721,40 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
     lineHeight: 18,
   },
-  healthDetails: {
-    backgroundColor: colors.background.dark2,
-    borderRadius: borderRadius.md,
-    padding: spacing.sm,
-    gap: 4,
+  pillsRow: {
+    flexDirection: "row",
+    gap: spacing.sm,
   },
-  healthRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  healthKey: {
-    fontSize: typography.size.xs,
-    color: colors.text.muted,
-    textTransform: 'capitalize',
-  },
-  healthValue: {
-    fontSize: typography.size.xs,
-    color: colors.text.secondary,
-    fontWeight: '500',
-  },
-  toggleBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+  actionBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: spacing.xs,
     borderRadius: borderRadius.md,
     paddingVertical: spacing.sm,
   },
-  toggleBtnStart: {
+  actionBtnStart: {
     backgroundColor: colors.semantic.success,
   },
-  toggleBtnStop: {
+  actionBtnStop: {
     backgroundColor: colors.semantic.error,
   },
-  toggleBtnText: {
+  actionBtnText: {
     fontSize: typography.size.base,
-    fontWeight: '600',
-    color: '#fff',
+    fontWeight: "600",
+    color: colors.text.primary,
   },
   btnDisabled: {
     opacity: 0.5,
   },
-  dispatchSection: {
-    gap: spacing.xs,
-  },
-  dispatchBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    backgroundColor: colors.primary.purple,
-    borderRadius: borderRadius.md,
-    paddingVertical: spacing.sm + 2,
-  },
-  dispatchBtnText: {
-    fontSize: typography.size.base,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  dispatchMsg: {
-    fontSize: typography.size.sm,
-    textAlign: 'center',
-  },
-  dispatchMsgSuccess: {
-    color: colors.semantic.success,
-  },
-  dispatchMsgError: {
-    color: colors.semantic.error,
-  },
   sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   sectionTitle: {
     fontSize: typography.size.md,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.text.primary,
   },
   sectionCount: {
@@ -604,61 +766,50 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   emptyState: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: spacing.xl,
     gap: spacing.sm,
   },
   emptyTitle: {
     fontSize: typography.size.md,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.text.secondary,
   },
   emptySubtitle: {
     fontSize: typography.size.sm,
     color: colors.text.muted,
-    textAlign: 'center',
+    textAlign: "center",
     paddingHorizontal: spacing.lg,
     lineHeight: 20,
   },
 });
 
-const statStyles = StyleSheet.create({
-  card: {
+const pillStyles = StyleSheet.create({
+  pill: {
     flex: 1,
-    backgroundColor: colors.background.card,
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    borderColor: colors.border.default,
-    alignItems: 'center',
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.sm,
-    gap: spacing.xs,
-  },
-  iconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: "center",
+    backgroundColor: colors.background.dark2,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.sm,
+    gap: 2,
   },
   value: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: colors.text.primary,
+    fontSize: typography.size.lg,
+    fontWeight: "800",
+    fontVariant: ["tabular-nums"],
   },
   label: {
     fontSize: typography.size.xs,
     color: colors.text.muted,
-    fontWeight: '500',
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 0.5,
   },
 });
 
 const rowStyles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: colors.background.card,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
@@ -667,12 +818,6 @@ const rowStyles = StyleSheet.create({
     gap: spacing.sm,
     marginBottom: spacing.sm,
   },
-  avatarWrap: {
-    position: 'relative',
-    width: 44,
-    height: 44,
-    flexShrink: 0,
-  },
   avatar: {
     width: 44,
     height: 44,
@@ -680,35 +825,24 @@ const rowStyles = StyleSheet.create({
     backgroundColor: colors.background.dark2,
     borderWidth: 1,
     borderColor: colors.border.default,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  dotWrap: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    borderWidth: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: colors.background.card,
+    justifyContent: "center",
+    alignItems: "center",
+    flexShrink: 0,
   },
   details: {
     flex: 1,
     gap: spacing.xs,
   },
   topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     gap: spacing.xs,
   },
-  instanceId: {
+  workerId: {
     flex: 1,
     fontSize: typography.size.sm,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.text.primary,
     fontFamily: typography.fontFamily.mono,
   },
@@ -720,47 +854,164 @@ const rowStyles = StyleSheet.create({
   },
   badgeText: {
     fontSize: typography.size.xs,
-    fontWeight: '600',
+    fontWeight: "600",
+    textTransform: "capitalize",
   },
-  contextRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  taskRow: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.xs,
   },
-  contextLabel: {
-    fontSize: typography.size.xs,
-    color: colors.text.muted,
-    width: 48,
-  },
-  track: {
+  taskText: {
     flex: 1,
-    height: 4,
-    backgroundColor: colors.background.dark4,
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  fill: {
-    height: '100%',
-    borderRadius: 2,
-  },
-  contextPct: {
-    fontSize: typography.size.xs,
+    fontSize: typography.size.sm,
     color: colors.text.muted,
-    width: 32,
-    textAlign: 'right',
+  },
+  taskTextActive: {
+    color: colors.text.secondary,
   },
   metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  meta: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
   },
   metaText: {
     fontSize: typography.size.xs,
     color: colors.text.muted,
+  },
+  openHint: {
+    fontSize: typography.size.xs,
+    color: colors.primary.cyan,
+    marginLeft: "auto",
+  },
+});
+
+const modalStyles = StyleSheet.create({
+  subtitle: {
+    fontSize: typography.size.sm,
+    color: colors.text.secondary,
+    lineHeight: 20,
+    marginBottom: spacing.md,
+  },
+  btnDisabled: {
+    opacity: 0.5,
+  },
+  fieldGroup: {
+    marginBottom: spacing.md,
+    gap: spacing.xs,
+  },
+  fieldLabel: {
+    fontSize: typography.size.sm,
+    fontWeight: "600",
+    color: colors.text.secondary,
+  },
+  fieldHelper: {
+    fontSize: typography.size.xs,
+    color: colors.text.muted,
+    lineHeight: 16,
+  },
+  stepper: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.lg,
+    backgroundColor: colors.background.dark2,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+    paddingVertical: spacing.xs,
+  },
+  stepperBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.background.dark4,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  stepperValue: {
+    minWidth: 40,
+    textAlign: "center",
+    fontSize: typography.size["2xl"],
+    fontWeight: "800",
+    color: colors.text.primary,
+    fontVariant: ["tabular-nums"],
+  },
+  permissionList: {
+    gap: spacing.xs,
+  },
+  permissionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    backgroundColor: colors.background.dark2,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.sm,
+  },
+  permissionRowSelected: {
+    borderColor: colors.primary.purple,
+    backgroundColor: "rgba(168,85,247,0.10)",
+  },
+  permissionTextWrap: {
+    flex: 1,
+    gap: 1,
+  },
+  permissionLabel: {
+    fontSize: typography.size.base,
+    fontWeight: "600",
+    color: colors.text.secondary,
+  },
+  permissionLabelSelected: {
+    color: colors.primary.purple,
+  },
+  permissionDescription: {
+    fontSize: typography.size.xs,
+    color: colors.text.muted,
+  },
+  switchRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  switchTextWrap: {
+    flex: 1,
+    gap: 2,
+  },
+  actions: {
+    flexDirection: "row",
+    gap: spacing.sm,
+  },
+  cancelBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.background.dark2,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+    alignItems: "center",
+  },
+  cancelText: {
+    fontSize: typography.size.base,
+    fontWeight: "600",
+    color: colors.text.secondary,
+  },
+  submitBtn: {
+    flex: 2,
+    flexDirection: "row",
+    paddingVertical: 12,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.semantic.success,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.xs,
+  },
+  submitText: {
+    fontSize: typography.size.base,
+    fontWeight: "700",
+    color: colors.text.primary,
   },
 });

@@ -1,103 +1,153 @@
 /**
  * Orchestrator Store - Zustand
- * Manages multi-agent orchestration state
+ * Multi-agent orchestration state, aligned on the v1.5 server contract
+ * (/projects/{id}/orchestrator/start|stop|status).
+ *
+ * Orchestration no longer goes through runnerApi — the runner endpoints
+ * still exist server-side (health/progress) but are NOT used here anymore.
  */
 
-import { create } from 'zustand';
-import { runnerApi } from '@/services/api';
+import { create } from "zustand";
+import { getApiErrorCode, orchestratorApi } from "@/services/api";
+import type { OrchestratorStartRequest, OrchestratorStatus } from "@/types";
 
-interface OrchestrationStats {
+/**
+ * Payload of an orchestrator instance update pushed over WebSocket.
+ * The websocket handler (owned by another module) calls
+ * `useOrchestratorStore.getState().applyInstanceUpdate(payload)` with this
+ * exact snake_case shape (server event payload, forwarded untouched).
+ */
+export interface OrchestratorInstanceUpdate {
+  id: string;
   status: string;
-  details: Record<string, unknown>;
+  current_task_id: string | null;
+  session_id: string | null;
 }
 
 interface OrchestratorState {
   // State
-  isRunning: boolean;
-  stats: OrchestrationStats | null;
+  status: OrchestratorStatus | null;
   isLoading: boolean;
   error: string | null;
+  /** Server error code of the last failed action (e.g. 'PLAN_001', 'MCH_002'). */
+  errorCode: string | null;
 
   // Actions
-  startOrchestrator: (projectId: string) => Promise<void>;
-  stopOrchestrator: (projectId: string) => Promise<void>;
-  fetchStats: (projectId: string) => Promise<void>;
-  dispatchTasks: (projectId: string) => Promise<void>;
+  start: (projectId: string, opts: OrchestratorStartRequest) => Promise<void>;
+  stop: (projectId: string) => Promise<void>;
+  fetchStatus: (projectId: string) => Promise<void>;
+  applyInstanceUpdate: (payload: OrchestratorInstanceUpdate) => void;
   clearError: () => void;
 }
 
-export const useOrchestratorStore = create<OrchestratorState>()((set) => ({
+/**
+ * Build the error slice from an unknown rejection. The axios interceptor
+ * rejects with a flattened ApiError (plain object, NOT an Error instance),
+ * so the message is read structurally rather than via `instanceof Error`.
+ */
+const toErrorState = (err: unknown, fallback: string) => {
+  const message =
+    typeof err === "object" &&
+    err !== null &&
+    "message" in err &&
+    typeof (err as { message: unknown }).message === "string"
+      ? (err as { message: string }).message
+      : fallback;
+  return { error: message, errorCode: getApiErrorCode(err) };
+};
+
+export const useOrchestratorStore = create<OrchestratorState>()((set, get) => ({
   // Initial state
-  isRunning: false,
-  stats: null,
+  status: null,
   isLoading: false,
   error: null,
+  errorCode: null,
 
   // Actions
-  startOrchestrator: async (projectId: string) => {
-    set({ isLoading: true, error: null });
+  start: async (projectId, opts) => {
+    set({ isLoading: true, error: null, errorCode: null });
 
     try {
-      await runnerApi.autoUpdate(projectId);
-      set({ isRunning: true, isLoading: false });
+      const response = await orchestratorApi.start(projectId, opts);
+      set({ status: response.data ?? null, isLoading: false });
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Failed to start orchestrator';
-      set({ isLoading: false, error: message });
-      throw err;
-    }
-  },
-
-  stopOrchestrator: async (_projectId: string) => {
-    set({ isLoading: true, error: null });
-
-    try {
-      // Orchestrator stop is implicit — mark as not running locally
-      set({ isRunning: false, isLoading: false });
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Failed to stop orchestrator';
-      set({ isLoading: false, error: message });
-      throw err;
-    }
-  },
-
-  fetchStats: async (projectId: string) => {
-    set({ isLoading: true, error: null });
-
-    try {
-      const response = await runnerApi.getHealth(projectId);
-      const health = response.data!;
-
       set({
-        stats: {
-          status: health.status,
-          details: health.details,
-        },
-        isRunning: health.status === 'running',
         isLoading: false,
+        ...toErrorState(err, "Failed to start orchestrator"),
       });
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Failed to fetch orchestrator stats';
-      set({ isLoading: false, error: message });
       throw err;
     }
   },
 
-  dispatchTasks: async (projectId: string) => {
-    set({ isLoading: true, error: null });
+  stop: async (projectId) => {
+    set({ isLoading: true, error: null, errorCode: null });
 
     try {
-      await runnerApi.autoUpdate(projectId);
-      set({ isLoading: false });
+      const response = await orchestratorApi.stop(projectId);
+
+      if (response.data) {
+        set({ status: response.data, isLoading: false });
+      } else {
+        // No status body — patch the local snapshot; the next fetchStatus
+        // re-syncs with the server truth.
+        const current = get().status;
+        const next: OrchestratorStatus | null = current
+          ? { ...current, status: "stopped", active: false }
+          : null;
+        set({ status: next, isLoading: false });
+      }
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Failed to dispatch tasks';
-      set({ isLoading: false, error: message });
+      set({
+        isLoading: false,
+        ...toErrorState(err, "Failed to stop orchestrator"),
+      });
       throw err;
     }
   },
 
-  clearError: () => set({ error: null }),
+  fetchStatus: async (projectId) => {
+    set({ isLoading: true, error: null, errorCode: null });
+
+    try {
+      const response = await orchestratorApi.status(projectId);
+      set({ status: response.data ?? null, isLoading: false });
+    } catch (err) {
+      set({
+        isLoading: false,
+        ...toErrorState(err, "Failed to fetch orchestrator status"),
+      });
+      throw err;
+    }
+  },
+
+  applyInstanceUpdate: (payload) => {
+    const current = get().status;
+    if (!current) return;
+
+    let changed = false;
+    const workers = current.workers.map((worker) => {
+      if (worker.id !== payload.id) return worker;
+      changed = true;
+      return {
+        ...worker,
+        status: payload.status,
+        sessionId: payload.session_id,
+        currentTaskId: payload.current_task_id,
+        // The push payload carries no title — keep it only while it still
+        // describes the same task; fetchStatus repopulates it otherwise.
+        currentTaskTitle:
+          payload.current_task_id === worker.currentTaskId
+            ? worker.currentTaskTitle
+            : null,
+      };
+    });
+
+    // Unknown worker id (e.g. spawned after the last fetch): never invent
+    // partial workers locally — a fetchStatus refresh owns that case.
+    if (!changed) return;
+
+    set({ status: { ...current, workers } });
+  },
+
+  clearError: () => set({ error: null, errorCode: null }),
 }));

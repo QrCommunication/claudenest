@@ -3,9 +3,9 @@
  * Manages multi-agent project state
  */
 
-import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import type {
   SharedProject,
   SharedTask,
@@ -13,9 +13,34 @@ import type {
   FileLock,
   ClaudeInstance,
   ActivityLog,
-} from '@/types';
-import { projectsApi, tasksApi, locksApi } from '@/services/api';
-import { websocket } from '@/services/websocket';
+} from "@/types";
+import { projectsApi, tasksApi, locksApi } from "@/services/api";
+import { websocket } from "@/services/websocket";
+import { useOrchestratorStore } from "./orchestratorStore";
+
+/**
+ * Realtime `.instance.updated` payload (snake_case from Reverb), re-emitted
+ * by services/websocket as `instance:updated` with a guaranteed project_id.
+ * Local type — the shared types file is owned by a parallel change.
+ */
+interface InstanceUpdatedPayload {
+  project_id?: string;
+  id?: string;
+  status?: string;
+  current_task_id?: string | null;
+  session_id?: string | null;
+}
+
+const INSTANCE_STATUSES: readonly ClaudeInstance["status"][] = [
+  "active",
+  "idle",
+  "busy",
+  "disconnected",
+];
+
+const isInstanceStatus = (value: unknown): value is ClaudeInstance["status"] =>
+  typeof value === "string" &&
+  (INSTANCE_STATUSES as readonly string[]).includes(value);
 
 interface ProjectsState {
   // State
@@ -42,28 +67,42 @@ interface ProjectsState {
   fetchProject: (id: string) => Promise<SharedProject>;
   createProject: (
     machineId: string,
-    data: { name: string; projectPath: string }
+    data: { name: string; projectPath: string },
   ) => Promise<SharedProject>;
   updateProject: (id: string, data: Partial<SharedProject>) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
 
   // Actions - Tasks
   fetchTasks: (projectId: string) => Promise<void>;
-  createTask: (projectId: string, data: Partial<SharedTask>) => Promise<SharedTask>;
+  createTask: (
+    projectId: string,
+    data: Partial<SharedTask>,
+  ) => Promise<SharedTask>;
   updateTask: (id: string, data: Partial<SharedTask>) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
   claimTask: (id: string, instanceId: string) => Promise<void>;
   releaseTask: (id: string) => Promise<void>;
-  completeTask: (id: string, summary: string, filesModified: string[]) => Promise<void>;
+  completeTask: (
+    id: string,
+    summary: string,
+    filesModified: string[],
+  ) => Promise<void>;
 
   // Actions - Context
   fetchContext: (projectId: string) => Promise<void>;
   queryContext: (projectId: string, query: string) => Promise<ContextChunk[]>;
-  updateContext: (projectId: string, data: Partial<SharedProject>) => Promise<void>;
+  updateContext: (
+    projectId: string,
+    data: Partial<SharedProject>,
+  ) => Promise<void>;
 
   // Actions - Locks
   fetchLocks: (projectId: string) => Promise<void>;
-  createLock: (projectId: string, path: string, reason?: string) => Promise<void>;
+  createLock: (
+    projectId: string,
+    path: string,
+    reason?: string,
+  ) => Promise<void>;
   deleteLock: (projectId: string, path: string) => Promise<void>;
 
   // Actions - Instances
@@ -121,7 +160,7 @@ export const useProjectsStore = create<ProjectsState>()(
           }));
         } catch (err) {
           const message =
-            err instanceof Error ? err.message : 'Failed to fetch projects';
+            err instanceof Error ? err.message : "Failed to fetch projects";
           set({ isLoading: false, error: message });
           throw err;
         }
@@ -140,7 +179,7 @@ export const useProjectsStore = create<ProjectsState>()(
 
       createProject: async (
         machineId: string,
-        data: { name: string; projectPath: string }
+        data: { name: string; projectPath: string },
       ) => {
         set({ isLoading: true, error: null });
 
@@ -156,7 +195,7 @@ export const useProjectsStore = create<ProjectsState>()(
           return project;
         } catch (err) {
           const message =
-            err instanceof Error ? err.message : 'Failed to create project';
+            err instanceof Error ? err.message : "Failed to create project";
           set({ isLoading: false, error: message });
           throw err;
         }
@@ -171,7 +210,7 @@ export const useProjectsStore = create<ProjectsState>()(
             projects: state.projects.map((p) => (p.id === id ? project : p)),
           }));
         } catch (err) {
-          console.error('Failed to update project:', err);
+          console.error("Failed to update project:", err);
           throw err;
         }
       },
@@ -190,7 +229,7 @@ export const useProjectsStore = create<ProjectsState>()(
               state.selectedProjectId === id ? null : state.selectedProjectId,
           }));
         } catch (err) {
-          console.error('Failed to delete project:', err);
+          console.error("Failed to delete project:", err);
           throw err;
         }
       },
@@ -206,7 +245,7 @@ export const useProjectsStore = create<ProjectsState>()(
             ],
           }));
         } catch (err) {
-          console.error('Failed to fetch tasks:', err);
+          console.error("Failed to fetch tasks:", err);
           throw err;
         }
       },
@@ -262,7 +301,7 @@ export const useProjectsStore = create<ProjectsState>()(
       completeTask: async (
         id: string,
         summary: string,
-        filesModified: string[]
+        filesModified: string[],
       ) => {
         const response = await tasksApi.complete(id, summary, filesModified);
         const task = response.data!;
@@ -289,11 +328,11 @@ export const useProjectsStore = create<ProjectsState>()(
                     currentFocus: context.currentFocus,
                     recentChanges: context.recentChanges,
                   }
-                : p
+                : p,
             ),
           }));
         } catch (err) {
-          console.error('Failed to fetch context:', err);
+          console.error("Failed to fetch context:", err);
           throw err;
         }
       },
@@ -312,12 +351,15 @@ export const useProjectsStore = create<ProjectsState>()(
         return chunks;
       },
 
-      updateContext: async (projectId: string, data: Partial<SharedProject>) => {
+      updateContext: async (
+        projectId: string,
+        data: Partial<SharedProject>,
+      ) => {
         await projectsApi.updateContext(projectId, data);
         // Update local state
         set((state) => ({
           projects: state.projects.map((p) =>
-            p.id === projectId ? { ...p, ...data } : p
+            p.id === projectId ? { ...p, ...data } : p,
           ),
         }));
       },
@@ -333,7 +375,7 @@ export const useProjectsStore = create<ProjectsState>()(
             ],
           }));
         } catch (err) {
-          console.error('Failed to fetch locks:', err);
+          console.error("Failed to fetch locks:", err);
           throw err;
         }
       },
@@ -352,7 +394,7 @@ export const useProjectsStore = create<ProjectsState>()(
 
         set((state) => ({
           locks: state.locks.filter(
-            (l) => !(l.projectId === projectId && l.path === path)
+            (l) => !(l.projectId === projectId && l.path === path),
           ),
         }));
       },
@@ -368,7 +410,7 @@ export const useProjectsStore = create<ProjectsState>()(
             ],
           }));
         } catch (err) {
-          console.error('Failed to fetch instances:', err);
+          console.error("Failed to fetch instances:", err);
           throw err;
         }
       },
@@ -384,7 +426,7 @@ export const useProjectsStore = create<ProjectsState>()(
             ],
           }));
         } catch (err) {
-          console.error('Failed to fetch activity:', err);
+          console.error("Failed to fetch activity:", err);
           throw err;
         }
       },
@@ -402,41 +444,89 @@ export const useProjectsStore = create<ProjectsState>()(
         websocket.subscribeToProject(projectId);
 
         const unsubscribeTask = websocket.on(
-          'task:updated',
+          "task:updated",
           (_raw: unknown) => {
             // Refresh tasks for this project
             get().fetchTasks(projectId);
-          }
+          },
         );
 
-        const unsubscribeLock = websocket.on(
-          'file:locked',
-          (raw: unknown) => {
-            const payload = raw as { projectId: string; path: string; lockedBy: string };
-            if (payload.projectId === projectId) {
-              get().fetchLocks(projectId);
-            }
+        const unsubscribeLock = websocket.on("file:locked", (raw: unknown) => {
+          const payload = raw as {
+            projectId: string;
+            path: string;
+            lockedBy: string;
+          };
+          if (payload.projectId === projectId) {
+            get().fetchLocks(projectId);
           }
-        );
+        });
 
         const unsubscribeUnlock = websocket.on(
-          'file:unlocked',
+          "file:unlocked",
           (raw: unknown) => {
             const payload = raw as { projectId: string; path: string };
             if (payload.projectId === projectId) {
               get().fetchLocks(projectId);
             }
-          }
+          },
         );
 
         const unsubscribeInstance = websocket.on(
-          'instance:connected',
+          "instance:updated",
           (raw: unknown) => {
-            const payload = raw as { projectId: string };
-            if (payload.projectId === projectId) {
-              get().fetchInstances(projectId);
+            const payload = raw as InstanceUpdatedPayload;
+            if (payload.project_id !== projectId || !payload.id) return;
+
+            // Forward to the orchestrator store when it exposes the handler
+            // (optional while the orchestration slice lands in parallel).
+            const orchestrator = useOrchestratorStore.getState() as unknown as {
+              applyInstanceUpdate?: (update: {
+                id: string;
+                status?: string;
+                current_task_id?: string | null;
+                session_id?: string | null;
+              }) => void;
+            };
+            orchestrator.applyInstanceUpdate?.({
+              id: payload.id,
+              status: payload.status,
+              current_task_id: payload.current_task_id,
+              session_id: payload.session_id,
+            });
+
+            // Unknown instance (first connection) — fetch the authoritative
+            // list once; otherwise patch in place without a refetch.
+            const known = get().instances.some((i) => i.id === payload.id);
+            if (!known) {
+              get()
+                .fetchInstances(projectId)
+                .catch(() => {
+                  /* transient — next event or screen focus will retry */
+                });
+              return;
             }
-          }
+
+            set((state) => ({
+              instances: state.instances.map((instance) => {
+                if (instance.id !== payload.id) return instance;
+                return {
+                  ...instance,
+                  status: isInstanceStatus(payload.status)
+                    ? payload.status
+                    : instance.status,
+                  currentTaskId:
+                    payload.current_task_id !== undefined
+                      ? payload.current_task_id
+                      : instance.currentTaskId,
+                  sessionId:
+                    payload.session_id !== undefined
+                      ? payload.session_id
+                      : instance.sessionId,
+                };
+              }),
+            }));
+          },
         );
 
         return () => {
@@ -451,12 +541,12 @@ export const useProjectsStore = create<ProjectsState>()(
       clearError: () => set({ error: null }),
     }),
     {
-      name: 'projects-storage',
+      name: "projects-storage",
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         projects: state.projects,
         selectedProjectId: state.selectedProjectId,
       }),
-    }
-  )
+    },
+  ),
 );

@@ -2,6 +2,7 @@ export { Button } from "./Button";
 export { Input } from "./Input";
 export { Modal } from "./Modal";
 export { DialogHost } from "./DialogHost";
+export { NotificationBanner } from "./NotificationBanner";
 export { Card, CardHeader, CardContent, CardFooter } from "./Card";
 export { StatusDot } from "./StatusDot";
 export { Badge } from "./Badge";
