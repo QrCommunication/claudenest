@@ -11,14 +11,12 @@ import { MCPManager } from './discovery/mcp.js';
 import { ContextClient } from './context/client.js';
 import { RestApiClient } from './api/client.js';
 import { SyncService } from './sync/service.js';
-import { Orchestrator } from './orchestrator/orchestrator.js';
 import { createLogger } from './utils/logger.js';
 import {
   createSessionHandlers,
   createConfigHandlers,
   createContextHandlers,
   createFileHandlers,
-  createOrchestratorHandlers,
   createScanHandlers,
   createDecomposeHandlers,
   createOAuthHandlers,
@@ -59,7 +57,6 @@ export class ClaudeNestAgent extends EventEmitter {
   private contextClient!: ContextClient;
   private apiClient!: RestApiClient;
   private syncService!: SyncService;
-  private orchestrator!: Orchestrator;
   
   private isRunning = false;
   private handlers = new Map<string, (payload: unknown) => Promise<void> | void>();
@@ -140,14 +137,6 @@ export class ClaudeNestAgent extends EventEmitter {
       logger: this.logger,
     });
 
-    // Initialize orchestrator
-    this.orchestrator = new Orchestrator({
-      sessionManager: this.sessionManager,
-      contextClient: this.contextClient,
-      wsClient: this.wsClient,
-      logger: this.logger,
-    });
-
     // Setup event handlers
     this.setupEventHandlers();
     this.setupMessageHandlers();
@@ -213,11 +202,6 @@ export class ClaudeNestAgent extends EventEmitter {
     this.logger.info('Stopping agent...');
 
     try {
-      // Stop orchestrator first (terminates worker sessions)
-      if (this.orchestrator.isRunning()) {
-        await this.orchestrator.stop();
-      }
-
       // Stop Claude session discovery (transcript tailers + rescans)
       this.claudeSessionDiscovery.stop();
 
@@ -418,13 +402,6 @@ export class ClaudeNestAgent extends EventEmitter {
       logger: this.logger,
     });
 
-    // Orchestrator handlers
-    const orchestratorHandlers = createOrchestratorHandlers({
-      orchestrator: this.orchestrator,
-      wsClient: this.wsClient,
-      logger: this.logger,
-    });
-
     // Scan handlers
     const scanHandlers = createScanHandlers({
       wsClient: this.wsClient,
@@ -463,9 +440,6 @@ export class ClaudeNestAgent extends EventEmitter {
       this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
     }
     for (const [type, handler] of Object.entries(fileHandlers)) {
-      this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
-    }
-    for (const [type, handler] of Object.entries(orchestratorHandlers)) {
       this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
     }
     for (const [type, handler] of Object.entries(scanHandlers)) {
@@ -577,12 +551,6 @@ export class ClaudeNestAgent extends EventEmitter {
     return this.wsClient;
   }
 
-  /**
-   * Get orchestrator
-   */
-  getOrchestrator(): Orchestrator {
-    return this.orchestrator;
-  }
 }
 
 export { generateId as generateMachineId };

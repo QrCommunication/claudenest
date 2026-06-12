@@ -1,12 +1,13 @@
 {
   "name": "@claudenest/agent",
-  "version": "2.6.8",
+  "version": "2.7.0",
   "description": "ClaudeNest Agent - Local daemon for remote orchestration of Claude Code instances",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
   "bin": {
-    "claudenest-agent": "dist/index.js"
+    "claudenest-agent": "dist/index.js",
+    "claudenest-mcp": "dist/mcp/index.js"
   },
   "files": [
     "dist/",
@@ -14,7 +15,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node scripts/add-shebangs.js",
     "build:watch": "tsc --watch",
     "start": "node dist/index.js",
     "start:dev": "tsx src/index.ts",
@@ -51,6 +52,7 @@
     "node": ">=24.0.0"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "commander": "^15.0.0",
     "keytar": "^7.9.0",
     "pino": "^10.3.1",

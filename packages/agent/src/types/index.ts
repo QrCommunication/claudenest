@@ -104,6 +104,35 @@ export interface SessionConfig {
   credentialEnv?: Record<string, string>;
   /** Resume an existing Claude session by id (`claude --resume <id>`). */
   resumeSessionId?: string;
+  /** Multi-agent: shared project this session belongs to. */
+  sharedProjectId?: string;
+  /** Multi-agent: identifier for this specific Claude instance. */
+  instanceId?: string;
+  /**
+   * Extra environment variables to inject for MCP servers.
+   * Merged into the tmux session environment alongside `credentialEnv`.
+   */
+  mcpEnv?: Record<string, string>;
+  /**
+   * Appended to Claude Code's system prompt via `--append-system-prompt`.
+   * Used to inject multi-agent context (project summary, task description, etc.).
+   */
+  appendSystemPrompt?: string;
+  /**
+   * Claude Code permission mode (`--permission-mode`).
+   * Defaults to `acceptEdits` for headless/oneshot modes (Phase 0 legacy mapping).
+   */
+  permissionMode?: 'default' | 'plan' | 'acceptEdits' | 'bypassPermissions';
+  /**
+   * Path to a generated MCP config file (`--mcp-config`).
+   * Populated in Phase 1 by prepareRuntimeDir; null/undefined in Phase 0.
+   */
+  mcpConfigPath?: string;
+  /**
+   * Path to a generated Claude settings file (`--settings`).
+   * Populated in Phase 1 by prepareRuntimeDir; null/undefined in Phase 0.
+   */
+  settingsPath?: string;
 }
 
 export type SessionStatus = 
@@ -174,7 +203,6 @@ export type IncomingMessageType =
   | 'claude_sessions:open'
   | 'claude_sessions:close'
   | 'claude_sessions:adopt'
-  | OrchestratorIncomingMessage
   | 'ping';
 
 // Messages sortants (agent → serveur)
@@ -198,7 +226,6 @@ export type OutgoingMessageType =
   | 'claude_sessions:transcript'
   | 'claude_sessions:open_result'
   | 'claude_sessions:adopted'
-  | OrchestratorOutgoingMessage
   | 'pong'
   | 'error';
 
@@ -489,23 +516,6 @@ export interface ProjectScanResult {
   error?: string;
 }
 
-// Orchestrator WS message types (server → agent)
-export type OrchestratorIncomingMessage =
-  | 'orchestrator:start'
-  | 'orchestrator:stop'
-  | 'orchestrator:status'
-  | 'orchestrator:scale';
-
-// Orchestrator WS message types (agent → server)
-export type OrchestratorOutgoingMessage =
-  | 'orchestrator:started'
-  | 'orchestrator:stopped'
-  | 'orchestrator:state'
-  | 'orchestrator:worker_spawned'
-  | 'orchestrator:worker_exited'
-  | 'orchestrator:task_claimed'
-  | 'orchestrator:task_completed'
-  | 'orchestrator:error';
 
 // ============================================
 // Decomposition (PRD → Master Plan)

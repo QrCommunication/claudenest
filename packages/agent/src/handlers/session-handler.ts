@@ -30,6 +30,16 @@ export function createSessionHandlers(context: HandlerContext) {
     ptySize?: { cols: number; rows: number };
     credentialEnv?: Record<string, string>;
     env?: Record<string, string>;
+    /** Multi-agent: shared project this session belongs to. */
+    sharedProjectId?: string;
+    /** Multi-agent: identifier for this specific Claude instance. */
+    instanceId?: string;
+    /** Extra env vars for MCP servers (merged into tmux session env). */
+    mcpEnv?: Record<string, string>;
+    /** Appended to Claude's system prompt via --append-system-prompt. */
+    appendSystemPrompt?: string;
+    /** Claude permission mode (`--permission-mode`). */
+    permissionMode?: 'default' | 'plan' | 'acceptEdits' | 'bypassPermissions';
   }): Promise<void> {
     logger.debug({ sessionId: payload.sessionId }, 'Handling session:create');
 
@@ -44,15 +54,38 @@ export function createSessionHandlers(context: HandlerContext) {
         return;
       }
 
-      // Build config from nested config or flat payload fields
-      const config: SessionConfig = payload.config || {
-        mode: (payload.mode as SessionConfig['mode']) || 'interactive',
-        projectPath: payload.projectPath,
-        initialPrompt: payload.initialPrompt,
-        ptySize: payload.ptySize,
-        credentialEnv: payload.credentialEnv,
-        env: payload.env,
-      };
+      // Build config from nested config or flat payload fields.
+      // Flat fields take precedence over the nested config object so that
+      // the backend can always override individual settings at call time.
+      const config: SessionConfig = payload.config
+        ? {
+            ...payload.config,
+            // Overlay flat fields that override the nested config when present
+            ...(payload.mode !== undefined && { mode: payload.mode as SessionConfig['mode'] }),
+            ...(payload.projectPath !== undefined && { projectPath: payload.projectPath }),
+            ...(payload.initialPrompt !== undefined && { initialPrompt: payload.initialPrompt }),
+            ...(payload.ptySize !== undefined && { ptySize: payload.ptySize }),
+            ...(payload.credentialEnv !== undefined && { credentialEnv: payload.credentialEnv }),
+            ...(payload.env !== undefined && { env: payload.env }),
+            ...(payload.sharedProjectId !== undefined && { sharedProjectId: payload.sharedProjectId }),
+            ...(payload.instanceId !== undefined && { instanceId: payload.instanceId }),
+            ...(payload.mcpEnv !== undefined && { mcpEnv: payload.mcpEnv }),
+            ...(payload.appendSystemPrompt !== undefined && { appendSystemPrompt: payload.appendSystemPrompt }),
+            ...(payload.permissionMode !== undefined && { permissionMode: payload.permissionMode }),
+          }
+        : {
+            mode: (payload.mode as SessionConfig['mode']) || 'interactive',
+            projectPath: payload.projectPath,
+            initialPrompt: payload.initialPrompt,
+            ptySize: payload.ptySize,
+            credentialEnv: payload.credentialEnv,
+            env: payload.env,
+            sharedProjectId: payload.sharedProjectId,
+            instanceId: payload.instanceId,
+            mcpEnv: payload.mcpEnv,
+            appendSystemPrompt: payload.appendSystemPrompt,
+            permissionMode: payload.permissionMode,
+          };
 
       const session = await sessionManager.createSession(
         payload.sessionId,

@@ -13,6 +13,7 @@ import { EventEmitter } from 'events';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { execFileSync, spawn, type ChildProcess } from 'child_process';
 import { TmuxOutputParser, type TmuxOutputEvent } from './tmux-parser.js';
 import { getCacheDir } from '../utils/index.js';
@@ -41,6 +42,23 @@ export class TmuxSession extends EventEmitter {
   private isolatedConfigDir: string | null = null;
   /** Last requested terminal size, re-applied to the control client on attach. */
   private clientSize: { cols: number; rows: number } | null = null;
+  /**
+   * Path to the generated MCP config JSON (`--mcp-config`).
+   * Null in Phase 0; populated by prepareRuntimeDir in Phase 1.
+   */
+  private mcpConfigPath: string | null = null;
+  /**
+   * Path to the generated Claude settings JSON (`--settings`).
+   * Null in Phase 0; populated by prepareRuntimeDir in Phase 1.
+   */
+  private settingsPath: string | null = null;
+
+  /**
+   * Per-session runtime directory (~/.cache/claudenest/sessions/{id}/runtime).
+   * Created by prepareRuntimeDir() only when mcpEnv + sharedProjectId are both set.
+   * May overlap with isolatedConfigDir's parent — cleanup handles both independently.
+   */
+  private runtimeDir: string | null = null;
 
   pid?: number;
 
@@ -74,6 +92,10 @@ export class TmuxSession extends EventEmitter {
 
       // 0. Prepare credential isolation (creates isolated CLAUDE_CONFIG_DIR)
       this.prepareCredentialIsolation();
+
+      // 0b. Prepare per-session runtime dir (MCP config + hooks + env injection)
+      //     Only runs when both mcpEnv and sharedProjectId are present (multi-agent).
+      this.prepareRuntimeDir();
 
       // 1. Create detached tmux session
       //    If the tmux server for this socket isn't running yet,
@@ -338,6 +360,136 @@ export class TmuxSession extends EventEmitter {
   }
 
   /**
+   * Creates a per-session runtime directory and writes the MCP server config
+   * and Claude Code hooks settings JSON into it.
+   *
+   * Only runs when BOTH `mcpEnv` and `sharedProjectId` are set (multi-agent
+   * sessions). In all other cases the method returns immediately — fail-open:
+   * the session launches without MCP or hooks rather than refusing to start.
+   *
+   * If the compiled `dist/mcp/index.js` artifact is absent (e.g. a dev machine
+   * that hasn't run `npm run build` yet) the method also bails with a warning
+   * so that the session still starts.
+   *
+   * Layout written under runtimeDir:
+   *   mcp-config.json   → declares the ClaudeNest MCP stdio server
+   *   settings.json     → declares PreToolUse/PostToolUse/Stop/SessionEnd/Notification hooks
+   *                       + optional permissions.allow block for acceptEdits mode
+   */
+  private prepareRuntimeDir(): void {
+    if (!this.options.mcpEnv || !this.options.sharedProjectId) return;
+
+    // Resolve compiled dist root from this file's location.
+    // At runtime:  dist/sessions/tmux-session.js
+    //   dirname  → dist/sessions
+    //   resolve(..) → dist
+    const selfDir = path.dirname(fileURLToPath(import.meta.url));
+    const distRoot = path.resolve(selfDir, '..');
+    const mcpEntry = path.join(distRoot, 'mcp', 'index.js');
+    const hooksDir = path.join(distRoot, 'hooks');
+
+    // Guard: bail out if the compiled MCP server isn't present on disk.
+    if (!fs.existsSync(mcpEntry)) {
+      this.logger.warn(
+        { mcpEntry },
+        'prepareRuntimeDir: dist/mcp/index.js not found — skipping MCP/hooks setup (run npm run build)',
+      );
+      return;
+    }
+
+    // Create runtime dir at ~/.cache/claudenest/sessions/{sessionId}/runtime
+    const runtimeDir = path.join(
+      getCacheDir(), 'sessions', this.options.sessionId, 'runtime',
+    );
+    fs.mkdirSync(runtimeDir, { recursive: true, mode: 0o700 });
+    this.runtimeDir = runtimeDir;
+
+    // ── mcp-config.json ─────────────────────────────────────────────────────
+    // Claude Code picks this up via --mcp-config and spawns the MCP server as
+    // a child process. The session's tmux environment (including CLAUDENEST_*)
+    // is inherited, so we don't need to duplicate any secrets here.
+    const mcpConfig = {
+      mcpServers: {
+        claudenest: {
+          command: process.execPath,
+          args: [mcpEntry],
+        },
+      },
+    };
+    const mcpConfigPath = path.join(runtimeDir, 'mcp-config.json');
+    fs.writeFileSync(mcpConfigPath, JSON.stringify(mcpConfig, null, 2), { mode: 0o600 });
+    this.mcpConfigPath = mcpConfigPath;
+
+    // ── settings.json ────────────────────────────────────────────────────────
+    // Each hook command is a string: "node /path/to/hook.js"
+    // shellQuote handles paths with spaces; process.execPath is usually safe
+    // but we quote it for robustness.
+    const cmd = (hookFile: string): string =>
+      `${shellQuote(process.execPath)} ${shellQuote(path.join(hooksDir, hookFile))}`;
+
+    const hooks: Record<string, unknown[]> = {
+      PreToolUse: [
+        {
+          matcher: 'Edit|Write|MultiEdit|NotebookEdit',
+          hooks: [{ type: 'command', command: cmd('pre-tool-use.js'), timeout: 10 }],
+        },
+      ],
+      PostToolUse: [
+        {
+          matcher: '*',
+          hooks: [{ type: 'command', command: cmd('post-tool-use.js'), timeout: 5 }],
+        },
+      ],
+      Stop: [
+        { hooks: [{ type: 'command', command: cmd('stop.js'), timeout: 5 }] },
+      ],
+      SessionEnd: [
+        { hooks: [{ type: 'command', command: cmd('session-end.js'), timeout: 5 }] },
+      ],
+      Notification: [
+        { hooks: [{ type: 'command', command: cmd('notification.js'), timeout: 5 }] },
+      ],
+    };
+
+    const settings: Record<string, unknown> = { hooks };
+
+    // In acceptEdits mode, inject an allow-list so the hooks (pre-tool-use in
+    // particular) can run test/lint/build commands without an approval dialog.
+    const permissionMode =
+      this.options.permissionMode ??
+      (this.options.mode === 'headless' || this.options.mode === 'oneshot'
+        ? 'acceptEdits'
+        : undefined);
+    if (permissionMode === 'acceptEdits') {
+      settings['permissions'] = {
+        allow: [
+          'Bash(npm test:*)',
+          'Bash(npm run test:*)',
+          'Bash(npm run lint:*)',
+          'Bash(npm run build:*)',
+          'Bash(pnpm test:*)',
+          'Bash(pnpm run:*)',
+          'Bash(php artisan test:*)',
+          'Bash(composer test:*)',
+          'Bash(git status:*)',
+          'Bash(git diff:*)',
+          'Bash(git log:*)',
+          'Bash(git add:*)',
+        ],
+      };
+    }
+
+    const settingsPath = path.join(runtimeDir, 'settings.json');
+    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2), { mode: 0o600 });
+    this.settingsPath = settingsPath;
+
+    this.logger.info(
+      { runtimeDir, mcpConfigPath, settingsPath },
+      'Runtime dir prepared (MCP config + hooks settings)',
+    );
+  }
+
+  /**
    * Seed `.claude.json` in the isolated config dir. Claude Code keeps its
    * onboarding/approval state there — at the CONFIG ROOT, not inside
    * ~/.claude/, so linkUserConfigInto() never covers it. Without this file
@@ -492,6 +644,9 @@ export class TmuxSession extends EventEmitter {
       TERM: 'xterm-256color',
       ...(this.options.env || {}),
       ...(this.options.credentialEnv || {}),
+      ...(this.options.mcpEnv || {}),
+      // Inject runtime dir so hooks can locate the lock cache and heartbeat file.
+      ...(this.runtimeDir ? { CLAUDENEST_RUNTIME_DIR: this.runtimeDir } : {}),
     };
 
     for (const [key, value] of Object.entries(sessionVars)) {
@@ -518,19 +673,39 @@ export class TmuxSession extends EventEmitter {
   private buildArgs(): string[] {
     const args: string[] = [];
 
-    if (this.options.mode === 'headless') {
-      args.push('--headless');
-    } else if (this.options.mode === 'oneshot') {
-      args.push('--oneshot');
-    }
-
-    // Adopt an existing Claude session by resuming it (preserves history).
+    // Resume an existing Claude session (preserves conversation history).
     if (this.options.resumeSessionId) {
       args.push('--resume', this.options.resumeSessionId);
     }
 
+    // Inject multi-agent context, task description, or system-level instructions.
+    if (this.options.appendSystemPrompt) {
+      args.push('--append-system-prompt', this.options.appendSystemPrompt);
+    }
+
+    // Permission mode: use explicit value if provided, otherwise map legacy
+    // headless/oneshot modes to acceptEdits so they behave as auto-accept
+    // interactive sessions (--headless and --oneshot flags do not exist).
+    const permissionMode =
+      this.options.permissionMode ??
+      (this.options.mode === 'headless' || this.options.mode === 'oneshot'
+        ? 'acceptEdits'
+        : undefined);
+    if (permissionMode) {
+      args.push('--permission-mode', permissionMode);
+    }
+
+    // Phase 1 paths (null in Phase 0; populated by prepareRuntimeDir).
+    if (this.mcpConfigPath) {
+      args.push('--mcp-config', this.mcpConfigPath);
+    }
+    if (this.settingsPath) {
+      args.push('--settings', this.settingsPath);
+    }
+
+    // Initial prompt is a positional argument — MUST be last.
     if (this.options.initialPrompt) {
-      args.push('--prompt', this.options.initialPrompt);
+      args.push(this.options.initialPrompt);
     }
 
     return args;
@@ -554,7 +729,8 @@ export class TmuxSession extends EventEmitter {
       this.controller = null;
     }
 
-    // Remove isolated credential config directory
+    // Remove isolated credential config directory (parent dir for sessions/{id}).
+    // If runtimeDir is a subdirectory of isolatedConfigDir, it is cleaned up here.
     if (this.isolatedConfigDir) {
       try {
         fs.rmSync(this.isolatedConfigDir, { recursive: true, force: true });
@@ -562,6 +738,17 @@ export class TmuxSession extends EventEmitter {
         // Non-critical: temp dir cleanup failure
       }
       this.isolatedConfigDir = null;
+    }
+
+    // Remove runtime dir when it was not already covered by isolatedConfigDir above.
+    // (Sessions with mcpEnv+sharedProjectId but no credentialEnv fall here.)
+    if (this.runtimeDir) {
+      try {
+        fs.rmSync(this.runtimeDir, { recursive: true, force: true });
+      } catch {
+        // Best-effort: ignore cleanup errors
+      }
+      this.runtimeDir = null;
     }
   }
 
