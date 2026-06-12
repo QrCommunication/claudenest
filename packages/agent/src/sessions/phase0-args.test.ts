@@ -129,14 +129,17 @@ describe('TmuxSession.buildArgs() — Phase 0 correct CLI flags', () => {
     expect(args[idx + 1]).toBe('acceptEdits');
   });
 
-  it('mode:oneshot maps to --permission-mode acceptEdits (legacy)', () => {
-    const args = getArgs(makeSession({ mode: 'oneshot' }));
+  it('mode:oneshot maps to print mode (-p) without permission-mode', () => {
+    const args = getArgs(makeSession({ mode: 'oneshot', initialPrompt: 'decompose this' }));
 
     expect(args).not.toContain('--oneshot');
-
-    const idx = args.indexOf('--permission-mode');
-    expect(idx).not.toBe(-1);
-    expect(args[idx + 1]).toBe('acceptEdits');
+    // Print mode: claude answers on stdout and exits — a positional prompt
+    // without -p would open the interactive TUI, which never exits.
+    expect(args).toContain('-p');
+    // Least privilege: a print-mode utility session must not auto-accept edits.
+    expect(args).not.toContain('--permission-mode');
+    // Prompt stays positional and last.
+    expect(args[args.length - 1]).toBe('decompose this');
   });
 
   it('explicit permissionMode overrides the legacy headless/oneshot default', () => {

@@ -683,14 +683,21 @@ export class TmuxSession extends EventEmitter {
       args.push('--append-system-prompt', this.options.appendSystemPrompt);
     }
 
+    // Oneshot utility sessions (PRD decomposition) run claude in print mode:
+    // -p emits the answer on stdout and EXITS. A positional prompt WITHOUT -p
+    // opens the interactive TUI, which never exits on its own — the session
+    // 'exit' event (and the result parse) would never fire.
+    if (this.options.mode === 'oneshot') {
+      args.push('-p');
+    }
+
     // Permission mode: use explicit value if provided, otherwise map legacy
-    // headless/oneshot modes to acceptEdits so they behave as auto-accept
-    // interactive sessions (--headless and --oneshot flags do not exist).
+    // headless mode to acceptEdits so it behaves as an auto-accept interactive
+    // session (--headless does not exist). Oneshot stays unprivileged: print
+    // mode answers text and must not be able to edit anything.
     const permissionMode =
       this.options.permissionMode ??
-      (this.options.mode === 'headless' || this.options.mode === 'oneshot'
-        ? 'acceptEdits'
-        : undefined);
+      (this.options.mode === 'headless' ? 'acceptEdits' : undefined);
     if (permissionMode) {
       args.push('--permission-mode', permissionMode);
     }
