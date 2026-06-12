@@ -224,7 +224,15 @@ class DecompositionStreamService
             $project->update(['master_plan' => $message['plan']]);
         }
 
-        broadcast(new ProjectBroadcast($project, ['type' => 'decompose:result'] + $message));
+        // Slim signal: a full plan (waves × tasks × descriptions) exceeds
+        // Reverb's max message size — broadcasting it raised "Pusher error:
+        // Payload too large" and the frontend never saw the completion. The
+        // plan is persisted above; clients refetch GET master-plan on signal.
+        $signal = $message;
+        unset($signal['plan']);
+        $signal['has_plan'] = !empty($message['success']) && !empty($message['plan']);
+
+        broadcast(new ProjectBroadcast($project, ['type' => 'decompose:result'] + $signal));
     }
 
     private function dedupKey(string $projectId): string

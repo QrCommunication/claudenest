@@ -59,6 +59,7 @@ export function useDecomposition() {
   const decompositionError = ref<string | null>(null);
 
   let echoChannel: ReturnType<Echo<'reverb'>['private']> | null = null;
+  let subscribedProjectId: string | null = null;
 
   // ── Event handler (extracted to reduce nesting in subscribeToProject) ──────
 
@@ -72,8 +73,14 @@ export function useDecomposition() {
 
     isDecomposing.value = false;
 
-    if (msg.success && msg.plan) {
-      masterPlan.value = msg.plan;
+    if (msg.success) {
+      if (msg.plan) {
+        masterPlan.value = msg.plan;
+      } else if (subscribedProjectId) {
+        // Slim signal: the full plan no longer travels in the broadcast
+        // (it exceeded Reverb's max message size) — refetch it.
+        void loadMasterPlan(subscribedProjectId);
+      }
     } else {
       decompositionError.value =
         msg.error ?? msg.errors?.join('; ') ?? 'Decomposition failed';
@@ -91,6 +98,7 @@ export function useDecomposition() {
     // Detach any previous listener first (regenerate after a start would
     // otherwise stack duplicate handlers on the same channel).
     unsubscribe();
+    subscribedProjectId = projectId;
     echoChannel = echo.private(`projects.${projectId}`);
     echoChannel.listen('.project.broadcast', handleBroadcastEvent);
   }

@@ -103,14 +103,19 @@ class DecompositionStreamTest extends TestCase
 
         $this->stream->handleExited($sessionId);
 
-        $this->assertSame('Real summary', $this->project->fresh()->master_plan['prd_summary']);
+        $fresh = $this->project->fresh();
+        $this->assertSame('Real summary', $fresh->master_plan['prd_summary']);
+        $this->assertSame('Create users migration', $fresh->master_plan['waves'][0]['tasks'][0]['title']);
 
+        // Slim signal: the plan must NOT travel in the broadcast (a real plan
+        // exceeds Reverb's max message size — "Pusher error: Payload too
+        // large"). Clients refetch GET master-plan when has_plan is true.
         Event::assertDispatched(ProjectBroadcast::class, function (ProjectBroadcast $event) {
             return $event->project->id === $this->project->id
                 && $event->message['type'] === 'decompose:result'
                 && $event->message['success'] === true
-                && $event->message['plan']['prd_summary'] === 'Real summary'
-                && $event->message['plan']['waves'][0]['tasks'][0]['title'] === 'Create users migration';
+                && $event->message['has_plan'] === true
+                && !array_key_exists('plan', $event->message);
         });
     }
 
