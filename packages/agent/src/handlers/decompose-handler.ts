@@ -33,6 +33,61 @@ export function createDecomposeHandlers(context: HandlerContext) {
     let outputBuffer = '';
     let lastProgressSent = 0;
 
+    // Listen for output and accumulate
+    const onOutput = (data: { sessionId: string; data: string }) => {
+      if (data.sessionId !== decomposeSessionId) return;
+      outputBuffer += data.data;
+
+      // Send progress every 500ms to avoid flooding
+      const now = Date.now();
+      if (now - lastProgressSent > 500) {
+        lastProgressSent = now;
+        wsClient.send('decompose:progress', {
+          projectId,
+          output: data.data,
+        });
+      }
+    };
+
+    const onExit = (data: { sessionId: string; exitCode: number }) => {
+      if (data.sessionId !== decomposeSessionId) return;
+
+      // Clean up listeners
+      sessionManager.removeListener('output', onOutput);
+      sessionManager.removeListener('exit', onExit);
+
+      logger.info(
+        { projectId, exitCode: data.exitCode, outputLength: outputBuffer.length },
+        'Decomposition session exited',
+      );
+
+      // Parse the output for a JSON master plan
+      const result = parseDecompositionOutput(outputBuffer);
+
+      if (result.success && result.plan) {
+        logger.info({ projectId, waves: result.plan.waves.length }, 'Master plan parsed successfully');
+        wsClient.send('decompose:result', {
+          projectId,
+          success: true,
+          plan: result.plan,
+        });
+      } else {
+        logger.warn({ projectId, error: result.error }, 'Failed to parse master plan');
+        wsClient.send('decompose:result', {
+          projectId,
+          success: false,
+          error: result.error || 'Failed to parse master plan from Claude output',
+        });
+      }
+    };
+
+    // Attach BEFORE createSession: a session that fails (or exits) while
+    // createSession is still awaited would otherwise emit output/exit before
+    // the listeners exist — the exit would be missed and decompose:result
+    // never sent (the server would wait forever).
+    sessionManager.on('output', onOutput);
+    sessionManager.on('exit', onExit);
+
     try {
       const config: SessionConfig = {
         mode: 'oneshot',
@@ -43,59 +98,10 @@ export function createDecomposeHandlers(context: HandlerContext) {
       };
 
       await sessionManager.createSession(decomposeSessionId, config);
-
-      // Listen for output and accumulate
-      const onOutput = (data: { sessionId: string; data: string }) => {
-        if (data.sessionId !== decomposeSessionId) return;
-        outputBuffer += data.data;
-
-        // Send progress every 500ms to avoid flooding
-        const now = Date.now();
-        if (now - lastProgressSent > 500) {
-          lastProgressSent = now;
-          wsClient.send('decompose:progress', {
-            projectId,
-            output: data.data,
-          });
-        }
-      };
-
-      const onExit = (data: { sessionId: string; exitCode: number }) => {
-        if (data.sessionId !== decomposeSessionId) return;
-
-        // Clean up listeners
-        sessionManager.removeListener('output', onOutput);
-        sessionManager.removeListener('exit', onExit);
-
-        logger.info(
-          { projectId, exitCode: data.exitCode, outputLength: outputBuffer.length },
-          'Decomposition session exited',
-        );
-
-        // Parse the output for a JSON master plan
-        const result = parseDecompositionOutput(outputBuffer);
-
-        if (result.success && result.plan) {
-          logger.info({ projectId, waves: result.plan.waves.length }, 'Master plan parsed successfully');
-          wsClient.send('decompose:result', {
-            projectId,
-            success: true,
-            plan: result.plan,
-          });
-        } else {
-          logger.warn({ projectId, error: result.error }, 'Failed to parse master plan');
-          wsClient.send('decompose:result', {
-            projectId,
-            success: false,
-            error: result.error || 'Failed to parse master plan from Claude output',
-          });
-        }
-      };
-
-      sessionManager.on('output', onOutput);
-      sessionManager.on('exit', onExit);
-
     } catch (error) {
+      sessionManager.removeListener('output', onOutput);
+      sessionManager.removeListener('exit', onExit);
+
       logger.error({ err: error, projectId }, 'Failed to start decomposition session');
       wsClient.send('decompose:result', {
         projectId,
