@@ -49,6 +49,15 @@ class WorkerLoopService
      */
     public const PAUSE_SECONDS = 300;
 
+    /**
+     * A connected worker that has emitted no heartbeat for this long is treated
+     * as stuck (an active worker heartbeats every ≤30s via PostToolUse). Catches
+     * workers frozen at an idle prompt after a rate-limit-ended turn, which the
+     * Stop hook never reports. > 3× the 30s PostToolUse window to avoid nudging
+     * a worker that is genuinely mid-operation.
+     */
+    public const STUCK_AFTER_SECONDS = 120;
+
     public const RECYCLE_TASKS_COMPLETED = 5;
 
     public const RECYCLE_SESSION_MAX_HOURS = 2;
@@ -104,13 +113,16 @@ class WorkerLoopService
      * Proactive dispatch tick (scheduler, heartbeat-independent).
      *
      * The Stop-hook idle heartbeat is the ONLY trigger of onIdle() — but it
-     * never fires if a worker was spawned without an initial prompt, crashes
-     * mid-turn, or simply drops a heartbeat. This pass walks every idle,
-     * connected, orchestrated worker of an active orchestration and runs the
-     * same state machine, so a stuck pool is recovered without re-spawning.
+     * does NOT fire when a turn ends on an API error (Anthropic rate-limit):
+     * the worker drops back to an idle prompt yet keeps status=busy with a
+     * frozen last_activity, so the idle-only filter would never recover it
+     * ("blocks after rate-limiting" — observed in prod). This pass therefore
+     * ticks every connected orchestrated worker that is either idle OR has
+     * gone silent past STUCK_AFTER_SECONDS (no heartbeat = stuck, since an
+     * actively working worker emits a PostToolUse heartbeat every ≤30s).
      * onIdle() is internally debounced/paused, so re-running it is safe.
      *
-     * @return int number of idle workers ticked
+     * @return int number of workers ticked
      */
     public function dispatchProject(SharedProject $project): int
     {
@@ -123,9 +135,15 @@ class WorkerLoopService
         // (claimed first via prioritized()) before nudging idle workers.
         SharedTask::reclaimOrphaned($project->id);
 
+        $staleBefore = now()->subSeconds(self::STUCK_AFTER_SECONDS);
+
         $instances = $project->claudeInstances()
             ->connected()
-            ->where('status', 'idle')
+            ->where(function ($query) use ($staleBefore) {
+                $query->where('status', 'idle')
+                    ->orWhereNull('last_activity_at')
+                    ->orWhere('last_activity_at', '<', $staleBefore);
+            })
             ->with(['session', 'currentTask'])
             ->get();
 

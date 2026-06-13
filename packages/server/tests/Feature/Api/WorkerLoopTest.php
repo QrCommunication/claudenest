@@ -409,17 +409,43 @@ class WorkerLoopTest extends TestCase
     }
 
     #[Test]
-    public function dispatch_project_skips_busy_workers(): void
+    public function dispatch_project_skips_busy_workers_with_fresh_heartbeat(): void
     {
-        // A worker actively coding (status busy) must not be interrupted.
+        // A worker actively coding (status busy AND a recent heartbeat) must
+        // not be interrupted.
         $gateway = $this->spy(AgentGateway::class);
 
-        $this->makeWorker(instanceAttributes: ['status' => 'busy']);
+        $this->makeWorker(instanceAttributes: ['status' => 'busy', 'last_activity_at' => now()]);
         SharedTask::factory()->create(['project_id' => $this->project->id, 'status' => 'pending', 'files' => []]);
 
         $ticked = app(WorkerLoopService::class)->dispatchProject($this->project->fresh());
 
         $this->assertSame(0, $ticked);
         $gateway->shouldNotHaveReceived('sendMessage');
+    }
+
+    #[Test]
+    public function dispatch_project_ticks_stuck_worker_with_stale_heartbeat(): void
+    {
+        // Rate-limit case: the turn ended on an API error, the Stop hook never
+        // fired, so the worker is frozen at status=busy with a stale heartbeat.
+        // It must still be nudged (the idle-only filter would miss it).
+        $gateway = $this->spy(AgentGateway::class);
+
+        $this->makeWorker(instanceAttributes: [
+            'status' => 'busy',
+            'last_activity_at' => now()->subSeconds(WorkerLoopService::STUCK_AFTER_SECONDS + 30),
+        ]);
+        SharedTask::factory()->create(['project_id' => $this->project->id, 'status' => 'pending', 'files' => []]);
+
+        $ticked = app(WorkerLoopService::class)->dispatchProject($this->project->fresh());
+
+        $this->assertSame(1, $ticked);
+        $gateway->shouldHaveReceived('sendMessage')
+            ->withArgs(function (string $machineId, string $type, array $payload) {
+                return $type === 'session:input'
+                    && str_contains($payload['data'], 'task_claim_next');
+            })
+            ->once();
     }
 }
