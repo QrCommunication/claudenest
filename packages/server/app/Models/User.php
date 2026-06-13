@@ -158,19 +158,25 @@ class User extends Authenticatable
     }
 
     /**
-     * Maximum number of simultaneously active Claude sessions allowed by the
-     * user's plan (config claudenest.plans). `null` means unlimited.
-     * Unknown plans fall back to the community cap (most restrictive).
+     * Maximum number of simultaneously active Claude sessions allowed.
+     *
+     * ClaudeNest is free & unlimited: there is no per-plan cap. `null` means
+     * unlimited. The `plan` column is retained for compat/rollback but is no
+     * longer consulted to limit concurrency.
      */
     public function concurrentAgentCap(): ?int
     {
-        $plans = (array) config('claudenest.plans', []);
-        $plan = $this->plan ?? 'community';
+        return null;
+    }
 
-        $cap = array_key_exists($plan, $plans)
-            ? $plans[$plan]
-            : ($plans['community'] ?? 3);
-
-        return $cap === null ? null : (int) $cap;
+    /**
+     * Maximum number of simultaneously active Claude sessions allowed.
+     *
+     * Alias of {@see concurrentAgentCap()}. Always `null` (unlimited) under the
+     * free-unlimited model — no reads of `config('claudenest.plans')` or `plan`.
+     */
+    public function maxConcurrentSessions(): ?int
+    {
+        return null;
     }
 }

@@ -157,7 +157,7 @@ const containerClass = computed(() => {
 
 .logo-tagline {
   font-size: 0.75rem;
-  color: #888888;
+  color: var(--text-muted, #888888);
   line-height: 1.2;
 }
 

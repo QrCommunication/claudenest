@@ -1,5 +1,11 @@
 <template>
-  <Modal :model-value="modelValue" :title="t('epicDecomposition.title')" @update:model-value="onClose">
+  <Modal
+    :model-value="modelValue"
+    :title="t('epicDecomposition.title')"
+    class-name="!max-w-[680px] max-h-[85vh] flex flex-col"
+    content-class="flex-1 min-h-0 overflow-y-auto"
+    @update:model-value="onClose"
+  >
     <div class="epic-decomp">
       <!-- Step 1: epic title -->
       <label class="ed-label" for="ed-title">{{ t('epicDecomposition.epicName') }}</label>

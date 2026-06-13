@@ -38,7 +38,6 @@
               :x2="SVG_WIDTH - PAD"
               :y1="tick.y"
               :y2="tick.y"
-              stroke="rgba(255,255,255,0.045)"
               stroke-width="1"
             />
             <text
@@ -64,11 +63,11 @@
 
         <!-- Ideal line (dashed) -->
         <line
+          class="ideal-line"
           :x1="PAD"
           :y1="yScale(maxPoints)"
           :x2="SVG_WIDTH - PAD"
           :y2="yScale(0)"
-          stroke="rgba(255,255,255,0.12)"
           stroke-width="1"
           stroke-dasharray="4,4"
           clip-path="url(#chart-clip)"
@@ -97,11 +96,11 @@
         <circle
           v-for="(point, i) in chartPoints"
           :key="'dot-' + i"
+          class="data-dot"
           :cx="point.x"
           :cy="point.y"
           r="3"
           fill="#a855f7"
-          stroke="#1a1b26"
           stroke-width="1.5"
         />
 
@@ -136,20 +135,20 @@
           <!-- Tooltip box -->
           <g :transform="`translate(${tooltipBoxX}, ${tooltipBoxY})`">
             <rect
+              class="tooltip-box"
               x="0"
               y="0"
               width="78"
               height="40"
               rx="4"
               ry="4"
-              fill="#24283b"
               stroke="rgba(168,85,247,0.35)"
               stroke-width="1"
             />
             <text x="8" y="14" class="tooltip-date">{{ tooltip.date }}</text>
             <text x="8" y="28" class="tooltip-remaining">
               <tspan fill="#a855f7" font-weight="700">{{ tooltip.remaining }}</tspan>
-              <tspan fill="rgba(255,255,255,0.4)"> pts left</tspan>
+              <tspan class="tooltip-unit"> pts left</tspan>
             </text>
           </g>
         </g>
@@ -305,9 +304,9 @@ function formatShortDate(dateStr: string): string {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: #1a1b26;
+  background: var(--bg-secondary);
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-color);
   padding: 14px 16px;
 }
 
@@ -323,7 +322,7 @@ function formatShortDate(dateStr: string): string {
 .chart-title {
   font-size: 0.78rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin: 0;
@@ -331,7 +330,7 @@ function formatShortDate(dateStr: string): string {
 
 .chart-subtitle {
   font-size: 0.68rem;
-  color: rgba(255, 255, 255, 0.25);
+  color: var(--text-muted);
 }
 
 /* ==================== SVG WRAPPER ==================== */
@@ -348,11 +347,36 @@ function formatShortDate(dateStr: string): string {
   overflow: visible;
 }
 
+/* ==================== SVG THEME PAINT ==================== */
+/* CSS `stroke`/`fill` override SVG presentation attributes and honor the
+   theme cascade, unlike hardcoded inline attributes. */
+
+.grid line {
+  stroke: var(--border-color);
+}
+
+.ideal-line {
+  stroke: var(--border-color);
+}
+
+/* Dot border matches the card surface to create an inset "cutout" ring. */
+.data-dot {
+  stroke: var(--bg-secondary);
+}
+
+.tooltip-box {
+  fill: var(--bg-card);
+}
+
+.tooltip-unit {
+  fill: var(--text-muted);
+}
+
 /* ==================== AXIS LABELS ==================== */
 
 .axis-label {
   font-size: 8px;
-  fill: rgba(255, 255, 255, 0.22);
+  fill: var(--text-disabled);
   font-family: ui-monospace, 'SF Mono', monospace;
 }
 
@@ -360,7 +384,7 @@ function formatShortDate(dateStr: string): string {
 
 .tooltip-date {
   font-size: 8px;
-  fill: rgba(255, 255, 255, 0.45);
+  fill: var(--text-muted);
 }
 
 .tooltip-remaining {
@@ -384,12 +408,12 @@ function formatShortDate(dateStr: string): string {
 .empty-icon {
   width: 24px;
   height: 24px;
-  color: rgba(255, 255, 255, 0.12);
+  color: var(--text-disabled);
 }
 
 .empty-text {
   font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.22);
+  color: var(--text-muted);
   margin: 0;
 }
 </style>

@@ -27,7 +27,7 @@
       <div class="chat-messages" ref="messagesContainer">
         <!-- Welcome message -->
         <div v-if="messages.length === 0" class="chat-welcome">
-          <p class="text-white/50 text-sm">{{ t('multiagentPlanningchat.askToPlan') }}</p>
+          <p class="text-skin-muted text-sm">{{ t('multiagentPlanningchat.askToPlan') }}</p>
           <div class="suggestions">
             <button v-for="s in suggestions" :key="s" class="suggestion-chip" @click="sendMessage(s)">
               {{ s }}
@@ -207,8 +207,8 @@ defineExpose({ receiveMessage });
   display: flex;
   flex-direction: column;
   height: 100%;
-  border-left: 1px solid rgba(255,255,255,0.06);
-  background: #1a1b26;
+  border-left: 1px solid var(--border-color, rgba(255,255,255,0.06));
+  background: var(--bg-secondary, #1a1b26);
   width: 360px;
   transition: width 0.2s ease;
 }
@@ -222,15 +222,15 @@ defineExpose({ receiveMessage });
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem;
-  color: rgba(255,255,255,0.5);
+  color: var(--text-secondary, rgba(255,255,255,0.5));
   border: none;
   background: none;
   cursor: pointer;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.06));
   width: 100%;
   justify-content: center;
 }
-.chat-toggle:hover { color: #a855f7; }
+.chat-toggle:hover { color: var(--accent-purple, #a855f7); }
 .collapsed .chat-toggle { writing-mode: vertical-rl; padding: 1rem 0.75rem; }
 
 .chat-panel {
@@ -245,18 +245,18 @@ defineExpose({ receiveMessage });
   align-items: center;
   justify-content: space-between;
   padding: 0.625rem 0.75rem;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.06));
 }
 .chat-header-info { display: flex; align-items: center; gap: 0.5rem; }
 .agent-indicator {
   width: 0.5rem; height: 0.5rem;
   border-radius: 50%;
-  background: #22c55e;
-  box-shadow: 0 0 6px rgba(34,197,94,0.4);
+  background: var(--status-success, #22c55e);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--status-success, #22c55e) 40%, transparent);
 }
-.chat-title { font-size: 0.8125rem; color: rgba(255,255,255,0.8); font-weight: 500; }
-.chat-close { color: rgba(255,255,255,0.3); padding: 0.25rem; border-radius: 0.25rem; }
-.chat-close:hover { color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.05); }
+.chat-title { font-size: 0.8125rem; color: var(--text-primary, rgba(255,255,255,0.8)); font-weight: 500; }
+.chat-close { color: var(--text-muted, rgba(255,255,255,0.3)); padding: 0.25rem; border-radius: 0.25rem; }
+.chat-close:hover { color: var(--text-primary, rgba(255,255,255,0.7)); background: var(--bg-hover, rgba(255,255,255,0.05)); }
 
 .chat-messages {
   flex: 1;
@@ -278,37 +278,37 @@ defineExpose({ receiveMessage });
 .suggestion-chip {
   text-align: left;
   font-size: 0.75rem;
-  color: rgba(255,255,255,0.6);
+  color: var(--text-secondary, rgba(255,255,255,0.6));
   padding: 0.5rem 0.75rem;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--border-color, rgba(255,255,255,0.08));
   border-radius: 0.375rem;
   cursor: pointer;
   transition: all 0.15s;
 }
 .suggestion-chip:hover {
-  border-color: rgba(168,85,247,0.3);
-  color: #a855f7;
-  background: rgba(168,85,247,0.05);
+  border-color: color-mix(in srgb, var(--accent-purple, #a855f7) 30%, transparent);
+  color: var(--accent-purple, #a855f7);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 6%, transparent);
 }
 
 .chat-message { display: flex; flex-direction: column; gap: 0.25rem; }
 .message-header { display: flex; justify-content: space-between; align-items: center; }
 .message-author { font-size: 0.6875rem; font-weight: 600; }
-.message-time { font-size: 0.625rem; color: rgba(255,255,255,0.25); }
-.chat-message.user .message-author { color: #22d3ee; }
-.chat-message.assistant .message-author { color: #a855f7; }
+.message-time { font-size: 0.625rem; color: var(--text-muted, rgba(255,255,255,0.25)); }
+.chat-message.user .message-author { color: var(--accent-cyan, #22d3ee); }
+.chat-message.assistant .message-author { color: var(--accent-purple, #a855f7); }
 .message-content {
   font-size: 0.8125rem;
   line-height: 1.5;
-  color: rgba(255,255,255,0.75);
+  color: var(--text-primary, rgba(255,255,255,0.75));
 }
 
 .message-actions {
   margin-top: 0.375rem;
   padding: 0.5rem;
-  border: 1px solid rgba(168,85,247,0.2);
+  border: 1px solid color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
   border-radius: 0.375rem;
-  background: rgba(168,85,247,0.05);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 6%, transparent);
 }
 .action-item {
   display: flex;
@@ -319,32 +319,32 @@ defineExpose({ receiveMessage });
 }
 .action-type {
   font-size: 0.625rem;
-  background: rgba(168,85,247,0.2);
-  color: #a855f7;
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 20%, transparent);
+  color: var(--accent-purple, #a855f7);
   padding: 0.0625rem 0.375rem;
   border-radius: 0.125rem;
   text-transform: uppercase;
   font-weight: 600;
 }
-.action-desc { color: rgba(255,255,255,0.6); }
+.action-desc { color: var(--text-secondary, rgba(255,255,255,0.6)); }
 .action-buttons { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
 .btn-approve {
   font-size: 0.75rem;
   padding: 0.25rem 0.75rem;
   border-radius: 0.25rem;
-  background: #a855f7;
-  color: white;
+  background: var(--accent-purple, #a855f7);
+  color: #fff;
   font-weight: 500;
 }
-.btn-approve:hover { background: #9333ea; }
+.btn-approve:hover { background: color-mix(in srgb, var(--accent-purple, #a855f7) 85%, #000); }
 .btn-reject {
   font-size: 0.75rem;
   padding: 0.25rem 0.75rem;
   border-radius: 0.25rem;
-  color: rgba(255,255,255,0.4);
-  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-muted, rgba(255,255,255,0.4));
+  border: 1px solid var(--border-color, rgba(255,255,255,0.1));
 }
-.btn-reject:hover { color: rgba(255,255,255,0.7); }
+.btn-reject:hover { color: var(--text-primary, rgba(255,255,255,0.7)); }
 
 .typing-indicator {
   display: flex;
@@ -355,7 +355,7 @@ defineExpose({ receiveMessage });
   width: 0.375rem;
   height: 0.375rem;
   border-radius: 50%;
-  background: #a855f7;
+  background: var(--accent-purple, #a855f7);
   animation: typing 1.4s infinite ease-in-out;
 }
 .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
@@ -370,16 +370,16 @@ defineExpose({ receiveMessage });
   align-items: flex-end;
   gap: 0.5rem;
   padding: 0.625rem;
-  border-top: 1px solid rgba(255,255,255,0.06);
+  border-top: 1px solid var(--border-color, rgba(255,255,255,0.06));
 }
 .chat-input textarea {
   flex: 1;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--bg-input, rgba(255,255,255,0.04));
+  border: 1px solid var(--border-color, rgba(255,255,255,0.08));
   border-radius: 0.375rem;
   padding: 0.5rem 0.75rem;
   font-size: 0.8125rem;
-  color: rgba(255,255,255,0.9);
+  color: var(--text-primary, rgba(255,255,255,0.9));
   resize: none;
   min-height: 2.25rem;
   max-height: 7.5rem;
@@ -387,17 +387,17 @@ defineExpose({ receiveMessage });
 }
 .chat-input textarea:focus {
   outline: none;
-  border-color: rgba(168,85,247,0.4);
+  border-color: color-mix(in srgb, var(--accent-purple, #a855f7) 40%, transparent);
 }
 .chat-input textarea::placeholder {
-  color: rgba(255,255,255,0.25);
+  color: var(--text-muted, rgba(255,255,255,0.25));
 }
 .send-btn {
   padding: 0.5rem;
   border-radius: 0.375rem;
-  color: #a855f7;
+  color: var(--accent-purple, #a855f7);
   flex-shrink: 0;
 }
-.send-btn:hover:not(:disabled) { background: rgba(168,85,247,0.1); }
+.send-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--accent-purple, #a855f7) 10%, transparent); }
 .send-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 </style>

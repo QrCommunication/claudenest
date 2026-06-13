@@ -79,7 +79,7 @@ defineEmits<{
 
 .tab-item:hover {
   color: var(--text-primary, rgba(255, 255, 255, 0.9));
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--bg-hover);
 }
 
 .tab-item.active {
@@ -89,7 +89,7 @@ defineEmits<{
 
 .tab-badge {
   font-size: 0.6875rem;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--bg-hover);
   padding: 0.0625rem 0.375rem;
   border-radius: 9999px;
   font-variant-numeric: tabular-nums;
@@ -110,6 +110,6 @@ defineEmits<{
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  border-top: 1px solid var(--border-color);
 }
 </style>

@@ -104,10 +104,10 @@ const sizeClass = computed(() => {
 .btn-secondary:hover { @apply bg-surface-4; }
 
 .btn-danger {
-  background-color: #dc2626;
+  background-color: var(--status-error, #dc2626);
   color: white;
 }
-.btn-danger:hover { background-color: #b91c1c; }
+.btn-danger:hover { background-color: color-mix(in srgb, var(--status-error, #dc2626) 85%, #000); }
 
 .btn-ghost {
   background: transparent;
@@ -119,22 +119,22 @@ const sizeClass = computed(() => {
 }
 
 .btn-success {
-  background-color: #16a34a;
+  background-color: var(--status-success, #16a34a);
   color: white;
 }
-.btn-success:hover { background-color: #15803d; }
+.btn-success:hover { background-color: color-mix(in srgb, var(--status-success, #16a34a) 85%, #000); }
 
 .btn-warning {
-  background-color: #ca8a04;
+  background-color: var(--status-warning, #ca8a04);
   color: white;
 }
-.btn-warning:hover { background-color: #a16207; }
+.btn-warning:hover { background-color: color-mix(in srgb, var(--status-warning, #ca8a04) 85%, #000); }
 
 .btn-info {
-  background-color: #0891b2;
+  background-color: var(--accent-cyan, #0891b2);
   color: white;
 }
-.btn-info:hover { background-color: #0e7490; }
+.btn-info:hover { background-color: color-mix(in srgb, var(--accent-cyan, #0891b2) 85%, #000); }
 
 /* Sizes */
 .btn-sm {
