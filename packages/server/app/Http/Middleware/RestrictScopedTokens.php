@@ -21,8 +21,9 @@ use Symfony\Component\HttpFoundation\Response;
  *
  * Tokens carrying the additional 'planning' ability (planning agent sessions)
  * get a wider allowlist on the SAME scoped project: epics and sprints CRUD
- * (projects/{p}/epics*, projects/{p}/sprints*, epics/{id}*, sprints/{id}/*)
- * plus task edition (PATCH tasks/{task}) — workers keep claim-only access.
+ * (projects/{p}/epics*, projects/{p}/sprints*, epics/{id}*, sprints/{id}/*),
+ * task edition (PATCH tasks/{task}), and execution control
+ * (projects/{p}/orchestrator/*) — workers keep claim-only access.
  *
  * Has strictly NO effect on:
  * - cookie/session auth (TransientToken)
@@ -41,17 +42,17 @@ class RestrictScopedTokens
         $bearer = $request->bearerToken();
 
         // No bearer (cookie/session auth) or machine token: not our concern.
-        if (!$bearer || str_starts_with($bearer, 'mn_')) {
+        if (! $bearer || str_starts_with($bearer, 'mn_')) {
             return $next($request);
         }
 
         $token = $request->user('sanctum')?->currentAccessToken();
 
-        if (!$token || $token instanceof TransientToken) {
+        if (! $token || $token instanceof TransientToken) {
             return $next($request);
         }
 
-        if ($token->can('*') || !$token->can('multiagent')) {
+        if ($token->can('*') || ! $token->can('multiagent')) {
             return $next($request);
         }
 
@@ -75,13 +76,14 @@ class RestrictScopedTokens
     }
 
     /**
-     * @param array<int, string> $abilities
+     * @param  array<int, string>  $abilities
      */
     private function extractScopedProjectId(array $abilities): ?string
     {
         foreach ($abilities as $ability) {
             if (is_string($ability) && str_starts_with($ability, 'project:')) {
                 $projectId = substr($ability, strlen('project:'));
+
                 return $projectId !== '' ? $projectId : null;
             }
         }
@@ -92,7 +94,7 @@ class RestrictScopedTokens
     private function isAllowed(Request $request, string $scopedProjectId, bool $hasPlanning = false): bool
     {
         $route = $request->route();
-        if (!$route) {
+        if (! $route) {
             return false;
         }
 
@@ -112,13 +114,14 @@ class RestrictScopedTokens
 
             $prefixes = ['tasks', 'locks', 'context', 'broadcast', 'instances', 'activity'];
 
-            // Planning agents structure the backlog: epics & sprints CRUD.
+            // Planning agents structure the backlog (epics & sprints CRUD) and
+            // launch execution (orchestrator start/stop/status of THEIR project).
             if ($hasPlanning) {
-                $prefixes = array_merge($prefixes, ['epics', 'sprints']);
+                $prefixes = array_merge($prefixes, ['epics', 'sprints', 'orchestrator']);
             }
 
             foreach ($prefixes as $prefix) {
-                if ($rest === $prefix || str_starts_with($rest, $prefix . '/')) {
+                if ($rest === $prefix || str_starts_with($rest, $prefix.'/')) {
                     return true;
                 }
             }
@@ -130,8 +133,8 @@ class RestrictScopedTokens
         if ($uri === 'api/tasks/{task}' || str_starts_with($uri, 'api/tasks/{task}/')) {
             // Bare tasks/{task}: read-only for workers (claim/release/complete
             // live on sub-routes). Planning tokens may also edit (PATCH).
-            if ($uri === 'api/tasks/{task}' && !$request->isMethod('GET')) {
-                if (!($hasPlanning && $request->isMethod('PATCH'))) {
+            if ($uri === 'api/tasks/{task}' && ! $request->isMethod('GET')) {
+                if (! ($hasPlanning && $request->isMethod('PATCH'))) {
                     return false;
                 }
             }
@@ -143,7 +146,7 @@ class RestrictScopedTokens
 
         // ---- epics/{epic} + epics/{epic}/* (planning ability, own project only) ----
         if ($uri === 'api/epics/{epic}' || str_starts_with($uri, 'api/epics/{epic}/')) {
-            if (!$hasPlanning) {
+            if (! $hasPlanning) {
                 return false;
             }
 
@@ -154,7 +157,7 @@ class RestrictScopedTokens
 
         // ---- sprints/{sprint} + sprints/{sprint}/* (planning ability, own project only) ----
         if ($uri === 'api/sprints/{sprint}' || str_starts_with($uri, 'api/sprints/{sprint}/')) {
-            if (!$hasPlanning) {
+            if (! $hasPlanning) {
                 return false;
             }
 

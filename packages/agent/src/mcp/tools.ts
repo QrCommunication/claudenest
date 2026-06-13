@@ -26,6 +26,7 @@ import {
   taskUpdate,
   sprintCreate,
   planningContext,
+  orchestratorStart,
 } from "./api.js";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -531,6 +532,27 @@ function registerPlanningTools(server: McpServer, env: McpEnv): void {
       const result = toolOk(lines.join("\n"));
       if (ok.length === 0) return toolErr(lines.join("\n"));
       return result;
+    },
+  );
+
+  // ── execution_start ──────────────────────────────────────────────────────
+  server.tool(
+    "execution_start",
+    "Launch execution: spawn workers that claim & complete pending tasks. max_workers 1-10.",
+    {
+      max_workers: z.number().int().min(1).max(10).optional(),
+      permission_mode: z
+        .enum(["default", "plan", "acceptEdits", "bypassPermissions"])
+        .optional(),
+    },
+    async ({ max_workers, permission_mode }) => {
+      const res = await orchestratorStart(env, { max_workers, permission_mode });
+      if (!res.ok) return toolErr(`Cannot launch execution: ${res.error}`);
+      const d = res.data;
+      const workers = Array.isArray(d.workers) ? d.workers.length : 0;
+      return toolOk(
+        `Execution launched: ${workers} worker(s) spawned, ${d.pendingTasks} pending task(s) queued. Workers will claim and complete tasks autonomously.`,
+      );
     },
   );
 

@@ -58,6 +58,10 @@ class WorkerOrchestrationTest extends TestCase
         foreach ($workers as $worker) {
             $this->assertSame('interactive', $worker->mode);
             $this->assertSame('/home/user/projects/orchestrated', $worker->project_path);
+            // Bootstrap prompt kicks the first turn so the Stop-hook idle
+            // heartbeat can ever fire (without it the worker sits inert).
+            $this->assertNotEmpty($worker->initial_prompt);
+            $this->assertStringContainsString('task_claim_next', $worker->initial_prompt);
             $this->assertDatabaseHas('claude_instances', [
                 'id' => "inst-{$worker->id}",
                 'project_id' => $project->id,

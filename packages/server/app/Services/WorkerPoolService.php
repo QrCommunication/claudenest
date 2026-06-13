@@ -27,6 +27,18 @@ class WorkerPoolService
 {
     public const DEFAULT_PERMISSION_MODE = 'acceptEdits';
 
+    /**
+     * Kickoff user message handed to a freshly spawned worker.
+     *
+     * CRITICAL: an interactive Claude session launched WITHOUT a first user
+     * message never produces an assistant turn, so the Stop hook never fires,
+     * so no idle heartbeat is ever sent, so WorkerLoopService::onIdle is never
+     * called and the worker sits inert forever (claimable tasks never picked
+     * up). This prompt forces the very first turn; from then on the Stop-hook
+     * idle heartbeat self-sustains the claim → work → complete loop.
+     */
+    public const BOOTSTRAP_PROMPT = 'You are an orchestrated worker on this shared project. Start now: call the claudenest MCP tool task_claim_next to claim a task, complete it (edit the files it lists), then call task_complete with a 2-4 sentence summary and files_modified. Immediately claim the next task and repeat. If task_claim_next reports no task available, stop and wait — you will be nudged automatically when new work appears.';
+
     public function __construct(
         private SessionPayloadBuilder $payloadBuilder,
         private MultiAgentSessionService $multiAgentSessionService,
@@ -36,10 +48,9 @@ class WorkerPoolService
      * Start orchestration: spawn min(maxWorkers, remaining plan cap,
      * max(1, pending tasks)) workers and persist the orchestration state.
      *
-     * @param bool $coordinator allow the incident coordinator
-     *        (CoordinatorService) to spawn ephemeral planning sessions on
-     *        incidents — persisted in settings.orchestration.coordinator.
-     *
+     * @param  bool  $coordinator  allow the incident coordinator
+     *                             (CoordinatorService) to spawn ephemeral planning sessions on
+     *                             incidents — persisted in settings.orchestration.coordinator.
      * @return array<string, mixed> the orchestrator status (see status())
      *
      * @throws WorkerPoolException machine offline (422) or plan cap reached (403)
@@ -113,6 +124,7 @@ class WorkerPoolService
             'shared_project_id' => $project->id,
             'mode' => 'interactive',
             'project_path' => $project->project_path,
+            'initial_prompt' => self::BOOTSTRAP_PROMPT,
             'credential_id' => $credential?->id,
             'status' => 'created',
             'orchestrated' => true,

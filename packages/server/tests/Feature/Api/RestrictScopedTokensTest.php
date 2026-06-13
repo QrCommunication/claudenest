@@ -332,6 +332,33 @@ class RestrictScopedTokensTest extends TestCase
     }
 
     #[Test]
+    public function planning_token_can_launch_execution_of_its_project(): void
+    {
+        // The planner launches the worker pool — agent side effects spied out.
+        $this->spy(\App\Services\AgentGateway::class);
+        $this->machine->update(['status' => 'online']);
+        SharedTask::factory()->create(['project_id' => $this->project->id, 'status' => 'pending']);
+
+        $response = $this->withPlanningToken()
+            ->postJson("/api/projects/{$this->project->id}/orchestrator/start", [
+                'max_workers' => 2,
+            ]);
+
+        $response->assertOk()->assertJson(['success' => true]);
+    }
+
+    #[Test]
+    public function worker_token_cannot_launch_execution(): void
+    {
+        $response = $this->withScopedToken()
+            ->postJson("/api/projects/{$this->project->id}/orchestrator/start", [
+                'max_workers' => 2,
+            ]);
+
+        $response->assertStatus(403)->assertJsonPath('error.code', 'AUTH_003');
+    }
+
+    #[Test]
     public function planning_token_cannot_touch_epics_of_another_project(): void
     {
         // Same OWNER — the policy would allow it; only the middleware's

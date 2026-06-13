@@ -27,11 +27,17 @@ use Illuminate\Support\Facades\Log;
 class WorkerLoopService
 {
     public const HUMAN_INPUT_SUSPENSION_SECONDS = 120;
+
     public const HUMAN_INPUT_TTL_SECONDS = 300;
+
     public const NUDGE_DEBOUNCE_SECONDS = 20;
+
     public const NUDGE_COUNTER_TTL_SECONDS = 3600;
+
     public const MAX_NUDGES_BEFORE_PAUSE = 3;
+
     public const RECYCLE_TASKS_COMPLETED = 5;
+
     public const RECYCLE_SESSION_MAX_HOURS = 2;
 
     public function __construct(
@@ -80,6 +86,48 @@ class WorkerLoopService
     }
 
     // ==================== STATE MACHINE ====================
+
+    /**
+     * Proactive dispatch tick (scheduler, heartbeat-independent).
+     *
+     * The Stop-hook idle heartbeat is the ONLY trigger of onIdle() — but it
+     * never fires if a worker was spawned without an initial prompt, crashes
+     * mid-turn, or simply drops a heartbeat. This pass walks every idle,
+     * connected, orchestrated worker of an active orchestration and runs the
+     * same state machine, so a stuck pool is recovered without re-spawning.
+     * onIdle() is internally debounced/paused, so re-running it is safe.
+     *
+     * @return int number of idle workers ticked
+     */
+    public function dispatchProject(SharedProject $project): int
+    {
+        $orchestration = (array) $project->getSetting('orchestration', []);
+        if (empty($orchestration['active'])) {
+            return 0;
+        }
+
+        $instances = $project->claudeInstances()
+            ->connected()
+            ->where('status', 'idle')
+            ->with(['session', 'currentTask'])
+            ->get();
+
+        $ticked = 0;
+        foreach ($instances as $instance) {
+            try {
+                $this->onIdle($instance);
+                $ticked++;
+            } catch (\Throwable $e) {
+                Log::warning('Proactive worker dispatch failed', [
+                    'instance_id' => $instance->id,
+                    'project_id' => $project->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        return $ticked;
+    }
 
     /**
      * Tick of the worker loop, fired when an instance reports status=idle.
@@ -179,7 +227,7 @@ class WorkerLoopService
     }
 
     /**
-     * @param array<string, mixed> $orchestration
+     * @param  array<string, mixed>  $orchestration
      */
     private function recycle(
         ClaudeInstance $instance,
@@ -235,7 +283,7 @@ class WorkerLoopService
 
         AgentGateway::send($session->machine_id, 'session:input', [
             'sessionId' => $session->id,
-            'data' => $text . "\r",
+            'data' => $text."\r",
         ]);
 
         Cache::put(self::lastNudgeKey($instance->id), now()->timestamp, 60);

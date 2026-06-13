@@ -363,4 +363,56 @@ class WorkerLoopTest extends TestCase
 
         $gateway->shouldNotHaveReceived('sendMessage');
     }
+
+    #[Test]
+    public function dispatch_project_nudges_idle_worker_without_any_heartbeat(): void
+    {
+        // Proactive safety net: the worker never sent an idle heartbeat (its
+        // status is the initial 'idle' from attach) yet must still be kicked.
+        $gateway = $this->spy(AgentGateway::class);
+
+        $this->makeWorker(instanceAttributes: ['status' => 'idle']);
+        SharedTask::factory()->create(['project_id' => $this->project->id, 'status' => 'pending', 'files' => []]);
+
+        $ticked = app(WorkerLoopService::class)->dispatchProject($this->project->fresh());
+
+        $this->assertSame(1, $ticked);
+        $gateway->shouldHaveReceived('sendMessage')
+            ->withArgs(function (string $machineId, string $type, array $payload) {
+                return $type === 'session:input'
+                    && $payload['sessionId'] === $this->session->id
+                    && str_contains($payload['data'], 'task_claim_next');
+            })
+            ->once();
+    }
+
+    #[Test]
+    public function dispatch_project_is_noop_without_active_orchestration(): void
+    {
+        $gateway = $this->spy(AgentGateway::class);
+
+        $this->makeWorker(instanceAttributes: ['status' => 'idle']);
+        $this->project->setSetting('orchestration', ['active' => false]);
+        SharedTask::factory()->create(['project_id' => $this->project->id, 'status' => 'pending', 'files' => []]);
+
+        $ticked = app(WorkerLoopService::class)->dispatchProject($this->project->fresh());
+
+        $this->assertSame(0, $ticked);
+        $gateway->shouldNotHaveReceived('sendMessage');
+    }
+
+    #[Test]
+    public function dispatch_project_skips_busy_workers(): void
+    {
+        // A worker actively coding (status busy) must not be interrupted.
+        $gateway = $this->spy(AgentGateway::class);
+
+        $this->makeWorker(instanceAttributes: ['status' => 'busy']);
+        SharedTask::factory()->create(['project_id' => $this->project->id, 'status' => 'pending', 'files' => []]);
+
+        $ticked = app(WorkerLoopService::class)->dispatchProject($this->project->fresh());
+
+        $this->assertSame(0, $ticked);
+        $gateway->shouldNotHaveReceived('sendMessage');
+    }
 }

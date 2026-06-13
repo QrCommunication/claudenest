@@ -225,6 +225,7 @@ const PLANNING_TOOLS = [
   "task_decompose",
   "sprint_create",
   "sprint_assign",
+  "execution_start",
   "backlog_stats",
 ] as const;
 
@@ -262,8 +263,8 @@ describe("Ability gating — planning tools", () => {
     expect(toolNames(new Set()).size).toBe(13);
   });
 
-  it("total registered tools = 20 with planning", () => {
-    expect(toolNames(new Set(["planning"])).size).toBe(20);
+  it("total registered tools = 21 with planning", () => {
+    expect(toolNames(new Set(["planning"])).size).toBe(21);
   });
 });
 

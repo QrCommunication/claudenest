@@ -113,6 +113,15 @@ Schedule::call(function () {
     }
 })->everyMinute();
 
+// Heartbeat-independent safety net: proactively kick idle orchestrated workers
+// of every active orchestration so claimable tasks are picked up even when the
+// Stop-hook idle heartbeat never fires (worker spawned without an initial
+// prompt, crashed turn, dropped POST). Self-sustaining once a worker runs.
+Schedule::command('orchestrator:dispatch')
+    ->everyMinute()
+    ->withoutOverlapping()
+    ->name('orchestrator-dispatch');
+
 // Proactively refresh OAuth credentials nearing expiration (< 24h) and
 // reconnect their active Claude sessions, so long-running sessions never
 // hit an expired token mid-task.

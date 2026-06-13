@@ -96,7 +96,7 @@ class PlanningAgentService
         $activeSprint = $stats['active_sprint'] ?? 'none';
 
         return <<<PROMPT
-You are a planning agent for project "{$project->name}". Analyse the brief and the current backlog, then structure the work using the claudenest MCP tools: epic_create, task_create (with story_points, priority, files), task_decompose for subtasks, sprint_assign. {$velocityLine} Ask the human in this terminal when arbitration is needed. Do NOT edit files; planning only.
+You are a planning agent for project "{$project->name}". Analyse the brief and the current backlog, then structure the work using the claudenest MCP tools: epic_create, task_create (with story_points, priority, files), task_decompose for subtasks, sprint_assign. {$velocityLine} Once the plan is ready and approved by the human, launch the build with the execution_start tool (max_workers 1-10) — it spawns workers that autonomously claim and complete the pending tasks. Ask the human in this terminal when arbitration is needed. Do NOT edit files yourself; you plan and launch, the workers build.
 
 ## Backlog snapshot
 - Tasks: {$stats['total_tasks']} total ({$stats['pending_tasks']} pending, {$stats['completed_tasks']} done)
@@ -135,21 +135,21 @@ PROMPT;
 
             foreach ($actions as $action) {
                 $result = match ($action['type']) {
-                    'create_epic'      => $this->createEpic($project, $action['data']),
-                    'create_task'      => $this->createTask($project, $action['data']),
-                    'create_sprint'    => $this->createSprint($project, $action['data']),
-                    'update_task'      => $this->updateTask($action['data']),
-                    'move_task'        => $this->moveTask($action['data']),
-                    'decompose_task'   => $this->decomposeTask($action['data']),
-                    'start_sprint'     => $this->startSprint($action['data']),
-                    'complete_sprint'  => $this->completeSprint($action['data']),
-                    default            => ['error' => 'Unknown action type: ' . $action['type']],
+                    'create_epic' => $this->createEpic($project, $action['data']),
+                    'create_task' => $this->createTask($project, $action['data']),
+                    'create_sprint' => $this->createSprint($project, $action['data']),
+                    'update_task' => $this->updateTask($action['data']),
+                    'move_task' => $this->moveTask($action['data']),
+                    'decompose_task' => $this->decomposeTask($action['data']),
+                    'start_sprint' => $this->startSprint($action['data']),
+                    'complete_sprint' => $this->completeSprint($action['data']),
+                    default => ['error' => 'Unknown action type: '.$action['type']],
                 };
 
                 $results[] = [
-                    'type'    => $action['type'],
+                    'type' => $action['type'],
                     'success' => ! isset($result['error']),
-                    'data'    => $result,
+                    'data' => $result,
                 ];
             }
 
@@ -166,11 +166,11 @@ PROMPT;
     private function createEpic(SharedProject $project, array $data): array
     {
         $epic = $project->epics()->create([
-            'title'       => $data['title'],
+            'title' => $data['title'],
             'description' => $data['description'] ?? null,
-            'color'       => $data['color'] ?? Epic::DEFAULT_COLOR,
-            'priority'    => $data['priority'] ?? 'medium',
-            'sort_order'  => $project->epics()->max('sort_order') + 1,
+            'color' => $data['color'] ?? Epic::DEFAULT_COLOR,
+            'priority' => $data['priority'] ?? 'medium',
+            'sort_order' => $project->epics()->max('sort_order') + 1,
         ]);
 
         return ['id' => $epic->id, 'title' => $epic->title];
@@ -183,15 +183,15 @@ PROMPT;
     private function createTask(SharedProject $project, array $data): array
     {
         $task = $project->tasks()->create([
-            'title'        => $data['title'],
-            'description'  => $data['description'] ?? null,
-            'priority'     => $data['priority'] ?? 'medium',
-            'status'       => $data['status'] ?? 'backlog',
-            'epic_id'      => $data['epic_id'] ?? null,
-            'sprint_id'    => $data['sprint_id'] ?? null,
-            'parent_id'    => $data['parent_id'] ?? null,
+            'title' => $data['title'],
+            'description' => $data['description'] ?? null,
+            'priority' => $data['priority'] ?? 'medium',
+            'status' => $data['status'] ?? 'backlog',
+            'epic_id' => $data['epic_id'] ?? null,
+            'sprint_id' => $data['sprint_id'] ?? null,
+            'parent_id' => $data['parent_id'] ?? null,
             'story_points' => $data['story_points'] ?? null,
-            'labels'       => $data['labels'] ?? [],
+            'labels' => $data['labels'] ?? [],
         ]);
 
         return ['id' => $task->id, 'title' => $task->title];
@@ -204,11 +204,11 @@ PROMPT;
     private function createSprint(SharedProject $project, array $data): array
     {
         $sprint = $project->sprints()->create([
-            'name'       => $data['name'],
-            'goal'       => $data['goal'] ?? null,
+            'name' => $data['name'],
+            'goal' => $data['goal'] ?? null,
             'start_date' => $data['start_date'] ?? null,
-            'end_date'   => $data['end_date'] ?? null,
-            'capacity'   => $data['capacity'] ?? null,
+            'end_date' => $data['end_date'] ?? null,
+            'capacity' => $data['capacity'] ?? null,
             'sort_order' => $project->sprints()->max('sort_order') + 1,
         ]);
 
@@ -255,13 +255,13 @@ PROMPT;
 
         foreach ($data['subtasks'] as $subtaskData) {
             $subtask = $parentTask->project->tasks()->create([
-                'title'        => $subtaskData['title'],
-                'description'  => $subtaskData['description'] ?? null,
-                'priority'     => $subtaskData['priority'] ?? $parentTask->priority,
-                'status'       => 'backlog',
-                'parent_id'    => $parentTask->id,
-                'epic_id'      => $parentTask->epic_id,
-                'sprint_id'    => $parentTask->sprint_id,
+                'title' => $subtaskData['title'],
+                'description' => $subtaskData['description'] ?? null,
+                'priority' => $subtaskData['priority'] ?? $parentTask->priority,
+                'status' => 'backlog',
+                'parent_id' => $parentTask->id,
+                'epic_id' => $parentTask->epic_id,
+                'sprint_id' => $parentTask->sprint_id,
                 'story_points' => $subtaskData['story_points'] ?? null,
             ]);
 

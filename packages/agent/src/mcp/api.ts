@@ -505,3 +505,25 @@ export function planningContext(
     `/api/projects/${env.projectId}/planning/context`,
   );
 }
+
+/** Orchestrator status returned by start. */
+export interface OrchestratorStatus {
+  status: string;
+  active: boolean;
+  workers: unknown[];
+  pendingTasks: number;
+  completedTasks: number;
+}
+
+/** POST /api/projects/{p}/orchestrator/start — launch the worker pool. */
+export function orchestratorStart(
+  env: McpEnv,
+  payload: { max_workers?: number; permission_mode?: string } = {},
+): Promise<FetchResult<OrchestratorStatus>> {
+  return apiRequest<OrchestratorStatus>(
+    env,
+    "POST",
+    `/api/projects/${env.projectId}/orchestrator/start`,
+    payload as Record<string, unknown>,
+  );
+}
