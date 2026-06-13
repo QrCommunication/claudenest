@@ -19,7 +19,10 @@ interface WebSocketClientOptions {
 const DEFAULT_CONFIG: WebSocketConfig = {
   reconnectDelay: 1000,
   maxReconnectDelay: 30000,
-  maxReconnectAttempts: 10,
+  // 0 = retry forever. An orchestration agent must never give up reconnecting:
+  // a long server hiccup or deploy would otherwise strand the machine offline
+  // and freeze every worker. Backoff caps at maxReconnectDelay (30s).
+  maxReconnectAttempts: 0,
   heartbeatInterval: 30000,
   messageTimeout: 10000,
 };
@@ -279,14 +282,21 @@ export class WebSocketClient extends EventEmitter {
   private scheduleReconnect(): void {
     if (this.reconnectTimer) return;
 
-    if (this.reconnectAttempts >= this.config.maxReconnectAttempts) {
+    // maxReconnectAttempts <= 0 means retry forever (orchestration default).
+    if (
+      this.config.maxReconnectAttempts > 0 &&
+      this.reconnectAttempts >= this.config.maxReconnectAttempts
+    ) {
       this.logger.error({ attempts: this.reconnectAttempts }, 'Max reconnection attempts reached');
       this.emit('maxReconnectReached');
       return;
     }
 
+    // Exponential backoff capped at maxReconnectDelay. The exponent is clamped
+    // so an unbounded attempt count never overflows Math.pow (delay would still
+    // be capped, but keep the arithmetic clean for retry-forever).
     const delay = Math.min(
-      this.config.reconnectDelay * Math.pow(2, this.reconnectAttempts),
+      this.config.reconnectDelay * Math.pow(2, Math.min(this.reconnectAttempts, 16)),
       this.config.maxReconnectDelay
     );
 
