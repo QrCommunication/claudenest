@@ -74,7 +74,8 @@ class WorkerOrchestrationTest extends TestCase
         $orchestration = $project->getSetting('orchestration');
         $this->assertTrue($orchestration['active']);
         $this->assertSame(3, $orchestration['max_workers']);
-        $this->assertSame('acceptEdits', $orchestration['permission_mode']);
+        // Default permission mode for unattended workers (no override posted).
+        $this->assertSame('bypassPermissions', $orchestration['permission_mode']);
         $this->assertNotEmpty($orchestration['started_at']);
 
         // Same camelCase session:create contract as SessionController::store
@@ -83,7 +84,7 @@ class WorkerOrchestrationTest extends TestCase
                 return $machineId === $machine->id
                     && $type === 'session:create'
                     && ($payload['sharedProjectId'] ?? null) === $project->id
-                    && ($payload['permissionMode'] ?? null) === 'acceptEdits'
+                    && ($payload['permissionMode'] ?? null) === 'bypassPermissions'
                     && isset($payload['sessionId'], $payload['mode'], $payload['projectPath'], $payload['instanceId'], $payload['mcpEnv'], $payload['appendSystemPrompt']);
             })
             ->twice();

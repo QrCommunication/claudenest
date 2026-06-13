@@ -463,6 +463,11 @@ export class TmuxSession extends EventEmitter {
     if (permissionMode === 'acceptEdits') {
       settings['permissions'] = {
         allow: [
+          // ClaudeNest MCP coordination tools — an orchestrated worker must
+          // claim/complete/lock/context without an approval dialog, otherwise
+          // it stalls on the very first task_claim_next call. No-op for
+          // sessions without the claudenest MCP server.
+          'mcp__claudenest',
           'Bash(npm test:*)',
           'Bash(npm run test:*)',
           'Bash(npm run lint:*)',

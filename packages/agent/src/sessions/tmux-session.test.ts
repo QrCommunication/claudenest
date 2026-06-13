@@ -309,6 +309,8 @@ describe('TmuxSession — prepareRuntimeDir()', () => {
     // Verify some representative allow entries
     expect(allow.some(e => e.startsWith('Bash(npm test'))).toBe(true);
     expect(allow.some(e => e.startsWith('Bash(git status'))).toBe(true);
+    // ClaudeNest MCP coordination tools must be auto-approved for workers.
+    expect(allow).toContain('mcp__claudenest');
   });
 
   it('includes permissions.allow for legacy headless mode (maps to acceptEdits)', () => {

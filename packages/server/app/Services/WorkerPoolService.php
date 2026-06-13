@@ -25,7 +25,12 @@ use Throwable;
  */
 class WorkerPoolService
 {
-    public const DEFAULT_PERMISSION_MODE = 'acceptEdits';
+    /**
+     * Orchestrated workers run unattended: bypassPermissions so they never
+     * stall on an approval dialog (MCP coordination tools, file edits, Bash).
+     * A human-monitored run can still override via the start endpoint.
+     */
+    public const DEFAULT_PERMISSION_MODE = 'bypassPermissions';
 
     /**
      * Kickoff user message handed to a freshly spawned worker.
