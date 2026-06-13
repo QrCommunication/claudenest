@@ -41,10 +41,11 @@ function trunc(s: string, max: number): string {
   return s.length > max ? s.slice(0, max) + "…" : s;
 }
 
-/** Format a task as a compact single line. */
+/** Format a task as a compact single line. Full id so it can be passed
+ *  straight to task_claim / task_update / task_complete without lookup. */
 function fmtTaskLine(t: Task): string {
   const files = t.files && t.files.length > 0 ? ` — ${t.files.slice(0, 3).join(", ")}` : "";
-  return `${id8(t.id)} [${t.status}/${t.priority}] ${t.title}${files}`;
+  return `${t.id} [${t.status}/${t.priority}] ${t.title}${files}`;
 }
 
 /** Format a task with full detail (for claim/next). */
