@@ -256,11 +256,11 @@ class WorkerLoopTest extends TestCase
     }
 
     #[Test]
-    public function worker_is_recycled_after_five_completed_tasks(): void
+    public function worker_is_recycled_after_each_completed_task(): void
     {
         $gateway = $this->spy(AgentGateway::class);
 
-        $this->makeWorker(instanceAttributes: ['tasks_completed' => 5]);
+        $this->makeWorker(instanceAttributes: ['tasks_completed' => WorkerLoopService::RECYCLE_TASKS_COMPLETED]);
         SharedTask::factory()->create(['project_id' => $this->project->id, 'status' => 'pending', 'files' => []]);
 
         $this->heartbeatIdle();

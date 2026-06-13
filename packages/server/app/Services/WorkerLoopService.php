@@ -58,7 +58,12 @@ class WorkerLoopService
      */
     public const STUCK_AFTER_SECONDS = 120;
 
-    public const RECYCLE_TASKS_COMPLETED = 5;
+    /**
+     * Recycle a worker after each completed task: terminate it and spawn a
+     * fresh session so the next task starts on a clean, un-bloated context.
+     * (Recycle only fires when there is claimable work left — see onIdle.)
+     */
+    public const RECYCLE_TASKS_COMPLETED = 1;
 
     public const RECYCLE_SESSION_MAX_HOURS = 2;
 

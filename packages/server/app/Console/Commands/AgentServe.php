@@ -2,6 +2,11 @@
 
 namespace App\Console\Commands;
 
+use App\Events\ClaudeSessionsDiscovered;
+use App\Events\ClaudeSessionTranscript;
+use App\Events\ProjectBroadcast;
+use App\Events\SessionOutput;
+use App\Events\SessionTerminated;
 use App\Models\ClaudeCredential;
 use App\Models\DiscoveredSession;
 use App\Models\Machine;
@@ -9,7 +14,9 @@ use App\Models\Session;
 use App\Models\SharedProject;
 use App\Services\AgentGateway;
 use App\Services\DecompositionStreamService;
+use App\Services\MultiAgentSessionService;
 use App\Services\Redis\AgentWakeSubscriber;
+use App\Services\WorkerLoopService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
@@ -35,6 +42,7 @@ use React\Socket\SocketServer;
 class AgentServe extends Command
 {
     protected $signature = 'agent:serve {--port=6001} {--host=0.0.0.0}';
+
     protected $description = 'Start the WebSocket server for agent and terminal connections';
 
     /** @var array<string, array{conn: ConnectionInterface, machine: Machine, connId: int}> */
@@ -84,8 +92,11 @@ class AgentServe extends Command
      * when the subscription is down.
      */
     private const POLL_TICK = 0.05;
+
     private const POLL_HOT_INTERVAL = 0.05;
+
     private const POLL_IDLE_INTERVAL = 0.25;
+
     private const POLL_HOT_WINDOW = 2.0;
 
     /** Last time at least one queued message was consumed (microtime). */
@@ -120,7 +131,7 @@ class AgentServe extends Command
             $conn->on('data', function (string $data) use ($conn, $connId) {
                 $state = &$this->connState[$connId];
 
-                if (!$state['upgraded']) {
+                if (! $state['upgraded']) {
                     $state['buffer'] .= $data;
                     if (str_contains($state['buffer'], "\r\n\r\n")) {
                         $this->handleUpgrade($conn, $connId, $state['buffer']);
@@ -164,15 +175,15 @@ class AgentServe extends Command
             $agentCount = count($this->agents);
             $termCount = array_sum(array_map('count', $this->terminals));
             if ($agentCount > 0 || $termCount > 0) {
-                $this->line("[" . date('H:i:s') . "] {$agentCount} agent(s), {$termCount} terminal(s) connected");
+                $this->line('['.date('H:i:s')."] {$agentCount} agent(s), {$termCount} terminal(s) connected");
             }
         });
 
         $socket->on('error', fn (\Exception $e) => $this->error("Server error: {$e->getMessage()}"));
 
-        $this->info("  /ws/agent    — Agent connections (machine token)");
-        $this->info("  /ws/terminal — Browser terminals (single-use ws-ticket)");
-        $this->info("Press Ctrl+C to stop.");
+        $this->info('  /ws/agent    — Agent connections (machine token)');
+        $this->info('  /ws/terminal — Browser terminals (single-use ws-ticket)');
+        $this->info('Press Ctrl+C to stop.');
 
         Loop::get()->run();
 
@@ -188,7 +199,9 @@ class AgentServe extends Command
         $requestLine = $lines[0] ?? '';
         $headers = [];
         for ($i = 1; $i < count($lines); $i++) {
-            if (empty($lines[$i])) break;
+            if (empty($lines[$i])) {
+                break;
+            }
             $parts = explode(': ', $lines[$i], 2);
             if (count($parts) === 2) {
                 $headers[strtolower($parts[0])] = $parts[1];
@@ -198,6 +211,7 @@ class AgentServe extends Command
         // Must be a WebSocket upgrade
         if (strtolower($headers['upgrade'] ?? '') !== 'websocket') {
             $conn->end("HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\n");
+
             return;
         }
 
@@ -217,8 +231,9 @@ class AgentServe extends Command
 
         $token = $headers['x-machine-token'] ?? '';
         $machineId = $headers['x-machine-id'] ?? '';
-        if (!$token || !$machineId) {
+        if (! $token || ! $machineId) {
             $conn->end("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\nMissing authentication headers");
+
             return;
         }
 
@@ -226,12 +241,14 @@ class AgentServe extends Command
             $machine = Machine::find($machineId);
         } catch (\Throwable $e) {
             $conn->end("HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\nInvalid machine ID");
+
             return;
         }
 
-        if (!$machine || !$machine->verifyToken($token)) {
+        if (! $machine || ! $machine->verifyToken($token)) {
             $this->warn("Auth failed for machine {$machineId}");
             $conn->end("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\nInvalid token");
+
             return;
         }
 
@@ -254,7 +271,7 @@ class AgentServe extends Command
         $machine->markAsOnline();
 
         if ($old) {
-            $old->write($this->encodeFrame(pack('n', 1000) . 'Replaced', 0x8));
+            $old->write($this->encodeFrame(pack('n', 1000).'Replaced', 0x8));
             $old->close();
         }
         $this->info("Agent connected: {$machine->name} ({$machineId})");
@@ -274,21 +291,24 @@ class AgentServe extends Command
         $ticket = $query['ticket'] ?? '';
         $sessionId = $query['session'] ?? '';
 
-        if (!$ticket || !$sessionId) {
+        if (! $ticket || ! $sessionId) {
             $conn->end("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\nMissing ticket or session");
+
             return;
         }
 
         // Cache::pull = atomic read+delete → single-use even on replay
         try {
-            $userId = Cache::pull('ws_ticket:' . hash('sha256', $ticket));
+            $userId = Cache::pull('ws_ticket:'.hash('sha256', $ticket));
         } catch (\Throwable $e) {
             $conn->end("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\nInvalid ticket");
+
             return;
         }
 
-        if (!$userId) {
+        if (! $userId) {
             $conn->end("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\nInvalid or expired ticket");
+
             return;
         }
 
@@ -298,8 +318,9 @@ class AgentServe extends Command
             ->whereIn('status', ['running', 'waiting_input', 'starting'])
             ->first();
 
-        if (!$session) {
+        if (! $session) {
             $conn->end("HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\nSession not found or not accessible");
+
             return;
         }
 
@@ -310,22 +331,22 @@ class AgentServe extends Command
         $state['sessionId'] = $sessionId;
         $state['machineId'] = $session->machine_id;
 
-        if (!isset($this->terminals[$sessionId])) {
+        if (! isset($this->terminals[$sessionId])) {
             $this->terminals[$sessionId] = [];
         }
         $this->terminals[$sessionId][$connId] = $conn;
 
-        $this->info("[" . date('H:i:s') . "] Terminal connected: session {$sessionId}");
+        $this->info('['.date('H:i:s')."] Terminal connected: session {$sessionId}");
     }
 
     private function completeUpgrade(ConnectionInterface $conn, array $headers): void
     {
         $wsKey = $headers['sec-websocket-key'] ?? '';
-        $accept = base64_encode(sha1($wsKey . '258EAFA5-E914-47DA-95CA-C5AB0DC85B11', true));
+        $accept = base64_encode(sha1($wsKey.'258EAFA5-E914-47DA-95CA-C5AB0DC85B11', true));
         $conn->write(
-            "HTTP/1.1 101 Switching Protocols\r\n" .
-            "Upgrade: websocket\r\n" .
-            "Connection: Upgrade\r\n" .
+            "HTTP/1.1 101 Switching Protocols\r\n".
+            "Upgrade: websocket\r\n".
+            "Connection: Upgrade\r\n".
             "Sec-WebSocket-Accept: {$accept}\r\n\r\n"
         );
     }
@@ -333,7 +354,9 @@ class AgentServe extends Command
     private function handleDisconnect(int $connId): void
     {
         $state = $this->connState[$connId] ?? null;
-        if (!$state) return;
+        if (! $state) {
+            return;
+        }
 
         $type = $state['type'] ?? null;
 
@@ -355,7 +378,7 @@ class AgentServe extends Command
                 if (empty($this->terminals[$sessionId])) {
                     unset($this->terminals[$sessionId]);
                 }
-                $this->line("[" . date('H:i:s') . "] Terminal disconnected: session {$sessionId}");
+                $this->line('['.date('H:i:s')."] Terminal disconnected: session {$sessionId}");
             }
         }
 
@@ -370,7 +393,9 @@ class AgentServe extends Command
 
         while (strlen($state['frameBuffer']) > 0) {
             $frame = $this->decodeFrame($state['frameBuffer']);
-            if ($frame === null) break;
+            if ($frame === null) {
+                break;
+            }
 
             $state['frameBuffer'] = substr($state['frameBuffer'], $frame['consumed']);
 
@@ -389,26 +414,33 @@ class AgentServe extends Command
     private function handleTextMessage(int $connId, string $payload): void
     {
         $state = $this->connState[$connId] ?? null;
-        if (!$state) return;
+        if (! $state) {
+            return;
+        }
 
         if ($state['type'] === 'terminal') {
             $this->handleTerminalMessage($connId, $payload);
+
             return;
         }
 
         // Agent message handling
         $machineId = $state['machineId'] ?? null;
-        if (!$machineId) return;
+        if (! $machineId) {
+            return;
+        }
 
         try {
             $message = json_decode($payload, true);
-            if (!$message || !isset($message['type'])) return;
+            if (! $message || ! isset($message['type'])) {
+                return;
+            }
 
             $type = $message['type'];
             $data = $message['payload'] ?? [];
 
             if ($type !== 'session:output' && $type !== 'ping' && $type !== 'pong') {
-                $this->line("[" . date('H:i:s') . "] Agent → Server: {$type} " . json_encode($data));
+                $this->line('['.date('H:i:s')."] Agent → Server: {$type} ".json_encode($data));
             }
 
             match ($type) {
@@ -431,42 +463,51 @@ class AgentServe extends Command
                 'oauth:auth-url' => $this->onOAuthAuthUrl($data),
                 'oauth:tokens' => $this->onOAuthTokens($data),
                 'oauth:error' => $this->onOAuthError($data),
+                'sprint:finalized' => $this->onSprintFinalized($data),
                 'ping' => $this->onAgentPing($machineId),
                 'error' => $this->onAgentError($machineId, $data),
-                default => $this->warn("[" . date('H:i:s') . "] Unknown agent message type: {$type}"),
+                default => $this->warn('['.date('H:i:s')."] Unknown agent message type: {$type}"),
             };
         } catch (\Throwable $e) {
-            Log::error("Error handling agent message", [
+            Log::error('Error handling agent message', [
                 'machineId' => $machineId,
                 'error' => $e->getMessage(),
             ]);
-            $this->error("[" . date('H:i:s') . "] Error handling agent message: {$e->getMessage()}");
+            $this->error('['.date('H:i:s')."] Error handling agent message: {$e->getMessage()}");
         }
     }
 
     private function handleTerminalMessage(int $connId, string $payload): void
     {
         $state = $this->connState[$connId] ?? null;
-        if (!$state) return;
+        if (! $state) {
+            return;
+        }
 
         $machineId = $state['machineId'] ?? null;
         $sessionId = $state['sessionId'] ?? null;
-        if (!$machineId || !$sessionId) return;
+        if (! $machineId || ! $sessionId) {
+            return;
+        }
 
         try {
             $message = json_decode($payload, true);
-            if (!$message || !isset($message['type'])) return;
+            if (! $message || ! isset($message['type'])) {
+                return;
+            }
 
             if ($message['type'] === 'input') {
                 $data = $message['data'] ?? '';
-                if (!is_string($data)) return;
+                if (! is_string($data)) {
+                    return;
+                }
 
                 // Human took over the terminal — suspend the worker loop for
                 // this session (throttled: at most one cache write per 5s).
                 $nowTs = time();
                 if (($this->humanInputTouched[$sessionId] ?? 0) <= $nowTs - 5) {
                     $this->humanInputTouched[$sessionId] = $nowTs;
-                    \App\Services\WorkerLoopService::markHumanInput($sessionId);
+                    WorkerLoopService::markHumanInput($sessionId);
                 }
 
                 // Forward directly to agent in-memory (no Redis, no HTTP)
@@ -535,7 +576,9 @@ class AgentServe extends Command
     private function onMachineInfo(string $machineId, array $data): void
     {
         $machine = Machine::find($machineId);
-        if (!$machine) return;
+        if (! $machine) {
+            return;
+        }
 
         $machine->update(array_filter([
             'platform' => $data['platform'] ?? null,
@@ -555,16 +598,22 @@ class AgentServe extends Command
     private function onSessionOutput(string $machineId, array $data): void
     {
         $sessionId = $data['sessionId'] ?? $data['session_id'] ?? null;
-        if (!$sessionId) return;
-        if ($this->routeNonUuidSession('output', (string) $sessionId, $data)) return;
+        if (! $sessionId) {
+            return;
+        }
+        if ($this->routeNonUuidSession('output', (string) $sessionId, $data)) {
+            return;
+        }
 
         $session = Session::find($sessionId);
-        if (!$session) return;
+        if (! $session) {
+            return;
+        }
 
         $output = $data['data'] ?? '';
 
         $session->addLog('output', $output);
-        broadcast(new \App\Events\SessionOutput($session, $output));
+        broadcast(new SessionOutput($session, $output));
 
         // Also forward output to directly-connected browser terminals
         if (isset($this->terminals[$sessionId])) {
@@ -583,11 +632,17 @@ class AgentServe extends Command
     {
         $sessionId = $data['sessionId'] ?? $data['session_id'] ?? null;
         $status = $data['status'] ?? null;
-        if (!$sessionId || !$status) return;
-        if ($this->routeNonUuidSession('status', (string) $sessionId, $data)) return;
+        if (! $sessionId || ! $status) {
+            return;
+        }
+        if ($this->routeNonUuidSession('status', (string) $sessionId, $data)) {
+            return;
+        }
 
         $session = Session::find($sessionId);
-        if (!$session) return;
+        if (! $session) {
+            return;
+        }
 
         if (isset($data['pid']) && $data['pid']) {
             $session->update(['pid' => (int) $data['pid']]);
@@ -604,11 +659,17 @@ class AgentServe extends Command
     private function onSessionExited(string $machineId, array $data): void
     {
         $sessionId = $data['sessionId'] ?? $data['session_id'] ?? null;
-        if (!$sessionId) return;
-        if ($this->routeNonUuidSession('exited', (string) $sessionId, $data)) return;
+        if (! $sessionId) {
+            return;
+        }
+        if ($this->routeNonUuidSession('exited', (string) $sessionId, $data)) {
+            return;
+        }
 
         $session = Session::find($sessionId);
-        if (!$session) return;
+        if (! $session) {
+            return;
+        }
 
         $exitCode = $data['exitCode'] ?? $data['exit_code'] ?? null;
         $session->markAsCompleted($exitCode);
@@ -617,7 +678,7 @@ class AgentServe extends Command
         // termination, hence the catch-all guard.
         if ($session->shared_project_id) {
             try {
-                app(\App\Services\MultiAgentSessionService::class)->teardown($session);
+                app(MultiAgentSessionService::class)->teardown($session);
             } catch (\Throwable $e) {
                 Log::warning('Multi-agent teardown failed on session exit', [
                     'session_id' => $session->id,
@@ -626,7 +687,7 @@ class AgentServe extends Command
             }
         }
 
-        broadcast(new \App\Events\SessionTerminated($session));
+        broadcast(new SessionTerminated($session));
 
         // Notify connected terminals that session ended
         if (isset($this->terminals[$sessionId])) {
@@ -637,10 +698,63 @@ class AgentServe extends Command
             ]));
             foreach ($this->terminals[$sessionId] as $termConn) {
                 $termConn->write($frame);
-                $termConn->write($this->encodeFrame(pack('n', 1000) . 'Session ended', 0x8));
+                $termConn->write($this->encodeFrame(pack('n', 1000).'Session ended', 0x8));
             }
             unset($this->terminals[$sessionId]);
         }
+    }
+
+    /**
+     * Agent reported the outcome of a sprint:finalize (PR creation). Broadcast
+     * the PR URL (or the error) to the project channel and record an activity.
+     */
+    private function onSprintFinalized(array $data): void
+    {
+        $projectId = $data['projectId'] ?? null;
+        if (! $projectId) {
+            return;
+        }
+
+        $project = SharedProject::find($projectId);
+        if (! $project) {
+            return;
+        }
+
+        $success = (bool) ($data['success'] ?? false);
+        $prUrl = $data['prUrl'] ?? null;
+        $branch = $data['branch'] ?? null;
+        $error = $data['error'] ?? null;
+
+        if ($success && $prUrl) {
+            $message = "Sprint pull request opened: {$prUrl}";
+        } elseif ($success) {
+            $message = "Sprint branch '{$branch}' pushed.".($error ? " {$error}" : '');
+        } else {
+            $message = 'Sprint PR failed: '.($error ?? 'unknown error');
+        }
+
+        broadcast(new ProjectBroadcast($project, [
+            'type' => 'sprint:pr',
+            'success' => $success,
+            'sprint_id' => $data['sprintId'] ?? null,
+            'pr_url' => $prUrl,
+            'branch' => $branch,
+            'message' => $message,
+        ]));
+
+        $project->logActivity('broadcast', null, [
+            'kind' => 'sprint_pr',
+            'sprint_id' => $data['sprintId'] ?? null,
+            'pr_url' => $prUrl,
+            'success' => $success,
+            'message' => $message,
+        ]);
+
+        Log::info('Sprint finalized', [
+            'sprint_id' => $data['sprintId'] ?? null,
+            'pr_url' => $prUrl,
+            'success' => $success,
+        ]);
     }
 
     private function onAgentError(string $machineId, array $data): void
@@ -650,15 +764,17 @@ class AgentServe extends Command
         $errorMessage = $data['message'] ?? 'No message';
         $sessionId = $data['sessionId'] ?? null;
 
-        $this->error("[" . date('H:i:s') . "] Agent error [{$code}]: {$errorMessage} (from: {$originalType})");
+        $this->error('['.date('H:i:s')."] Agent error [{$code}]: {$errorMessage} (from: {$originalType})");
 
         if ($originalType === 'session:create' && $sessionId) {
-            if ($this->routeNonUuidSession('error', (string) $sessionId, $data)) return;
+            if ($this->routeNonUuidSession('error', (string) $sessionId, $data)) {
+                return;
+            }
 
             $session = Session::find($sessionId);
             if ($session) {
                 $session->markAsError(null, $errorMessage);
-                $this->error("[" . date('H:i:s') . "] Session {$sessionId} marked as error");
+                $this->error('['.date('H:i:s')."] Session {$sessionId} marked as error");
             }
         }
     }
@@ -675,7 +791,9 @@ class AgentServe extends Command
     private function onRequestResponse(array $data): void
     {
         $requestId = $data['requestId'] ?? null;
-        if (!$requestId) return;
+        if (! $requestId) {
+            return;
+        }
 
         $key = "agent:response:{$requestId}";
         Redis::rpush($key, json_encode($data));
@@ -689,10 +807,14 @@ class AgentServe extends Command
     private function onClaudeSessionsDiscovered(string $machineId, array $data): void
     {
         $sessions = $data['sessions'] ?? [];
-        if (!is_array($sessions)) return;
+        if (! is_array($sessions)) {
+            return;
+        }
 
         $machine = Machine::find($machineId);
-        if (!$machine) return;
+        if (! $machine) {
+            return;
+        }
 
         // IMPORTANT: agent:serve is a single ReactPHP event loop shared with
         // terminal I/O. A per-row updateOrCreate (one blocking query each) would
@@ -703,7 +825,9 @@ class AgentServe extends Command
         $rows = [];
         foreach ($sessions as $s) {
             $sessionId = $s['sessionId'] ?? null;
-            if (!$sessionId) continue;
+            if (! $sessionId) {
+                continue;
+            }
             $seen[] = $sessionId;
             $rows[] = [
                 'id' => (string) Str::uuid(),
@@ -750,7 +874,7 @@ class AgentServe extends Command
         // full session list blew past Reverb's ~10KB payload limit and piled
         // up "Pusher error: Payload too large" failed jobs. Clients refetch
         // the list via GET /api/machines/{machine}/claude-sessions on signal.
-        broadcast(new \App\Events\ClaudeSessionsDiscovered(
+        broadcast(new ClaudeSessionsDiscovered(
             $machineId,
             DiscoveredSession::forMachine($machineId)->count(),
         ));
@@ -763,9 +887,11 @@ class AgentServe extends Command
     private function onClaudeSessionTranscript(array $data): void
     {
         $sessionId = $data['sessionId'] ?? null;
-        if (!$sessionId) return;
+        if (! $sessionId) {
+            return;
+        }
 
-        broadcast(new \App\Events\ClaudeSessionTranscript(
+        broadcast(new ClaudeSessionTranscript(
             $sessionId,
             $data['events'] ?? [],
             (bool) ($data['replace'] ?? false),
@@ -775,10 +901,12 @@ class AgentServe extends Command
     private function onDecomposeProgress(array $data): void
     {
         $project = $this->findDecomposeProject($data);
-        if (!$project) return;
+        if (! $project) {
+            return;
+        }
 
         // Broadcast progress to frontend via Reverb
-        broadcast(new \App\Events\ProjectBroadcast(
+        broadcast(new ProjectBroadcast(
             $project,
             [
                 'type' => 'decompose:progress',
@@ -796,7 +924,9 @@ class AgentServe extends Command
     private function onDecomposeResult(array $data): void
     {
         $project = $this->findDecomposeProject($data);
-        if (!$project) return;
+        if (! $project) {
+            return;
+        }
 
         $stream = $this->decompositionStream ??= app(DecompositionStreamService::class);
         $stream->completeFromAgentResult($project, $data);
@@ -809,7 +939,7 @@ class AgentServe extends Command
     private function findDecomposeProject(array $data): ?SharedProject
     {
         $projectId = $data['projectId'] ?? null;
-        if (!$projectId || !Str::isUuid((string) $projectId)) {
+        if (! $projectId || ! Str::isUuid((string) $projectId)) {
             return null;
         }
 
@@ -822,31 +952,36 @@ class AgentServe extends Command
     {
         $credentialId = $data['credentialId'] ?? null;
         $authUrl = $data['authUrl'] ?? null;
-        if (!$credentialId || !$authUrl) return;
+        if (! $credentialId || ! $authUrl) {
+            return;
+        }
 
         Cache::put("oauth_relay_{$credentialId}", [
             'status' => 'auth_url_ready',
             'auth_url' => $authUrl,
         ], 600);
 
-        $this->info("[" . date('H:i:s') . "] OAuth auth URL received for credential {$credentialId}");
+        $this->info('['.date('H:i:s')."] OAuth auth URL received for credential {$credentialId}");
     }
 
     private function onOAuthTokens(array $data): void
     {
         $credentialId = $data['credentialId'] ?? null;
-        if (!$credentialId) return;
+        if (! $credentialId) {
+            return;
+        }
 
         $credential = ClaudeCredential::find($credentialId);
-        if (!$credential) {
-            $this->warn("[" . date('H:i:s') . "] OAuth tokens received for unknown credential {$credentialId}");
+        if (! $credential) {
+            $this->warn('['.date('H:i:s')."] OAuth tokens received for unknown credential {$credentialId}");
+
             return;
         }
 
         $accessToken = $data['accessToken'] ?? null;
         if ($accessToken) {
             $credential->access_token_enc = Crypt::encryptString($accessToken);
-            $credential->key_hint = 'oat01-...' . substr($accessToken, -6);
+            $credential->key_hint = 'oat01-...'.substr($accessToken, -6);
         }
 
         $refreshToken = $data['refreshToken'] ?? null;
@@ -865,21 +1000,23 @@ class AgentServe extends Command
             'status' => 'complete',
         ], 600);
 
-        $this->info("[" . date('H:i:s') . "] OAuth tokens saved for credential {$credentialId}");
+        $this->info('['.date('H:i:s')."] OAuth tokens saved for credential {$credentialId}");
     }
 
     private function onOAuthError(array $data): void
     {
         $credentialId = $data['credentialId'] ?? null;
         $error = $data['error'] ?? 'Unknown error';
-        if (!$credentialId) return;
+        if (! $credentialId) {
+            return;
+        }
 
         Cache::put("oauth_relay_{$credentialId}", [
             'status' => 'error',
             'error' => $error,
         ], 600);
 
-        $this->warn("[" . date('H:i:s') . "] OAuth error for credential {$credentialId}: {$error}");
+        $this->warn('['.date('H:i:s')."] OAuth error for credential {$credentialId}: {$error}");
     }
 
     /**
@@ -922,7 +1059,9 @@ class AgentServe extends Command
 
     private function sendToAgent(string $machineId, string $type, array $payload = []): void
     {
-        if (!isset($this->agents[$machineId])) return;
+        if (! isset($this->agents[$machineId])) {
+            return;
+        }
 
         $json = json_encode([
             'type' => $type,
@@ -948,7 +1087,7 @@ class AgentServe extends Command
     private function drainQueue(string $machineId): void
     {
         $agent = $this->agents[$machineId] ?? null;
-        if (!$agent) {
+        if (! $agent) {
             // Not connected to this process — the queued message keeps its
             // TTL and is delivered by the poll after the agent (re)connects.
             return;
@@ -963,7 +1102,7 @@ class AgentServe extends Command
 
         foreach ($messages as $message) {
             $type = $message['type'] ?? 'unknown';
-            $this->line("[" . date('H:i:s') . "] Forwarding to agent: {$type}");
+            $this->line('['.date('H:i:s')."] Forwarding to agent: {$type}");
             $agent['conn']->write($this->encodeFrame(json_encode($message)));
         }
     }
@@ -978,7 +1117,7 @@ class AgentServe extends Command
      */
     private function startWakeSubscriber(): void
     {
-        if (!config('claudenest.websocket.wake_subscribe', true)) {
+        if (! config('claudenest.websocket.wake_subscribe', true)) {
             $this->info('Wake subscriber disabled (AGENT_WAKE_SUBSCRIBE=false) — adaptive polling only.');
 
             return;
@@ -999,7 +1138,7 @@ class AgentServe extends Command
                 }
             },
             onLog: function (string $level, string $message): void {
-                $line = '[' . date('H:i:s') . '] ' . $message;
+                $line = '['.date('H:i:s').'] '.$message;
                 $level === 'warn' ? $this->warn($line) : $this->info($line);
             },
         );
@@ -1012,7 +1151,9 @@ class AgentServe extends Command
     private function decodeFrame(string $data): ?array
     {
         $len = strlen($data);
-        if ($len < 2) return null;
+        if ($len < 2) {
+            return null;
+        }
 
         $firstByte = ord($data[0]);
         $secondByte = ord($data[1]);
@@ -1024,17 +1165,23 @@ class AgentServe extends Command
         $offset = 2;
 
         if ($payloadLen === 126) {
-            if ($len < 4) return null;
+            if ($len < 4) {
+                return null;
+            }
             $payloadLen = unpack('n', substr($data, 2, 2))[1];
             $offset = 4;
         } elseif ($payloadLen === 127) {
-            if ($len < 10) return null;
+            if ($len < 10) {
+                return null;
+            }
             $payloadLen = unpack('J', substr($data, 2, 8))[1];
             $offset = 10;
         }
 
         $totalNeeded = $offset + ($masked ? 4 : 0) + $payloadLen;
-        if ($len < $totalNeeded) return null;
+        if ($len < $totalNeeded) {
+            return null;
+        }
 
         if ($masked) {
             $maskKey = substr($data, $offset, 4);
@@ -1062,11 +1209,11 @@ class AgentServe extends Command
         if ($length < 126) {
             $frame .= chr($length);
         } elseif ($length < 65536) {
-            $frame .= chr(126) . pack('n', $length);
+            $frame .= chr(126).pack('n', $length);
         } else {
-            $frame .= chr(127) . pack('J', $length);
+            $frame .= chr(127).pack('J', $length);
         }
 
-        return $frame . $payload;
+        return $frame.$payload;
     }
 }

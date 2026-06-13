@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\SprintUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\SprintResource;
 use App\Models\SharedProject;
 use App\Models\Sprint;
 use App\Services\CoordinatorService;
+use App\Services\SprintFinalizeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -128,7 +130,7 @@ class SprintController extends Controller
         $sprint->update($validated);
 
         // Broadcast sprint update to the project channel
-        broadcast(new \App\Events\SprintUpdated($sprint->fresh(), 'updated'))->toOthers();
+        broadcast(new SprintUpdated($sprint->fresh(), 'updated'))->toOthers();
 
         return response()->json([
             'success' => true,
@@ -179,7 +181,7 @@ class SprintController extends Controller
         if ($activeSprint) {
             return $this->errorResponse(
                 'SPRINT_CONFLICT',
-                'Another sprint is already active for this project: ' . $activeSprint->name,
+                'Another sprint is already active for this project: '.$activeSprint->name,
                 422
             );
         }
@@ -187,7 +189,7 @@ class SprintController extends Controller
         $sprint->start();
 
         // Broadcast sprint start to the project channel
-        broadcast(new \App\Events\SprintUpdated($sprint->fresh(), 'started'))->toOthers();
+        broadcast(new SprintUpdated($sprint->fresh(), 'started'))->toOthers();
 
         return response()->json([
             'success' => true,
@@ -222,7 +224,7 @@ class SprintController extends Controller
         $sprint->complete();
 
         // Broadcast sprint completion to the project channel
-        broadcast(new \App\Events\SprintUpdated($sprint->fresh(), 'completed'))->toOthers();
+        broadcast(new SprintUpdated($sprint->fresh(), 'completed'))->toOthers();
 
         // Coordinator trigger: a completed sprint is a review opportunity.
         // Best-effort — coordination must never break the completion itself.
@@ -238,6 +240,17 @@ class SprintController extends Controller
             );
         } catch (Throwable $e) {
             Log::warning('Coordinator trigger failed on sprint completion', [
+                'sprint_id' => $sprint->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        // Auto-PR: ask the project's agent to open a pull request for the
+        // sprint's work. Best-effort — never breaks the completion response.
+        try {
+            app(SprintFinalizeService::class)->dispatchPullRequest($sprint);
+        } catch (Throwable $e) {
+            Log::warning('Sprint PR dispatch failed', [
                 'sprint_id' => $sprint->id,
                 'error' => $e->getMessage(),
             ]);
@@ -273,5 +286,4 @@ class SprintController extends Controller
             ],
         ]);
     }
-
 }
