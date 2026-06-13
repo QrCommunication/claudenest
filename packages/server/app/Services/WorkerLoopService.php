@@ -137,8 +137,12 @@ class WorkerLoopService
 
         $staleBefore = now()->subSeconds(self::STUCK_AFTER_SECONDS);
 
+        // Liveness via the SESSION (running/waiting_input), NOT instance.connected():
+        // a transient agent WS drop flips disconnected_at while the worker keeps
+        // running, and connected() would then stop nudging a live-but-stuck worker.
         $instances = $project->claudeInstances()
-            ->connected()
+            ->whereHas('session', fn ($query) => $query->where('orchestrated', true)
+                ->whereNotIn('status', ['completed', 'error', 'terminated']))
             ->where(function ($query) use ($staleBefore) {
                 $query->where('status', 'idle')
                     ->orWhereNull('last_activity_at')

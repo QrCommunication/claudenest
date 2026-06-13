@@ -489,14 +489,18 @@ class SharedTask extends Model
     public static function reclaimOrphaned(string $projectId): int
     {
         return DB::transaction(function () use ($projectId) {
-            $connectedIds = ClaudeInstance::where('project_id', $projectId)
-                ->connected()
+            // Liveness is keyed off the SESSION status, NOT instance.disconnected_at:
+            // a transient agent WebSocket drop spuriously flips disconnected_at
+            // while the worker process (and its session=running) keep going —
+            // reclaiming on disconnected_at would yank tasks from live workers.
+            $liveInstanceIds = ClaudeInstance::where('project_id', $projectId)
+                ->whereHas('session', fn ($query) => $query->whereNotIn('status', ['completed', 'error', 'terminated']))
                 ->pluck('id')
                 ->all();
 
             $orphans = static::forProject($projectId)
                 ->where('status', 'in_progress')
-                ->when($connectedIds !== [], fn ($query) => $query->whereNotIn('assigned_to', $connectedIds))
+                ->when($liveInstanceIds !== [], fn ($query) => $query->whereNotIn('assigned_to', $liveInstanceIds))
                 ->lockForUpdate()
                 ->get();
 
