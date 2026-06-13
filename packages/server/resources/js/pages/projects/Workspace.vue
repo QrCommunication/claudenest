@@ -8,6 +8,15 @@
           <span class="ws-pill-dot" />
           {{ t('projectsWorkspace.workersPill', { count: workerCount }) }}
         </span>
+        <button
+          v-if="pendingMergeCount > 0"
+          class="ws-pill ws-pill--merge"
+          :title="t('projectsWorkspace.header.pendingMergeHint')"
+          @click="openGitRail"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><circle cx="6" cy="18" r="3" /><circle cx="6" cy="6" r="3" /><path d="M6 9v6" /><path d="M18 6a9 9 0 0 1-9 9" /><circle cx="18" cy="6" r="3" /></svg>
+          {{ t('projectsWorkspace.header.pendingMerge', { count: pendingMergeCount }) }}
+        </button>
       </div>
 
       <div class="ws-header-actions">
@@ -227,6 +236,7 @@ import { useTasksStore } from '@/stores/tasks';
 import { useLocksStore } from '@/stores/locks';
 import { useOrchestratorStore, type PermissionMode } from '@/stores/orchestrator';
 import { useSessionsStore } from '@/stores/sessions';
+import { useGitStore } from '@/stores/git';
 import { workerColor, workerShortName } from '@/utils/workerColor';
 import type { ApiResponse, Session } from '@/types';
 
@@ -257,9 +267,18 @@ const tasksStore = useTasksStore();
 const locksStore = useLocksStore();
 const orchestratorStore = useOrchestratorStore();
 const sessionsStore = useSessionsStore();
+const gitStore = useGitStore();
 
 const projectId = computed(() => route.params.id as string);
 const project = computed(() => projectsStore.selectedProject);
+
+// Pending merges (open PRs) for this project — surfaced as a header pill so it
+// stays visible even when the rail is collapsed.
+const pendingMergeCount = computed(() => gitStore.pulls.length);
+function openGitRail(): void {
+  railOpen.value = true;
+  railTab.value = 'git';
+}
 
 // ── Layout state (persisted per project) ─────────────────────────────────────
 
@@ -809,6 +828,17 @@ watch(projectId, () => {
 
 .ws-pill.is-running .ws-pill-dot {
   background-color: #22c55e;
+}
+
+.ws-pill--merge {
+  border: none;
+  cursor: pointer;
+  color: var(--accent-purple, #a855f7);
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 14%, transparent);
+  font-weight: 600;
+}
+.ws-pill--merge:hover {
+  background: color-mix(in srgb, var(--accent-purple, #a855f7) 24%, transparent);
 }
 
 .ws-header-actions {

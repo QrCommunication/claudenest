@@ -1854,7 +1854,9 @@
       "stopOrchestrator": "Stop orchestrator",
       "gridLabel": "Terminal grid layout",
       "gridOption": "{count} panes",
-      "toggleRail": "Toggle side panel"
+      "toggleRail": "Toggle side panel",
+      "pendingMerge": "{count} pending merge",
+      "pendingMergeHint": "Open pull request(s) awaiting merge — open the Git tab"
     },
     "empty": {
       "title": "No workers running",

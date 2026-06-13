@@ -107,11 +107,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import ActivityFeed from '@/components/multiagent/ActivityFeed.vue';
 import InstanceCard from '@/components/multiagent/InstanceCard.vue';
 import GitPanel from '@/components/multiagent/GitPanel.vue';
+import { useGitStore } from '@/stores/git';
 import { workerColor } from '@/utils/workerColor';
 import type { ActivityLog, ClaudeInstance, FileLock, SharedTask, TaskStatus } from '@/types';
 
@@ -135,6 +136,14 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+
+// Pull requests awaiting merge — surfaced as the Git tab badge so a pending
+// merge for this project is visible without opening the tab. Fetched once on
+// mount; the GitPanel keeps the same store in sync when opened / after a merge.
+const gitStore = useGitStore();
+onMounted(() => {
+  void gitStore.fetchPulls(props.projectId);
+});
 
 const GROUP_ORDER: TaskStatus[] = ['in_progress', 'blocked', 'review', 'pending', 'done'];
 
@@ -161,7 +170,7 @@ const railTabs = computed(() => [
   {
     id: 'git' as const,
     label: t('projectsWorkspace.rail.git'),
-    count: 0,
+    count: gitStore.pulls.length,
   },
 ]);
 

@@ -1854,7 +1854,9 @@
       "stopOrchestrator": "Arrêter l'orchestrateur",
       "gridLabel": "Disposition de la grille de terminaux",
       "gridOption": "{count} panneaux",
-      "toggleRail": "Afficher/masquer le panneau latéral"
+      "toggleRail": "Afficher/masquer le panneau latéral",
+      "pendingMerge": "{count} merge en attente",
+      "pendingMergeHint": "Pull request(s) ouverte(s) en attente de merge — ouvrir l'onglet Git"
     },
     "empty": {
       "title": "Aucun worker en cours",
