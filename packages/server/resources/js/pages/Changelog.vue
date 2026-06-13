@@ -136,6 +136,18 @@ interface Entry {
 
 const entries = computed<Entry[]>(() => [
   {
+    version: 'v1.7.1',
+    date: t('docChangelog.v171Date'),
+    title: t('docChangelog.v171Title'),
+    description: t('docChangelog.v171Desc'),
+    changes: [
+      { type: 'feat', text: t('docChangelog.v171Change1') },
+      { type: 'feat', text: t('docChangelog.v171Change2') },
+      { type: 'feat', text: t('docChangelog.v171Change3') },
+      { type: 'fix', text: t('docChangelog.v171Change4') },
+    ],
+  },
+  {
     version: 'v1.7.0',
     date: t('docChangelog.v170Date'),
     title: t('docChangelog.v170Title'),

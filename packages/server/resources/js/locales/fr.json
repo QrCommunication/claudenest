@@ -2666,6 +2666,13 @@
     "noNotifications": "Aucune nouvelle notification"
   },
   "docChangelog": {
+    "v171Date": "13 juin 2026",
+    "v171Title": "Planification par epic & cycle de vie des branches",
+    "v171Desc": "Créer un epic relance l'étape PRD + décomposition pour générer automatiquement ses sprints et ses tâches, les merges en attente sont visibles, et les branches des workers sont nettoyées automatiquement.",
+    "v171Change1": "Création d'epic via PRD + décomposition : un formulaire génère automatiquement les sprints et les tâches rattachés à l'epic.",
+    "v171Change2": "Indicateur de merge en attente : le nombre de pull requests ouvertes est visible (badge onglet Git + pastille dans l'en-tête du workspace).",
+    "v171Change3": "Cycle de vie des branches : au merge réussi d'une PR, la branche est supprimée (distante + locale) ; la finalisation de sprint restaure la branche d'origine.",
+    "v171Change4": "Correctifs : les boutons « créer un epic », « démarrer un sprint » et « clôturer le sprint » fonctionnent désormais.",
     "v170Date": "13 juin 2026",
     "v170Title": "Orchestration autonome de bout en bout",
     "v170Desc": "La décomposition d'un PRD structure désormais le travail en sprints et génère le contexte du projet, le contexte global reste vivant au fil des tâches, et le workspace permet de suivre le worktree git, les pull requests et de merger directement.",
