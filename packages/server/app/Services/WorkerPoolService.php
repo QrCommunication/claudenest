@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Events\SessionCreated;
+use App\Events\SessionNotification;
 use App\Events\SessionTerminated;
 use App\Exceptions\WorkerPoolException;
 use App\Models\Session;
@@ -48,6 +49,7 @@ class WorkerPoolService
     public function __construct(
         private SessionPayloadBuilder $payloadBuilder,
         private MultiAgentSessionService $multiAgentSessionService,
+        private CredentialService $credentialService,
     ) {}
 
     /**
@@ -203,6 +205,92 @@ class WorkerPoolService
         ]);
 
         broadcast(new SessionTerminated($session))->toOthers();
+    }
+
+    /**
+     * Recover a worker whose Claude credential 401'd ("Please run /login").
+     *
+     * Claude OAuth tokens rotate on refresh, so a worker spawned before another
+     * refresh ends up holding a revoked access token → 401. We renew the
+     * credential (rotating token), terminate the stuck worker, reclaim its
+     * in-progress task, and spawn a fresh worker — whose bootstrap prompt makes
+     * it resume that very task. If the OAuth refresh itself fails (refresh token
+     * dead), we cannot relaunch headless: notify the owner to re-login.
+     *
+     * A per-project cooldown prevents a relaunch storm if the renewed token is
+     * also rejected.
+     *
+     * @return array{relaunched: bool, refreshed: bool, needs_login: bool, new_session?: string}
+     */
+    public function relaunchOnAuthError(Session $session): array
+    {
+        $result = ['relaunched' => false, 'refreshed' => false, 'needs_login' => false];
+
+        $project = $session->shared_project_id
+            ? SharedProject::find($session->shared_project_id)
+            : null;
+        $user = $session->user;
+        if (! $project || ! $user) {
+            return $result;
+        }
+
+        // Cooldown: at most one auth-error relaunch per project per 2 minutes.
+        $cooldownKey = "claudenest:authrelaunch:{$project->id}";
+        if (! \Illuminate\Support\Facades\Cache::add($cooldownKey, 1, 120)) {
+            Log::info('Auth-error relaunch skipped (cooldown)', ['project_id' => $project->id]);
+
+            return $result;
+        }
+
+        // Renew the (rotating) OAuth credential.
+        $credential = $session->credential ?? $user->credentials()->default()->first();
+        if ($credential && $credential->auth_type === 'oauth') {
+            try {
+                $this->credentialService->refreshOAuthToken($credential);
+                $result['refreshed'] = true;
+            } catch (Throwable $e) {
+                $result['needs_login'] = true;
+                Log::warning('OAuth refresh failed during auth-error recovery', [
+                    'credential_id' => $credential->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        $orchestration = (array) $project->getSetting('orchestration', []);
+        $permissionMode = $orchestration['permission_mode'] ?? self::DEFAULT_PERMISSION_MODE;
+
+        // Stop the stuck worker and return its in-progress task to the pool.
+        $this->terminateWorker($session);
+        SharedTask::reclaimOrphaned($project->id);
+
+        if ($result['needs_login']) {
+            // No usable credential — surface a re-login prompt to the owner.
+            event(new SessionNotification(
+                $session,
+                'Worker authentication expired — please re-capture your Claude credentials.',
+                null,
+                'warning',
+                'projectsWorkspace.toasts.reloginTitle',
+                'projectsWorkspace.toasts.reloginMessage',
+            ));
+
+            return $result;
+        }
+
+        // Fresh worker: new scoped MCP token + renewed credential env; its
+        // bootstrap prompt claims the reclaimed task → resume.
+        $new = $this->spawnWorker($project, $user, $permissionMode);
+        $result['relaunched'] = true;
+        $result['new_session'] = $new->id;
+
+        Log::info('Worker relaunched after auth 401', [
+            'old_session' => $session->id,
+            'new_session' => $new->id,
+            'refreshed' => $result['refreshed'],
+        ]);
+
+        return $result;
     }
 
     /**

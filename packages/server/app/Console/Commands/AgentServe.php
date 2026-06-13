@@ -467,6 +467,7 @@ class AgentServe extends Command
                 'oauth:tokens' => $this->onOAuthTokens($data),
                 'oauth:error' => $this->onOAuthError($data),
                 'sprint:finalized' => $this->onSprintFinalized($data),
+                'session:auth_error' => $this->onSessionAuthError($data),
                 'ping' => $this->onAgentPing($machineId),
                 'error' => $this->onAgentError($machineId, $data),
                 default => $this->warn('['.date('H:i:s')."] Unknown agent message type: {$type}"),
@@ -711,6 +712,35 @@ class AgentServe extends Command
      * Agent reported the outcome of a sprint:finalize (PR creation). Broadcast
      * the PR URL (or the error) to the project channel and record an activity.
      */
+    /**
+     * A worker's Claude credential returned 401 ("Please run /login"). Renew the
+     * (rotating) OAuth token and relaunch the worker so it resumes its task.
+     */
+    private function onSessionAuthError(array $data): void
+    {
+        $sessionId = $data['sessionId'] ?? null;
+        if (! $sessionId || ! Str::isUuid((string) $sessionId)) {
+            return;
+        }
+
+        $session = Session::find($sessionId);
+        if (! $session || ! $session->orchestrated) {
+            return;
+        }
+
+        $this->warn('['.date('H:i:s')."] Worker auth 401 ({$sessionId}) — renewing credential + relaunching");
+
+        try {
+            $result = app(\App\Services\WorkerPoolService::class)->relaunchOnAuthError($session);
+            $this->info('['.date('H:i:s').'] Auth recovery: '.json_encode($result));
+        } catch (\Throwable $e) {
+            Log::error('Auth-error recovery failed', [
+                'session_id' => $sessionId,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
     private function onSprintFinalized(array $data): void
     {
         $projectId = $data['projectId'] ?? null;

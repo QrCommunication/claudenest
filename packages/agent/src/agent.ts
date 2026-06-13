@@ -7,6 +7,7 @@ import { WebSocketClient } from './websocket/client.js';
 import { SessionManager } from './sessions/manager.js';
 import { ClaudeSessionDiscovery } from './sessions/discovery.js';
 import { ensureBwrap } from './sessions/sandbox.js';
+import { shouldSignalAuthError, forgetAuthError } from './sessions/auth-error.js';
 import { SkillsDiscovery } from './discovery/skills.js';
 import { MCPManager } from './discovery/mcp.js';
 import { ContextClient } from './context/client.js';
@@ -329,6 +330,13 @@ export class ClaudeNestAgent extends EventEmitter {
     // Session events
     this.sessionManager.on('output', (data: SessionOutput) => {
       this.wsClient.send('session:output', data);
+
+      // Detect a Claude credential 401 ("Please run /login") in the output and
+      // signal the server (debounced) so it renews the token + relaunches.
+      if (shouldSignalAuthError(data.sessionId, data.data ?? '', Date.now())) {
+        this.logger.warn({ sessionId: data.sessionId }, 'Claude auth 401 detected — signalling server');
+        this.wsClient.send('session:auth_error', { sessionId: data.sessionId });
+      }
     });
 
     this.sessionManager.on('status', (data: { sessionId: string; status: string }) => {
@@ -336,6 +344,7 @@ export class ClaudeNestAgent extends EventEmitter {
     });
 
     this.sessionManager.on('sessionEnded', (data: { sessionId: string; exitCode: number }) => {
+      forgetAuthError(data.sessionId);
       this.wsClient.send('session:exited', data);
     });
 
