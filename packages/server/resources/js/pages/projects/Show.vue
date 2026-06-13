@@ -221,7 +221,11 @@
 
           <!-- Sprints segment -->
           <div v-else>
-            <SprintBoard :sprint="sprintsStore.currentSprint || null">
+            <SprintBoard
+              :sprint="sprintsStore.currentSprint || null"
+              @complete-sprint="handleCompleteSprint"
+              @create-sprint="showCreateEpicModal = true"
+            >
               <TasksBoard :project-id="projectId" />
             </SprintBoard>
             <BurndownChart
@@ -347,6 +351,13 @@
         {{ t('projectsShow.backToProjects') }}
       </router-link>
     </div>
+
+    <!-- Epic from PRD → decomposition → sprints + tasks -->
+    <EpicDecompositionModal
+      v-model="showCreateEpicModal"
+      :project-id="projectId"
+      @created="handleEpicCreated"
+    />
   </div>
 </template>
 
@@ -358,6 +369,7 @@ import { useProjectsStore } from '@/stores/projects';
 import { useMachinesStore } from '@/stores/machines';
 import { useEpicsStore } from '@/stores/epics';
 import { useSprintsStore } from '@/stores/sprints';
+import { useTasksStore } from '@/stores/tasks';
 import { useToast } from '@/composables/useToast';
 import { api } from '@/composables/useApi';
 import Card from '@/components/common/Card.vue';
@@ -368,6 +380,7 @@ import OrchestrationPanel from './Orchestration.vue';
 import LocksPanel from './Locks.vue';
 import EpicBoard from '@/components/multiagent/EpicBoard.vue';
 import SprintBoard from '@/components/multiagent/SprintBoard.vue';
+import EpicDecompositionModal from '@/components/multiagent/EpicDecompositionModal.vue';
 import BurndownChart from '@/components/multiagent/BurndownChart.vue';
 import PlanningChat from '@/components/multiagent/PlanningChat.vue';
 
@@ -378,6 +391,7 @@ const projectsStore = useProjectsStore();
 const machinesStore = useMachinesStore();
 const epicsStore = useEpicsStore();
 const sprintsStore = useSprintsStore();
+const tasksStore = useTasksStore();
 const toast = useToast();
 
 const projectId = computed(() => route.params.id as string);
@@ -392,6 +406,28 @@ const epicFilter = ref('');
 const sprintFilter = ref('');
 const showCreateEpicModal = ref(false);
 const planningChatRef = ref<InstanceType<typeof PlanningChat> | null>(null);
+
+// Complete the active sprint (was a no-op: SprintBoard emitted to nobody).
+async function handleCompleteSprint(): Promise<void> {
+  const sprint = sprintsStore.currentSprint;
+  if (!sprint) return;
+  try {
+    await sprintsStore.completeSprint(sprint.id);
+    toast.success(t('projectsShow.sprintCompleted'));
+    await sprintsStore.fetchSprints(projectId.value);
+  } catch {
+    toast.error(t('projectsShow.sprintCompleteFailed'));
+  }
+}
+
+// An epic (+ its sprints + tasks) was generated from a PRD — refresh planning.
+async function handleEpicCreated(): Promise<void> {
+  await Promise.all([
+    epicsStore.fetchEpics(projectId.value),
+    sprintsStore.fetchSprints(projectId.value),
+    tasksStore.fetchTasks(projectId.value),
+  ]);
+}
 
 // Standardized project tab order: Overview · Workspace · Tasks · Planning ·
 // Context · Locks · Orchestration · Instances · Activity.

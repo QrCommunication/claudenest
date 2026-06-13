@@ -1204,6 +1204,19 @@
     "loading": "Loading...",
     "loadMore": "Load more"
   },
+  "epicDecomposition": {
+    "title": "New epic — PRD & decomposition",
+    "epicName": "Epic name",
+    "epicNamePlaceholder": "e.g. Billing, Authentication…",
+    "decomposing": "Decomposing…",
+    "decomposed": "Plan generated",
+    "sprints": "sprints",
+    "tasks": "tasks",
+    "createEpic": "Create epic & generate sprints",
+    "creating": "Creating…",
+    "created": "Epic \"{name}\" created with its sprints and tasks",
+    "createFailed": "Failed to create the epic"
+  },
   "multiagentEpicboard": {
     "epics": "Epics",
     "noEpicsYet": "No epics yet",
@@ -2185,6 +2198,8 @@
     "activityLog": "Activity Log",
     "noActivityRecorded": "No activity recorded yet",
     "projectNotFound": "Project not found",
+    "sprintCompleted": "Sprint completed",
+    "sprintCompleteFailed": "Failed to complete the sprint",
     "backToProjects": "Back to Projects",
     "tabOverview": "Overview",
     "tabWorkspace": "Workspace",

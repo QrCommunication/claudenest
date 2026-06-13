@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Epic;
 use App\Models\SharedProject;
 use App\Models\SharedTask;
 use App\Models\Sprint;
@@ -171,9 +172,15 @@ class DecompositionService
     /**
      * Apply a master plan to a project — create SharedTasks from waves.
      *
-     * @return array{created: int, tasks: \Illuminate\Support\Collection}
+     * When $epic is given (epic-from-PRD flow), the generated tasks are linked
+     * to that epic (epic_id) and the new sprints are created in `planning`
+     * status and appended after existing ones — an epic is additive and must
+     * never disturb the project's current active sprint. Without an epic
+     * (project bootstrap), the first wave's sprint starts `active`.
+     *
+     * @return array{created: int, sprints: int, tasks: \Illuminate\Support\Collection}
      */
-    public function applyMasterPlan(SharedProject $project): array
+    public function applyMasterPlan(SharedProject $project, ?Epic $epic = null): array
     {
         $plan = $project->master_plan;
 
@@ -187,7 +194,7 @@ class DecompositionService
         // effort — a context-generation failure must never block task creation.
         $this->ensureProjectContext($project);
 
-        return DB::transaction(function () use ($project, $plan) {
+        return DB::transaction(function () use ($project, $plan, $epic) {
             $created = 0;
             $tasks = collect();
             $sprintsCreated = 0;
@@ -197,11 +204,15 @@ class DecompositionService
 
             // One Sprint per wave: waves are sequential, time-boxed phases
             // (Foundation → Backend → Frontend → Integration), which is exactly
-            // the Sprint semantic. The first wave's sprint starts `active` so
-            // the orchestrator/runner has a current iteration; later waves stay
-            // `planning` until promoted. Tasks inherit their wave's sprint_id so
-            // sprint completion (→ auto-PR) is driven by real task progress.
-            $sortOrder = 0;
+            // the Sprint semantic. In project mode the first wave's sprint starts
+            // `active`; in epic mode every sprint is `planning` and appended after
+            // existing ones. Tasks inherit their wave's sprint_id (and epic_id in
+            // epic mode) so sprint completion (→ auto-PR) is driven by real task
+            // progress.
+            $sortOrder = $epic
+                ? ((int) ($project->sprints()->max('sort_order') ?? -1) + 1)
+                : 0;
+            $isFirstWave = true;
 
             foreach ($plan['waves'] as $wave) {
                 $waveId = $wave['id'];
@@ -210,16 +221,18 @@ class DecompositionService
                     'project_id' => $project->id,
                     'name' => $wave['name'] ?? "Wave {$waveId}",
                     'goal' => $wave['description'] ?? '',
-                    'status' => $sortOrder === 0 ? 'active' : 'planning',
+                    'status' => (! $epic && $isFirstWave) ? 'active' : 'planning',
                     'sort_order' => $sortOrder,
                 ]);
                 $sprintsCreated++;
                 $sortOrder++;
+                $isFirstWave = false;
 
                 foreach ($wave['tasks'] as $taskDef) {
                     $task = SharedTask::create([
                         'project_id' => $project->id,
                         'sprint_id' => $sprint->id,
+                        'epic_id' => $epic?->id,
                         'wave' => $waveId,
                         'title' => $taskDef['title'],
                         'description' => $taskDef['description'] ?? '',

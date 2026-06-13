@@ -219,6 +219,63 @@ class DecompositionController extends Controller
     }
 
     /**
+     * Create an epic from the project's current master plan, generating its
+     * sprints + tasks (linked to the epic). Additive — never deletes existing
+     * tasks; the new sprints are appended in `planning` status.
+     *
+     * POST /api/projects/{project}/epics/from-plan
+     */
+    public function createEpicFromPlan(Request $request, SharedProject $project): JsonResponse
+    {
+        if ($project->user_id !== $request->user()->id) {
+            return $this->errorResponse('FORBIDDEN', 'Project does not belong to you', 403);
+        }
+
+        if (empty($project->master_plan)) {
+            return $this->errorResponse('NO_PLAN', 'No master plan to apply — decompose a PRD first', 422);
+        }
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string|max:2000',
+            'color' => 'nullable|string|max:9',
+            'icon' => 'nullable|string|max:50',
+            'priority' => 'nullable|in:low,medium,high,critical',
+        ]);
+
+        $epic = \App\Models\Epic::create([
+            'project_id' => $project->id,
+            'title' => $validated['title'],
+            'description' => $validated['description'] ?? ($project->master_plan['prd_summary'] ?? null),
+            'color' => $validated['color'] ?? \App\Models\Epic::DEFAULT_COLOR,
+            'icon' => $validated['icon'] ?? 'layers',
+            'status' => 'open',
+            'priority' => $validated['priority'] ?? 'medium',
+        ]);
+
+        try {
+            $result = $this->decompositionService->applyMasterPlan($project, $epic);
+        } catch (\InvalidArgumentException $e) {
+            $epic->delete();
+
+            return $this->errorResponse('APPLY_ERROR', $e->getMessage(), 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'epic' => new \App\Http\Resources\EpicResource($epic->fresh()),
+                'created' => $result['created'],
+                'sprints' => $result['sprints'],
+            ],
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ], 201);
+    }
+
+    /**
      * Re-launch decomposition (regenerate).
      *
      * POST /api/projects/{project}/master-plan/regenerate

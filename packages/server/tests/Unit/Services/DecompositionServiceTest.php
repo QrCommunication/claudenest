@@ -121,6 +121,35 @@ class DecompositionServiceTest extends TestCase
     }
 
     #[Test]
+    public function apply_master_plan_with_epic_links_tasks_and_appends_planning_sprints(): void
+    {
+        $project = $this->projectWithPlan();
+        $epic = \App\Models\Epic::create([
+            'project_id' => $project->id,
+            'title' => 'Billing',
+            'color' => '#a855f7',
+            'status' => 'open',
+            'priority' => 'high',
+        ]);
+
+        $result = app(DecompositionService::class)->applyMasterPlan($project, $epic);
+
+        $this->assertSame(3, $result['created']);
+        $this->assertSame(2, $result['sprints']);
+
+        // Every generated task is linked to the epic.
+        $this->assertSame(
+            0,
+            SharedTask::where('project_id', $project->id)->where('epic_id', '!=', $epic->id)->count(),
+        );
+        $this->assertSame(3, $epic->tasks()->count());
+
+        // Epic mode never activates a sprint (additive) — all planning.
+        $this->assertSame(0, Sprint::where('project_id', $project->id)->where('status', 'active')->count());
+        $this->assertSame(2, Sprint::where('project_id', $project->id)->where('status', 'planning')->count());
+    }
+
+    #[Test]
     public function apply_master_plan_does_not_overwrite_existing_context(): void
     {
         $project = $this->projectWithPlan([

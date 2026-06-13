@@ -188,6 +188,8 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     // ==================== EPICS ====================
     Route::get('projects/{project}/epics', [Api\EpicController::class, 'index']);
     Route::post('projects/{project}/epics', [Api\EpicController::class, 'store']);
+    // Epic generated from the current master plan (PRD decomposition) → sprints + tasks
+    Route::post('projects/{project}/epics/from-plan', [Api\DecompositionController::class, 'createEpicFromPlan']);
     Route::get('epics/{epic}', [Api\EpicController::class, 'show']);
     Route::patch('epics/{epic}', [Api\EpicController::class, 'update']);
     Route::delete('epics/{epic}', [Api\EpicController::class, 'destroy']);
