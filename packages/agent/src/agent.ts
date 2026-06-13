@@ -6,6 +6,7 @@ import { EventEmitter } from 'events';
 import { WebSocketClient } from './websocket/client.js';
 import { SessionManager } from './sessions/manager.js';
 import { ClaudeSessionDiscovery } from './sessions/discovery.js';
+import { ensureBwrap } from './sessions/sandbox.js';
 import { SkillsDiscovery } from './discovery/skills.js';
 import { MCPManager } from './discovery/mcp.js';
 import { ContextClient } from './context/client.js';
@@ -21,6 +22,7 @@ import {
   createDecomposeHandlers,
   createOAuthHandlers,
   createDiscoveryHandlers,
+  createSprintHandlers,
 } from './handlers/index.js';
 import type {
   AgentConfig,
@@ -159,6 +161,16 @@ export class ClaudeNestAgent extends EventEmitter {
       await this.skillsDiscovery.initialize();
       await this.mcpManager.initialize();
       await this.contextClient.initialize();
+
+      // Best-effort: ensure bubblewrap is present so orchestrated workers are
+      // sandboxed (write-confined to their project). Runs once; fail-open.
+      if (process.env['CLAUDENEST_SANDBOX'] !== '0') {
+        try {
+          ensureBwrap(this.logger);
+        } catch (err) {
+          this.logger.warn({ err }, 'Sandbox (bubblewrap) setup skipped');
+        }
+      }
 
       // Connect to WebSocket
       await this.wsClient.connect();
@@ -429,6 +441,12 @@ export class ClaudeNestAgent extends EventEmitter {
       logger: this.logger,
     });
 
+    // Sprint handlers (auto-PR on sprint completion)
+    const sprintHandlers = createSprintHandlers({
+      wsClient: this.wsClient,
+      logger: this.logger,
+    });
+
     // Register all handlers
     for (const [type, handler] of Object.entries(sessionHandlers)) {
       this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
@@ -452,6 +470,9 @@ export class ClaudeNestAgent extends EventEmitter {
       this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
     }
     for (const [type, handler] of Object.entries(discoveryHandlers)) {
+      this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
+    }
+    for (const [type, handler] of Object.entries(sprintHandlers)) {
       this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
     }
 

@@ -16,6 +16,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { execFileSync, spawn, type ChildProcess } from 'child_process';
 import { TmuxOutputParser, type TmuxOutputEvent } from './tmux-parser.js';
+import { findBwrap, buildBwrapArgs } from './sandbox.js';
 import { getCacheDir } from '../utils/index.js';
 import type { Logger } from '../utils/logger.js';
 import type { SessionConfig, SessionStatus } from '../types/index.js';
@@ -692,8 +693,39 @@ export class TmuxSession extends EventEmitter {
 
     const args = this.buildArgs();
     const parts = [this.options.claudePath, ...args];
-    const escaped = parts.map(p => shellQuote(p)).join(' ');
+
+    // Sandbox interactive project workers: bypassPermissions lets them run
+    // arbitrary Bash, so confine writes to the project via bubblewrap (when
+    // available). Fail-open — an unavailable sandbox never blocks the launch.
+    const sandboxPrefix = this.buildSandboxPrefix();
+    const fullParts = sandboxPrefix
+      ? [...sandboxPrefix, '--', ...parts]
+      : parts;
+
+    const escaped = fullParts.map(p => shellQuote(p)).join(' ');
     return `exec ${escaped}`;
+  }
+
+  /**
+   * bwrap argv prefix for sandboxing this worker, or null when sandboxing is
+   * disabled, not applicable (bash/oneshot/non-project), or bwrap is absent.
+   * Uses the cached bwrap path (install happens once at agent startup).
+   */
+  private buildSandboxPrefix(): string[] | null {
+    if (process.env['CLAUDENEST_SANDBOX'] === '0') return null;
+    if (this.options.mode === 'oneshot') return null;
+    if (!this.options.projectPath) return null;
+    // Only multi-agent workers carry a runtime/mcp config — sandbox those.
+    if (!this.mcpConfigPath) return null;
+
+    const bwrap = findBwrap();
+    if (!bwrap) return null;
+
+    const bwrapArgs = buildBwrapArgs({
+      projectPath: this.options.projectPath,
+      runtimeDir: path.dirname(this.mcpConfigPath),
+    });
+    return [bwrap, ...bwrapArgs];
   }
 
   private buildArgs(): string[] {
