@@ -169,18 +169,22 @@ export function createGitHandlers(context: HandlerContext) {
       return;
     }
 
-    // Resolve the head branch up-front so its local ref can be cleaned up after
-    // the merge (gh --delete-branch removes the remote branch and usually the
-    // local one, but we delete it explicitly to be certain it is gone).
+    // Resolve the head branch up-front so its ref can be cleaned up after merge.
     const headRef = runner.exec('gh', ['pr', 'view', String(number), '--json', 'headRefName', '-q', '.headRefName']);
     const branchName = headRef.ok ? headRef.out.trim() : '';
 
+    // Merge WITHOUT gh's --delete-branch: that flag runs a local `git checkout`
+    // of the base branch, which aborts on a dirty working tree (e.g. a runtime
+    // log file) and would make a *successful* server-side merge look failed.
+    // We merge via the API only, then clean the branch up ourselves (network
+    // delete + local -D, no checkout) so success never depends on tree state.
     const methodFlag = method === 'merge' ? '--merge' : method === 'rebase' ? '--rebase' : '--squash';
-    const args = ['pr', 'merge', String(number), methodFlag];
-    if (deleteBranch) args.push('--delete-branch');
+    const res = runner.exec('gh', ['pr', 'merge', String(number), methodFlag], 60_000);
 
-    const res = runner.exec('gh', args, 60_000);
-    if (!res.ok) {
+    // An already-merged PR (retry, race, or a partial earlier attempt that
+    // merged before failing on branch cleanup) is a success, not a failure.
+    const alreadyMerged = !res.ok && /already merged/i.test(res.out);
+    if (!res.ok && !alreadyMerged) {
       wsClient.send('pr:merge:result', {
         requestId,
         merged: false,
@@ -190,17 +194,21 @@ export function createGitHandlers(context: HandlerContext) {
       return;
     }
 
-    // On a successful merge, guarantee the worker branch is removed: gh handled
-    // the remote, this removes any leftover local ref (best-effort, never fails
-    // the merge result).
+    // Branch cleanup is best-effort and never affects the merge result. Delete
+    // the remote ref over the network (no checkout), and the local ref only
+    // when it is not the branch currently checked out.
     let branchDeleted = false;
     if (deleteBranch && branchName) {
-      runner.exec('git', ['branch', '-D', branchName]);
+      runner.exec('git', ['push', 'origin', '--delete', branchName], 30_000);
+      const current = runner.exec('git', ['rev-parse', '--abbrev-ref', 'HEAD']);
+      if (!current.ok || current.out.trim() !== branchName) {
+        runner.exec('git', ['branch', '-D', branchName]);
+      }
       runner.exec('git', ['fetch', '--prune', 'origin'], 30_000);
       branchDeleted = true;
     }
 
-    logger.info({ number, method, branch: branchName, branchDeleted }, 'Pull request merged');
+    logger.info({ number, method, branch: branchName, branchDeleted, alreadyMerged }, 'Pull request merged');
     wsClient.send('pr:merge:result', {
       requestId,
       merged: true,

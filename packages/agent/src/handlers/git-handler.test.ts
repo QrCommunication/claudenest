@@ -81,12 +81,13 @@ describe('git-handler', () => {
     expect(payload.prs).toEqual([{ number: 7, title: 'Feature', headRefName: 'feat' }]);
   });
 
-  it('merges a PR and deletes the branch (remote + local)', async () => {
+  it('merges a PR via API then cleans the branch (remote + local, no checkout)', async () => {
     const seen: string[][] = [];
     execImpl = (cmd, args) => {
       seen.push(args);
       if (args.includes('command -v gh')) return { ok: true, out: '/usr/bin/gh' };
       if (args[0] === 'pr' && args[1] === 'view') return { ok: true, out: 'claudenest/sprint-x' };
+      if (args[0] === 'rev-parse') return { ok: true, out: 'main' };
       return { ok: true, out: 'merged' };
     };
 
@@ -99,14 +100,32 @@ describe('git-handler', () => {
       branch: 'claudenest/sprint-x',
       branchDeleted: true,
     });
-    // gh removes the remote branch via --delete-branch...
+    // Merge is API-only — never gh's --delete-branch, which checks out the base
+    // branch locally and aborts on a dirty working tree.
     const mergeCall = seen.find((a) => a[0] === 'pr' && a[1] === 'merge');
     expect(mergeCall).toContain('--squash');
-    expect(mergeCall).toContain('--delete-branch');
-    expect(mergeCall).toContain('7');
-    // ...and the local ref is removed explicitly.
+    expect(mergeCall).not.toContain('--delete-branch');
+    // Remote ref deleted over the network (no checkout)...
+    const remoteDelete = seen.find((a) => a[0] === 'push' && a.includes('--delete'));
+    expect(remoteDelete).toContain('claudenest/sprint-x');
+    // ...and the local ref removed (we are on 'main', not the merged branch).
     const localDelete = seen.find((a) => a[0] === 'branch' && a[1] === '-D');
     expect(localDelete).toContain('claudenest/sprint-x');
+  });
+
+  it('treats an already-merged PR as success (resilient to a dirty tree)', async () => {
+    execImpl = (cmd, args) => {
+      if (args.includes('command -v gh')) return { ok: true, out: '/usr/bin/gh' };
+      if (args[0] === 'pr' && args[1] === 'view') return { ok: true, out: 'claudenest/sprint-x' };
+      if (args[0] === 'pr' && args[1] === 'merge') {
+        return { ok: false, out: '! Pull request #41 was already merged' };
+      }
+      return { ok: true, out: 'main' };
+    };
+
+    await handlers['pr:merge']({ requestId: 'r6', projectPath: '/app', number: 41 });
+
+    expect(sent[0]!.payload).toMatchObject({ requestId: 'r6', merged: true, number: 41 });
   });
 
   it('surfaces a merge failure as merged:false', async () => {

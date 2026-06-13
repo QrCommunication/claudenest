@@ -36,8 +36,8 @@ class FileLockApiTest extends TestCase
                 'success',
                 'data' => [
                     '*' => [
-                        'path', 'lockedBy', 'reason',
-                        'lockedAt', 'expiresAt', 'remainingSeconds',
+                        'path', 'locked_by', 'reason',
+                        'locked_at', 'expires_at', 'remaining_seconds',
                     ],
                 ],
                 'meta',

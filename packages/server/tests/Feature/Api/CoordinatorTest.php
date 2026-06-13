@@ -82,7 +82,7 @@ class CoordinatorTest extends TestCase
                 return $machineId === $this->machine->id
                     && $type === 'session:create'
                     && $payload['sessionId'] === $session->id
-                    && $payload['permissionMode'] === 'default'
+                    && $payload['permissionMode'] === 'bypassPermissions'
                     && $payload['mcpEnv']['CLAUDENEST_ABILITIES'] === 'multiagent,planning'
                     && str_contains($payload['appendSystemPrompt'], 'incident coordinator for project Phoenix')
                     && str_contains($payload['appendSystemPrompt'], 'task_thrashing')

@@ -155,10 +155,14 @@ class CoordinatorService
             'orchestrated' => false,
         ]);
 
+        // Same level as orchestrated workers: the coordinator runs unattended,
+        // so it must not stall on permission prompts when calling its MCP
+        // planning tools (bypassPermissions). It is sandboxed identically — the
+        // bwrap gate fires on any session carrying a project + mcpConfig.
         $payload = $this->payloadBuilder->build(
             $session,
             $project,
-            'default',
+            WorkerPoolService::DEFAULT_PERMISSION_MODE,
             extraAbilities: ['planning'],
             systemPromptOverride: $this->buildCoordinatorSystemPrompt($project, $type),
         );

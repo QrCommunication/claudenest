@@ -169,11 +169,13 @@ class WorkerOrchestrationTest extends TestCase
     }
 
     #[Test]
-    public function session_store_returns_403_plan_001_when_cap_exhausted(): void
+    public function session_store_has_no_plan_cap(): void
     {
         $this->spy(AgentGateway::class);
 
-        $user = User::factory()->create(); // community plan → cap 3
+        // Free-unlimited model: there is no per-plan concurrency cap, so a new
+        // session is created even with several sessions already running.
+        $user = User::factory()->create();
         $machine = Machine::factory()->for($user)->create();
 
         Session::factory()->count(3)->for($machine)->for($user)->create(['status' => 'running']);
@@ -183,10 +185,9 @@ class WorkerOrchestrationTest extends TestCase
                 'mode' => 'interactive',
             ]);
 
-        $response->assertStatus(403)
-            ->assertJsonPath('error.code', 'PLAN_001');
+        $response->assertStatus(201);
 
-        $this->assertSame(3, Session::forUser($user->id)->count());
+        $this->assertSame(4, Session::forUser($user->id)->count());
     }
 
     #[Test]
