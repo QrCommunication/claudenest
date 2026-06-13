@@ -158,7 +158,7 @@ class WorkerLoopTest extends TestCase
     }
 
     #[Test]
-    public function third_nudge_pauses_the_worker_and_notifies_instead(): void
+    public function nudge_budget_exhausted_cools_down_the_worker_and_notifies_instead(): void
     {
         Event::fake([SessionNotification::class]);
         $gateway = $this->spy(AgentGateway::class);
@@ -166,18 +166,25 @@ class WorkerLoopTest extends TestCase
         $this->makeWorker();
         SharedTask::factory()->create(['project_id' => $this->project->id, 'status' => 'pending', 'files' => []]);
 
-        // Two nudges already sent without progress
-        Cache::put(WorkerLoopService::nudgesKey($this->instance->id), 2, 3600);
+        // The budget (MAX_NUDGES_BEFORE_PAUSE) minus one already spent: the next
+        // nudge tips it over into a cool-down.
+        Cache::put(
+            WorkerLoopService::nudgesKey($this->instance->id),
+            WorkerLoopService::MAX_NUDGES_BEFORE_PAUSE - 1,
+            3600,
+        );
 
         $this->heartbeatIdle();
 
-        // Paused instead of nudged
+        // Cooled down instead of nudged.
         $gateway->shouldNotHaveReceived('sendMessage');
         $this->assertTrue((bool) Cache::get(WorkerLoopService::pausedKey($this->instance->id)));
+        // Counter cleared so the dispatcher resumes with a fresh budget.
+        $this->assertNull(Cache::get(WorkerLoopService::nudgesKey($this->instance->id)));
 
         Event::assertDispatched(SessionNotification::class, function (SessionNotification $event) {
             return $event->session->id === $this->session->id
-                && $event->title === 'Worker paused'
+                && $event->title === 'Worker cooling down'
                 && $event->notificationType === 'warning';
         });
     }

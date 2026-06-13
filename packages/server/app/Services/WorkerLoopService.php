@@ -34,7 +34,20 @@ class WorkerLoopService
 
     public const NUDGE_COUNTER_TTL_SECONDS = 3600;
 
-    public const MAX_NUDGES_BEFORE_PAUSE = 3;
+    /**
+     * No-progress nudges tolerated before a worker is paused. Sized to absorb
+     * a transient Anthropic API rate-limit (which clears within minutes): at
+     * the orchestrator:dispatch everyMinute cadence this is ~6 min of retries.
+     */
+    public const MAX_NUDGES_BEFORE_PAUSE = 6;
+
+    /**
+     * A pause is a SHORT cool-down, not a give-up: after it expires the
+     * proactive dispatcher resumes the worker with a fresh nudge budget, so a
+     * rate-limited worker keeps retrying indefinitely at a throttled cadence
+     * (~6 min nudging -> 5 min quiet -> repeat) until it claims a task.
+     */
+    public const PAUSE_SECONDS = 300;
 
     public const RECYCLE_TASKS_COMPLETED = 5;
 
@@ -297,12 +310,20 @@ class WorkerLoopService
 
     private function pause(ClaudeInstance $instance, Session $session, int $nudgeCount): void
     {
-        Cache::put(self::pausedKey($instance->id), true, self::NUDGE_COUNTER_TTL_SECONDS);
+        // Short cool-down (not a give-up): clear the no-progress counter so the
+        // dispatcher resumes this worker with a fresh nudge budget once the
+        // pause expires. A transient rate-limit thus self-heals; a genuinely
+        // stuck worker just retries at a throttled cadence (and a human can
+        // open its terminal). resetNoProgress also forgets pausedKey, so set
+        // the cool-down AFTER it.
+        self::resetNoProgress($instance->id);
+        Cache::put(self::pausedKey($instance->id), true, self::PAUSE_SECONDS);
 
-        Log::warning('Worker loop: pausing worker after repeated nudges without progress', [
+        Log::warning('Worker loop: pausing worker (cool-down) after repeated nudges without progress', [
             'instance_id' => $instance->id,
             'session_id' => $session->id,
             'nudges' => $nudgeCount,
+            'cool_down_seconds' => self::PAUSE_SECONDS,
         ]);
 
         // event() (not broadcast()) so registered listeners fire too — the
@@ -310,11 +331,12 @@ class WorkerLoopService
         event(new SessionNotification(
             $session,
             sprintf(
-                'Worker %s was paused after %d nudges without progress. Open its terminal to unblock it, or release its task; it resumes automatically on task claim/complete.',
+                'Worker %s made no progress after %d nudges (likely API rate-limit) — cooling down %ds then retrying automatically. Open its terminal to intervene.',
                 $instance->id,
                 $nudgeCount,
+                self::PAUSE_SECONDS,
             ),
-            'Worker paused',
+            'Worker cooling down',
             'warning',
         ));
     }
