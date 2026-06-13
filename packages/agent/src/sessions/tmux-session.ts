@@ -180,13 +180,34 @@ export class TmuxSession extends EventEmitter {
       return;
     }
 
-    // Hex-encode every byte for binary-safe transmission
-    const hex = Buffer.from(data)
-      .toString('hex')
-      .match(/../g)!
-      .join(' ');
+    // Submit handling: a trailing CR/LF must reach the TUI as a DISTINCT Enter
+    // key event, AFTER the text body. Sending "text\r" as one raw byte burst
+    // makes Claude Code's TUI treat the burst as a paste and the trailing CR
+    // becomes an in-field newline — the text is written but never submitted
+    // (the orchestration nudge bug). Splitting the body from a separate
+    // `send-keys Enter` reliably submits, for nudges and human input alike.
+    const hasSubmit = data.endsWith('\r') || data.endsWith('\n');
+    const body = hasSubmit ? data.replace(/[\r\n]+$/, '') : data;
 
-    this.controller.stdin?.write(`send-keys -H -t ${this.tmuxName} ${hex}\n`);
+    if (body.length > 0) {
+      const hex = Buffer.from(body)
+        .toString('hex')
+        .match(/../g)!
+        .join(' ');
+      this.controller.stdin?.write(`send-keys -H -t ${this.tmuxName} ${hex}\n`);
+    }
+
+    if (hasSubmit) {
+      // Enter as a named key, after the paste settles, so the TUI registers a
+      // real submit rather than an in-field newline.
+      const sendEnter = () =>
+        this.controller?.stdin?.write(`send-keys -t ${this.tmuxName} Enter\n`);
+      if (body.length > 0) {
+        setTimeout(sendEnter, 80);
+      } else {
+        sendEnter();
+      }
+    }
   }
 
   resize(cols: number, rows: number): void {
