@@ -1019,7 +1019,7 @@
     },
     "planning": {
       "title": "D'un brief d'un paragraphe à un sprint calibré",
-      "body": "Ouvrez une session de planification, décrivez ce que vous voulez livrer, et ClaudeNest rédige les épics, les tâches et un sprint — dimensionné sur la vélocité réelle de votre projet, pas sur une estimation. Chaque action qu'il entreprend est atomique et apparaît instantanément sur le board.",
+      "body": "Ouvrez une session de planification, décrivez ce que vous voulez livrer, et ClaudeNest rédige les épics, les tâches et un sprint — dimensionné sur la vélocité réelle de votre projet, pas sur une estimation. Puis il lance le build lui-même : un pool de workers Claude sandboxés réclame chaque tâche, la code et la termine en autonomie, en se recyclant vers un contexte frais entre les tâches. Terminez le sprint et il ouvre une pull request pour le travail.",
       "bullet": "Et quand ça dérape — une tâche rejetée deux fois, deux workers qui se disputent un verrou — le coordinateur d'incidents lance une session Claude pour résoudre le problème. Plafonné à une par heure, pour que ça ne s'emballe pas."
     },
     "what_is": {
@@ -1203,7 +1203,15 @@
   "multiagentEpicboard": {
     "epics": "Épopées",
     "noEpicsYet": "Aucune épopée pour le moment",
-    "createFirstEpic": "Créez votre première épopée"
+    "createFirstEpic": "Créez votre première épopée",
+    "tasks": "tâches",
+    "statusOpen": "Ouverte",
+    "statusInProgress": "En cours",
+    "statusDone": "Terminée",
+    "priorityLow": "Basse",
+    "priorityMedium": "Moyenne",
+    "priorityHigh": "Haute",
+    "priorityCritical": "Critique"
   },
   "multiagentFilelockbadge": {
     "lockedBy": "Verrouillé par {owner}",
@@ -1434,7 +1442,36 @@
     "unclaimed": "Non réclamée",
     "claimTask": "Réclamer la tâche",
     "releaseTask": "Libérer la tâche",
-    "completeTask": "Terminer la tâche"
+    "completeTask": "Terminer la tâche",
+    "statusBacklog": "Backlog",
+    "statusPending": "En attente",
+    "statusInProgress": "En cours",
+    "statusBlocked": "Bloquée",
+    "statusReview": "Revue",
+    "statusDone": "Terminée",
+    "priorityLow": "Basse",
+    "priorityMedium": "Moyenne",
+    "priorityHigh": "Haute",
+    "priorityCritical": "Critique",
+    "points": "pts",
+    "storyPoints": "Story points"
+  },
+  "statusBadge": {
+    "status": {
+      "open": "Ouvert",
+      "backlog": "Backlog",
+      "pending": "En attente",
+      "inProgress": "En cours",
+      "blocked": "Bloquée",
+      "review": "Revue",
+      "done": "Terminée"
+    },
+    "priority": {
+      "low": "Basse",
+      "medium": "Moyenne",
+      "high": "Haute",
+      "critical": "Critique"
+    }
   },
   "terminalXtermterminal": {
     "reconnect": "Reconnecter",
@@ -2589,6 +2626,16 @@
     "noNotifications": "Aucune nouvelle notification"
   },
   "docChangelog": {
+    "v160Date": "13 juin 2026",
+    "v160Title": "Orchestration autonome sandboxée",
+    "v160Desc": "Les workers construisent désormais votre backlog de bout en bout, seuls — ils réclament, codent, terminent et se recyclent — chacun confiné dans un sandbox léger. Le planificateur lance lui-même le build, et un sprint se livre sous forme de pull request.",
+    "v160Change1": "Workers autonomes : le pool piloté par le serveur réclame, construit et termine les tâches en attente sans aucune supervision (bypassPermissions, boucle auto-entretenue).",
+    "v160Change2": "Workers sandboxés : chaque worker tourne dans un sandbox bubblewrap léger (sans Docker) — lecture globale mais écritures confinées à son propre projet. L'agent l'installe automatiquement.",
+    "v160Change3": "Contexte frais par tâche : un worker est recyclé en session propre après chaque tâche terminée, le contexte ne gonfle jamais sur l'ensemble du backlog.",
+    "v160Change4": "Le planificateur lance l'exécution : depuis le chat de planification, execution_start spawne le pool de workers pour construire le plan qu'il vient de rédiger.",
+    "v160Change5": "Auto-PR de sprint : terminer un sprint ouvre automatiquement une pull request pour son travail (branche + commit + push + gh pr create) et en affiche l'URL.",
+    "v160Change6": "Boucle résiliente : dispatch indépendant du heartbeat, cool-down sur rate-limit avec retry illimité, reprise des tâches en cours et reconnexion agent infinie — les workers ne restent jamais bloqués.",
+    "v160Change7": "Sessions auto-réparées : un worker dont la mise à jour de statut a été perdue est repromu en running au heartbeat suivant au lieu d'apparaître déconnecté.",
     "heroSubtitle": "Notes de version, nouvelles capacités et correctifs — chaque détail qui vaut le coup.",
     "heroTitleLead": "Mises à jour",
     "heroTitleAccent": "produit",
@@ -4442,7 +4489,17 @@
     "conflict5Title": "La dépendance d'une tâche est bloquée en <code>in_progress</code>",
     "conflict5Desc": "Si l'instance détentrice s'est déconnectée, le serveur remet la tâche au statut <code>pending</code>. Si l'instance est toujours en cours d'exécution mais lente, l'orchestrateur peut déplacer la dépendance vers <code>blocked</code> ou <code>done</code> via <code>PATCH /api/tasks/{id}</code>, débloquant ainsi le travail en aval.",
     "observabilityTipTitle": "Observabilité",
-    "observabilityTipDesc": "Le journal d'activité du projet (<code>GET /api/projects/{id}/activity</code>) enregistre chaque événement de coordination — réservations, libérations, acquisitions de verrous, ajouts de contexte — avec horodatages et identifiants d'instance. Utilisez-le pour déboguer les états inattendus."
+    "observabilityTipDesc": "Le journal d'activité du projet (<code>GET /api/projects/{id}/activity</code>) enregistre chaque événement de coordination — réservations, libérations, acquisitions de verrous, ajouts de contexte — avec horodatages et identifiants d'instance. Utilisez-le pour déboguer les états inattendus.",
+    "autonomousHeading": "Orchestration autonome",
+    "autonomousPara": "Au-delà de la coordination de sessions pilotées par des humains, ClaudeNest peut construire un backlog tout seul. Démarrer l'orchestrateur lance un pool de workers Claude piloté par le serveur : chacun réclame la prochaine tâche disponible, l'implémente, appelle task_complete, puis réclame immédiatement la suivante — une boucle auto-entretenue qui ne demande aucune supervision. Les workers tournent en bypassPermissions pour ne jamais se bloquer sur un dialogue d'autorisation, et l'agent de planification peut lancer le pool lui-même via l'outil execution_start juste après avoir rédigé un plan.",
+    "sandboxHeading": "Workers sandboxés",
+    "sandboxPara": "Comme les workers tournent sans surveillance avec tous les droits, chacun est confiné dans un sandbox <strong>bubblewrap</strong> léger — un sandbox de namespaces Linux non-privilégié et sans daemon (pas de Docker). Le profil est « lecture globale, écriture confinée » : tout le système de fichiers est visible en lecture seule pour que la toolchain (node, git, compilateurs) fonctionne, mais les écritures sont limitées au dossier projet du worker, à son runtime de session et à un /tmp privé. Un worker ne peut donc pas modifier les fichiers système, votre home, ni d'autres projets. L'agent installe bubblewrap automatiquement ; mettez <code>CLAUDENEST_SANDBOX=0</code> pour désactiver.",
+    "freshContextHeading": "Contexte frais par tâche",
+    "freshContextPara": "Après avoir terminé une tâche, un worker est recyclé : sa session est arrêtée et remplacée par une session propre avant de réclamer la suivante. Le contexte ne s'accumule jamais sur l'ensemble du backlog, chaque tâche démarre dans un état focalisé et non gonflé.",
+    "resilienceHeading": "Résilience",
+    "resiliencePara": "La boucle est indépendante du heartbeat : un dispatcher planifié relance tout worker devenu silencieux, donc un tour terminé sur un rate-limit API est réessayé (avec un cool-down et des tentatives illimitées) au lieu de bloquer. Les tâches laissées en cours par un worker crashé sont reprises en priorité, et l'agent se reconnecte au serveur indéfiniment — une panne longue ou un déploiement n'abandonne jamais le pool.",
+    "sprintPrHeading": "Auto-PR de sprint",
+    "sprintPrPara": "Terminer un sprint demande à l'agent du projet d'ouvrir une pull request pour le travail du sprint : il crée une branche, commite l'arbre de travail, push, et exécute gh pr create — puis affiche l'URL de la PR sur le canal du projet. Best-effort : si le remote ou la CLI gh est indisponible, la branche est quand même poussée."
   },
   "docDocsConceptsRagembeddings": {
     "badge": "Concepts",

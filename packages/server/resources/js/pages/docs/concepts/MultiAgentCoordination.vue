@@ -412,6 +412,21 @@
           <p v-html="$t('docDocsConceptsMultiagentcoordination.observabilityTipDesc')"></p>
         </div>
       </div>
+
+      <h2>{{ $t('docDocsConceptsMultiagentcoordination.autonomousHeading') }}</h2>
+      <p>{{ $t('docDocsConceptsMultiagentcoordination.autonomousPara') }}</p>
+
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.sandboxHeading') }}</h3>
+      <p v-html="$t('docDocsConceptsMultiagentcoordination.sandboxPara')"></p>
+
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.freshContextHeading') }}</h3>
+      <p>{{ $t('docDocsConceptsMultiagentcoordination.freshContextPara') }}</p>
+
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.resilienceHeading') }}</h3>
+      <p>{{ $t('docDocsConceptsMultiagentcoordination.resiliencePara') }}</p>
+
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.sprintPrHeading') }}</h3>
+      <p>{{ $t('docDocsConceptsMultiagentcoordination.sprintPrPara') }}</p>
     </section>
   </article>
 </template>

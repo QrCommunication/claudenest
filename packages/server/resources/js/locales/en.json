@@ -1019,7 +1019,7 @@
     },
     "planning": {
       "title": "From a one-paragraph brief to a calibrated sprint",
-      "body": "Open a planning session, describe what you want to ship, and ClaudeNest drafts epics, tasks and a sprint — sized against your project's actual velocity, not a guess. Every action it takes is atomic and shows up on the board instantly.",
+      "body": "Open a planning session, describe what you want to ship, and ClaudeNest drafts epics, tasks and a sprint — sized against your project's actual velocity, not a guess. Then it launches the build itself: a pool of sandboxed Claude workers claims each task, codes it and completes it autonomously, recycling to a fresh context between tasks. Finish the sprint and it opens a pull request for the work.",
       "bullet": "And when things go sideways — a task bounced twice, two workers fighting over a lock — the incident coordinator spawns a Claude session to resolve it. Capped at one per hour, so it can't spiral."
     },
     "what_is": {
@@ -1203,7 +1203,15 @@
   "multiagentEpicboard": {
     "epics": "Epics",
     "noEpicsYet": "No epics yet",
-    "createFirstEpic": "Create your first epic"
+    "createFirstEpic": "Create your first epic",
+    "tasks": "tasks",
+    "statusOpen": "Open",
+    "statusInProgress": "In progress",
+    "statusDone": "Done",
+    "priorityLow": "Low",
+    "priorityMedium": "Medium",
+    "priorityHigh": "High",
+    "priorityCritical": "Critical"
   },
   "multiagentFilelockbadge": {
     "lockedBy": "Locked by {owner}",
@@ -1434,7 +1442,36 @@
     "unclaimed": "Unclaimed",
     "claimTask": "Claim task",
     "releaseTask": "Release task",
-    "completeTask": "Complete task"
+    "completeTask": "Complete task",
+    "statusBacklog": "Backlog",
+    "statusPending": "Pending",
+    "statusInProgress": "In Progress",
+    "statusBlocked": "Blocked",
+    "statusReview": "Review",
+    "statusDone": "Done",
+    "priorityLow": "Low",
+    "priorityMedium": "Medium",
+    "priorityHigh": "High",
+    "priorityCritical": "Critical",
+    "points": "pts",
+    "storyPoints": "Story points"
+  },
+  "statusBadge": {
+    "status": {
+      "open": "Open",
+      "backlog": "Backlog",
+      "pending": "Pending",
+      "inProgress": "In Progress",
+      "blocked": "Blocked",
+      "review": "Review",
+      "done": "Done"
+    },
+    "priority": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "critical": "Critical"
+    }
   },
   "terminalXtermterminal": {
     "reconnect": "Reconnect",
@@ -2589,6 +2626,16 @@
     "noNotifications": "No new notifications"
   },
   "docChangelog": {
+    "v160Date": "June 13, 2026",
+    "v160Title": "Autonomous sandboxed orchestration",
+    "v160Desc": "Workers now build your backlog end-to-end on their own — claiming, coding, completing, and recycling — each one confined to a lightweight sandbox. The planner launches the build itself, and a sprint ships as a pull request.",
+    "v160Change1": "Autonomous workers: the server-driven pool claims, builds and completes pending tasks with zero supervision (bypassPermissions, self-sustaining loop).",
+    "v160Change2": "Sandboxed workers: every worker runs inside a lightweight bubblewrap sandbox (no Docker) — read-all but writes confined to its own project. The agent installs it automatically.",
+    "v160Change3": "Fresh context per task: a worker is recycled into a clean session after each completed task, so context never bloats across the backlog.",
+    "v160Change4": "Planning agent launches execution: from the planning chat, execution_start spawns the worker pool to build the plan it just drafted.",
+    "v160Change5": "Sprint auto-PR: completing a sprint opens a pull request for its work automatically (branch + commit + push + gh pr create) and surfaces the URL.",
+    "v160Change6": "Resilient loop: heartbeat-independent dispatch, rate-limit cool-down with unlimited retry, in-progress task resume, and infinite agent reconnection — workers never stay stuck.",
+    "v160Change7": "Self-healing sessions: a worker whose status update was lost is promoted back to running on its next heartbeat instead of showing as disconnected.",
     "heroSubtitle": "Release notes, new capabilities, and fixes — every shipping detail worth your time.",
     "heroTitleLead": "Product",
     "heroTitleAccent": "updates",
@@ -4442,7 +4489,17 @@
     "conflict5Title": "A task's dependency is stuck in <code>in_progress</code>",
     "conflict5Desc": "If the holding instance has disconnected, the server resets the task to <code>pending</code>. If the instance is still running but slow, the orchestrator can move the dependency to <code>blocked</code> or <code>done</code> via <code>PATCH /api/tasks/{id}</code>, unblocking downstream work.",
     "observabilityTipTitle": "Observability",
-    "observabilityTipDesc": "The project activity log (<code>GET /api/projects/{id}/activity</code>) records every coordination event — claims, releases, lock acquisitions, context additions — with timestamps and instance IDs. Use it to debug unexpected states."
+    "observabilityTipDesc": "The project activity log (<code>GET /api/projects/{id}/activity</code>) records every coordination event — claims, releases, lock acquisitions, context additions — with timestamps and instance IDs. Use it to debug unexpected states.",
+    "autonomousHeading": "Autonomous orchestration",
+    "autonomousPara": "Beyond coordinating human-driven sessions, ClaudeNest can build a backlog on its own. Starting the orchestrator spawns a server-driven pool of Claude workers that claim the next available task, implement it, call task_complete, and immediately claim the next — a self-sustaining loop that needs no supervision. Workers run with bypassPermissions so they never stall on an approval dialog, and the planning agent can launch the pool itself with the execution_start tool right after drafting a plan.",
+    "sandboxHeading": "Sandboxed workers",
+    "sandboxPara": "Because workers run unattended with full permissions, each one is confined to a lightweight <strong>bubblewrap</strong> sandbox — an unprivileged, daemon-less Linux namespace sandbox (no Docker). The profile is \"read-all, write-confined\": the whole filesystem is visible read-only so the toolchain (node, git, compilers) works, but writes are restricted to the worker's own project directory, its session runtime, and a private /tmp. A worker therefore cannot modify system files, your home directory, or other projects. The agent installs bubblewrap automatically; set <code>CLAUDENEST_SANDBOX=0</code> to opt out.",
+    "freshContextHeading": "Fresh context per task",
+    "freshContextPara": "After completing a task, a worker is recycled: its session is terminated and replaced by a clean one before it claims the next task. Context never accumulates across the backlog, so each task starts from a focused, un-bloated state.",
+    "resilienceHeading": "Resilience",
+    "resiliencePara": "The loop is heartbeat-independent: a scheduled dispatcher nudges any worker that has gone silent, so a turn that ends on an API rate-limit is retried (with a cool-down and unlimited retries) instead of stalling. Tasks left in progress by a crashed worker are resumed first, and the agent reconnects to the server forever — a long outage or deploy never strands the pool.",
+    "sprintPrHeading": "Sprint auto-PR",
+    "sprintPrPara": "Completing a sprint asks the project's agent to open a pull request for the sprint's work: it creates a branch, commits the working tree, pushes, and runs gh pr create — then surfaces the PR URL on the project channel. Best-effort: if the remote or gh CLI is unavailable, the branch is still pushed."
   },
   "docDocsConceptsRagembeddings": {
     "badge": "Concepts",
