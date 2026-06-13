@@ -86,7 +86,10 @@ class MultiAgentSessionService
         return [
             'instanceId' => $instance->id,
             'mcpEnv' => [
-                'CLAUDENEST_API_URL' => rtrim((string) config('app.url'), '/') . '/api',
+                // Base origin ONLY (no /api): every MCP tool path and the Stop
+                // hook already prefix '/api/'. Appending '/api' here produced
+                // '/api/api/...' → 404 on every MCP call and heartbeat.
+                'CLAUDENEST_API_URL' => rtrim((string) config('app.url'), '/'),
                 'CLAUDENEST_TOKEN' => $token['plainTextToken'],
                 'CLAUDENEST_PROJECT_ID' => $project->id,
                 'CLAUDENEST_INSTANCE_ID' => $instance->id,

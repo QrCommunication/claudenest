@@ -165,6 +165,25 @@ class MultiAgentSessionServiceTest extends TestCase
     }
 
     #[Test]
+    public function attach_builds_mcp_api_url_as_bare_origin_without_double_api(): void
+    {
+        // Regression: the agent's MCP tool paths and the Stop hook already
+        // prefix '/api/'. CLAUDENEST_API_URL must be the bare origin — an
+        // extra '/api' yields '/api/api/...' → 404 on every MCP call/heartbeat.
+        config(['app.url' => 'https://claudenest.io']);
+
+        $project = SharedProject::factory()->create();
+        $session = Session::factory()->create([
+            'shared_project_id' => $project->id,
+        ]);
+
+        $apiUrl = $this->makeService()->attach($session, $project)['mcpEnv']['CLAUDENEST_API_URL'];
+
+        $this->assertSame('https://claudenest.io', $apiUrl);
+        $this->assertFalse(str_ends_with($apiUrl, '/api'));
+    }
+
+    #[Test]
     public function attach_prompt_limits_open_tasks_to_ten(): void
     {
         [$session, $project] = $this->makeAttachFixtures();
