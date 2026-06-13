@@ -101,15 +101,19 @@ async function apiUpdateProjectWithPlan(
   projectId: string,
   state: WizardState,
 ): Promise<void> {
-  await api.patch<ApiResponse<unknown>>(
-    `/projects/${projectId}`,
-    {
-      name: state.projectName,
-      summary: state.masterPlan!.prd_summary,
-      prd: state.prd,
-      master_plan: state.masterPlan,
-    },
-  );
+  // Patch name (+ the plan when this client has it synced). The decompose
+  // already persisted master_plan server-side, so the apply below works off
+  // the stored plan even if the broadcast→state sync didn't land here — never
+  // dereference a possibly-null masterPlan.
+  const patch: Record<string, unknown> = {
+    name: state.projectName,
+    prd: state.prd,
+  };
+  if (state.masterPlan) {
+    patch.summary = state.masterPlan.prd_summary;
+    patch.master_plan = state.masterPlan;
+  }
+  await api.patch<ApiResponse<unknown>>(`/projects/${projectId}`, patch);
   await api.post<ApiResponse<{ created: number }>>(
     `/projects/${projectId}/master-plan/apply`,
   );
@@ -315,12 +319,15 @@ async function resolveProjectId(
   state: WizardState,
   projectsStore: ReturnType<typeof useProjectsStore>,
 ): Promise<string> {
-  const isPrdWithExistingProject =
-    state.wizardMode === 'prd' && state.masterPlan && state._projectId;
-
-  if (isPrdWithExistingProject) {
-    await apiUpdateProjectWithPlan(state._projectId!, state);
-    return state._projectId!;
+  // PRD mode finalizes the project created during decomposition by applying
+  // its server-persisted master plan. Gate on `_projectId` ALONE (not the
+  // client `masterPlan` ref): if the decompose broadcast didn't sync to this
+  // client, the plan still lives in the project's master_plan column and the
+  // apply endpoint uses it — never silently fall back to an empty manual
+  // create, which is exactly what produced 0-task projects.
+  if (state.wizardMode === 'prd' && state._projectId) {
+    await apiUpdateProjectWithPlan(state._projectId, state);
+    return state._projectId;
   }
 
   return apiCreateProjectWithTasks(state.machineId!, state, projectsStore);

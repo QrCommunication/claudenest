@@ -79,7 +79,7 @@
         </div>
         <div class="summary-item">
           <span class="summary-label">{{ t('projectsWizardSteporchestrator.tasks') }}</span>
-          <span class="summary-value">{{ t('projectsWizardSteporchestrator.taskCount', { count: state.tasks.length }) }}</span>
+          <span class="summary-value">{{ t('projectsWizardSteporchestrator.taskCount', { count: taskCount }) }}</span>
         </div>
         <div class="summary-item">
           <span class="summary-label">{{ t('projectsWizardSteporchestrator.orchestrator') }}</span>
@@ -93,6 +93,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { WizardState } from '@/composables/useProjectWizard';
 
@@ -100,9 +101,18 @@ interface Props {
   state: WizardState;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 
 const { t } = useI18n();
+
+// PRD mode keeps the decomposed work in `masterPlan.waves` (not `state.tasks`,
+// which only the manual mode fills) — count from the right source so the recap
+// matches what step 4 showed instead of always reading 0.
+const taskCount = computed(() =>
+  props.state.wizardMode === 'prd'
+    ? (props.state.masterPlan?.waves.reduce((n, w) => n + w.tasks.length, 0) ?? 0)
+    : props.state.tasks.length,
+);
 </script>
 
 <style scoped>
