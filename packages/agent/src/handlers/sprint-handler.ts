@@ -45,6 +45,7 @@ export function createSprintHandlers(context: HandlerContext) {
       success: result.success,
       branch: result.branch,
       committed: result.committed,
+      sandboxed: result.sandboxed,
       ...(result.prUrl ? { prUrl: result.prUrl } : {}),
       ...(result.error ? { error: result.error } : {}),
     });
