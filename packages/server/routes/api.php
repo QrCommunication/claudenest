@@ -136,6 +136,9 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::get('projects/{project}', [Api\ProjectController::class, 'show']);
     Route::patch('projects/{project}', [Api\ProjectController::class, 'update']);
     Route::delete('projects/{project}', [Api\ProjectController::class, 'destroy']);
+    Route::post('projects/{project}/archive', [Api\ProjectController::class, 'archive']);
+    Route::post('projects/{project}/unarchive', [Api\ProjectController::class, 'unarchive']);
+    Route::post('projects/{project}/recover', [Api\ProjectController::class, 'recover']);
     Route::get('projects/{project}/stats', [Api\ProjectController::class, 'stats']);
     Route::get('projects/{project}/sessions', [Api\ProjectController::class, 'sessions']);
 
@@ -229,6 +232,7 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     // ==================== INSTANCES & ACTIVITY ====================
     Route::get('projects/{project}/instances', [Api\ProjectController::class, 'instances']);
     Route::get('projects/{project}/activity', [Api\ProjectController::class, 'activity']);
+    Route::get('projects/{project}/audit', [Api\AuditController::class, 'index']);
     Route::post('projects/{project}/broadcast', [Api\ProjectController::class, 'broadcast']);
 
     // ==================== ORCHESTRATOR ====================

@@ -2,8 +2,8 @@
 
 > **FOR AI AGENTS/LLMs**: This document is the single source of truth for understanding and working with the ClaudeNest codebase.
 > 
-> **Version**: 1.2.0
-> **Last Updated**: 2026-04-12
+> **Version**: 1.8.0
+> **Last Updated**: 2026-06-13
 
 ---
 
@@ -79,11 +79,14 @@ flowchart TB
 
 ### Key Features
 
+- **Free & Unlimited**: No plan caps — run as many workers as the machine allows (the `users.plan` column is kept for compat/rollback but no longer enforced)
 - **Remote Access**: Control Claude Code from anywhere
 - **Multi-Agent System**: Run multiple Claude instances on the same project
 - **Context RAG**: pgvector-powered retrieval augmented generation
-- **File Locking**: Prevent conflicts between agents
-- **Task Coordination**: Atomic task claiming system
+- **File Locking**: Prevent conflicts between agents — shared (reader) / exclusive (writer) modes, line-range scoping, enriched conflict responses
+- **Audit Trail**: Per-project, paginated and filterable activity history, open to any project member (no plan gating)
+- **Project Archiving & Recovery**: Reversible archive (context snapshot, nothing deleted) + restore / recover-at-path
+- **Task Coordination**: Atomic task claiming system, with sprint-based filtering in the task panel
 - **WebSocket Communication**: Real-time bidirectional communication
 - **MCP Support**: Model Context Protocol integration
 - **Mobile Apps**: Native iOS and Android applications
@@ -395,6 +398,17 @@ if (FileLock::isLocked($projectId, 'src/auth.ts')) {
 }
 ```
 
+**Advanced locking**: locks carry a `lock_type` (`exclusive` writer vs `shared` reader),
+an optional `line_range` (`{start, end}`, null = whole file) and an advisory
+`queue_position`. `FileLock::conflictsWith()` implements the conflict matrix
+(exclusive vs anything = conflict; shared vs shared = compatible; line ranges
+narrow conflicts to overlapping regions). On acquire, a blocking conflict returns
+an **enriched 409** (holder, holder/requested lock types and ranges, remaining
+time); a compatible reader **joins** the existing shared lock (advisory, no second
+row under `unique(project_id, path)`); with `queue=true` a conflict returns a 202
+with a consultative queue position. The dashboard surfaces all of this via
+`components/multiagent/FileLocksPanel.vue` (type badges, holders, ranges, conflict banner).
+
 ### 3.6 Task Coordination
 
 Atomic task claiming system:
@@ -443,6 +457,23 @@ Epics and sprints add project planning capabilities on top of the task system:
 - **Subtasks**: Tasks support a `parent_id` for hierarchical decomposition.
 - **Story Points**: `story_points` on tasks enable velocity tracking across sprints.
 - **Reordering**: Both epics and sprints expose a `sort_order` column managed via dedicated reorder endpoints.
+- **Sprint Filter**: The task panel (`components/multiagent/TaskPanel.vue`) filters tasks by sprint — All / No sprint (backlog) / per sprint — shown only when a project is selected.
+
+### 3.8b Project Archiving & Audit
+
+- **Archiving (reversible)**: `POST /projects/{id}/archive` captures a context
+  snapshot into `shared_projects.archived_context` and sets `archived_at` —
+  **nothing is deleted**. The active list (`index`) defaults to `scopeActive`;
+  `?archived=true` returns the archived flow. `unarchive` / `recover` restore the
+  snapshot and clear `archived_at`. Re-creating a project at an already-archived
+  path returns a `recoverable` 409, surfaced as a one-click recovery dialog.
+  Real-time `ProjectArchived` / `ProjectUnarchived` events (scalar payload, on the
+  machine + project channels) move the project between the active sidebar list and
+  the collapsible **Archived** section without a refresh.
+- **Audit Trail**: `GET /projects/{id}/audit` (`AuditController`) returns a
+  paginated, `type`- / `instance_id`- / period-filterable history derived from
+  `activity_log` (indexed on `(project_id, type, created_at)`), open to any project
+  member with **no plan gating**. Rendered by `components/multiagent/AuditTrail.vue`.
 
 ### 3.9 Planning & Runner Agents
 
@@ -456,11 +487,11 @@ Two server-side services orchestrate automated project intelligence:
 
 Workers are **regular interactive Claude sessions created BY THE SERVER** (no agent-side orchestrator). The loop is driven by the Claude **Stop hook → `POST /api/instances/{i}/heartbeat {status:'idle'}`**.
 
-- **WorkerPoolService**: `start` (spawns `min(max_workers, plan cap remaining, max(1, pending tasks))` orchestrated sessions through `MultiAgentSessionService::attach()` — instance + scoped token + MCP env + system prompt), `stop`, `status`, `spawnWorker`, `terminateWorker`. Orchestration state lives in `shared_projects.settings['orchestration']` (`active`, `max_workers`, `permission_mode`, `coordinator`, `started_at`).
+- **WorkerPoolService**: `start` (spawns `min(max_workers, max(1, pending tasks))` orchestrated sessions through `MultiAgentSessionService::attach()` — instance + scoped token + MCP env + system prompt), `stop`, `status`, `spawnWorker`, `terminateWorker`. Orchestration state lives in `shared_projects.settings['orchestration']` (`active`, `max_workers`, `permission_mode`, `coordinator`, `started_at`). **Free-unlimited (2026-06-13)**: no more plan cap in the spawn bound — only the operator's `max_workers` and the pending-task count.
 - **CoordinatorService**: event-driven incident coordinator. On `task_thrashing` (task released ≥2×, trigger in `TaskController::release`), `lock_contention` (≥3 conflicting acquires on a path in 10 min, trigger in `FileLockController::store` 409 branch) or `sprint_review` (trigger in `SprintController::complete`), spawns an **ephemeral interactive planning session** (same mechanics as `PlanningController::createSession`: scoped token with `planning` ability, coordinator role system prompt, owner's default credential, `orchestrated=false`). Guards in order: orchestration active (`sprint_review` allowed outside orchestration when `settings['coordinator']['on_sprint_review']` is true), kill-switch `settings['orchestration']['coordinator'] ?? true`, 1h spawn budget (cache `claudenest:coordinator:{project}:last_spawn`), single active coordinator. It never spawns workers and never edits files — it fixes the PLAN via MCP planning tools and broadcasts recommendations (`SessionNotification`, activity type `coordinator_spawned`).
 - **WorkerLoopService**: state machine on idle heartbeat — nudge to finish/claim a task (`session:input` + `\r`), recycle after 5 completed tasks or 2h of session lifetime, pause after 3 nudges without progress (broadcasts `SessionNotification`, reset on task claim/complete), scale down when all tasks are done. Human input (HTTP `sessions/{id}/input` or WS terminal) suspends the loop 120s via cache key `claudenest:session:{id}:human_input_at`.
 - **SessionPayloadBuilder**: single source of truth for the camelCase `session:create` agent payload (shared by `SessionController::store` and `WorkerPoolService::spawnWorker`).
-- **Plan caps**: `users.plan` × `config('claudenest.plans')` (`community=3`, `pro=20`, `enterprise=unlimited`) — enforced on session store AND orchestrator start (`403 PLAN_001`). `claude_sessions.orchestrated` flags worker sessions.
+- **Plan caps (removed 2026-06-13 — free-unlimited pivot)**: ClaudeNest is now free and unlimited. The `403 PLAN_001` enforcement was dropped from both session store and orchestrator start; all users are normalized to `plan='unlimited'`. The `users.plan` column and `config('claudenest.plans')` are kept for compat/rollback only. `claude_sessions.orchestrated` still flags worker sessions.
 
 ### 3.10 Internationalization (i18n)
 

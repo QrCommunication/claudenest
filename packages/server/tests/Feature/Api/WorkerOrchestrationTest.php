@@ -14,8 +14,11 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
- * Server-driven worker pool: orchestrator start/stop/status + per-plan
- * concurrent agent caps (PLAN_001) on both session store and orchestrator start.
+ * Server-driven worker pool: orchestrator start/stop/status.
+ *
+ * The free-unlimited model removes the per-plan concurrent agent cap from the
+ * orchestrator start path — workers are bounded only by the operator-chosen
+ * max_workers and the pending-task backlog (floor 1).
  */
 class WorkerOrchestrationTest extends TestCase
 {
@@ -49,7 +52,7 @@ class WorkerOrchestrationTest extends TestCase
             ->assertJsonPath('data.status', 'running')
             ->assertJsonPath('data.active', true);
 
-        // min(maxWorkers=3, cap remaining=3, max(1, pending=2)) = 2 workers
+        // max(1, min(maxWorkers=3, pending=2)) = 2 workers
         $workers = Session::where('shared_project_id', $project->id)
             ->where('orchestrated', true)
             ->get();
@@ -91,17 +94,18 @@ class WorkerOrchestrationTest extends TestCase
     }
 
     #[Test]
-    public function start_caps_workers_to_remaining_plan_slots(): void
+    public function start_caps_workers_to_pending_tasks_without_plan_limit(): void
     {
         $this->spy(AgentGateway::class);
 
-        $user = User::factory()->create(); // community plan → cap 3
+        $user = User::factory()->create();
         $machine = Machine::factory()->for($user)->create();
         $project = $this->makeProject($user, $machine);
 
-        // 2 active sessions already → 1 slot remaining
+        // Free-unlimited model: pre-existing active sessions no longer reduce
+        // the spawnable count. Spawned = max(1, min(maxWorkers=5, pending=2)) = 2.
         Session::factory()->count(2)->for($machine)->for($user)->create(['status' => 'running']);
-        SharedTask::factory()->count(5)->create(['project_id' => $project->id, 'status' => 'pending']);
+        SharedTask::factory()->count(2)->create(['project_id' => $project->id, 'status' => 'pending']);
 
         $response = $this->actingAs($user)
             ->postJson("/api/projects/{$project->id}/orchestrator/start", [
@@ -111,20 +115,22 @@ class WorkerOrchestrationTest extends TestCase
         $response->assertOk();
 
         $this->assertSame(
-            1,
+            2,
             Session::where('shared_project_id', $project->id)->where('orchestrated', true)->count(),
         );
     }
 
     #[Test]
-    public function start_returns_403_plan_001_when_cap_exhausted(): void
+    public function start_is_not_blocked_by_active_sessions_in_unlimited_model(): void
     {
         $this->spy(AgentGateway::class);
 
-        $user = User::factory()->create(); // community plan → cap 3
+        $user = User::factory()->create();
         $machine = Machine::factory()->for($user)->create();
         $project = $this->makeProject($user, $machine);
 
+        // Many active sessions used to exhaust the plan cap and return 403
+        // PLAN_001. The free-unlimited model removes that cap entirely.
         Session::factory()->count(3)->for($machine)->for($user)->create(['status' => 'running']);
 
         $response = $this->actingAs($user)
@@ -132,11 +138,16 @@ class WorkerOrchestrationTest extends TestCase
                 'max_workers' => 2,
             ]);
 
-        $response->assertStatus(403)
-            ->assertJsonPath('error.code', 'PLAN_001');
+        $response->assertOk()
+            ->assertJsonPath('data.status', 'running')
+            ->assertJsonPath('data.active', true);
 
-        $this->assertSame(0, Session::where('orchestrated', true)->count());
-        $this->assertNull($project->fresh()->getSetting('orchestration'));
+        // No pending tasks → floor of 1 orchestrated worker still boots.
+        $this->assertSame(
+            1,
+            Session::where('shared_project_id', $project->id)->where('orchestrated', true)->count(),
+        );
+        $this->assertTrue($project->fresh()->getSetting('orchestration')['active']);
     }
 
     #[Test]

@@ -1028,7 +1028,7 @@
     },
     "what_is": {
       "title": "C'est quoi ClaudeNest, exactement ?",
-      "body": "ClaudeNest est une plateforme d'orchestration auto-hébergée pour Claude Code. Elle exécute plusieurs workers Claude Code en parallèle sur le même dépôt et les coordonne via trois mécanismes : la réclamation atomique de tâches via un serveur MCP (20 outils), des verrous de fichiers appliqués au moment de l'édition par des hooks Claude Code, et une mémoire de projet partagée adossée à PostgreSQL pgvector. Le serveur lance des sessions worker interactives, injecte le contexte projet compilé au démarrage, et réingère le résumé de complétion de chaque worker dans la mémoire — les sessions suivantes héritent ainsi de ce que les précédentes ont appris. Un board temps réel (épics, sprints, burndown) suit chaque tâche via WebSockets, et des applications iOS/Android (bêta) exposent les mêmes terminaux à distance. ClaudeNest est gratuit sur votre propre serveur sous licence PolyForm Noncommercial ; les plans payants lèvent les plafonds de concurrence. Il nécessite PostgreSQL avec pgvector, Redis, et un agent Node.js sur chaque machine.",
+      "body": "ClaudeNest est une plateforme d'orchestration auto-hébergée pour Claude Code. Elle exécute plusieurs workers Claude Code en parallèle sur le même dépôt et les coordonne via trois mécanismes : la réclamation atomique de tâches via un serveur MCP (20 outils), des verrous de fichiers appliqués au moment de l'édition par des hooks Claude Code, et une mémoire de projet partagée adossée à PostgreSQL pgvector. Le serveur lance des sessions worker interactives, injecte le contexte projet compilé au démarrage, et réingère le résumé de complétion de chaque worker dans la mémoire — les sessions suivantes héritent ainsi de ce que les précédentes ont appris. Un board temps réel (épics, sprints, burndown) suit chaque tâche via WebSockets, et des applications iOS/Android (bêta) exposent les mêmes terminaux à distance. ClaudeNest est gratuit sur votre propre serveur sous licence PolyForm Noncommercial — toutes les fonctionnalités, sans plafond de concurrence, sans forfait payant. Il nécessite PostgreSQL avec pgvector, Redis, et un agent Node.js sur chaque machine.",
       "bullets": {
         "0": "Votre serveur, vos clés — le code et les credentials ne transitent jamais par claudenest.io.",
         "1": "Source sur GitHub — lisez chaque ligne avant de l'exécuter.",
@@ -1036,6 +1036,21 @@
       },
       "github": "Lire le code source",
       "updated": "Mis à jour juin 2026 · v1.5.0"
+    },
+    "unlimited": {
+      "badge": "Gratuit & illimité",
+      "title": "Utilisation complète, ",
+      "title_highlight": "gratuite et illimitée.",
+      "subtitle": "Auto-hébergez ClaudeNest avec toutes les fonctionnalités — sans forfait, sans plafond de concurrence, sans carte bancaire.",
+      "points": {
+        "0": "Workers simultanés illimités — bornés uniquement par votre matériel et les limites de débit de votre plan Claude.",
+        "1": "Projets partagés, épics, sprints et tâches illimités.",
+        "2": "Toutes les fonctionnalités incluses — orchestration multi-agent, mémoire partagée, piste d'audit, apps mobiles.",
+        "3": "Votre serveur, vos clés — le code et les identifiants ne transitent jamais par claudenest.io.",
+        "4": "Licence PolyForm Noncommercial — gratuite pour un usage personnel et interne."
+      },
+      "cta": "Auto-hébergez en 15 minutes",
+      "note": "La concurrence n'est bornée que par votre matériel et les limites de débit de votre plan Claude — jamais par ClaudeNest."
     },
     "pricing": {
       "badge": "Tarifs",
@@ -1088,7 +1103,7 @@
       "items": {
         "0": {
           "question": "ClaudeNest est-il vraiment gratuit ?",
-          "answer": "Oui. L'auto-hébergement est gratuit sous licence PolyForm Noncommercial, avec toutes les fonctionnalités et un plafond de 3 workers simultanés. Pro (29 $/mois) monte le plafond à 20 workers et des projets illimités. Les plafonds sont appliqués par le serveur (vous recevrez un 403, pas un écran de rappel)."
+          "answer": "Oui — totalement. L'auto-hébergement est gratuit sous licence PolyForm Noncommercial, avec toutes les fonctionnalités, des projets illimités et des workers simultanés illimités. Il n'y a aucun forfait payant ni plafond de concurrence ; les seules limites sont votre matériel et les limites de débit de votre plan Claude."
         },
         "1": {
           "question": "Mon abonnement Claude ou mes crédits API fonctionneront-ils ?",
@@ -1126,7 +1141,7 @@
     "cta": {
       "title": "Donnez un serveur ",
       "title_highlight": "à vos agents.",
-      "subtitle": "Une commande pour installer. Trois workers sur votre premier projet ce soir.",
+      "subtitle": "Une commande pour installer. Des workers illimités sur votre premier projet ce soir.",
       "cta_primary": "Auto-hébergez en 15 minutes",
       "cta_secondary": "Lire le code source sur GitHub"
     },
@@ -1147,6 +1162,18 @@
       "contact_phone": "+33 1 88 83 34 51",
       "contact_address": "23 rue de Richelieu, 75001 Paris"
     }
+  },
+  "projectRecovery": {
+    "title": "Un projet archivé existe pour ce chemin",
+    "question": "Le reprendre avec son contexte enregistré, ou créer un nouveau projet à la place ?",
+    "archivedAt": "Archivé le {date}",
+    "contextPreviewLabel": "Aperçu du contexte",
+    "noContext": "Aucun contexte enregistré.",
+    "recover": "Reprendre le projet archivé",
+    "recovering": "Récupération…",
+    "createNew": "Créer un nouveau projet",
+    "toastRecovered": "Projet récupéré avec son contexte.",
+    "toastRecoverFailed": "Impossible de récupérer le projet."
   },
   "claudeSessions": {
     "title": "Sessions Claude",
@@ -1389,7 +1416,12 @@
     "skills": "Compétences",
     "mcp": "MCP",
     "commands": "Commandes",
-    "settings": "Paramètres"
+    "settings": "Paramètres",
+    "archived": "Archivés",
+    "archiveSuccess": "Projet archivé",
+    "archiveError": "Échec de l'archivage du projet",
+    "unarchiveSuccess": "Projet restauré",
+    "unarchiveError": "Échec de la restauration du projet"
   },
   "layoutUsermenu": {
     "guest": "Invité",
@@ -2670,6 +2702,14 @@
     "noNotifications": "Aucune nouvelle notification"
   },
   "docChangelog": {
+    "v180Date": "13 juin 2026",
+    "v180Title": "Gratuit & illimité, archivage de projet, piste d'audit",
+    "v180Desc": "ClaudeNest est désormais gratuit et illimité (fin des plafonds de workers), les projets peuvent être archivés puis récupérés sans perte de données, le verrouillage de fichiers gagne des modes partagé/exclusif, et chaque projet expose une piste d'audit complète.",
+    "v180Change1": "Gratuit, illimité pour toujours : tous les plafonds de forfait supprimés — lancez autant de workers que votre machine le permet, sans palier payant.",
+    "v180Change2": "Verrouillage avancé : verrous partagé (lecteur) vs exclusif (écrivain), portée par plage de lignes, et message de conflit enrichi (détenteur, type de verrou et plages).",
+    "v180Change3": "Piste d'audit : historique d'activité paginé, filtrable par type et par période sur chaque projet, ouvert à tout membre du projet (aucune restriction de forfait).",
+    "v180Change4": "Archivage & récupération de projet : archivez un projet (réversible — rien n'est supprimé, un instantané du contexte est capturé) et restaurez-le plus tard ; recréer sur un chemin archivé propose une récupération en un clic.",
+    "v180Change5": "Filtre par sprint : le panneau de tâches filtre par sprint (Tous / Sans sprint / par sprint), plus un sous-menu Projets repliable et une section Archivés dans la barre latérale.",
     "v171Date": "13 juin 2026",
     "v171Title": "Planification par epic & cycle de vie des branches",
     "v171Desc": "Créer un epic relance l'étape PRD + décomposition pour générer automatiquement ses sprints et ses tâches, les merges en attente sont visibles, et les branches des workers sont nettoyées automatiquement.",
@@ -2802,6 +2842,7 @@
     "ctaTitle": "Auto-hébergez aujourd'hui. Scalez quand vous êtes prêts.",
     "ctaSub": "Licence PolyForm Noncommercial. Sans carte. Votre infrastructure, vos données, vos règles.",
     "installationGuide": "Guide d'installation",
+    "freeForever": "Gratuit, pour toujours",
     "unlimited": "Illimité",
     "basic": "Basique",
     "advanced": "Avancé",

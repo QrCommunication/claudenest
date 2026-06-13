@@ -15,6 +15,9 @@ import type {
 export const useProjectsStore = defineStore('projects', () => {
   // ==================== STATE ====================
   const projects = ref<SharedProject[]>([]);
+  // Archived projects live in a separate flow; the active `projects` list never
+  // contains an archived project (the backend index() defaults to scopeActive).
+  const archivedProjects = ref<SharedProject[]>([]);
   const selectedProject = ref<SharedProject | null>(null);
   const projectStats = ref<ProjectStats | null>(null);
   const instances = ref<ClaudeInstance[]>([]);
@@ -23,6 +26,7 @@ export const useProjectsStore = defineStore('projects', () => {
   const isCreating = ref(false);
   const isUpdating = ref(false);
   const isDeleting = ref(false);
+  const isArchiving = ref(false);
   const error = ref<string | null>(null);
 
   // ==================== GETTERS ====================
@@ -185,6 +189,160 @@ export const useProjectsStore = defineStore('projects', () => {
   }
 
   /**
+   * Fetch the archived projects for a machine (backend `?archived=true`). Kept
+   * in a separate list so the active sidebar flow is never polluted.
+   * @throws {Error} If the fetch fails
+   */
+  async function fetchArchived(machineId: string): Promise<void> {
+    isLoading.value = true;
+    error.value = null;
+
+    try {
+      const response = await api.get<ApiResponse<SharedProject[]>>(
+        `/machines/${machineId}/projects`,
+        { params: { archived: true } },
+      );
+      archivedProjects.value = response.data.data;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch archived projects';
+      error.value = message;
+      throw err;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  /**
+   * Move a project from the active flow to the archived flow locally. Pure
+   * client-side state (no API call) so it is reused both after a successful
+   * archive call and by the real-time ProjectArchived Echo listener (an archive
+   * triggered from another client). `project` is the full row when available
+   * (API response); otherwise the entry already present in the active list is
+   * reused (scalar Echo payload).
+   */
+  function archiveProjectLocal(projectId: string, project?: SharedProject): void {
+    const idx = projects.value.findIndex(p => p.id === projectId);
+    const moved = project ?? (idx !== -1 ? projects.value[idx] : undefined);
+
+    if (idx !== -1) {
+      projects.value.splice(idx, 1);
+    }
+
+    if (moved) {
+      const archivedIdx = archivedProjects.value.findIndex(p => p.id === projectId);
+      if (archivedIdx === -1) {
+        archivedProjects.value.unshift(moved);
+      } else {
+        archivedProjects.value[archivedIdx] = moved;
+      }
+    }
+
+    // An archived project leaves the active workspace context, mirroring
+    // removeProjectLocal: clear the selection + derived data and the pinned link.
+    if (selectedProject.value?.id === projectId) {
+      selectedProject.value = null;
+      projectStats.value = null;
+      instances.value = [];
+      activityLogs.value = [];
+    }
+
+    clearLastProjectIfMatches(projectId);
+  }
+
+  /**
+   * Move a project from the archived flow back to the active flow locally.
+   * Reused by the API actions and the real-time ProjectUnarchived Echo listener.
+   */
+  function unarchiveProjectLocal(projectId: string, project?: SharedProject): void {
+    const idx = archivedProjects.value.findIndex(p => p.id === projectId);
+    const moved = project ?? (idx !== -1 ? archivedProjects.value[idx] : undefined);
+
+    if (idx !== -1) {
+      archivedProjects.value.splice(idx, 1);
+    }
+
+    if (moved) {
+      const activeIdx = projects.value.findIndex(p => p.id === projectId);
+      if (activeIdx === -1) {
+        projects.value.unshift(moved);
+      } else {
+        projects.value[activeIdx] = moved;
+      }
+    }
+  }
+
+  /**
+   * Archive a project (reversible — the backend captures a context snapshot and
+   * deletes nothing). Moves it to the archived flow on success.
+   * @throws {Error} If the archive call fails
+   */
+  async function archiveProject(projectId: string): Promise<SharedProject> {
+    isArchiving.value = true;
+    error.value = null;
+
+    try {
+      const response = await api.post<ApiResponse<SharedProject>>(`/projects/${projectId}/archive`);
+      const archived = response.data.data;
+      archiveProjectLocal(projectId, archived);
+      return archived;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to archive project';
+      error.value = message;
+      throw err;
+    } finally {
+      isArchiving.value = false;
+    }
+  }
+
+  /**
+   * Unarchive a project (restores the captured context snapshot). Moves it back
+   * to the active flow on success.
+   * @throws {Error} If the unarchive call fails
+   */
+  async function unarchiveProject(projectId: string): Promise<SharedProject> {
+    isArchiving.value = true;
+    error.value = null;
+
+    try {
+      const response = await api.post<ApiResponse<SharedProject>>(`/projects/${projectId}/unarchive`);
+      const restored = response.data.data;
+      unarchiveProjectLocal(projectId, restored);
+      return restored;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to unarchive project';
+      error.value = message;
+      throw err;
+    } finally {
+      isArchiving.value = false;
+    }
+  }
+
+  /**
+   * Recover an archived project (the "recover at path" flow surfaced by a
+   * `recoverable` create response). The backend /recover endpoint delegates to
+   * unarchive; local sync is identical, so it restores the project to the
+   * active flow.
+   * @throws {Error} If the recover call fails
+   */
+  async function recoverProject(projectId: string): Promise<SharedProject> {
+    isArchiving.value = true;
+    error.value = null;
+
+    try {
+      const response = await api.post<ApiResponse<SharedProject>>(`/projects/${projectId}/recover`);
+      const restored = response.data.data;
+      unarchiveProjectLocal(projectId, restored);
+      return restored;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to recover project';
+      error.value = message;
+      throw err;
+    } finally {
+      isArchiving.value = false;
+    }
+  }
+
+  /**
    * Fetch project statistics
    * @throws {Error} If the fetch fails
    */
@@ -291,6 +449,7 @@ export const useProjectsStore = defineStore('projects', () => {
   return {
     // State
     projects,
+    archivedProjects,
     selectedProject,
     projectStats,
     instances,
@@ -299,6 +458,7 @@ export const useProjectsStore = defineStore('projects', () => {
     isCreating,
     isUpdating,
     isDeleting,
+    isArchiving,
     error,
 
     // Getters
@@ -313,6 +473,12 @@ export const useProjectsStore = defineStore('projects', () => {
     updateProject,
     deleteProject,
     removeProjectLocal,
+    fetchArchived,
+    archiveProject,
+    unarchiveProject,
+    recoverProject,
+    archiveProjectLocal,
+    unarchiveProjectLocal,
     fetchProjectStats,
     fetchInstances,
     fetchActivity,
