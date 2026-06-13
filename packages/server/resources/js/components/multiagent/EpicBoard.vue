@@ -2,10 +2,10 @@
   <div class="epic-board">
     <!-- Header avec bouton d'ajout -->
     <div class="epic-board-header">
-      <h3 class="text-sm font-medium text-white/70">{{ t('multiagentEpicboard.epics') }}</h3>
-      <button class="add-epic-btn" @click="$emit('create')">
+      <h3 class="epic-board-title">{{ t('multiagentEpicboard.epics') }}</h3>
+      <button class="add-epic-btn" :title="t('multiagentEpicboard.createFirstEpic')" @click="$emit('create')">
         <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
-          <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+          <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
         </svg>
       </button>
     </div>
@@ -15,39 +15,51 @@
       <div
         v-for="epic in sortedEpics"
         :key="epic.id"
-        class="epic-item"
-        :class="{ selected: selectedEpicId === epic.id }"
+        class="epic-card"
+        :class="{ selected: selectedEpicId === epic.id, 'is-done': epic.status === 'done' }"
+        :style="{ '--epic-color': epic.color || 'var(--accent-purple)' }"
         @click="$emit('select', epic)"
       >
-        <div class="epic-header">
-          <div class="epic-color" :style="{ backgroundColor: epic.color }" />
-          <span class="epic-title">{{ epic.title }}</span>
-          <span class="epic-status" :class="epic.status">{{ epic.status }}</span>
-        </div>
+        <!-- Bandeau de couleur (côté gauche) -->
+        <span class="epic-band" aria-hidden="true" />
 
-        <!-- Barre de progression -->
-        <div class="epic-progress">
-          <div class="progress-bar">
-            <div
-              class="progress-fill"
-              :style="{ width: epic.progress_percentage + '%', backgroundColor: epic.color }"
-            />
+        <div class="epic-body">
+          <!-- Ligne titre : icône + titre + statut -->
+          <div class="epic-header">
+            <span class="epic-icon">
+              <template v-if="epic.icon">{{ epic.icon }}</template>
+              <svg v-else viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h12v2H3v-2z" /></svg>
+            </span>
+            <span class="epic-title">{{ epic.title }}</span>
+            <StatusBadge type="status" :value="epic.status" />
           </div>
-          <span class="progress-text">
-            {{ epic.completed_tasks_count }}/{{ epic.tasks_count }}
-          </span>
-        </div>
 
-        <!-- Priority badge -->
-        <div class="epic-meta">
-          <span class="priority-badge" :class="epic.priority">{{ epic.priority }}</span>
+          <!-- Barre de progression -->
+          <div class="epic-progress">
+            <div class="progress-bar">
+              <div
+                class="progress-fill"
+                :style="{ width: clampPercent(epic.progress_percentage) + '%' }"
+              />
+            </div>
+            <span class="progress-percent">{{ Math.round(clampPercent(epic.progress_percentage)) }}%</span>
+          </div>
+
+          <!-- Méta : compteur de tâches + priorité -->
+          <div class="epic-meta">
+            <span class="task-count">
+              <svg viewBox="0 0 24 24" fill="currentColor" class="task-count-icon"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" /></svg>
+              {{ epic.completed_tasks_count }}/{{ epic.tasks_count }} {{ t('multiagentEpicboard.tasks') }}
+            </span>
+            <StatusBadge type="priority" :value="epic.priority" />
+          </div>
         </div>
       </div>
 
       <!-- Empty state -->
       <div v-if="epics.length === 0" class="epic-empty">
-        <p class="text-white/40 text-sm">{{ t('multiagentEpicboard.noEpicsYet') }}</p>
-        <button class="text-purple-400 text-sm hover:text-purple-300" @click="$emit('create')">
+        <p class="epic-empty-text">{{ t('multiagentEpicboard.noEpicsYet') }}</p>
+        <button class="epic-empty-btn" @click="$emit('create')">
           {{ t('multiagentEpicboard.createFirstEpic') }}
         </button>
       </div>
@@ -58,6 +70,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import StatusBadge from '@/components/common/StatusBadge.vue';
 import type { Epic } from '@/types/multiagent';
 
 const { t } = useI18n();
@@ -81,6 +94,9 @@ defineEmits<{
 const sortedEpics = computed(() =>
   [...props.epics].sort((a, b) => a.sort_order - b.sort_order)
 );
+
+const clampPercent = (value: number): number =>
+  Math.min(100, Math.max(0, value ?? 0));
 </script>
 
 <style scoped>
@@ -97,116 +113,183 @@ const sortedEpics = computed(() =>
   padding: 0.5rem 0;
 }
 
+.epic-board-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .add-epic-btn {
-  color: rgba(255,255,255,0.4);
+  color: var(--text-muted);
   padding: 0.25rem;
-  border-radius: 0.25rem;
-  transition: all 0.15s;
+  border-radius: 0.375rem;
+  transition: color 0.15s, background-color 0.15s;
 }
 .add-epic-btn:hover {
-  color: #a855f7;
-  background: rgba(168,85,247,0.1);
+  color: var(--accent-purple);
+  background: color-mix(in srgb, var(--accent-purple) 12%, transparent);
 }
 
 .epic-list {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.375rem;
 }
 
-.epic-item {
-  padding: 0.625rem 0.75rem;
-  border-radius: 0.375rem;
-  border: 1px solid rgba(255,255,255,0.06);
+/* ====================== CARTE EPIC ====================== */
+
+.epic-card {
+  position: relative;
+  display: flex;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
-.epic-item:hover {
-  background: rgba(255,255,255,0.03);
-  border-color: rgba(255,255,255,0.1);
+.epic-card:hover {
+  border-color: color-mix(in srgb, var(--epic-color) 45%, var(--border-color));
+  background: color-mix(in srgb, var(--epic-color) 5%, var(--bg-card));
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
-.epic-item.selected {
-  background: rgba(168,85,247,0.08);
-  border-color: rgba(168,85,247,0.3);
+.epic-card.selected {
+  border-color: var(--epic-color);
+  background: color-mix(in srgb, var(--epic-color) 10%, var(--bg-card));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--epic-color) 40%, transparent);
+}
+.epic-card.is-done {
+  opacity: 0.78;
 }
 
+/* Bandeau de couleur sur le bord gauche */
+.epic-band {
+  width: 4px;
+  flex-shrink: 0;
+  background: var(--epic-color);
+}
+
+.epic-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+}
+
+/* ----- Ligne titre ----- */
 .epic-header {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.epic-color {
-  width: 0.625rem;
-  height: 0.625rem;
-  border-radius: 0.125rem;
+.epic-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
   flex-shrink: 0;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  line-height: 1;
+  color: var(--epic-color);
+  background: color-mix(in srgb, var(--epic-color) 16%, transparent);
+}
+.epic-icon svg {
+  width: 0.875rem;
+  height: 0.875rem;
 }
 
 .epic-title {
   flex: 1;
+  min-width: 0;
   font-size: 0.8125rem;
-  color: rgba(255,255,255,0.9);
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.epic-status {
-  font-size: 0.6875rem;
-  padding: 0.0625rem 0.375rem;
-  border-radius: 0.25rem;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-.epic-status.open { background: rgba(148,163,184,0.15); color: #94a3b8; }
-.epic-status.in_progress { background: rgba(168,85,247,0.15); color: #a855f7; }
-.epic-status.done { background: rgba(34,197,94,0.15); color: #22c55e; }
-
+/* ----- Barre de progression ----- */
 .epic-progress {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-top: 0.375rem;
 }
 
 .progress-bar {
   flex: 1;
-  height: 0.1875rem;
-  background: rgba(255,255,255,0.06);
-  border-radius: 0.125rem;
+  height: 0.375rem;
+  background: color-mix(in srgb, var(--text-muted) 22%, transparent);
+  border-radius: 999px;
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
-  border-radius: 0.125rem;
-  transition: width 0.3s ease;
+  border-radius: 999px;
+  background: var(--epic-color);
+  transition: width 0.4s ease;
 }
 
-.progress-text {
+.progress-percent {
+  flex-shrink: 0;
   font-size: 0.6875rem;
-  color: rgba(255,255,255,0.4);
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  min-width: 2.25rem;
+  text-align: right;
+}
+
+/* ----- Méta ----- */
+.epic-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.task-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.6875rem;
+  color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
-
-.epic-meta {
-  margin-top: 0.25rem;
+.task-count-icon {
+  width: 0.75rem;
+  height: 0.75rem;
+  color: var(--status-success);
 }
 
-.priority-badge {
-  font-size: 0.625rem;
-  padding: 0.0625rem 0.25rem;
-  border-radius: 0.125rem;
-}
-.priority-badge.critical { background: rgba(239,68,68,0.15); color: #ef4444; }
-.priority-badge.high { background: rgba(249,115,22,0.15); color: #f97316; }
-.priority-badge.medium { background: rgba(234,179,8,0.15); color: #eab308; }
-.priority-badge.low { background: rgba(148,163,184,0.15); color: #94a3b8; }
-
+/* ----- Empty state ----- */
 .epic-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
   padding: 2rem 1rem;
+}
+.epic-empty-text {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+.epic-empty-btn {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--accent-purple);
+  transition: color 0.15s;
+}
+.epic-empty-btn:hover {
+  color: color-mix(in srgb, var(--accent-purple) 80%, white);
 }
 </style>

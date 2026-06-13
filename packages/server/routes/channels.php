@@ -16,7 +16,9 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
     return (string) $user->id === (string) $id;
 });
 
-// Machine channel (for agents)
+// Machine channel (for agents). Also carries the `project.deleted` event
+// (App\Events\ProjectDeleted) so the per-machine sidebar/list removes a deleted
+// project in real time.
 Broadcast::channel('machines.{machineId}', function ($user, $machineId) {
     return $user->machines()->where('id', $machineId)->exists();
 });
@@ -34,7 +36,9 @@ Broadcast::channel('claude-sessions.{sessionId}', function ($user, $sessionId) {
         ->exists();
 });
 
-// Project channel (for multi-agent coordination)
+// Project channel (for multi-agent coordination). Also carries the
+// `project.deleted` event (App\Events\ProjectDeleted) so an open tab/workspace
+// for this project can close itself.
 Broadcast::channel('projects.{projectId}', function ($user, $projectId) {
     $project = SharedProject::forUser($user->id)->find($projectId);
     return !is_null($project);

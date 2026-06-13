@@ -60,6 +60,7 @@ import { useTabs } from '@/composables/useTabs';
 import { useBreadcrumb } from '@/composables/useBreadcrumb';
 import { useFullscreen } from '@/composables/useFullscreen';
 import { setLastProject } from '@/composables/useLastProject';
+import { useProjectDeletionSync } from '@/composables/useProjectDeletionSync';
 import { useProjectsStore } from '@/stores/projects';
 
 const route = useRoute();
@@ -70,6 +71,10 @@ const mobileSidebarOpen = ref(false);
 
 const { loadTabs } = useTabs();
 const { breadcrumbItems } = useBreadcrumb();
+
+// Real-time purge of projects deleted from another client/tab (sidebar, list,
+// open workspace) — mounted here so it lives for the whole dashboard session.
+useProjectDeletionSync();
 
 const showBreadcrumb = computed(() =>
   breadcrumbItems.value.length > 0 && route.name !== 'dashboard'
