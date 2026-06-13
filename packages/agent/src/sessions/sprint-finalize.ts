@@ -103,53 +103,72 @@ export function finalizeSprint(input: FinalizeSprintInput, logger: Logger): Fina
     return 'main';
   })();
 
-  // Create (or reset) the sprint branch off the current work tree so all the
-  // worker's edits are captured.
-  const checkout = exec('git', ['checkout', '-B', branch]);
-  if (!checkout.ok) return { ...base, error: `git checkout failed: ${checkout.out}` };
+  // Remember the branch currently checked out so we can restore it afterwards.
+  // Creating the sprint branch must NEVER leave the agent's working tree
+  // stranded on it — on a dev machine the project tree may be a human's active
+  // repo, and a `checkout -B` would hijack their branch.
+  const originalRef = ((): string | null => {
+    const r = exec('git', ['symbolic-ref', '--short', 'HEAD']);
+    return r.ok && r.out ? r.out : null;
+  })();
 
-  // Stage + commit everything (skip cleanly if there is nothing to commit).
-  exec('git', ['add', '-A']);
-  const dirty = !exec('git', ['diff', '--cached', '--quiet']).ok;
-  let committed = false;
-  if (dirty) {
-    const commit = exec('git', ['commit', '-m', title, '-m', body]);
-    if (!commit.ok) return { ...base, error: `git commit failed: ${commit.out}` };
-    committed = true;
-  }
+  const result: FinalizeSprintResult = (() => {
+    // Create (or reset) the sprint branch off the current work tree so all the
+    // worker's edits are captured.
+    const checkout = exec('git', ['checkout', '-B', branch]);
+    if (!checkout.ok) return { ...base, error: `git checkout failed: ${checkout.out}` };
 
-  // Push the branch.
-  const push = exec('git', ['push', '-u', 'origin', branch, '--force-with-lease']);
-  if (!push.ok) return { ...base, committed, error: `git push failed: ${push.out}` };
-
-  // Open the PR via gh (if installed + authenticated).
-  const ghPath = exec('sh', ['-c', 'command -v gh']);
-  if (!ghPath.ok || !ghPath.out) {
-    return {
-      ...base,
-      success: true,
-      committed,
-      error: 'gh CLI not available — branch pushed, open the PR manually',
-    };
-  }
-
-  const pr = exec('gh', [
-    'pr', 'create',
-    '--base', baseBranch,
-    '--head', branch,
-    '--title', title,
-    '--body', body,
-  ]);
-  if (!pr.ok) {
-    // PR may already exist — try to read its URL.
-    const existing = exec('gh', ['pr', 'view', branch, '--json', 'url', '-q', '.url']);
-    if (existing.ok && existing.out.startsWith('http')) {
-      return { ...base, success: true, committed, prUrl: existing.out };
+    // Stage + commit everything (skip cleanly if there is nothing to commit).
+    exec('git', ['add', '-A']);
+    const dirty = !exec('git', ['diff', '--cached', '--quiet']).ok;
+    let committed = false;
+    if (dirty) {
+      const commit = exec('git', ['commit', '-m', title, '-m', body]);
+      if (!commit.ok) return { ...base, error: `git commit failed: ${commit.out}` };
+      committed = true;
     }
-    return { ...base, success: true, committed, error: `gh pr create failed: ${pr.out}` };
+
+    // Push the branch.
+    const push = exec('git', ['push', '-u', 'origin', branch, '--force-with-lease']);
+    if (!push.ok) return { ...base, committed, error: `git push failed: ${push.out}` };
+
+    // Open the PR via gh (if installed + authenticated).
+    const ghPath = exec('sh', ['-c', 'command -v gh']);
+    if (!ghPath.ok || !ghPath.out) {
+      return {
+        ...base,
+        success: true,
+        committed,
+        error: 'gh CLI not available — branch pushed, open the PR manually',
+      };
+    }
+
+    const pr = exec('gh', [
+      'pr', 'create',
+      '--base', baseBranch,
+      '--head', branch,
+      '--title', title,
+      '--body', body,
+    ]);
+    if (!pr.ok) {
+      // PR may already exist — try to read its URL.
+      const existing = exec('gh', ['pr', 'view', branch, '--json', 'url', '-q', '.url']);
+      if (existing.ok && existing.out.startsWith('http')) {
+        return { ...base, success: true, committed, prUrl: existing.out };
+      }
+      return { ...base, success: true, committed, error: `gh pr create failed: ${pr.out}` };
+    }
+
+    const prUrl = pr.out.split('\n').find((l) => l.startsWith('http')) ?? pr.out;
+    logger.info({ branch, prUrl, sandboxed }, 'Sprint pull request opened');
+    return { ...base, success: true, committed, prUrl };
+  })();
+
+  // Restore the original checkout (best-effort) so the working tree is never
+  // left on the sprint branch.
+  if (originalRef && originalRef !== branch) {
+    exec('git', ['checkout', originalRef]);
   }
 
-  const prUrl = pr.out.split('\n').find((l) => l.startsWith('http')) ?? pr.out;
-  logger.info({ branch, prUrl, sandboxed }, 'Sprint pull request opened');
-  return { ...base, success: true, committed, prUrl };
+  return result;
 }

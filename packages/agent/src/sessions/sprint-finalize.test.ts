@@ -8,6 +8,10 @@ vi.mock('node:child_process', () => ({
   // must too (finalizeSprint calls `.trim()` on the result).
   execFileSync: (bin: string, args: string[]): string => {
     calls.push({ bin, args });
+    // git symbolic-ref --short HEAD → current branch (for restore-after).
+    if (args.includes('symbolic-ref') && args[args.length - 1] === 'HEAD') {
+      return 'main';
+    }
     // git diff --cached --quiet → non-zero (dirty tree) so a commit happens.
     if (args.includes('diff') && args.includes('--quiet')) {
       const e = new Error('dirty') as Error & { status: number };
@@ -76,6 +80,26 @@ describe('finalizeSprint sandboxing', () => {
     // The push really happened inside the sandbox.
     const push = calls.find((c) => c.args.includes('push'));
     expect(push?.bin).toBe('/usr/bin/bwrap');
+  });
+
+  it('restores the original branch after creating the sprint branch', () => {
+    bwrapAvailable = false; // simpler argv (no bwrap prefix) for the assertion
+
+    finalizeSprint(
+      { projectPath: '/home/dev/app', branch: 'claudenest/sprint-z', title: 'Sprint Z', body: 'body' },
+      logger,
+    );
+
+    // The current branch was read (symbolic-ref) then a final `git checkout main`
+    // restores it — the tree must never be left on the sprint branch.
+    const symbolicRef = calls.find(
+      (c) => c.args.includes('symbolic-ref') && c.args.includes('HEAD'),
+    );
+    expect(symbolicRef).toBeTruthy();
+    const checkouts = calls.filter((c) => c.args[0] === 'checkout');
+    // First checkout creates the sprint branch, last checkout restores 'main'.
+    expect(checkouts[0]!.args).toEqual(['checkout', '-B', 'claudenest/sprint-z']);
+    expect(checkouts[checkouts.length - 1]!.args).toEqual(['checkout', 'main']);
   });
 
   it('falls open to unsandboxed commands when bwrap is unavailable', () => {

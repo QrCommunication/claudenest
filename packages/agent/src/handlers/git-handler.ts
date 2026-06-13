@@ -169,6 +169,12 @@ export function createGitHandlers(context: HandlerContext) {
       return;
     }
 
+    // Resolve the head branch up-front so its local ref can be cleaned up after
+    // the merge (gh --delete-branch removes the remote branch and usually the
+    // local one, but we delete it explicitly to be certain it is gone).
+    const headRef = runner.exec('gh', ['pr', 'view', String(number), '--json', 'headRefName', '-q', '.headRefName']);
+    const branchName = headRef.ok ? headRef.out.trim() : '';
+
     const methodFlag = method === 'merge' ? '--merge' : method === 'rebase' ? '--rebase' : '--squash';
     const args = ['pr', 'merge', String(number), methodFlag];
     if (deleteBranch) args.push('--delete-branch');
@@ -184,8 +190,25 @@ export function createGitHandlers(context: HandlerContext) {
       return;
     }
 
-    logger.info({ number, method }, 'Pull request merged');
-    wsClient.send('pr:merge:result', { requestId, merged: true, number, sandboxed: runner.sandboxed });
+    // On a successful merge, guarantee the worker branch is removed: gh handled
+    // the remote, this removes any leftover local ref (best-effort, never fails
+    // the merge result).
+    let branchDeleted = false;
+    if (deleteBranch && branchName) {
+      runner.exec('git', ['branch', '-D', branchName]);
+      runner.exec('git', ['fetch', '--prune', 'origin'], 30_000);
+      branchDeleted = true;
+    }
+
+    logger.info({ number, method, branch: branchName, branchDeleted }, 'Pull request merged');
+    wsClient.send('pr:merge:result', {
+      requestId,
+      merged: true,
+      number,
+      branch: branchName || undefined,
+      branchDeleted,
+      sandboxed: runner.sandboxed,
+    });
   }
 
   return {

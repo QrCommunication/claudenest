@@ -81,21 +81,32 @@ describe('git-handler', () => {
     expect(payload.prs).toEqual([{ number: 7, title: 'Feature', headRefName: 'feat' }]);
   });
 
-  it('merges a PR with the requested method', async () => {
+  it('merges a PR and deletes the branch (remote + local)', async () => {
     const seen: string[][] = [];
     execImpl = (cmd, args) => {
       seen.push(args);
       if (args.includes('command -v gh')) return { ok: true, out: '/usr/bin/gh' };
+      if (args[0] === 'pr' && args[1] === 'view') return { ok: true, out: 'claudenest/sprint-x' };
       return { ok: true, out: 'merged' };
     };
 
     await handlers['pr:merge']({ requestId: 'r4', projectPath: '/app', number: 7, method: 'squash' });
 
-    expect(sent[0]!.payload).toMatchObject({ requestId: 'r4', merged: true, number: 7 });
+    expect(sent[0]!.payload).toMatchObject({
+      requestId: 'r4',
+      merged: true,
+      number: 7,
+      branch: 'claudenest/sprint-x',
+      branchDeleted: true,
+    });
+    // gh removes the remote branch via --delete-branch...
     const mergeCall = seen.find((a) => a[0] === 'pr' && a[1] === 'merge');
     expect(mergeCall).toContain('--squash');
     expect(mergeCall).toContain('--delete-branch');
     expect(mergeCall).toContain('7');
+    // ...and the local ref is removed explicitly.
+    const localDelete = seen.find((a) => a[0] === 'branch' && a[1] === '-D');
+    expect(localDelete).toContain('claudenest/sprint-x');
   });
 
   it('surfaces a merge failure as merged:false', async () => {
