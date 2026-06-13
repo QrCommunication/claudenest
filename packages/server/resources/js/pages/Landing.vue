@@ -504,6 +504,7 @@ const ICONS = {
   key: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" /></svg>',
   siren: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>',
   pulse: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /><polyline points="3.5 12 8 12 10 9 14 15 16 12 20.5 12" /></svg>',
+  shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path d="M9 12l2 2 4-4" /></svg>',
 } as const;
 
 const DEMO_BULLETS = [
@@ -520,18 +521,19 @@ const STEPS = [
 
 interface BentoCard {
   key: string;
-  slot: 'a' | 'b' | 'c' | 'd' | 'e' | 'f';
+  slot: 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g';
   icon: string;
   iconClass: string;
 }
 
 const BENTO_CARDS: readonly BentoCard[] = [
-  { key: 'locks', slot: 'a', icon: ICONS.lock, iconClass: 'is-purple' },
-  { key: 'mcp', slot: 'b', icon: ICONS.plug, iconClass: 'is-cyan' },
-  { key: 'board', slot: 'c', icon: ICONS.board, iconClass: 'is-indigo' },
-  { key: 'credentials', slot: 'd', icon: ICONS.key, iconClass: 'is-rose' },
-  { key: 'coordinator', slot: 'e', icon: ICONS.siren, iconClass: 'is-amber' },
-  { key: 'health', slot: 'f', icon: ICONS.pulse, iconClass: 'is-emerald' },
+  { key: 'sandbox', slot: 'a', icon: ICONS.shield, iconClass: 'is-emerald' },
+  { key: 'locks', slot: 'b', icon: ICONS.lock, iconClass: 'is-purple' },
+  { key: 'mcp', slot: 'c', icon: ICONS.plug, iconClass: 'is-cyan' },
+  { key: 'board', slot: 'd', icon: ICONS.board, iconClass: 'is-indigo' },
+  { key: 'credentials', slot: 'e', icon: ICONS.key, iconClass: 'is-rose' },
+  { key: 'coordinator', slot: 'f', icon: ICONS.siren, iconClass: 'is-amber' },
+  { key: 'health', slot: 'g', icon: ICONS.pulse, iconClass: 'is-cyan' },
 ];
 
 type SupportState = boolean | 'partial';
@@ -1256,9 +1258,6 @@ const Partial = () =>
   .bento-a {
     grid-column: span 2;
   }
-  .bento-f {
-    grid-column: span 2;
-  }
 }
 
 @media (min-width: 1024px) {
@@ -1268,9 +1267,10 @@ const Partial = () =>
   .bento-a { grid-column: span 7; grid-row: span 2; }
   .bento-b { grid-column: span 5; }
   .bento-c { grid-column: span 5; }
-  .bento-d { grid-column: span 4; }
-  .bento-e { grid-column: span 4; }
-  .bento-f { grid-column: span 4; }
+  .bento-d { grid-column: span 3; }
+  .bento-e { grid-column: span 3; }
+  .bento-f { grid-column: span 3; }
+  .bento-g { grid-column: span 3; }
 }
 
 .bento-item {

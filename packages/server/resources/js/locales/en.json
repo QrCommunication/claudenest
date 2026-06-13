@@ -922,7 +922,11 @@
       "badge": "Capabilities",
       "title": "Coordination is enforced, ",
       "title_highlight": "not suggested.",
-      "subtitle": "Every mechanism below ships in v1.5 and is covered by the test suite.",
+      "subtitle": "Every mechanism below ships and is covered by the test suite.",
+      "sandbox": {
+        "title": "Sandboxed workers. Autonomy with no blind spot.",
+        "description": "Every worker — and even pull-request creation — runs inside a bubblewrap sandbox: the whole filesystem is readable, but writes are confined to the project. Lightweight, Docker-free, auto-installed by the agent. Run workers fully autonomously (bypass mode) without letting them touch the rest of the machine."
+      },
       "locks": {
         "title": "File locks, enforced at edit time.",
         "description": "When a worker locks a file, other workers' edits are denied by a Claude Code hook — with the owner's name in the refusal. Locks expire, can be force-released, and fail open if the network drops (your agent is never bricked)."
@@ -2645,6 +2649,14 @@
     "noNotifications": "No new notifications"
   },
   "docChangelog": {
+    "v170Date": "June 13, 2026",
+    "v170Title": "End-to-end autonomous orchestration",
+    "v170Desc": "Decomposing a PRD now structures the work into sprints and generates the project context, the global context stays alive as tasks complete, and the workspace lets you track the git worktree, pull requests and merge directly.",
+    "v170Change1": "Decomposition: one sprint per wave (the first one active) and the project context (summary, architecture, conventions) generated automatically when missing.",
+    "v170Change2": "Living global context: every completed task feeds a rolling recent-changes log and the current focus, re-injected into each recycled worker's prompt (no more frozen snapshot).",
+    "v170Change3": "Git tracking in the workspace: branch, ahead/behind, changed files, pull-request list and direct merge (squash / merge / rebase).",
+    "v170Change4": "Sprint finalization (pull-request creation) runs inside the bubblewrap sandbox, just like the workers.",
+    "v170Change5": "UX: the rail's activity area is enlarged for better real-time tracking.",
     "v160Date": "June 13, 2026",
     "v160Title": "Autonomous sandboxed orchestration",
     "v160Desc": "Workers now build your backlog end-to-end on their own — claiming, coding, completing, and recycling — each one confined to a lightweight sandbox. The planner launches the build itself, and a sprint ships as a pull request.",
@@ -3406,6 +3418,7 @@
     "detailSiegeLabel": "Registered office",
     "detailSiegeValue": "23 rue de Richelieu, 75001 Paris, France",
     "detailTelephoneLabel": "Phone",
+    "detailTvaLabel": "Intra-community VAT",
     "directeurHeading": "2. Publication director",
     "directeurPara1": "The publication director is Ms Joëlle Azogui, President of QR Communication (SAS).",
     "directeurContactLabel": "Contact:",
@@ -4518,7 +4531,13 @@
     "resilienceHeading": "Resilience",
     "resiliencePara": "The loop is heartbeat-independent: a scheduled dispatcher nudges any worker that has gone silent, so a turn that ends on an API rate-limit is retried (with a cool-down and unlimited retries) instead of stalling. Tasks left in progress by a crashed worker are resumed first, and the agent reconnects to the server forever — a long outage or deploy never strands the pool.",
     "sprintPrHeading": "Sprint auto-PR",
-    "sprintPrPara": "Completing a sprint asks the project's agent to open a pull request for the sprint's work: it creates a branch, commits the working tree, pushes, and runs gh pr create — then surfaces the PR URL on the project channel. Best-effort: if the remote or gh CLI is unavailable, the branch is still pushed."
+    "sprintPrPara": "Completing a sprint asks the project's agent to open a pull request for the sprint's work: it creates a branch, commits the working tree, pushes, and runs gh pr create — then surfaces the PR URL on the project channel. The PR creation runs inside the same bubblewrap sandbox as the workers. Best-effort: if the remote or gh CLI is unavailable, the branch is still pushed.",
+    "decompositionHeading": "Decomposition into sprints + generated context",
+    "decompositionPara": "Decomposing a PRD produces a plan structured into waves. When the plan is applied, each wave becomes a sprint (the first active, the rest in planning) and every task is attached to it — so real sprint progress drives the automatic pull request. Along the way, if the project has no context yet (summary, architecture, conventions), it is generated automatically from the PRD and indexed into the RAG store, never overwriting existing context.",
+    "livingContextHeading": "Living global context",
+    "livingContextPara": "Every completed task feeds the project's structured context: a rolling recent-changes log (bounded, newest first) and a current focus computed from real state (sprint progress, next task). Both are re-injected into every recycled worker's system prompt via context compilation — so the next worker reads the project's real state instead of a snapshot frozen at decomposition time.",
+    "gitTrackingHeading": "Git tracking, pull requests and direct merge",
+    "gitTrackingPara": "From the workspace, a <strong>Git</strong> tab shows the project's worktree state (branch, ahead/behind, changed files, last commit), the list of open pull requests, and lets you <strong>merge directly</strong> (squash, merge or rebase). Every git/gh command runs on the agent machine, inside the bubblewrap sandbox, and no GitHub token is stored server-side: the machine's own gh auth is reused."
   },
   "docDocsConceptsRagembeddings": {
     "badge": "Concepts",

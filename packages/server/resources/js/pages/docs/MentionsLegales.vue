@@ -69,7 +69,11 @@
             </div>
             <div class="detail-row">
               <span class="detail-label">RCS</span>
-              <span class="detail-value">Paris</span>
+              <span class="detail-value">Paris 940 163 496</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">{{ $t('docDocsMentionslegales.detailTvaLabel') }}</span>
+              <span class="detail-value">FR43940163496</span>
             </div>
           </div>
         </div>

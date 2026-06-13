@@ -922,7 +922,11 @@
       "badge": "Capacites",
       "title": "La coordination est appliquée, ",
       "title_highlight": "pas suggérée.",
-      "subtitle": "Chaque mécanisme ci-dessous est livré en v1.5 et couvert par la suite de tests.",
+      "subtitle": "Chaque mécanisme ci-dessous est livré et couvert par la suite de tests.",
+      "sandbox": {
+        "title": "Workers sandboxés. Autonomie sans angle mort.",
+        "description": "Chaque worker — et même la création des pull requests — tourne dans un sandbox bubblewrap : tout le système de fichiers est lisible, mais l'écriture est confinée au projet. Léger, sans Docker, installé automatiquement par l'agent. Vous laissez les workers en autonomie totale (mode bypass) sans qu'ils puissent toucher au reste de la machine."
+      },
       "locks": {
         "title": "Verrous de fichiers, appliqués à l'édition.",
         "description": "Quand un worker verrouille un fichier, les éditions des autres workers sont refusées par un hook Claude Code — avec le nom du détenteur dans le refus. Les verrous expirent, peuvent être libérés de force, et s'ouvrent en cas de coupure réseau (votre agent n'est jamais bloqué)."
@@ -2645,6 +2649,14 @@
     "noNotifications": "Aucune nouvelle notification"
   },
   "docChangelog": {
+    "v170Date": "13 juin 2026",
+    "v170Title": "Orchestration autonome de bout en bout",
+    "v170Desc": "La décomposition d'un PRD structure désormais le travail en sprints et génère le contexte du projet, le contexte global reste vivant au fil des tâches, et le workspace permet de suivre le worktree git, les pull requests et de merger directement.",
+    "v170Change1": "Décomposition : un sprint créé par vague (le premier actif) et le contexte projet (résumé, architecture, conventions) généré automatiquement s'il est absent.",
+    "v170Change2": "Contexte global vivant : chaque tâche terminée alimente un journal des changements récents et le focus courant, réinjectés dans le prompt de chaque worker recyclé (fini l'instantané figé).",
+    "v170Change3": "Suivi git dans le workspace : branche, écart ahead/behind, fichiers modifiés, liste des pull requests et merge direct (squash / merge / rebase).",
+    "v170Change4": "La finalisation de sprint (création de la pull request) s'exécute dans le sandbox bubblewrap, comme les workers.",
+    "v170Change5": "UX : zone d'activité du rail agrandie pour un meilleur suivi en temps réel.",
     "v160Date": "13 juin 2026",
     "v160Title": "Orchestration autonome sandboxée",
     "v160Desc": "Les workers construisent désormais votre backlog de bout en bout, seuls — ils réclament, codent, terminent et se recyclent — chacun confiné dans un sandbox léger. Le planificateur lance lui-même le build, et un sprint se livre sous forme de pull request.",
@@ -3406,6 +3418,7 @@
     "detailSiegeLabel": "Siege social",
     "detailSiegeValue": "23 rue de Richelieu, 75001 Paris, France",
     "detailTelephoneLabel": "Telephone",
+    "detailTvaLabel": "TVA intracommunautaire",
     "directeurHeading": "2. Directrice de la publication",
     "directeurPara1": "La directrice de la publication est Madame Joëlle Azogui, Presidente de QR Communication (SAS).",
     "directeurContactLabel": "Contact :",
@@ -4518,7 +4531,13 @@
     "resilienceHeading": "Résilience",
     "resiliencePara": "La boucle est indépendante du heartbeat : un dispatcher planifié relance tout worker devenu silencieux, donc un tour terminé sur un rate-limit API est réessayé (avec un cool-down et des tentatives illimitées) au lieu de bloquer. Les tâches laissées en cours par un worker crashé sont reprises en priorité, et l'agent se reconnecte au serveur indéfiniment — une panne longue ou un déploiement n'abandonne jamais le pool.",
     "sprintPrHeading": "Auto-PR de sprint",
-    "sprintPrPara": "Terminer un sprint demande à l'agent du projet d'ouvrir une pull request pour le travail du sprint : il crée une branche, commite l'arbre de travail, push, et exécute gh pr create — puis affiche l'URL de la PR sur le canal du projet. Best-effort : si le remote ou la CLI gh est indisponible, la branche est quand même poussée."
+    "sprintPrPara": "Terminer un sprint demande à l'agent du projet d'ouvrir une pull request pour le travail du sprint : il crée une branche, commite l'arbre de travail, push, et exécute gh pr create — puis affiche l'URL de la PR sur le canal du projet. La création de la PR s'exécute dans le même sandbox bubblewrap que les workers. Best-effort : si le remote ou la CLI gh est indisponible, la branche est quand même poussée.",
+    "decompositionHeading": "Décomposition en sprints + contexte généré",
+    "decompositionPara": "Décomposer un PRD produit un plan structuré en vagues. À l'application du plan, une vague devient un sprint (le premier actif, les suivants en planification) et chaque tâche y est rattachée — la progression réelle du sprint pilote ainsi la pull request automatique. Au passage, si le projet n'a pas encore de contexte (résumé, architecture, conventions), il est généré automatiquement à partir du PRD et indexé dans le store RAG, sans jamais écraser un contexte existant.",
+    "livingContextHeading": "Contexte global vivant",
+    "livingContextPara": "Chaque tâche terminée alimente le contexte structuré du projet : un journal des changements récents (borné, plus récent en tête) et un focus courant calculé sur l'état réel (progression du sprint, prochaine tâche). Ces deux éléments sont réinjectés dans le prompt système de chaque worker recyclé via la compilation de contexte — le worker suivant lit donc l'état réel du projet au lieu d'un instantané figé à la décomposition.",
+    "gitTrackingHeading": "Suivi git, pull requests et merge direct",
+    "gitTrackingPara": "Depuis le workspace, un onglet <strong>Git</strong> affiche l'état du worktree du projet (branche, écart ahead/behind, fichiers modifiés, dernier commit), la liste des pull requests ouvertes, et permet de <strong>merger directement</strong> une PR (squash, merge ou rebase). Toutes les commandes git/gh tournent sur la machine de l'agent, dans le sandbox bubblewrap, et aucun token GitHub n'est stocké côté serveur : l'authentification gh de la machine est réutilisée."
   },
   "docDocsConceptsRagembeddings": {
     "badge": "Concepts",

@@ -427,6 +427,15 @@
 
       <h3>{{ $t('docDocsConceptsMultiagentcoordination.sprintPrHeading') }}</h3>
       <p>{{ $t('docDocsConceptsMultiagentcoordination.sprintPrPara') }}</p>
+
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.decompositionHeading') }}</h3>
+      <p>{{ $t('docDocsConceptsMultiagentcoordination.decompositionPara') }}</p>
+
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.livingContextHeading') }}</h3>
+      <p>{{ $t('docDocsConceptsMultiagentcoordination.livingContextPara') }}</p>
+
+      <h3>{{ $t('docDocsConceptsMultiagentcoordination.gitTrackingHeading') }}</h3>
+      <p v-html="$t('docDocsConceptsMultiagentcoordination.gitTrackingPara')"></p>
     </section>
   </article>
 </template>
