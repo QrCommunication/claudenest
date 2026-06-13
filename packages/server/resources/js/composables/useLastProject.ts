@@ -38,9 +38,28 @@ export function setLastProject(project: LastProject): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(project));
 }
 
+/** Unpin the sidebar entry and drop its persisted copy. */
+export function clearLastProject(): void {
+  if (lastProject.value === null) return;
+  lastProject.value = null;
+  localStorage.removeItem(STORAGE_KEY);
+}
+
+/**
+ * Unpin the sidebar entry only if it points to the given project. Called when a
+ * project is deleted so the pinned link can't outlive the project it targets
+ * (otherwise the deleted project keeps showing in the Multi-Agent group).
+ */
+export function clearLastProjectIfMatches(projectId: string): void {
+  if (lastProject.value?.id === projectId) {
+    clearLastProject();
+  }
+}
+
 export function useLastProject() {
   return {
     lastProject: readonly(lastProject),
     setLastProject,
+    clearLastProject,
   };
 }

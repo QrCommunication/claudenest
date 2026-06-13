@@ -123,6 +123,19 @@ export function useTabs() {
     persistTabs();
   }
 
+  function closeProjectTabs(projectId: string): void {
+    const prefix = `/projects/${projectId}`;
+    // Snapshot first: closeTab() mutates tabs.value (and may navigate to a
+    // fallback) on each call, so iterating the live array would skip entries.
+    // Matches the project root and every sub-route (/workspace, /tasks, …).
+    const stale = tabs.value.filter(
+      (t) => t.path === prefix || t.path.startsWith(`${prefix}/`),
+    );
+    for (const tab of stale) {
+      closeTab(tab.id);
+    }
+  }
+
   function closeOtherTabs(tabId: string): void {
     tabs.value = tabs.value.filter((t) => t.id === tabId || !t.closable);
     setActiveTab(tabId);
@@ -173,6 +186,7 @@ export function useTabs() {
     activeTabId,
     openTab,
     closeTab,
+    closeProjectTabs,
     setActiveTab,
     closeOtherTabs,
     closeAllTabs,

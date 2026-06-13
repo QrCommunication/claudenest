@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { api } from '@/composables/useApi';
+import { clearLastProjectIfMatches } from '@/composables/useLastProject';
 import type { 
   SharedProject,
   ProjectStats,
@@ -143,6 +144,27 @@ export const useProjectsStore = defineStore('projects', () => {
   }
 
   /**
+   * Purge every local reference to a project: list entry, current selection and
+   * its derived data, plus the pinned sidebar entry. Pure client-side state — no
+   * API call — so it is reused both after a successful DELETE and by the
+   * real-time ProjectDeleted listener (a delete triggered from another client).
+   */
+  function removeProjectLocal(projectId: string): void {
+    projects.value = projects.value.filter(p => p.id !== projectId);
+
+    if (selectedProject.value?.id === projectId) {
+      selectedProject.value = null;
+      projectStats.value = null;
+      instances.value = [];
+      activityLogs.value = [];
+    }
+
+    // Drop the pinned sidebar link if it targeted the deleted project, otherwise
+    // a ghost entry survives in the Multi-Agent group.
+    clearLastProjectIfMatches(projectId);
+  }
+
+  /**
    * Delete a project
    * @throws {Error} If the deletion fails
    */
@@ -152,11 +174,7 @@ export const useProjectsStore = defineStore('projects', () => {
 
     try {
       await api.delete(`/projects/${projectId}`);
-      projects.value = projects.value.filter(p => p.id !== projectId);
-
-      if (selectedProject.value?.id === projectId) {
-        selectedProject.value = null;
-      }
+      removeProjectLocal(projectId);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to delete project';
       error.value = message;
@@ -294,6 +312,7 @@ export const useProjectsStore = defineStore('projects', () => {
     createProject,
     updateProject,
     deleteProject,
+    removeProjectLocal,
     fetchProjectStats,
     fetchInstances,
     fetchActivity,

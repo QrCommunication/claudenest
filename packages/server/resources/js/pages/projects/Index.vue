@@ -261,6 +261,7 @@ import { useRouter } from 'vue-router';
 import { useProjectsStore } from '@/stores/projects';
 import { useMachinesStore } from '@/stores/machines';
 import { useToast } from '@/composables/useToast';
+import { useTabs } from '@/composables/useTabs';
 import Card from '@/components/common/Card.vue';
 import Button from '@/components/common/Button.vue';
 import Modal from '@/components/common/Modal.vue';
@@ -272,6 +273,7 @@ const router = useRouter();
 const projectsStore = useProjectsStore();
 const machinesStore = useMachinesStore();
 const toast = useToast();
+const { closeProjectTabs } = useTabs();
 
 const selectedMachineId = ref('');
 const showCreateModal = ref(false);
@@ -379,9 +381,14 @@ function confirmDelete(project: SharedProject) {
 
 async function deleteProject() {
   if (!projectToDelete.value) return;
-  
+
+  const deletedId = projectToDelete.value.id;
+
   try {
-    await projectsStore.deleteProject(projectToDelete.value.id);
+    await projectsStore.deleteProject(deletedId);
+    // Store purges the list/selection/pinned sidebar entry; close any open tab
+    // that still points at the now-deleted project (needs router context).
+    closeProjectTabs(deletedId);
     toast.success(t('projectsIndex.toastDeleteSuccess'));
     showDeleteModal.value = false;
     projectToDelete.value = null;

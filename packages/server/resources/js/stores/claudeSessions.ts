@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { claudeSessionsApi } from '@/services/api';
-import { subscribePrivate } from '@/services/echo';
+import { getEchoClient, subscribePrivate } from '@/services/echo';
 import type {
   DiscoveredSession,
   TranscriptEvent,
@@ -62,21 +62,42 @@ export const useClaudeSessionsStore = defineStore('claudeSessions', () => {
    */
   function subscribeDiscovered(machineId: string): void {
     unsubDiscovered?.();
-    unsubDiscovered = subscribePrivate<DiscoveredBroadcast>(
-      `machines.${machineId}`,
-      '.claude_sessions.discovered',
-      () => {
-        void claudeSessionsApi
-          .list(machineId)
-          .then((list) => {
-            sessions.value = list;
-          })
-          .catch(() => {
-            // Transient fetch failure — keep the current list, the next
-            // 30s signal will retry.
-          });
-      },
-    );
+
+    let client: ReturnType<typeof getEchoClient>;
+    try {
+      client = getEchoClient();
+    } catch {
+      // Reverb config missing (tests, degraded boot) — real-time disabled.
+      return;
+    }
+
+    const handler = (_payload: DiscoveredBroadcast): void => {
+      void claudeSessionsApi
+        .list(machineId)
+        .then((list) => {
+          sessions.value = list;
+        })
+        .catch(() => {
+          // Transient fetch failure — keep the current list, the next
+          // 30s signal will retry.
+        });
+    };
+
+    const channel = `machines.${machineId}`;
+    client.private(channel).listen('.claude_sessions.discovered', handler as (p: unknown) => void);
+
+    // Detach only this event handler — never leave() the channel: it is shared
+    // with the global ProjectDeleted listener (useProjectDeletionSync), and a
+    // leave() would drop that sibling subscription too.
+    unsubDiscovered = () => {
+      try {
+        client
+          .private(channel)
+          .stopListening('.claude_sessions.discovered', handler as (p: unknown) => void);
+      } catch {
+        // Channel already gone.
+      }
+    };
   }
 
   /** Open a session: load redacted history then stream live appends. */

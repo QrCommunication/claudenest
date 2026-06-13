@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Events\ProjectBroadcast;
+use App\Events\ProjectDeleted;
 use App\Exceptions\WorkerPoolException;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProjectResource;
@@ -353,15 +354,25 @@ class ProjectController extends Controller
 
         $this->authorize('delete', $project);
 
+        // Capture the scalar identifiers BEFORE the row is gone — the event's
+        // broadcastWith() can no longer read them once delete() + cascade run.
+        $projectId = $project->id;
+        $machineId = $project->machine_id;
+        $userId = $project->user_id;
+        $projectName = $project->name;
+
         // Hard delete + PostgreSQL onDelete('cascade') purge every child row
         // (context_chunks, shared_tasks, claude_instances, file_locks,
         // activity_log, epics, sprints); claude_sessions are set null. No
         // SoftDeletes, so index() never returns this row again.
         $project->delete();
 
-        // NOTE: real-time fan-out (ProjectDeleted broadcast over Reverb) is
-        // wired by the sibling "Broadcast événement suppression projet" task,
-        // which captures the scalar identifiers BEFORE this delete() call.
+        // Real-time fan-out so connected clients drop the project from the
+        // sidebar / close its open tab without a manual refresh. Dispatched
+        // AFTER delete() with the pre-captured scalars (slim payload — see
+        // ProjectDeleted). Not toOthers(): the removal is idempotent, so we
+        // prefer guaranteed delivery to every tab over excluding the initiator.
+        broadcast(new ProjectDeleted($projectId, $machineId, $userId, $projectName));
 
         return $this->deletedResponse($request);
     }
