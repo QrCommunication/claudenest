@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\InstanceUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\InstanceResource;
 use App\Models\ClaudeInstance;
@@ -76,11 +77,21 @@ class InstanceController extends Controller
             $instance->update(['status' => $data['status']]);
 
             if ($statusChanged) {
-                event(new \App\Events\InstanceUpdated($instance));
+                event(new InstanceUpdated($instance));
             }
         }
 
         $instance->updateActivity();
+
+        // Self-heal: a heartbeat proves the worker is alive. If its
+        // session:status 'running' update was lost (e.g. a transient agent WS
+        // drop), the session can be stuck at 'created'/'starting' — which the
+        // dashboard shows as not-connected. Promote it so the UI and the
+        // orchestration loop see a live worker.
+        $instanceSession = $instance->session;
+        if ($instanceSession && in_array($instanceSession->status, ['created', 'starting'], true)) {
+            $instanceSession->markAsRunning();
+        }
 
         // Auto-extend file locks held by this instance
         $locksExtended = 0;
@@ -201,5 +212,4 @@ class InstanceController extends Controller
             })
             ->firstOrFail();
     }
-
 }
