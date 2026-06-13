@@ -184,6 +184,12 @@ class CoordinatorService
             ),
             'Coordinator session started',
             'warning',
+            titleKey: 'projectChannel.coordinatorStarted.title',
+            messageKey: 'projectChannel.coordinatorStarted.message',
+            params: [
+                'type' => $type,
+                'session' => $session->id,
+            ],
         ));
 
         $project->logActivity('coordinator_spawned', null, [

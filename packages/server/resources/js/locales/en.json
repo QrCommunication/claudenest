@@ -1919,7 +1919,15 @@
     "noWorkers": "No active workers"
   },
   "projectChannel": {
-    "workerNotification": "Worker notification"
+    "workerNotification": "Worker notification",
+    "workerCoolingDown": {
+      "title": "Worker cooling down",
+      "message": "Worker {instance} made no progress after {nudges} nudges (likely API rate-limit) — cooling down {seconds}s then retrying automatically. Open its terminal to intervene."
+    },
+    "coordinatorStarted": {
+      "title": "Coordinator session started",
+      "message": "Incident '{type}' detected — a coordinator session was spawned to reorganise the plan (session {session})."
+    }
   },
   "projectsContext": {
     "summarize": "Summarize",

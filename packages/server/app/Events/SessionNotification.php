@@ -22,18 +22,39 @@ class SessionNotification implements ShouldBroadcast
     public string $notificationType;
 
     /**
+     * Optional i18n keys + params. When present, an i18n-aware client (the Vue
+     * dashboard) translates these against the user's locale; $message/$title
+     * stay as English fallbacks for non-i18n clients (mobile, logs).
+     *
+     * @var array<string, mixed>
+     */
+    public array $params;
+
+    public ?string $titleKey;
+
+    public ?string $messageKey;
+
+    /**
      * Create a new event instance.
+     *
+     * @param  array<string, mixed>  $params  named interpolation params for the i18n keys
      */
     public function __construct(
         Session $session,
         string $message,
         ?string $title = null,
-        string $notificationType = 'info'
+        string $notificationType = 'info',
+        ?string $titleKey = null,
+        ?string $messageKey = null,
+        array $params = [],
     ) {
         $this->session = $session;
         $this->message = $message;
         $this->title = $title;
         $this->notificationType = $notificationType;
+        $this->titleKey = $titleKey;
+        $this->messageKey = $messageKey;
+        $this->params = $params;
     }
 
     /**
@@ -71,6 +92,9 @@ class SessionNotification implements ShouldBroadcast
             'machine_id' => $this->session->machine_id,
             'title' => $this->title,
             'message' => $this->message,
+            'title_key' => $this->titleKey,
+            'message_key' => $this->messageKey,
+            'params' => (object) $this->params,
             'notification_type' => $this->notificationType,
             'timestamp' => now()->toIso8601String(),
         ];

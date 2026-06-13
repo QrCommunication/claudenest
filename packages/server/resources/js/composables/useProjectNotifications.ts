@@ -19,9 +19,18 @@ export function useProjectNotifications(
   const { t } = useI18n();
 
   on('session.notification', (payload) => {
-    toast.warning(
-      payload.title || t('projectChannel.workerNotification'),
-      payload.message || undefined,
-    );
+    // Prefer the i18n key (translated against the user's locale); fall back to
+    // the server-sent English title/message for older/non-i18n payloads.
+    const params = (payload.params ?? {}) as Record<string, unknown>;
+
+    const title = payload.title_key
+      ? t(payload.title_key, params)
+      : payload.title || t('projectChannel.workerNotification');
+
+    const message = payload.message_key
+      ? t(payload.message_key, params)
+      : payload.message || undefined;
+
+    toast.warning(title, message);
   });
 }

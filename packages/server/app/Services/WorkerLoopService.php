@@ -338,6 +338,13 @@ class WorkerLoopService
             ),
             'Worker cooling down',
             'warning',
+            titleKey: 'projectChannel.workerCoolingDown.title',
+            messageKey: 'projectChannel.workerCoolingDown.message',
+            params: [
+                'instance' => $instance->id,
+                'nudges' => $nudgeCount,
+                'seconds' => self::PAUSE_SECONDS,
+            ],
         ));
     }
 

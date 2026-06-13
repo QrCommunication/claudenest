@@ -1919,7 +1919,15 @@
     "noWorkers": "Aucun worker actif"
   },
   "projectChannel": {
-    "workerNotification": "Notification du worker"
+    "workerNotification": "Notification du worker",
+    "workerCoolingDown": {
+      "title": "Worker en pause",
+      "message": "Le worker {instance} n'a pas progressé après {nudges} relances (probablement un rate-limit API) — pause de {seconds}s puis nouvelle tentative automatique. Ouvrez son terminal pour intervenir."
+    },
+    "coordinatorStarted": {
+      "title": "Session coordinateur démarrée",
+      "message": "Incident « {type} » détecté — une session coordinateur a été lancée pour réorganiser le plan (session {session})."
+    }
   },
   "projectsContext": {
     "summarize": "Résumer",

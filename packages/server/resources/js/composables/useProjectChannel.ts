@@ -100,6 +100,10 @@ export interface SessionNotificationPayload {
   machine_id: string;
   title: string;
   message: string;
+  /** Optional i18n keys + named params (translated client-side). */
+  title_key?: string | null;
+  message_key?: string | null;
+  params?: Record<string, unknown>;
   notification_type: string;
   timestamp: string;
 }
