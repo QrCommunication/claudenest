@@ -487,23 +487,23 @@ class TaskController extends Controller
         // Progress proven — reset the worker-loop no-progress state.
         WorkerLoopService::resetNoProgress($validated['instance_id']);
 
-        // Automatic RAG ingestion: the completion summary becomes a searchable
-        // context chunk (embedding generated when Ollama is available).
-        // Best-effort — a RAG/embedding failure must NEVER fail the completion.
+        // Feed the LIVING project context: a searchable task_completion RAG
+        // chunk + a refreshed rolling recent-changes log and current_focus.
+        // Both surface to the next recycled worker via compileContext(), so the
+        // global context stays alive instead of frozen at decomposition time.
+        // Belt-and-suspenders best-effort: the service guards each side effect
+        // internally, and this wrap keeps a future service bug from ever
+        // failing the completion (the critical orchestration path).
         try {
-            app(ContextRAGService::class)->addContext(
+            app(ContextRAGService::class)->recordTaskCompletion(
                 $task->project,
-                "{$task->title}: {$validated['summary']}",
-                'task_completion',
-                [
-                    'instance_id' => $validated['instance_id'],
-                    'task_id' => $task->id,
-                    'files' => $validated['files_modified'] ?? [],
-                    'importance_score' => 0.7,
-                ],
+                $task,
+                $validated['summary'],
+                $validated['files_modified'] ?? [],
+                $validated['instance_id'],
             );
         } catch (\Throwable $e) {
-            Log::warning('Task completion RAG ingestion failed', [
+            Log::warning('Task completion living-context ingestion failed', [
                 'task_id' => $task->id,
                 'project_id' => $task->project_id,
                 'error' => $e->getMessage(),

@@ -6,6 +6,8 @@ use PHPUnit\Framework\Attributes\Test;
 
 use App\Models\ContextChunk;
 use App\Models\SharedProject;
+use App\Models\SharedTask;
+use App\Models\Sprint;
 use App\Services\ContextRAGService;
 use App\Services\EmbeddingService;
 use App\Services\SummarizationService;
@@ -209,6 +211,105 @@ class ContextRAGServiceTest extends TestCase
         $this->assertIsArray($stats);
         $this->assertEquals(8, $stats['total_chunks']);
         $this->assertArrayHasKey('by_type', $stats);
+    }
+
+    #[Test]
+    public function record_task_completion_creates_chunk_and_updates_living_context(): void
+    {
+        $this->embeddingService->shouldReceive('isAvailable')->andReturn(false);
+
+        $project = SharedProject::factory()->create([
+            'recent_changes' => '',
+            'current_focus' => '',
+        ]);
+
+        $sprint = Sprint::create([
+            'project_id' => $project->id,
+            'name' => 'Foundation',
+            'status' => 'active',
+            'sort_order' => 0,
+        ]);
+
+        $done = SharedTask::factory()->for($project, 'project')->create([
+            'title' => 'Build auth',
+            'status' => 'done',
+            'sprint_id' => $sprint->id,
+        ]);
+        SharedTask::factory()->for($project, 'project')->create([
+            'title' => 'Build dashboard UI',
+            'status' => 'pending',
+            'priority' => 'high',
+            'sprint_id' => $sprint->id,
+        ]);
+
+        $this->service->recordTaskCompletion(
+            $project,
+            $done,
+            'Added JWT login with refresh tokens',
+            ['src/auth.ts'],
+            'inst-worker-1',
+        );
+
+        // 1. Searchable RAG chunk.
+        $this->assertDatabaseHas('context_chunks', [
+            'project_id' => $project->id,
+            'type' => 'task_completion',
+            'task_id' => $done->id,
+        ]);
+
+        // 2. Living structured context.
+        $project->refresh();
+        $this->assertStringContainsString('Build auth', (string) $project->recent_changes);
+        $this->assertStringContainsString('Added JWT login', (string) $project->recent_changes);
+        $this->assertStringContainsString('Sprint: Foundation', (string) $project->current_focus);
+        $this->assertStringContainsString('1/2 tasks done', (string) $project->current_focus);
+        $this->assertStringContainsString('Next up: Build dashboard UI', (string) $project->current_focus);
+    }
+
+    #[Test]
+    public function record_task_completion_caps_the_recent_changes_log(): void
+    {
+        $this->embeddingService->shouldReceive('isAvailable')->andReturn(false);
+
+        $existing = collect(range(1, 20))
+            ->map(fn (int $i) => "- [2026-06-01] Old task {$i} — done")
+            ->implode("\n");
+
+        $project = SharedProject::factory()->create(['recent_changes' => $existing]);
+        $task = SharedTask::factory()->for($project, 'project')->create([
+            'title' => 'Newest task',
+            'status' => 'done',
+        ]);
+
+        $this->service->recordTaskCompletion($project, $task, 'fresh work', [], 'inst-1');
+
+        $project->refresh();
+        $lines = array_filter(explode("\n", (string) $project->recent_changes));
+        $this->assertLessThanOrEqual(15, count($lines));
+        $this->assertStringContainsString('Newest task', $lines[array_key_first($lines)]);
+    }
+
+    #[Test]
+    public function record_task_completion_swallows_rag_failure_but_still_updates_context(): void
+    {
+        $this->embeddingService->shouldReceive('isAvailable')->andReturn(true);
+        $this->embeddingService->shouldReceive('generate')
+            ->andThrow(new \RuntimeException('Ollama exploded'));
+
+        $project = SharedProject::factory()->create(['recent_changes' => '']);
+        $task = SharedTask::factory()->for($project, 'project')->create([
+            'title' => 'Resilient task',
+            'status' => 'done',
+        ]);
+
+        // Must not throw despite the embedding failure inside addContext().
+        $this->service->recordTaskCompletion($project, $task, 'done anyway', [], 'inst-1');
+
+        // The RAG chunk was not created (addContext threw before persisting)...
+        $this->assertSame(0, ContextChunk::where('type', 'task_completion')->count());
+        // ...but the living context is independent and still refreshed.
+        $project->refresh();
+        $this->assertStringContainsString('Resilient task', (string) $project->recent_changes);
     }
 
     protected function tearDown(): void

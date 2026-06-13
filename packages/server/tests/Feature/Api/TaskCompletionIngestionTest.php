@@ -65,10 +65,37 @@ class TaskCompletionIngestionTest extends TestCase
     }
 
     #[Test]
-    public function completion_succeeds_even_when_rag_ingestion_throws(): void
+    public function completing_a_task_delegates_to_record_task_completion(): void
     {
         $this->mock(ContextRAGService::class)
-            ->shouldReceive('addContext')
+            ->shouldReceive('recordTaskCompletion')
+            ->once()
+            ->withArgs(function ($project, $task, string $summary, array $files, ?string $instanceId): bool {
+                return $project->id === $this->project->id
+                    && $task->id === $this->task->id
+                    && $summary === 'Added JWT login'
+                    && $files === ['src/auth.ts']
+                    && $instanceId === 'inst-worker-1';
+            });
+
+        $response = $this->actingAs($this->user)
+            ->postJson("/api/tasks/{$this->task->id}/complete", [
+                'instance_id' => 'inst-worker-1',
+                'summary' => 'Added JWT login',
+                'files_modified' => ['src/auth.ts'],
+            ]);
+
+        $response->assertOk()->assertJsonPath('data.status', 'done');
+        $this->assertSame('done', $this->task->fresh()->status);
+    }
+
+    #[Test]
+    public function completion_succeeds_even_when_living_context_ingestion_throws(): void
+    {
+        // The service is best-effort by contract, but the controller wraps it
+        // too: a catastrophic ingestion failure must never fail the completion.
+        $this->mock(ContextRAGService::class)
+            ->shouldReceive('recordTaskCompletion')
             ->once()
             ->andThrow(new \RuntimeException('Ollama exploded'));
 
@@ -79,8 +106,6 @@ class TaskCompletionIngestionTest extends TestCase
             ]);
 
         $response->assertOk()->assertJsonPath('data.status', 'done');
-
         $this->assertSame('done', $this->task->fresh()->status);
-        $this->assertSame(0, ContextChunk::where('type', 'task_completion')->count());
     }
 }
