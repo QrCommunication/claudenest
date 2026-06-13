@@ -216,6 +216,7 @@
               :selected-epic-id="epicsStore.selectedEpic?.id || ''"
               @select="epicsStore.selectEpic($event)"
               @create="showCreateEpicModal = true"
+              @delete="handleDeleteEpic"
             />
           </div>
 
@@ -417,6 +418,22 @@ async function handleCompleteSprint(): Promise<void> {
     await sprintsStore.fetchSprints(projectId.value);
   } catch {
     toast.error(t('projectsShow.sprintCompleteFailed'));
+  }
+}
+
+// Delete an epic and its generated sprints + tasks (cascade server-side).
+async function handleDeleteEpic(epicId: string): Promise<void> {
+  const epic = epicsStore.epics.find((e) => e.id === epicId);
+  if (!window.confirm(t('projectsShow.deleteEpicConfirm', { name: epic?.title ?? '' }))) return;
+  try {
+    await epicsStore.deleteEpic(epicId);
+    toast.success(t('projectsShow.epicDeleted'));
+    await Promise.all([
+      sprintsStore.fetchSprints(projectId.value),
+      tasksStore.fetchTasks(projectId.value),
+    ]);
+  } catch {
+    toast.error(t('projectsShow.epicDeleteFailed'));
   }
 }
 

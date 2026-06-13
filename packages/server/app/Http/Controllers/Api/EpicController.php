@@ -225,14 +225,37 @@ class EpicController extends Controller
         $epic = Epic::with('project')->findOrFail($id);
         $this->authorize('update', $epic->project);
 
-        // Nullify epic_id on related tasks before deletion
-        $epic->tasks()->update(['epic_id' => null]);
+        // Cascade: deleting an epic removes its tasks and any sprint that becomes
+        // empty as a result (epic-from-PRD generates dedicated sprints + tasks,
+        // so they belong to the epic). Sprints still holding other tasks are
+        // preserved. Atomic.
+        $deleted = \Illuminate\Support\Facades\DB::transaction(function () use ($epic) {
+            $sprintIds = $epic->tasks()
+                ->whereNotNull('sprint_id')
+                ->distinct()
+                ->pluck('sprint_id')
+                ->all();
 
-        $epic->delete();
+            $tasksDeleted = $epic->tasks()->delete();
+
+            $sprintsDeleted = 0;
+            foreach ($sprintIds as $sprintId) {
+                if (\App\Models\SharedTask::where('sprint_id', $sprintId)->count() === 0) {
+                    $sprintsDeleted += \App\Models\Sprint::where('id', $sprintId)->delete();
+                }
+            }
+
+            $epic->delete();
+
+            return ['tasks' => $tasksDeleted, 'sprints' => $sprintsDeleted];
+        });
 
         return response()->json([
             'success' => true,
-            'data' => null,
+            'data' => [
+                'tasks_deleted' => $deleted['tasks'],
+                'sprints_deleted' => $deleted['sprints'],
+            ],
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),

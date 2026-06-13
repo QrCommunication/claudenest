@@ -27,11 +27,19 @@
           <!-- Ligne titre : icône + titre + statut -->
           <div class="epic-header">
             <span class="epic-icon">
-              <template v-if="epic.icon">{{ epic.icon }}</template>
+              <template v-if="isGlyph(epic.icon)">{{ epic.icon }}</template>
               <svg v-else viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h12v2H3v-2z" /></svg>
             </span>
             <span class="epic-title">{{ epic.title }}</span>
             <StatusBadge type="status" :value="epic.status" />
+            <button
+              class="epic-delete"
+              :title="t('multiagentEpicboard.deleteEpic')"
+              :aria-label="t('multiagentEpicboard.deleteEpic')"
+              @click.stop="$emit('delete', epic.id)"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" /></svg>
+            </button>
           </div>
 
           <!-- Barre de progression -->
@@ -97,6 +105,12 @@ const sortedEpics = computed(() =>
 
 const clampPercent = (value: number): number =>
   Math.min(100, Math.max(0, value ?? 0));
+
+// The epic `icon` field stores a name (e.g. "layers") for generated epics —
+// rendering it as text shows "layers". Only render it as a glyph when it is an
+// actual symbol/emoji (non-identifier); otherwise fall back to the SVG.
+const isGlyph = (icon?: string | null): boolean =>
+  !!icon && !/^[a-z0-9_-]+$/i.test(icon);
 </script>
 
 <style scoped>
@@ -186,6 +200,28 @@ const clampPercent = (value: number): number =>
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.epic-delete {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted, #8b8ca0);
+  cursor: pointer;
+  opacity: 0.55;
+  transition: opacity 0.15s, color 0.15s, background 0.15s;
+}
+.epic-card:hover .epic-delete {
+  opacity: 1;
+}
+.epic-delete:hover {
+  color: var(--color-error, #ef4444);
+  background: color-mix(in srgb, var(--color-error, #ef4444) 12%, transparent);
 }
 
 .epic-icon {
