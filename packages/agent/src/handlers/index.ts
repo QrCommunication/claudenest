@@ -11,3 +11,4 @@ export { createDecomposeHandlers } from './decompose-handler.js';
 export { createOAuthHandlers } from './oauth-handler.js';
 export { createDiscoveryHandlers } from './discovery-handler.js';
 export { createSprintHandlers } from './sprint-handler.js';
+export { createGitHandlers } from './git-handler.js';

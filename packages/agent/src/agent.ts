@@ -23,6 +23,7 @@ import {
   createOAuthHandlers,
   createDiscoveryHandlers,
   createSprintHandlers,
+  createGitHandlers,
 } from './handlers/index.js';
 import type {
   AgentConfig,
@@ -447,6 +448,11 @@ export class ClaudeNestAgent extends EventEmitter {
       logger: this.logger,
     });
 
+    const gitHandlers = createGitHandlers({
+      wsClient: this.wsClient,
+      logger: this.logger,
+    });
+
     // Register all handlers
     for (const [type, handler] of Object.entries(sessionHandlers)) {
       this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
@@ -473,6 +479,9 @@ export class ClaudeNestAgent extends EventEmitter {
       this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
     }
     for (const [type, handler] of Object.entries(sprintHandlers)) {
+      this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
+    }
+    for (const [type, handler] of Object.entries(gitHandlers)) {
       this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
     }
 

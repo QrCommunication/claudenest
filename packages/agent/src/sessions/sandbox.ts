@@ -165,3 +165,48 @@ export function buildBwrapArgs(opts: SandboxOptions): string[] {
 
   return args;
 }
+
+export interface SandboxedRunner {
+  /** Whether commands actually run inside bwrap (false = fail-open, host run). */
+  readonly sandboxed: boolean;
+  /** Run a command synchronously, throw-free, returning trimmed stdout. */
+  exec(cmd: string, args: string[], timeoutMs?: number): { ok: boolean; out: string };
+}
+
+/**
+ * Create a reusable runner that executes commands in the project's working tree
+ * through the same "read-all, write-confined" bwrap profile as the workers
+ * (resolved once). Fail-open: if bwrap is unavailable, commands run unsandboxed.
+ *
+ * Used by read/act git+gh helpers (status, PR list, PR merge) so those host
+ * operations are confined exactly like the workers — the whole FS is readable
+ * (git/gh/ssh + their credentials keep working) but only the project tree is
+ * writable.
+ */
+export function createSandboxedRunner(projectPath: string): SandboxedRunner {
+  const bwrapBin = findBwrap();
+  const prefix = bwrapBin ? buildBwrapArgs({ projectPath }) : null;
+  const sandboxed = Boolean(bwrapBin && prefix);
+
+  return {
+    sandboxed,
+    exec(cmd: string, args: string[], timeoutMs = 30_000): { ok: boolean; out: string } {
+      const [bin, argv] = sandboxed
+        ? [bwrapBin as string, [...(prefix as string[]), '--', cmd, ...args]]
+        : [cmd, args];
+      try {
+        const out = execFileSync(bin, argv, {
+          cwd: projectPath,
+          encoding: 'utf8',
+          stdio: ['ignore', 'pipe', 'pipe'],
+          timeout: timeoutMs,
+        }).trim();
+        return { ok: true, out };
+      } catch (err) {
+        const e = err as { stderr?: Buffer | string; message?: string };
+        const out = (e.stderr ? e.stderr.toString() : e.message ?? '').trim();
+        return { ok: false, out };
+      }
+    },
+  };
+}
