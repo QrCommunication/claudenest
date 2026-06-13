@@ -9,6 +9,7 @@ use App\Events\SessionTerminated;
 use App\Exceptions\WorkerPoolException;
 use App\Models\Session;
 use App\Models\SharedProject;
+use App\Models\SharedTask;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Log;
@@ -82,6 +83,11 @@ class WorkerPoolService
                 throw WorkerPoolException::planLimitReached($cap);
             }
         }
+
+        // Resume before new: tasks left in_progress by previously-terminated
+        // workers return to the claimable pool (and are claimed first via
+        // prioritized()) so a relaunch continues that work instead of stranding it.
+        SharedTask::reclaimOrphaned($project->id);
 
         $pendingTasks = $project->tasks()->pending()->count();
         $toSpawn = (int) min($maxWorkers, $remaining, max(1, $pendingTasks));

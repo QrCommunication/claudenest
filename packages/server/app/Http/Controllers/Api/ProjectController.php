@@ -167,7 +167,7 @@ class ProjectController extends Controller
      * AI-generated project context is immediately searchable by instances.
      * Best-effort: a RAG failure must never block project creation.
      *
-     * @param array<string, mixed> $validated
+     * @param  array<string, mixed>  $validated
      */
     private function seedContextChunks(SharedProject $project, array $validated): void
     {
@@ -339,11 +339,36 @@ class ProjectController extends Controller
     )]
     public function destroy(Request $request, string $id): JsonResponse
     {
-        $project = SharedProject::findOrFail($id);
+        $project = SharedProject::find($id);
+
+        // Idempotent delete: a project that is already gone (concurrent tab,
+        // double-click, prior cascade) returns success so the client ALWAYS
+        // purges it from its store/sidebar instead of getting stuck on a 404
+        // and leaving the stale project displayed. DELETE is idempotent per
+        // the HTTP spec; an absent row leaks nothing (same response shape as
+        // a successful delete). See memory/audit-sharedproject-deletion.md.
+        if ($project === null) {
+            return $this->deletedResponse($request);
+        }
+
         $this->authorize('delete', $project);
 
+        // Hard delete + PostgreSQL onDelete('cascade') purge every child row
+        // (context_chunks, shared_tasks, claude_instances, file_locks,
+        // activity_log, epics, sprints); claude_sessions are set null. No
+        // SoftDeletes, so index() never returns this row again.
         $project->delete();
 
+        // NOTE: real-time fan-out (ProjectDeleted broadcast over Reverb) is
+        // wired by the sibling "Broadcast événement suppression projet" task,
+        // which captures the scalar identifiers BEFORE this delete() call.
+
+        return $this->deletedResponse($request);
+    }
+
+    /** Standard "resource deleted" envelope shared by destroy paths. */
+    private function deletedResponse(Request $request): JsonResponse
+    {
         return response()->json([
             'success' => true,
             'data' => null,
@@ -778,6 +803,10 @@ class ProjectController extends Controller
             'coordinator' => 'nullable|boolean',
         ]);
 
+        // bypassPermissions is the explicit, operator-chosen default for
+        // unattended workers (see WorkerPoolService::DEFAULT_PERMISSION_MODE).
+        // Tradeoff accepted by the project owner; sandbox the workers (container
+        // /VM) if stricter isolation is ever required.
         try {
             $status = $workerPool->start(
                 $project,

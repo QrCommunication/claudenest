@@ -119,6 +119,10 @@ class WorkerLoopService
             return 0;
         }
 
+        // Resume before new: return tasks orphaned by dead workers to the pool
+        // (claimed first via prioritized()) before nudging idle workers.
+        SharedTask::reclaimOrphaned($project->id);
+
         $instances = $project->claudeInstances()
             ->connected()
             ->where('status', 'idle')

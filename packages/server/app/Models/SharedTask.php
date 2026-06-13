@@ -12,7 +12,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use App\Models\FileLock;
 
 class SharedTask extends Model
 {
@@ -181,22 +180,22 @@ class SharedTask extends Model
     public function scopeReadyToStart($query)
     {
         return $query->where('status', 'pending')
-                     ->whereNull('assigned_to')
-                     ->where(function ($q) {
-                         // No dependencies at all
-                         $q->where(function ($sub) {
-                             $sub->whereNull('dependencies')
-                                 ->orWhereJsonLength('dependencies', 0);
-                         })
-                         // OR all dependencies are completed
-                         ->orWhereRaw("NOT EXISTS (
+            ->whereNull('assigned_to')
+            ->where(function ($q) {
+                // No dependencies at all
+                $q->where(function ($sub) {
+                    $sub->whereNull('dependencies')
+                        ->orWhereJsonLength('dependencies', 0);
+                })
+                // OR all dependencies are completed
+                    ->orWhereRaw("NOT EXISTS (
                              SELECT 1 FROM shared_tasks AS dep
                              WHERE dep.id::text = ANY(
                                  SELECT jsonb_array_elements_text(shared_tasks.dependencies)
                              )
                              AND dep.status != 'done'
                          )");
-                     });
+            });
     }
 
     public function scopeByEpic($query, string $epicId)
@@ -232,7 +231,11 @@ class SharedTask extends Model
     public function scopePrioritized($query)
     {
         return $query
-            ->orderByRaw("COALESCE(wave, 999) ASC")
+            // Resume first: a task that was already started then orphaned keeps
+            // its claimed_at (reclaimOrphaned() does not clear it), so surface
+            // it before any never-touched task.
+            ->orderByRaw('CASE WHEN claimed_at IS NOT NULL THEN 0 ELSE 1 END ASC')
+            ->orderByRaw('COALESCE(wave, 999) ASC')
             ->orderBy('sort_order', 'asc')
             ->orderByRaw("
                 CASE priority
@@ -250,7 +253,7 @@ class SharedTask extends Model
 
     public function getIsClaimedAttribute(): bool
     {
-        return !empty($this->assigned_to);
+        return ! empty($this->assigned_to);
     }
 
     public function getIsCompletedAttribute(): bool
@@ -260,12 +263,12 @@ class SharedTask extends Model
 
     public function getIsBlockedAttribute(): bool
     {
-        return $this->status === 'blocked' || !empty($this->blocked_by);
+        return $this->status === 'blocked' || ! empty($this->blocked_by);
     }
 
     public function getDurationAttribute(): ?int
     {
-        if (!$this->claimed_at) {
+        if (! $this->claimed_at) {
             return null;
         }
         $end = $this->completed_at ?? now();
@@ -311,13 +314,13 @@ class SharedTask extends Model
                 ->lockForUpdate()
                 ->first();
 
-            if (!$task) {
+            if (! $task) {
                 return false;
             }
 
             // Check and acquire file locks BEFORE claiming
             $filesToLock = $task->files ?? [];
-            if (!empty($filesToLock)) {
+            if (! empty($filesToLock)) {
                 // Check for conflicts: any file locked by a different instance
                 foreach ($filesToLock as $file) {
                     $owner = FileLock::getOwner($task->project_id, $file);
@@ -374,7 +377,7 @@ class SharedTask extends Model
             ]);
 
             // Release file locks held by the previous owner for this task's files
-            if ($previousOwner && !empty($this->files)) {
+            if ($previousOwner && ! empty($this->files)) {
                 foreach ($this->files as $file) {
                     FileLock::releaseLock($this->project_id, $file, $previousOwner);
                 }
@@ -442,7 +445,7 @@ class SharedTask extends Model
     public function addDependency(string $taskId): void
     {
         $dependencies = $this->dependencies ?? [];
-        if (!in_array($taskId, $dependencies)) {
+        if (! in_array($taskId, $dependencies)) {
             $dependencies[] = $taskId;
             $this->update(['dependencies' => $dependencies]);
         }
@@ -468,6 +471,57 @@ class SharedTask extends Model
         return $completedCount === count($this->dependencies);
     }
 
+    /**
+     * Release tasks left 'in_progress' by a worker that is no longer connected
+     * (crashed / recycled / orphaned) back to the claimable pool, so a fresh
+     * worker resumes them. claimed_at is INTENTIONALLY preserved: it marks the
+     * task as "already started" so prioritized() surfaces it before fresh work
+     * — the work-in-progress on disk is then continued rather than abandoned.
+     *
+     * @return int number of tasks reclaimed
+     */
+    public static function reclaimOrphaned(string $projectId): int
+    {
+        return DB::transaction(function () use ($projectId) {
+            $connectedIds = ClaudeInstance::where('project_id', $projectId)
+                ->connected()
+                ->pluck('id')
+                ->all();
+
+            $orphans = static::forProject($projectId)
+                ->where('status', 'in_progress')
+                ->when($connectedIds !== [], fn ($query) => $query->whereNotIn('assigned_to', $connectedIds))
+                ->lockForUpdate()
+                ->get();
+
+            foreach ($orphans as $task) {
+                $previousOwner = $task->assigned_to;
+
+                // status -> pending + assigned_to cleared makes it claimable;
+                // claimed_at kept as the resume marker (see prioritized()).
+                $task->update([
+                    'assigned_to' => null,
+                    'status' => 'pending',
+                ]);
+
+                if ($previousOwner && ! empty($task->files)) {
+                    foreach ($task->files as $file) {
+                        FileLock::releaseLock($task->project_id, $file, $previousOwner);
+                    }
+                }
+
+                $task->project->logActivity('task_released', null, [
+                    'task_id' => $task->id,
+                    'task_title' => $task->title,
+                    'reason' => 'orphaned worker reclaimed',
+                    'previous_owner' => $previousOwner,
+                ]);
+            }
+
+            return $orphans->count();
+        });
+    }
+
     public static function getNextAvailable(string $projectId): ?self
     {
         return static::forProject($projectId)
@@ -485,7 +539,7 @@ class SharedTask extends Model
                 ->lockForUpdate()
                 ->first();
 
-            if (!$task) {
+            if (! $task) {
                 return null;
             }
 
