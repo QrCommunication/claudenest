@@ -352,6 +352,8 @@ class SharedTask extends Model
                 'claimed_at' => now(),
             ]);
 
+            ClaudeInstance::where('id', $instanceId)->update(['current_task_id' => $this->id]);
+
             $this->refresh();
 
             $this->project->logActivity('task_claimed', $instanceId, [
@@ -375,6 +377,8 @@ class SharedTask extends Model
                 'claimed_at' => null,
                 'blocked_by' => $reason,
             ]);
+
+            ClaudeInstance::where('current_task_id', $this->id)->update(['current_task_id' => null]);
 
             // Release file locks held by the previous owner for this task's files
             if ($previousOwner && ! empty($this->files)) {
@@ -403,6 +407,8 @@ class SharedTask extends Model
                 'completion_summary' => $summary,
                 'files_modified' => $filesModified,
             ]);
+
+            ClaudeInstance::where('current_task_id', $this->id)->update(['current_task_id' => null]);
 
             // Release all file locks held for this task
             if ($assignedTo) {
@@ -504,6 +510,8 @@ class SharedTask extends Model
                     'status' => 'pending',
                 ]);
 
+                ClaudeInstance::where('current_task_id', $task->id)->update(['current_task_id' => null]);
+
                 if ($previousOwner && ! empty($task->files)) {
                     foreach ($task->files as $file) {
                         FileLock::releaseLock($task->project_id, $file, $previousOwner);
@@ -548,6 +556,8 @@ class SharedTask extends Model
                 'status' => 'in_progress',
                 'claimed_at' => now(),
             ]);
+
+            ClaudeInstance::where('id', $instanceId)->update(['current_task_id' => $task->id]);
 
             $task->project->logActivity('task_claimed', $instanceId, [
                 'task_id' => $task->id,

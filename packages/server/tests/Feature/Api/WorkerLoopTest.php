@@ -425,6 +425,40 @@ class WorkerLoopTest extends TestCase
     }
 
     #[Test]
+    public function dispatch_resumes_in_progress_task_even_when_current_task_id_is_unset(): void
+    {
+        // The MCP claim path sets the task's assigned_to but historically left
+        // instance.current_task_id NULL. A stuck worker holding such a task (no
+        // fresh claimable work) must still be nudged to RESUME it.
+        $gateway = $this->spy(AgentGateway::class);
+
+        $this->makeWorker(instanceAttributes: [
+            'status' => 'busy',
+            'current_task_id' => null,
+            'last_activity_at' => now()->subSeconds(WorkerLoopService::STUCK_AFTER_SECONDS + 30),
+        ]);
+        SharedTask::factory()->create([
+            'project_id' => $this->project->id,
+            'status' => 'in_progress',
+            'assigned_to' => "inst-{$this->session->id}",
+            'claimed_at' => now(),
+            'title' => 'Resume me',
+            'files' => [],
+        ]);
+
+        $ticked = app(WorkerLoopService::class)->dispatchProject($this->project->fresh());
+
+        $this->assertSame(1, $ticked);
+        $gateway->shouldHaveReceived('sendMessage')
+            ->withArgs(function (string $machineId, string $type, array $payload) {
+                return $type === 'session:input'
+                    && str_contains($payload['data'], 'Resume me')
+                    && str_contains($payload['data'], 'task_complete');
+            })
+            ->once();
+    }
+
+    #[Test]
     public function dispatch_project_ticks_stuck_worker_with_stale_heartbeat(): void
     {
         // Rate-limit case: the turn ended on an API error, the Stop hook never

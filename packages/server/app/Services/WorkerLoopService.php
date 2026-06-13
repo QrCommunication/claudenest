@@ -192,17 +192,24 @@ class WorkerLoopService
             return; // Paused after repeated no-progress nudges.
         }
 
-        // (a) A task is claimed and still in progress → push to finish it.
-        if ($instance->current_task_id) {
-            $task = $instance->currentTask;
-            if ($task instanceof SharedTask && $task->status === 'in_progress') {
-                $this->nudge($instance, $session, sprintf(
-                    "Your task '%s' is still in progress. Finish it and call the claudenest task_complete tool with a summary.",
-                    $task->title,
-                ));
+        // (a) This worker still holds an in-progress task → push to finish it
+        // FIRST (resume before claiming anything new). Resolved from the task's
+        // assigned_to, NOT instance.current_task_id: the MCP claim path sets the
+        // task owner but does not sync that column, so relying on it left
+        // rate-limit-stalled workers silently un-nudged (they hold a task but
+        // there is no fresh claimable work, so nothing kicked them).
+        $ownTask = SharedTask::forProject($project->id)
+            ->where('assigned_to', $instance->id)
+            ->where('status', 'in_progress')
+            ->first();
 
-                return;
-            }
+        if ($ownTask instanceof SharedTask) {
+            $this->nudge($instance, $session, sprintf(
+                "Your task '%s' is still in progress. Finish it and call the claudenest task_complete tool with a summary.",
+                $ownTask->title,
+            ));
+
+            return;
         }
 
         // (b) Claimable pending work exists → recycle a spent worker, else nudge to claim.
