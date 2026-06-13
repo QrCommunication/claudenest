@@ -47,6 +47,10 @@ class FileLock extends Model
         'reason',
         'locked_at',
         'expires_at',
+        'lock_type',
+        'line_range',
+        'metadata',
+        'queue_position',
     ];
 
     /**
@@ -55,6 +59,32 @@ class FileLock extends Model
     protected $casts = [
         'locked_at' => 'datetime',
         'expires_at' => 'datetime',
+        'line_range' => 'array',
+        'metadata' => 'array',
+        'queue_position' => 'integer',
+    ];
+
+    // ==================== CONSTANTS ====================
+
+    /**
+     * Exclusive lock: only one holder, blocks every other lock on the path.
+     */
+    public const LOCK_TYPE_EXCLUSIVE = 'exclusive';
+
+    /**
+     * Shared lock: multiple holders allowed (reader semantics); only conflicts
+     * with an exclusive lock on the same (overlapping) range.
+     */
+    public const LOCK_TYPE_SHARED = 'shared';
+
+    /**
+     * The valid lock types (mirrors the chk_file_locks_lock_type CHECK constraint).
+     *
+     * @var array<int, string>
+     */
+    public const LOCK_TYPES = [
+        self::LOCK_TYPE_EXCLUSIVE,
+        self::LOCK_TYPE_SHARED,
     ];
 
     /**
@@ -68,6 +98,12 @@ class FileLock extends Model
             }
             if (empty($model->locked_at)) {
                 $model->locked_at = now();
+            }
+            if (empty($model->lock_type)) {
+                $model->lock_type = self::LOCK_TYPE_EXCLUSIVE;
+            }
+            if ($model->metadata === null) {
+                $model->metadata = [];
             }
         });
     }
@@ -127,7 +163,82 @@ class FileLock extends Model
         return (int) $this->expires_at->diffInSeconds(now());
     }
 
+    public function getIsExclusiveAttribute(): bool
+    {
+        // A missing/unknown lock_type is treated as exclusive (fail-closed).
+        return $this->lock_type !== self::LOCK_TYPE_SHARED;
+    }
+
+    public function getIsSharedAttribute(): bool
+    {
+        return $this->lock_type === self::LOCK_TYPE_SHARED;
+    }
+
     // ==================== HELPERS ====================
+
+    /**
+     * Determine whether this lock conflicts with another lock.
+     *
+     * Conflict matrix (same path, different holder, on overlapping line ranges):
+     *   - exclusive vs anything → conflict
+     *   - shared    vs shared   → compatible (no conflict)
+     *
+     * Two locks on different paths never conflict, and a lock never conflicts
+     * with itself or with another lock held by the same instance. Line-range
+     * granularity narrows conflicts to overlapping regions; a null range means
+     * the whole file is locked and therefore overlaps every range.
+     */
+    public function conflictsWith(FileLock $other): bool
+    {
+        // Different files are independent.
+        if ($this->path !== $other->path) {
+            return false;
+        }
+
+        // Same holder: re-acquiring / extending one's own lock is never a conflict.
+        if ($this->locked_by !== null && $this->locked_by === $other->locked_by) {
+            return false;
+        }
+
+        // Two shared (reader) locks coexist regardless of range.
+        if ($this->is_shared && $other->is_shared) {
+            return false;
+        }
+
+        // At least one lock is exclusive — conflict only where ranges overlap.
+        return $this->lineRangesOverlap($other);
+    }
+
+    /**
+     * Whether this lock's line range overlaps another lock's line range.
+     *
+     * A null/empty range denotes a whole-file lock and overlaps everything.
+     * A malformed range (missing start/end) is treated conservatively as
+     * whole-file to avoid silently allowing conflicting edits.
+     */
+    protected function lineRangesOverlap(FileLock $other): bool
+    {
+        $a = $this->line_range;
+        $b = $other->line_range;
+
+        // Whole-file lock on either side overlaps any range.
+        if (empty($a) || empty($b)) {
+            return true;
+        }
+
+        $aStart = $a['start'] ?? null;
+        $aEnd = $a['end'] ?? null;
+        $bStart = $b['start'] ?? null;
+        $bEnd = $b['end'] ?? null;
+
+        // Malformed range → treat as whole-file (conservative: conflict).
+        if (!is_numeric($aStart) || !is_numeric($aEnd) || !is_numeric($bStart) || !is_numeric($bEnd)) {
+            return true;
+        }
+
+        // Standard half-closed interval overlap test.
+        return (int) $aStart <= (int) $bEnd && (int) $bStart <= (int) $aEnd;
+    }
 
     public function extend(int $minutes = 30): void
     {
@@ -300,6 +411,11 @@ class FileLock extends Model
 
     /**
      * Get all active locks for a project.
+     *
+     * Serializes each row with the SAME snake_case shape as
+     * FileLockController::lockData() (the acquire/extend responses), so the SPA
+     * locks store and FileLocksPanel see consistent keys and the advanced
+     * attributes (lock_type, line_range, queue_position) on the list endpoint.
      */
     public static function getActiveLocks(string $projectId): array
     {
@@ -308,13 +424,17 @@ class FileLock extends Model
         return static::forProject($projectId)
             ->active()
             ->get()
-            ->map(fn ($lock) => [
+            ->map(fn (self $lock) => [
+                'id' => $lock->id,
                 'path' => $lock->path,
-                'lockedBy' => $lock->locked_by,
+                'locked_by' => $lock->locked_by,
                 'reason' => $lock->reason,
-                'lockedAt' => $lock->locked_at,
-                'expiresAt' => $lock->expires_at,
-                'remainingSeconds' => $lock->remaining_time,
+                'lock_type' => $lock->lock_type,
+                'line_range' => $lock->line_range,
+                'queue_position' => $lock->queue_position,
+                'locked_at' => $lock->locked_at,
+                'expires_at' => $lock->expires_at,
+                'remaining_seconds' => $lock->remaining_time,
             ])
             ->toArray();
     }

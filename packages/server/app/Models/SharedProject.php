@@ -31,6 +31,20 @@ class SharedProject extends Model
     protected $table = 'shared_projects';
 
     /**
+     * Context fields captured/restored by archive()/unarchive() and the single
+     * source of truth for updateContext()'s allow-list.
+     *
+     * @var list<string>
+     */
+    public const CONTEXT_FIELDS = [
+        'summary',
+        'architecture',
+        'conventions',
+        'current_focus',
+        'recent_changes',
+    ];
+
+    /**
      * The attributes that are mass assignable.
      */
     protected $fillable = [
@@ -48,6 +62,8 @@ class SharedProject extends Model
         'total_tokens',
         'max_tokens',
         'settings',
+        'archived_at',
+        'archived_context',
     ];
 
     /**
@@ -58,6 +74,8 @@ class SharedProject extends Model
         'max_tokens' => 'integer',
         'master_plan' => 'array',
         'settings' => 'array',
+        'archived_at' => 'datetime',
+        'archived_context' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -148,6 +166,18 @@ class SharedProject extends Model
         return $query->where('project_path', $path);
     }
 
+    /** Active (non-archived) projects — the default sidebar list. */
+    public function scopeActive($query)
+    {
+        return $query->whereNull('archived_at');
+    }
+
+    /** Archived projects — only shown when explicitly requested (?archived=true). */
+    public function scopeArchived($query)
+    {
+        return $query->whereNotNull('archived_at');
+    }
+
     // ==================== ACCESSORS ====================
 
     public function getTokenUsagePercentAttribute(): float
@@ -188,6 +218,11 @@ class SharedProject extends Model
         return $this->sprints()->count();
     }
 
+    public function getIsArchivedAttribute(): bool
+    {
+        return $this->archived_at !== null;
+    }
+
     // ==================== HELPERS ====================
 
     public function addTokens(int $tokens): void
@@ -202,11 +237,56 @@ class SharedProject extends Model
 
     public function updateContext(array $fields): void
     {
-        $allowed = ['summary', 'architecture', 'conventions', 'current_focus', 'recent_changes'];
-        $update = array_intersect_key($fields, array_flip($allowed));
+        $update = array_intersect_key($fields, array_flip(self::CONTEXT_FIELDS));
         if (!empty($update)) {
             $this->update($update);
         }
+    }
+
+    /**
+     * Archive the project: capture a snapshot of its context fields and stamp
+     * archived_at. Deletes NOTHING (tasks, locks, context chunks and sessions
+     * stay intact) so unarchive()/recover() can fully restore it. Idempotent:
+     * re-archiving an already-archived project keeps the original snapshot.
+     *
+     * @param  array<string, mixed>  $contextSnapshot  optional override snapshot;
+     *                                                  defaults to the current context fields.
+     */
+    public function archive(array $contextSnapshot = []): void
+    {
+        if ($this->is_archived) {
+            return;
+        }
+
+        $snapshot = empty($contextSnapshot)
+            ? $this->only(self::CONTEXT_FIELDS)
+            : array_intersect_key($contextSnapshot, array_flip(self::CONTEXT_FIELDS));
+
+        $this->update([
+            'archived_at' => now(),
+            'archived_context' => $snapshot,
+        ]);
+    }
+
+    /**
+     * Unarchive the project: restore the context fields from the captured
+     * snapshot (context recovery) then clear the archive markers. Idempotent on
+     * an already-active project.
+     */
+    public function unarchive(): void
+    {
+        if (! $this->is_archived) {
+            return;
+        }
+
+        $restore = is_array($this->archived_context)
+            ? array_intersect_key($this->archived_context, array_flip(self::CONTEXT_FIELDS))
+            : [];
+
+        $this->update(array_merge($restore, [
+            'archived_at' => null,
+            'archived_context' => null,
+        ]));
     }
 
     public function getSetting(string $key, mixed $default = null): mixed

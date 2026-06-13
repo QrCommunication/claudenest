@@ -288,6 +288,18 @@ export interface ContextQueryResult {
 
 // ==================== FILE LOCK TYPES ====================
 
+/** Lock granularity: an exclusive (writer) lock blocks every other lock on the
+ *  path; a shared (reader) lock only conflicts with an exclusive one. Mirrors
+ *  FileLock::LOCK_TYPES on the backend. */
+export type LockType = 'exclusive' | 'shared';
+
+/** Optional line-range scope of a lock. A null/absent range means the whole
+ *  file is locked (overlaps every range). Mirrors the `line_range` jsonb column. */
+export interface LockLineRange {
+  start: number;
+  end: number;
+}
+
 export interface FileLock {
   id: string;
   path: string;
@@ -296,6 +308,11 @@ export interface FileLock {
   locked_at: string;
   expires_at: string;
   remaining_seconds: number;
+  /** Advanced attributes — backend always serializes them via lockData()/
+   *  getActiveLocks(); kept optional so partial/legacy payloads stay assignable. */
+  lock_type?: LockType;
+  line_range?: LockLineRange | null;
+  queue_position?: number | null;
 }
 
 export interface CreateLockForm {
@@ -303,6 +320,25 @@ export interface CreateLockForm {
   instance_id: string;
   reason?: string;
   duration_minutes?: number;
+  lock_type?: LockType;
+  line_range?: LockLineRange | null;
+}
+
+/**
+ * Enriched 409 conflict payload returned by the lock acquire endpoint
+ * (FileLockController::conflictResponse). Lets the UI explain *why* an
+ * acquisition was refused: who holds the path, with which lock type and range,
+ * versus what was requested.
+ */
+export interface LockConflict {
+  conflict: true;
+  holder: string;
+  holder_lock_type: LockType;
+  holder_line_range: LockLineRange | null;
+  requested_lock_type: LockType;
+  requested_line_range: LockLineRange | null;
+  expires_at: string | null;
+  remaining_seconds: number;
 }
 
 // ==================== CLAUDE INSTANCE TYPES ====================

@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\ProjectArchived;
 use App\Events\ProjectBroadcast;
 use App\Events\ProjectDeleted;
+use App\Events\ProjectUnarchived;
 use App\Exceptions\WorkerPoolException;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProjectResource;
@@ -18,6 +20,7 @@ use App\Services\WorkerPoolService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use OpenApi\Attributes as OA;
 
 class ProjectController extends Controller
@@ -39,6 +42,13 @@ class ProjectController extends Controller
                 required: true,
                 description: 'Machine UUID',
                 schema: new OA\Schema(type: 'string', format: 'uuid'),
+            ),
+            new OA\Parameter(
+                name: 'archived',
+                in: 'query',
+                required: false,
+                description: 'When true, list archived projects instead of active ones (default: active only)',
+                schema: new OA\Schema(type: 'boolean', default: false),
             ),
         ],
         responses: [
@@ -64,7 +74,12 @@ class ProjectController extends Controller
         $machine = Machine::findOrFail($machineId);
         $this->authorize('view', $machine);
 
+        // Default to active projects only; an archived project must vanish from
+        // the sidebar list until explicitly requested with ?archived=true.
+        $showArchived = $request->boolean('archived');
+
         $projects = $machine->sharedProjects()
+            ->when($showArchived, fn ($q) => $q->archived(), fn ($q) => $q->active())
             ->withCount([
                 'claudeInstances as active_instances_count' => fn ($q) => $q->where('status', 'active'),
                 'tasks as pending_tasks_count' => fn ($q) => $q->where('status', 'pending'),
@@ -131,12 +146,35 @@ class ProjectController extends Controller
             'settings' => 'array',
         ]);
 
-        // Check if project already exists for this machine and path
+        // Check if project already exists for this machine and path (active OR
+        // archived — scopeActive/scopeArchived are local scopes, so a plain
+        // query still sees archived rows).
         $existing = $machine->sharedProjects()
             ->where('project_path', $validated['project_path'])
             ->first();
 
         if ($existing) {
+            // An ARCHIVED project at this path is not a hard duplicate: surface
+            // a `recoverable` response (409) so the UI can offer to recover the
+            // existing project (POST /projects/{id}/recover) instead of silently
+            // creating a duplicate at the same path.
+            if ($existing->is_archived) {
+                return response()->json([
+                    'success' => false,
+                    'recoverable' => true,
+                    'data' => [
+                        'archived_project_id' => $existing->id,
+                        'name' => $existing->name,
+                        'archived_at' => $existing->archived_at?->toIso8601String(),
+                        'context_preview' => Str::limit((string) $existing->summary, 200),
+                    ],
+                    'meta' => [
+                        'timestamp' => now()->toIso8601String(),
+                        'request_id' => $request->header('X-Request-ID', uniqid()),
+                    ],
+                ], 409);
+            }
+
             return $this->errorResponse('VAL_001', 'Project already exists for this path', 422);
         }
 
@@ -388,6 +426,162 @@ class ProjectController extends Controller
                 'request_id' => $request->header('X-Request-ID', uniqid()),
             ],
         ]);
+    }
+
+    /** Archive project (reversible — captures a context snapshot, deletes nothing). */
+    #[OA\Post(
+        path: '/api/projects/{id}/archive',
+        summary: 'Archive project',
+        security: [['bearerAuth' => []]],
+        tags: ['Projects'],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                in: 'path',
+                required: true,
+                description: 'Project UUID',
+                schema: new OA\Schema(type: 'string', format: 'uuid'),
+            ),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Project archived',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(property: 'data', ref: '#/components/schemas/SharedProject'),
+                    ],
+                ),
+            ),
+            new OA\Response(response: 404, description: 'Project not found'),
+        ],
+    )]
+    public function archive(Request $request, string $id): JsonResponse
+    {
+        $project = SharedProject::findOrFail($id);
+        $this->authorize('update', $project);
+
+        // SharedProject::archive() captures the context snapshot (summary,
+        // architecture, conventions, current_focus, recent_changes) and sets
+        // archived_at. It deletes NOTHING — tasks, locks, context chunks and
+        // sessions are untouched, so the project can be fully recovered with
+        // unarchive(). Idempotent: re-archiving keeps the original snapshot.
+        $project->archive();
+
+        // Real-time fan-out so connected clients drop the project from the
+        // active sidebar list (machine channel) without a manual refresh —
+        // scalar payload, symmetric with ProjectDeleted.
+        broadcast(new ProjectArchived(
+            $project->id,
+            $project->machine_id,
+            $project->user_id,
+            $project->name,
+            $project->archived_at?->toIso8601String(),
+        ));
+
+        return response()->json([
+            'success' => true,
+            'data' => ProjectResource::detailed($project),
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
+    }
+
+    /** Unarchive project (restores the captured context snapshot). */
+    #[OA\Post(
+        path: '/api/projects/{id}/unarchive',
+        summary: 'Unarchive project',
+        security: [['bearerAuth' => []]],
+        tags: ['Projects'],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                in: 'path',
+                required: true,
+                description: 'Project UUID',
+                schema: new OA\Schema(type: 'string', format: 'uuid'),
+            ),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Project unarchived',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(property: 'data', ref: '#/components/schemas/SharedProject'),
+                    ],
+                ),
+            ),
+            new OA\Response(response: 404, description: 'Project not found'),
+        ],
+    )]
+    public function unarchive(Request $request, string $id): JsonResponse
+    {
+        $project = SharedProject::findOrFail($id);
+        $this->authorize('update', $project);
+
+        // SharedProject::unarchive() restores the context fields from the
+        // archived snapshot, then clears archived_at + archived_context
+        // (context recovery). Idempotent on an already-active project.
+        $project->unarchive();
+
+        broadcast(new ProjectUnarchived(
+            $project->id,
+            $project->machine_id,
+            $project->user_id,
+            $project->name,
+        ));
+
+        return response()->json([
+            'success' => true,
+            'data' => ProjectResource::detailed($project),
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
+    }
+
+    /** Recover an archived project (the "recover at path" UI flow → unarchive). */
+    #[OA\Post(
+        path: '/api/projects/{id}/recover',
+        summary: 'Recover an archived project',
+        security: [['bearerAuth' => []]],
+        tags: ['Projects'],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                in: 'path',
+                required: true,
+                description: 'Project UUID (the archived_project_id returned by the recoverable store response)',
+                schema: new OA\Schema(type: 'string', format: 'uuid'),
+            ),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Project recovered',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(property: 'data', ref: '#/components/schemas/SharedProject'),
+                    ],
+                ),
+            ),
+            new OA\Response(response: 404, description: 'Project not found'),
+        ],
+    )]
+    public function recover(Request $request, string $id): JsonResponse
+    {
+        // Recovering an archived project IS an unarchive: it restores the
+        // context snapshot and clears archived_at. Kept as a distinct,
+        // intention-revealing endpoint for the recoverable store flow; delegates
+        // to unarchive() to stay DRY (single restoration code path).
+        return $this->unarchive($request, $id);
     }
 
     /** Get project instances. */

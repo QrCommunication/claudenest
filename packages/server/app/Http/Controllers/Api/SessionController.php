@@ -116,19 +116,9 @@ class SessionController extends Controller
             return $this->errorResponse('MCH_002', 'Machine is offline', 400);
         }
 
-        // Per-plan concurrent agent cap (human + orchestrated sessions combined)
-        $cap = $request->user()->concurrentAgentCap();
-        if ($cap !== null) {
-            $activeSessions = Session::forUser($request->user()->id)->active()->count();
-
-            if ($activeSessions >= $cap) {
-                return $this->errorResponse(
-                    'PLAN_001',
-                    "Your plan allows at most {$cap} concurrent Claude sessions. Terminate a session or upgrade your plan.",
-                    403,
-                );
-            }
-        }
+        // ClaudeNest is unlimited & free: no per-plan concurrent session cap is
+        // enforced here. Machine availability (MCH_002) and ownership remain the
+        // only gates on session creation.
 
         $validated = $request->validate([
             'mode' => 'sometimes|string|in:interactive,headless,oneshot,bash',

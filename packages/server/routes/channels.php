@@ -16,9 +16,12 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
     return (string) $user->id === (string) $id;
 });
 
-// Machine channel (for agents). Also carries the `project.deleted` event
-// (App\Events\ProjectDeleted) so the per-machine sidebar/list removes a deleted
-// project in real time.
+// Machine channel (for agents). Also carries the project lifecycle events
+// `project.deleted` (App\Events\ProjectDeleted), `project.archived`
+// (App\Events\ProjectArchived) and `project.unarchived`
+// (App\Events\ProjectUnarchived) so the per-machine sidebar/list updates in
+// real time — removing a deleted project and moving an (un)archived one between
+// the active and archived flows.
 Broadcast::channel('machines.{machineId}', function ($user, $machineId) {
     return $user->machines()->where('id', $machineId)->exists();
 });
@@ -36,9 +39,13 @@ Broadcast::channel('claude-sessions.{sessionId}', function ($user, $sessionId) {
         ->exists();
 });
 
-// Project channel (for multi-agent coordination). Also carries the
-// `project.deleted` event (App\Events\ProjectDeleted) so an open tab/workspace
-// for this project can close itself.
+// Project channel (for multi-agent coordination). Also carries the project
+// lifecycle events `project.deleted` (App\Events\ProjectDeleted),
+// `project.archived` (App\Events\ProjectArchived) and `project.unarchived`
+// (App\Events\ProjectUnarchived) so an open tab/workspace for this project can
+// react (close on delete, reflect archive state). forUser()->find() resolves
+// archived projects too (scopeActive/scopeArchived are local, not global), so
+// the subscription stays authorized after a project is archived.
 Broadcast::channel('projects.{projectId}', function ($user, $projectId) {
     $project = SharedProject::forUser($user->id)->find($projectId);
     return !is_null($project);

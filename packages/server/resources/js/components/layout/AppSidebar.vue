@@ -32,12 +32,98 @@
 
     <!-- Navigation -->
     <nav class="sidebar-nav">
-      <template v-for="group in navGroups" :key="group.label">
+      <template v-for="group in navGroups" :key="group.label || group.items[0]?.path || 'group'">
         <!-- Group Label -->
         <div v-if="group.label" :class="['nav-group-label', { 'nav-group-label--hidden': collapsed }]">
           <span v-if="!collapsed">{{ group.label }}</span>
           <span v-else class="nav-group-divider" />
         </div>
+
+        <!-- Collapsible Projects submenu (Multi-Agent group) -->
+        <template v-if="group.projectsSubmenu">
+          <div class="nav-collapsible-row">
+            <router-link
+              to="/projects"
+              :class="['nav-item', 'nav-item--collapsible', { active: isActive('/projects') }]"
+              :title="collapsed ? t('layoutAppsidebar.projects') : ''"
+            >
+              <FolderIcon class="nav-icon" />
+              <span v-if="!collapsed" class="nav-label">{{ t('layoutAppsidebar.projects') }}</span>
+              <span v-if="!collapsed && projectCount > 0" class="nav-count">{{ projectCount }}</span>
+              <div v-if="isActive('/projects')" class="active-indicator" />
+            </router-link>
+            <button
+              v-if="!collapsed"
+              type="button"
+              class="nav-chevron-btn"
+              :aria-expanded="projectsExpanded"
+              :aria-label="t('layoutAppsidebar.projects')"
+              @click="toggleProjects"
+            >
+              <ChevronDownIcon :class="['chevron', { 'chevron--open': projectsExpanded }]" />
+            </button>
+          </div>
+
+          <template v-if="projectsExpanded && !collapsed">
+            <div
+              v-for="project in sidebarProjects"
+              :key="project.id"
+              class="nav-project-row"
+            >
+              <router-link
+                :to="`/projects/${project.id}`"
+                :class="['nav-subitem', 'nav-subitem--project', { active: isProjectPathActive(project.id) }]"
+                :title="project.name"
+              >
+                {{ project.name }}
+              </router-link>
+              <ProjectArchiveMenu
+                :project-id="project.id"
+                :project-name="project.name"
+                :archived="false"
+                @archive="handleArchive"
+              />
+            </div>
+          </template>
+
+          <!-- Archived section: secondary flow, collapsed by default, only shown
+               when there is at least one archived project. -->
+          <template v-if="!collapsed && archivedProjects.length > 0">
+            <button
+              type="button"
+              class="nav-item nav-item--collapsible nav-archived-header"
+              :aria-expanded="archivedExpanded"
+              @click="toggleArchived"
+            >
+              <ArchiveBoxIcon class="nav-icon" />
+              <span class="nav-label">{{ t('layoutAppsidebar.archived') }}</span>
+              <span class="nav-count">{{ archivedProjects.length }}</span>
+              <ChevronDownIcon :class="['chevron', 'chevron--trailing', { 'chevron--open': archivedExpanded }]" />
+            </button>
+
+            <template v-if="archivedExpanded">
+              <div
+                v-for="project in archivedProjects"
+                :key="project.id"
+                class="nav-project-row"
+              >
+                <router-link
+                  :to="`/projects/${project.id}`"
+                  :class="['nav-subitem', 'nav-subitem--project', 'nav-subitem--archived', { active: isProjectPathActive(project.id) }]"
+                  :title="project.name"
+                >
+                  {{ project.name }}
+                </router-link>
+                <ProjectArchiveMenu
+                  :project-id="project.id"
+                  :project-name="project.name"
+                  :archived="true"
+                  @unarchive="handleUnarchive"
+                />
+              </div>
+            </template>
+          </template>
+        </template>
 
         <!-- Group Items -->
         <router-link
@@ -92,11 +178,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, type Component } from 'vue';
+import { computed, ref, type Component } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import { useTheme } from '@/composables/useTheme';
 import { useLastProject } from '@/composables/useLastProject';
+import { useProjectsStore } from '@/stores/projects';
+import { useToast } from '@/composables/useToast';
+import ProjectArchiveMenu from '@/components/projects/ProjectArchiveMenu.vue';
 import {
   HomeIcon,
   CommandLineIcon,
@@ -110,6 +199,8 @@ import {
   Cog6ToothIcon,
   EyeIcon,
   BookmarkIcon,
+  ChevronDownIcon,
+  ArchiveBoxIcon,
 } from '@heroicons/vue/24/outline';
 
 interface Props {
@@ -129,6 +220,89 @@ const route = useRoute();
 const router = useRouter();
 const { isDark } = useTheme();
 const { lastProject } = useLastProject();
+const projectsStore = useProjectsStore();
+
+// ==================== COLLAPSIBLE PROJECTS SUBMENU ====================
+
+const PROJECTS_OPEN_KEY = 'claudenest-sidebar-projects-open';
+
+/** Read the persisted expand state (defaults to open on first visit). */
+function readProjectsOpen(): boolean {
+  try {
+    const stored = localStorage.getItem(PROJECTS_OPEN_KEY);
+    return stored === null ? true : stored === '1';
+  } catch {
+    return true;
+  }
+}
+
+const projectsExpanded = ref<boolean>(readProjectsOpen());
+
+function toggleProjects(): void {
+  projectsExpanded.value = !projectsExpanded.value;
+  try {
+    localStorage.setItem(PROJECTS_OPEN_KEY, projectsExpanded.value ? '1' : '0');
+  } catch {
+    // localStorage unavailable (private mode) — keep the in-memory state.
+  }
+}
+
+// Projects currently loaded in the store (populated by the projects/machine
+// views). The submenu reflects this list; the count badge shows its size.
+const sidebarProjects = computed(() => projectsStore.projects);
+const projectCount = computed(() => sidebarProjects.value.length);
+
+/** Active state for an individual project link in the submenu. */
+const isProjectPathActive = (projectId: string): boolean =>
+  route.path.startsWith(`/projects/${projectId}`);
+
+// ==================== ARCHIVED PROJECTS SECTION ====================
+
+const ARCHIVED_OPEN_KEY = 'claudenest-sidebar-archived-open';
+
+function readArchivedOpen(): boolean {
+  try {
+    // Archived section defaults to COLLAPSED (it is a secondary flow).
+    return localStorage.getItem(ARCHIVED_OPEN_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+const archivedExpanded = ref<boolean>(readArchivedOpen());
+
+function toggleArchived(): void {
+  archivedExpanded.value = !archivedExpanded.value;
+  try {
+    localStorage.setItem(ARCHIVED_OPEN_KEY, archivedExpanded.value ? '1' : '0');
+  } catch {
+    // localStorage unavailable — keep the in-memory state.
+  }
+}
+
+const archivedProjects = computed(() => projectsStore.archivedProjects);
+
+const { success: toastSuccess, error: toastError } = useToast();
+
+/** Archive an active project (moves it to the Archivés section, deletes nothing). */
+async function handleArchive(projectId: string): Promise<void> {
+  try {
+    await projectsStore.archiveProject(projectId);
+    toastSuccess(t('layoutAppsidebar.archiveSuccess'));
+  } catch {
+    toastError(t('layoutAppsidebar.archiveError'));
+  }
+}
+
+/** Restore an archived project (moves it back to the active flow). */
+async function handleUnarchive(projectId: string): Promise<void> {
+  try {
+    await projectsStore.unarchiveProject(projectId);
+    toastSuccess(t('layoutAppsidebar.unarchiveSuccess'));
+  } catch {
+    toastError(t('layoutAppsidebar.unarchiveError'));
+  }
+}
 
 interface NavItem {
   name: string;
@@ -141,6 +315,8 @@ interface NavGroup {
   items: NavItem[];
   /** Render the pinned last-project entry (Workspace/Board) under this group. */
   pinnedProject?: boolean;
+  /** Render the collapsible Projects submenu (full project list) above items. */
+  projectsSubmenu?: boolean;
 }
 
 // Built inside a computed so t() is re-evaluated whenever the locale changes.
@@ -163,10 +339,12 @@ const navGroups = computed<NavGroup[]>(() => [
   },
   {
     label: t('layoutAppsidebar.multiAgent'),
+    // Projects are rendered as a collapsible submenu (projectsSubmenu) above the
+    // items; only Tasks remains a flat link here.
     items: [
-      { name: t('layoutAppsidebar.projects'), path: '/projects', icon: FolderIcon },
       { name: t('layoutAppsidebar.tasks'), path: '/tasks', icon: CheckCircleIcon },
     ],
+    projectsSubmenu: true,
     pinnedProject: true,
   },
   {
@@ -385,6 +563,106 @@ const navigateToDashboard = () => {
   height: 20px;
   background-color: var(--accent-purple);
   border-radius: 0 2px 2px 0;
+}
+
+/* Collapsible Projects submenu */
+.nav-collapsible-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.nav-collapsible-row .nav-item--collapsible {
+  flex: 1;
+  min-width: 0;
+}
+
+.nav-count {
+  margin-left: auto;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  border-radius: 9px;
+  color: var(--accent-purple, #a855f7);
+  background-color: color-mix(in srgb, var(--accent-purple, #a855f7) 15%, transparent);
+}
+
+.nav-chevron-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 36px;
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.nav-chevron-btn:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.chevron {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s ease;
+}
+
+.chevron--trailing {
+  margin-left: 4px;
+}
+
+.chevron--open {
+  transform: rotate(180deg);
+}
+
+/* Project rows (link + contextual archive menu) */
+.nav-project-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.nav-project-row .nav-subitem--project {
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.nav-project-row .archive-menu {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.nav-project-row:hover .archive-menu,
+.nav-project-row:focus-within .archive-menu {
+  opacity: 1;
+}
+
+/* Archived section header (button styled like a collapsible nav item) */
+.nav-archived-header {
+  width: 100%;
+  border: none;
+  background: none;
+  text-align: left;
+  font: inherit;
+  margin-top: 4px;
+}
+
+.nav-subitem--archived {
+  color: var(--text-muted);
+  font-style: italic;
 }
 
 /* Pinned last project + its quick links */

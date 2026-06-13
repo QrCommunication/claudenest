@@ -1028,7 +1028,7 @@
     },
     "what_is": {
       "title": "What is ClaudeNest, exactly?",
-      "body": "ClaudeNest is a self-hosted orchestration platform for Claude Code. It runs multiple Claude Code workers in parallel on the same repository and coordinates them through three mechanisms: atomic task claiming over an MCP server (20 tools), file locks enforced at edit time by Claude Code hooks, and a shared project memory backed by PostgreSQL pgvector. The server spawns interactive worker sessions, injects compiled project context at startup, and ingests each worker's completion summary back into memory — so later sessions inherit what earlier ones learned. A real-time board (epics, sprints, burndown) tracks every task over WebSockets, and iOS/Android apps (beta) expose the same terminals remotely. ClaudeNest is free to run on your own server under the PolyForm Noncommercial license; paid plans lift concurrency caps. It requires PostgreSQL with pgvector, Redis, and a Node.js agent on each machine.",
+      "body": "ClaudeNest is a self-hosted orchestration platform for Claude Code. It runs multiple Claude Code workers in parallel on the same repository and coordinates them through three mechanisms: atomic task claiming over an MCP server (20 tools), file locks enforced at edit time by Claude Code hooks, and a shared project memory backed by PostgreSQL pgvector. The server spawns interactive worker sessions, injects compiled project context at startup, and ingests each worker's completion summary back into memory — so later sessions inherit what earlier ones learned. A real-time board (epics, sprints, burndown) tracks every task over WebSockets, and iOS/Android apps (beta) expose the same terminals remotely. ClaudeNest is free to run on your own server under the PolyForm Noncommercial license — every feature, no concurrency caps, no paid tiers. It requires PostgreSQL with pgvector, Redis, and a Node.js agent on each machine.",
       "bullets": {
         "0": "Your server, your keys — code and credentials never transit claudenest.io.",
         "1": "Source on GitHub — read every line before you run it.",
@@ -1036,6 +1036,21 @@
       },
       "github": "Read the source",
       "updated": "Updated June 2026 · v1.5.0"
+    },
+    "unlimited": {
+      "badge": "Free & unlimited",
+      "title": "Complete use, ",
+      "title_highlight": "free and unlimited.",
+      "subtitle": "Self-host ClaudeNest with every feature — no tiers, no concurrency caps, no credit card.",
+      "points": {
+        "0": "Unlimited concurrent workers — bounded only by your own hardware and your Claude plan's rate limits.",
+        "1": "Unlimited shared projects, epics, sprints and tasks.",
+        "2": "Every feature included — multi-agent orchestration, shared memory, audit trail, mobile apps.",
+        "3": "Your server, your keys — code and credentials never transit claudenest.io.",
+        "4": "PolyForm Noncommercial license — free for personal and internal use."
+      },
+      "cta": "Self-host in 15 minutes",
+      "note": "Concurrency is bounded only by your hardware and your Claude plan's rate limits — never by ClaudeNest."
     },
     "pricing": {
       "badge": "Pricing",
@@ -1088,7 +1103,7 @@
       "items": {
         "0": {
           "question": "Is ClaudeNest really free?",
-          "answer": "Yes. Self-hosting is free under the PolyForm Noncommercial license, with the full feature set and a cap of 3 concurrent workers. Pro ($29/mo) raises the cap to 20 workers and unlimited projects. The caps are enforced by the server (you'll get a 403, not a nag screen)."
+          "answer": "Yes — completely. Self-hosting is free under the PolyForm Noncommercial license, with every feature, unlimited projects and unlimited concurrent workers. There are no paid tiers and no concurrency caps; the only limits are your own hardware and your Claude plan's rate limits."
         },
         "1": {
           "question": "Will my Claude subscription or API credits work?",
@@ -1126,7 +1141,7 @@
     "cta": {
       "title": "Give your agents ",
       "title_highlight": "a server.",
-      "subtitle": "One command to install. Three workers on your first project tonight.",
+      "subtitle": "One command to install. Unlimited workers on your first project tonight.",
       "cta_primary": "Self-host in 15 minutes",
       "cta_secondary": "Read the source on GitHub"
     },
@@ -1147,6 +1162,18 @@
       "contact_phone": "+33 1 88 83 34 51",
       "contact_address": "23 rue de Richelieu, 75001 Paris"
     }
+  },
+  "projectRecovery": {
+    "title": "An archived project exists for this path",
+    "question": "Resume it with its saved context, or start a fresh project instead?",
+    "archivedAt": "Archived {date}",
+    "contextPreviewLabel": "Context preview",
+    "noContext": "No saved context.",
+    "recover": "Resume archived project",
+    "recovering": "Recovering…",
+    "createNew": "Create a new project",
+    "toastRecovered": "Project recovered with its context.",
+    "toastRecoverFailed": "Could not recover the project."
   },
   "claudeSessions": {
     "title": "Claude Sessions",
@@ -1389,7 +1416,12 @@
     "skills": "Skills",
     "mcp": "MCP",
     "commands": "Commands",
-    "settings": "Settings"
+    "settings": "Settings",
+    "archived": "Archived",
+    "archiveSuccess": "Project archived",
+    "archiveError": "Failed to archive project",
+    "unarchiveSuccess": "Project restored",
+    "unarchiveError": "Failed to restore project"
   },
   "layoutUsermenu": {
     "guest": "Guest",
@@ -2670,6 +2702,14 @@
     "noNotifications": "No new notifications"
   },
   "docChangelog": {
+    "v180Date": "June 13, 2026",
+    "v180Title": "Free & unlimited, project archiving, audit trail",
+    "v180Desc": "ClaudeNest is now free and unlimited (no more worker caps), projects can be archived and recovered without data loss, file locking gained shared/exclusive modes, and every project exposes a full audit trail.",
+    "v180Change1": "Free, unlimited forever: all plan caps removed — run as many workers as your machine allows, with no paid tier.",
+    "v180Change2": "Advanced file locking: shared (reader) vs exclusive (writer) locks, line-range scoping, and an enriched conflict message showing the holder, lock type and ranges.",
+    "v180Change3": "Audit trail: a paginated, type- and period-filterable activity history on every project, open to any project member (no plan gating).",
+    "v180Change4": "Project archiving & recovery: archive a project (reversible — nothing is deleted, a context snapshot is captured) and restore it later; re-creating at an archived path offers a one-click recovery.",
+    "v180Change5": "Sprint filter: the task panel filters by sprint (All / No sprint / per sprint), plus a collapsible Projects sub-menu and an Archived section in the sidebar.",
     "v171Date": "June 13, 2026",
     "v171Title": "Epic-driven planning & branch lifecycle",
     "v171Desc": "Creating an epic replays the PRD + decomposition step to automatically generate its sprints and tasks, pending merges are visible, and worker branches are cleaned up automatically.",
@@ -2802,6 +2842,7 @@
     "ctaTitle": "Self-host today. Scale when ready.",
     "ctaSub": "PolyForm Noncommercial license. No card required. Your infrastructure, your data, your rules.",
     "installationGuide": "Installation guide",
+    "freeForever": "Free forever",
     "unlimited": "Unlimited",
     "basic": "Basic",
     "advanced": "Advanced",

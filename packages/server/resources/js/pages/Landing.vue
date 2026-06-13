@@ -317,45 +317,32 @@
         </div>
       </section>
 
-      <!-- ============ 11. PRICING TEASER ============ -->
-      <section class="section section-pricing-teaser" id="pricing">
-        <SectionHeader :badge="t('landing.pricing.badge')" :subtitle="t('landing.pricing.subtitle')">
+      <!-- ============ 11. FREE & UNLIMITED ============ -->
+      <section class="section section-unlimited" id="unlimited">
+        <SectionHeader :badge="t('landing.unlimited.badge')" :subtitle="t('landing.unlimited.subtitle')">
           <template #title>
-            {{ t('landing.pricing.title') }}<span class="hl">{{ t('landing.pricing.title_highlight') }}</span>
+            {{ t('landing.unlimited.title') }}<span class="hl">{{ t('landing.unlimited.title_highlight') }}</span>
           </template>
         </SectionHeader>
 
-        <div class="tiers">
-          <router-link
-            v-for="(tier, idx) in TIERS"
-            :key="tier.key"
-            to="/pricing"
-            class="tier-card"
-            :class="{ 'is-pro': tier.key === 'pro' }"
-            v-motion
-            :initial="mInitial(14)"
-            :visible-once="mVisible(idx)"
-          >
-            <span v-if="tier.key === 'pro'" class="tier-chip">{{ t('landing.pricing.most_popular') }}</span>
-            <span class="tier-name">{{ t(`landing.pricing.tiers.${tier.key}.name`) }}</span>
-            <span class="tier-price">
-              {{ t(`landing.pricing.tiers.${tier.key}.price`) }}
-              <small v-if="tier.key === 'pro'">{{ t('landing.pricing.tiers.pro.period') }}</small>
-            </span>
-            <span class="tier-target">{{ t(`landing.pricing.tiers.${tier.key}.target`) }}</span>
-            <ul class="tier-features">
-              <li v-for="i in tier.featureCount" :key="i">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
-                {{ t(`landing.pricing.tiers.${tier.key}.features.${i - 1}`) }}
-              </li>
-            </ul>
-            <span class="tier-cta">
-              {{ t(`landing.pricing.tiers.${tier.key}.cta`) }}
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
-            </span>
+        <div
+          class="unlimited-card"
+          v-motion
+          :initial="mInitial(14)"
+          :visible-once="mVisible(0)"
+        >
+          <ul class="unlimited-points">
+            <li v-for="i in 5" :key="i">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
+              {{ t(`landing.unlimited.points.${i - 1}`) }}
+            </li>
+          </ul>
+          <router-link to="/docs/installation" class="btn-primary unlimited-cta">
+            {{ t('landing.unlimited.cta') }}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
           </router-link>
         </div>
-        <p class="tiers-note">{{ t('landing.pricing.note') }}</p>
+        <p class="unlimited-note">{{ t('landing.unlimited.note') }}</p>
       </section>
 
       <!-- ============ 12. FAQ ============ -->
@@ -577,12 +564,6 @@ const STACK_ITEMS = [
   'Node.js agent',
   'Vue 3 dashboard',
   '370+ tests',
-] as const;
-
-const TIERS = [
-  { key: 'community', featureCount: 4 },
-  { key: 'pro', featureCount: 3 },
-  { key: 'enterprise', featureCount: 3 },
 ] as const;
 
 // ---------------------------------------------------------------------------
@@ -1636,150 +1617,52 @@ const Partial = () =>
   overflow-x: auto;
 }
 
-/* ============ 11. PRICING TEASER ============ */
-.tiers {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.1rem;
-}
-
-@media (min-width: 840px) {
-  .tiers {
-    grid-template-columns: repeat(3, 1fr);
-    align-items: stretch;
-  }
-}
-
-.tier-card {
-  position: relative;
-  padding: 1.75rem 1.5rem;
+/* ============ 11. FREE & UNLIMITED ============ */
+.unlimited-card {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 2rem 1.75rem;
   background: var(--bg-card);
-  border: 1px solid var(--border-color);
+  border: 1px solid color-mix(in srgb, var(--accent-purple) 42%, var(--border-color));
   border-radius: 1rem;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-purple) 28%, transparent), var(--shadow-md);
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
-  cursor: pointer;
-  transition: transform 0.25s cubic-bezier(0.23, 1, 0.32, 1), border-color 0.2s;
+  gap: 1.25rem;
 }
 
-.tier-card:hover {
-  transform: translateY(-2px);
-  border-color: color-mix(in srgb, var(--accent-purple) 36%, var(--border-color));
-}
-
-.tier-card:active {
-  transform: scale(0.97);
-}
-
-.tier-card.is-pro {
-  border-color: color-mix(in srgb, var(--accent-purple) 55%, var(--border-color));
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-purple) 40%, transparent), var(--shadow-md);
-}
-
-@media (min-width: 840px) {
-  .tier-card.is-pro {
-    transform: translateY(-0.5rem);
-  }
-
-  .tier-card.is-pro:hover {
-    transform: translateY(-0.625rem);
-  }
-
-  .tier-card.is-pro:active {
-    transform: translateY(-0.5rem) scale(0.97);
-  }
-}
-
-.tier-chip {
-  position: absolute;
-  top: -0.7rem;
-  left: 1.25rem;
-  padding: 0.22rem 0.7rem;
-  font-size: 0.66rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #fff;
-  background: var(--accent-purple);
-  border-radius: 999px;
-}
-
-.tier-name {
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-muted);
-}
-
-.tier-price {
-  font-size: 2.2rem;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  color: var(--text-primary);
-}
-
-.tier-price small {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  font-weight: 500;
-}
-
-.tier-target {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  line-height: 1.55;
-}
-
-.tier-features {
+.unlimited-points {
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
-  margin: 0.5rem 0 0;
-  padding: 0.8rem 0 0;
-  border-top: 1px solid var(--border-color);
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0;
   list-style: none;
 }
 
-.tier-features li {
+.unlimited-points li {
   display: flex;
   align-items: flex-start;
-  gap: 0.5rem;
-  font-size: 0.84rem;
+  gap: 0.6rem;
+  font-size: 0.95rem;
   line-height: 1.5;
   color: var(--text-secondary);
 }
 
-.tier-features svg {
-  width: 13px;
-  height: 13px;
+.unlimited-points svg {
+  width: 16px;
+  height: 16px;
   flex: none;
-  margin-top: 0.2rem;
+  margin-top: 0.18rem;
   color: var(--status-success);
 }
 
-.tier-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  margin-top: auto;
-  padding-top: 0.9rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--accent-purple);
+.unlimited-cta {
+  align-self: flex-start;
 }
 
-.tier-cta svg {
-  width: 14px;
-  height: 14px;
-  transition: transform 0.25s;
-}
-
-.tier-card:hover .tier-cta svg {
-  transform: translateX(3px);
-}
-
-.tiers-note {
+.unlimited-note {
+  margin-top: 1.1rem;
   font-size: 0.82rem;
   color: var(--text-muted);
   text-align: center;

@@ -53,15 +53,20 @@ class WorkerPoolService
     ) {}
 
     /**
-     * Start orchestration: spawn min(maxWorkers, remaining plan cap,
-     * max(1, pending tasks)) workers and persist the orchestration state.
+     * Start orchestration: spawn max(1, min(maxWorkers, pending tasks)) workers
+     * and persist the orchestration state.
+     *
+     * The free-unlimited model has no per-plan concurrency cap: the only bounds
+     * are the operator-chosen $maxWorkers and the work actually available
+     * (pending tasks, with a floor of 1 so a relaunch on an empty backlog still
+     * boots a worker ready to pick up incoming work).
      *
      * @param  bool  $coordinator  allow the incident coordinator
      *                             (CoordinatorService) to spawn ephemeral planning sessions on
      *                             incidents — persisted in settings.orchestration.coordinator.
      * @return array<string, mixed> the orchestrator status (see status())
      *
-     * @throws WorkerPoolException machine offline (422) or plan cap reached (403)
+     * @throws WorkerPoolException machine offline (422)
      */
     public function start(
         SharedProject $project,
@@ -75,24 +80,13 @@ class WorkerPoolService
             throw WorkerPoolException::machineOffline();
         }
 
-        $remaining = PHP_INT_MAX;
-        $cap = $user->concurrentAgentCap();
-        if ($cap !== null) {
-            $activeSessions = Session::forUser($user->id)->active()->count();
-            $remaining = $cap - $activeSessions;
-
-            if ($remaining <= 0) {
-                throw WorkerPoolException::planLimitReached($cap);
-            }
-        }
-
         // Resume before new: tasks left in_progress by previously-terminated
         // workers return to the claimable pool (and are claimed first via
         // prioritized()) so a relaunch continues that work instead of stranding it.
         SharedTask::reclaimOrphaned($project->id);
 
         $pendingTasks = $project->tasks()->pending()->count();
-        $toSpawn = (int) min($maxWorkers, $remaining, max(1, $pendingTasks));
+        $toSpawn = max(1, min($maxWorkers, $pendingTasks));
 
         $spawned = [];
         for ($i = 0; $i < $toSpawn; $i++) {
