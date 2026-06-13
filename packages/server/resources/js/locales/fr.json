@@ -1878,6 +1878,7 @@
       "tasks": "Tâches",
       "locks": "Verrous",
       "workers": "Workers",
+      "git": "Git",
       "activity": "Activité",
       "noTasks": "Aucune tâche dans ce projet pour le moment.",
       "noLocks": "Aucun verrou de fichier actif.",
@@ -1891,6 +1892,24 @@
       "statusBlocked": "Bloquées",
       "statusReview": "En revue",
       "statusDone": "Terminées"
+    },
+    "git": {
+      "refresh": "Rafraîchir",
+      "sandboxed": "sandboxé",
+      "sandboxedHint": "git/gh tournent dans le sandbox bubblewrap",
+      "worktree": "Worktree",
+      "clean": "propre",
+      "dirty": "{count} modifs",
+      "moreFiles": "de plus",
+      "noStatus": "Aucun statut git disponible.",
+      "pulls": "Pull requests",
+      "noPulls": "Aucune pull request ouverte.",
+      "draft": "brouillon",
+      "method": "Méthode de merge",
+      "merge": "Merger",
+      "merging": "Merge…",
+      "mergeSuccess": "PR #{number} mergée",
+      "mergeFailed": "Échec du merge de la PR #{number}"
     },
     "toasts": {
       "started": "Orchestrateur démarré — {count} workers",

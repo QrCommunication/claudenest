@@ -73,7 +73,7 @@
       </div>
 
       <!-- WORKERS -->
-      <div v-else class="rail-panel">
+      <div v-else-if="modelValue === 'workers'" class="rail-panel">
         <p v-if="instances.length === 0" class="rail-empty">
           {{ t('projectsWorkspace.rail.noWorkers') }}
         </p>
@@ -88,6 +88,11 @@
         <button class="rail-spawn" @click="emit('spawn')">
           {{ t('projectsWorkspace.rail.spawnWorker') }}
         </button>
+      </div>
+
+      <!-- GIT (worktree + pull requests + direct merge) -->
+      <div v-else-if="modelValue === 'git'" class="rail-panel">
+        <GitPanel :project-id="projectId" />
       </div>
     </div>
 
@@ -106,10 +111,11 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import ActivityFeed from '@/components/multiagent/ActivityFeed.vue';
 import InstanceCard from '@/components/multiagent/InstanceCard.vue';
+import GitPanel from '@/components/multiagent/GitPanel.vue';
 import { workerColor } from '@/utils/workerColor';
 import type { ActivityLog, ClaudeInstance, FileLock, SharedTask, TaskStatus } from '@/types';
 
-export type RailTab = 'tasks' | 'locks' | 'workers';
+export type RailTab = 'tasks' | 'locks' | 'workers' | 'git';
 
 interface Props {
   projectId: string;
@@ -151,6 +157,11 @@ const railTabs = computed(() => [
     id: 'workers' as const,
     label: t('projectsWorkspace.rail.workers'),
     count: props.instances.length,
+  },
+  {
+    id: 'git' as const,
+    label: t('projectsWorkspace.rail.git'),
+    count: 0,
   },
 ]);
 
@@ -236,7 +247,7 @@ function lockAge(lock: FileLock): string {
 
 /* Content */
 .rail-content {
-  flex: 1;
+  flex: 1 1 55%;
   min-height: 0;
   overflow-y: auto;
   scrollbar-width: thin;
@@ -431,9 +442,9 @@ function lockAge(lock: FileLock): string {
 
 /* Footer activity feed */
 .rail-footer {
-  flex-shrink: 0;
+  flex: 1 1 45%;
+  min-height: 260px;
   border-top: 1px solid var(--border-color);
-  max-height: 220px;
   display: flex;
   flex-direction: column;
 }

@@ -1878,6 +1878,7 @@
       "tasks": "Tasks",
       "locks": "Locks",
       "workers": "Workers",
+      "git": "Git",
       "activity": "Activity",
       "noTasks": "No tasks in this project yet.",
       "noLocks": "No active file locks.",
@@ -1891,6 +1892,24 @@
       "statusBlocked": "Blocked",
       "statusReview": "Review",
       "statusDone": "Done"
+    },
+    "git": {
+      "refresh": "Refresh",
+      "sandboxed": "sandboxed",
+      "sandboxedHint": "git/gh run inside the bubblewrap sandbox",
+      "worktree": "Worktree",
+      "clean": "clean",
+      "dirty": "{count} changes",
+      "moreFiles": "more",
+      "noStatus": "No git status available.",
+      "pulls": "Pull requests",
+      "noPulls": "No open pull requests.",
+      "draft": "draft",
+      "method": "Merge method",
+      "merge": "Merge",
+      "merging": "Merging…",
+      "mergeSuccess": "PR #{number} merged",
+      "mergeFailed": "Failed to merge PR #{number}"
     },
     "toasts": {
       "started": "Orchestrator started — {count} workers",

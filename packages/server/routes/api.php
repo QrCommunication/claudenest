@@ -151,6 +151,12 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::post('projects/{project}/orchestrator/stop', [Api\ProjectController::class, 'stopOrchestrator']);
     Route::get('projects/{project}/orchestrator/status', [Api\ProjectController::class, 'orchestratorStatus']);
 
+    // Git worktree + pull requests (dispatched to the agent, sandboxed git/gh)
+    Route::get('projects/{project}/git/status', [Api\GitController::class, 'status']);
+    Route::get('projects/{project}/pulls', [Api\GitController::class, 'pulls']);
+    Route::post('projects/{project}/pulls/{number}/merge', [Api\GitController::class, 'merge'])
+        ->where('number', '[0-9]+');
+
     // ==================== CONTEXT (RAG) ====================
     Route::get('projects/{project}/context', [Api\ContextController::class, 'show']);
     Route::post('projects/{project}/context/query', [Api\ContextController::class, 'query']);
