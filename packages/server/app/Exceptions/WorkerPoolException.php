@@ -24,13 +24,4 @@ class WorkerPoolException extends Exception
     {
         return new self('MACHINE_OFFLINE', 'Machine is not online', 422);
     }
-
-    public static function planLimitReached(int $cap): self
-    {
-        return new self(
-            'PLAN_001',
-            "Your plan allows at most {$cap} concurrent Claude sessions. Terminate a session or upgrade your plan.",
-            403,
-        );
-    }
 }

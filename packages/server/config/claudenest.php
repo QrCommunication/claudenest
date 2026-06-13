@@ -12,16 +12,25 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Plans — Concurrent Agent Caps
+    | Orchestration — Worker Pool Knobs
     |--------------------------------------------------------------------------
-    | Maximum number of simultaneously active Claude sessions (human-created
-    | AND orchestrated workers combined) per user plan. `null` = unlimited.
+    | ClaudeNest is free & unlimited: there is NO per-plan cap on the number of
+    | concurrent Claude sessions or orchestrated workers. The values below are
+    | purely operational defaults — the effective worker count is always bounded
+    | by the operator-chosen `max_workers` and the pending-task backlog, never by
+    | a billing plan.
     */
 
-    'plans' => [
-        'community' => 3,
-        'pro' => 20,
-        'enterprise' => null,
+    'orchestration' => [
+        // Default suggested worker count when the operator does not specify one.
+        // Operational knob only — it never caps anything the operator asks for.
+        'max_workers_default' => (int) env('CLAUDENEST_MAX_WORKERS_DEFAULT', 3),
+
+        // Default permission mode handed to spawned workers (see WorkerPoolService).
+        'permission_mode_default' => env('CLAUDENEST_PERMISSION_MODE_DEFAULT', 'bypassPermissions'),
+
+        // Whether the incident coordinator may spawn ephemeral planning sessions.
+        'coordinator_default' => (bool) env('CLAUDENEST_COORDINATOR_DEFAULT', true),
     ],
 
     /*

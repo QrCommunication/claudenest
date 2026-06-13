@@ -114,9 +114,9 @@ function formatDate(dateStr: string | null): string {
   display: flex;
   flex-direction: column;
   gap: 0;
-  background: #1a1b26;
+  background: var(--bg-secondary);
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-color);
   overflow: hidden;
 }
 
@@ -127,8 +127,8 @@ function formatDate(dateStr: string | null): string {
   align-items: center;
   gap: 24px;
   padding: 14px 20px;
-  background: #24283b;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
   flex-wrap: wrap;
 }
 
@@ -143,7 +143,7 @@ function formatDate(dateStr: string | null): string {
 .sprint-name {
   font-size: 0.9rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-primary);
   margin: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -152,7 +152,7 @@ function formatDate(dateStr: string | null): string {
 
 .sprint-goal {
   font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.35);
+  color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -193,19 +193,19 @@ function formatDate(dateStr: string | null): string {
 
 .metric-separator {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.2);
+  color: var(--text-disabled);
   line-height: 1;
 }
 
 .metric-total {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-muted);
   line-height: 1;
 }
 
 .metric-label {
   font-size: 0.65rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin-top: 1px;
@@ -232,7 +232,7 @@ function formatDate(dateStr: string | null): string {
 
 .ring-bg {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.07);
+  stroke: var(--border-color);
   stroke-width: 3;
 }
 
@@ -247,7 +247,7 @@ function formatDate(dateStr: string | null): string {
 .ring-text {
   font-size: 0.55rem;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
   position: relative;
   z-index: 1;
   line-height: 1;
@@ -265,7 +265,7 @@ function formatDate(dateStr: string | null): string {
 
 .date-value {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-muted);
 }
 
 .date-value.overdue {
@@ -274,7 +274,7 @@ function formatDate(dateStr: string | null): string {
 
 .date-arrow {
   font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.2);
+  color: var(--text-disabled);
 }
 
 .complete-sprint-btn {
@@ -282,9 +282,9 @@ function formatDate(dateStr: string | null): string {
   padding: 4px 10px;
   font-size: 0.7rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.5);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+  background: var(--bg-hover);
+  border: 1px solid var(--border-color);
   border-radius: 5px;
   cursor: pointer;
   transition: color 0.15s, background 0.15s, border-color 0.15s;
@@ -309,12 +309,12 @@ function formatDate(dateStr: string | null): string {
 .no-sprint-icon {
   width: 32px;
   height: 32px;
-  color: rgba(255, 255, 255, 0.12);
+  color: var(--text-disabled);
 }
 
 .no-sprint-text {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.25);
+  color: var(--text-muted);
   margin: 0;
 }
 

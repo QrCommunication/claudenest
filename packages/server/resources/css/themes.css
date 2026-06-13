@@ -30,6 +30,12 @@
   --status-error: #ef4444;
   --status-info: #3b82f6;
 
+  /* Semantic aliases (consumed by multi-agent components) */
+  --color-success: var(--status-success);
+  --color-warning: var(--status-warning);
+  --color-error: var(--status-error);
+  --text: var(--text-primary);
+
   /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
@@ -70,6 +76,12 @@
   --status-warning: #ca8a04;
   --status-error: #dc2626;
   --status-info: #2563eb;
+
+  /* Semantic aliases (consumed by multi-agent components) */
+  --color-success: var(--status-success);
+  --color-warning: var(--status-warning);
+  --color-error: var(--status-error);
+  --text: var(--text-primary);
 
   /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);

@@ -191,42 +191,6 @@ class WorkerOrchestrationTest extends TestCase
     }
 
     #[Test]
-    public function session_store_respects_higher_plan_caps(): void
-    {
-        $this->spy(AgentGateway::class);
-
-        $user = User::factory()->create(['plan' => 'pro']); // cap 20
-        $machine = Machine::factory()->for($user)->create();
-
-        Session::factory()->count(3)->for($machine)->for($user)->create(['status' => 'running']);
-
-        $response = $this->actingAs($user)
-            ->postJson("/api/machines/{$machine->id}/sessions", [
-                'mode' => 'interactive',
-            ]);
-
-        $response->assertStatus(201);
-    }
-
-    #[Test]
-    public function completed_sessions_do_not_count_toward_the_cap(): void
-    {
-        $this->spy(AgentGateway::class);
-
-        $user = User::factory()->create(); // community plan → cap 3
-        $machine = Machine::factory()->for($user)->create();
-
-        Session::factory()->count(3)->for($machine)->for($user)->completed()->create();
-
-        $response = $this->actingAs($user)
-            ->postJson("/api/machines/{$machine->id}/sessions", [
-                'mode' => 'interactive',
-            ]);
-
-        $response->assertStatus(201);
-    }
-
-    #[Test]
     public function stop_terminates_orchestrated_sessions_and_marks_settings_inactive(): void
     {
         $gateway = $this->spy(AgentGateway::class);
