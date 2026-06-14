@@ -348,14 +348,30 @@ export interface ClaudeInstance {
 
 // ==================== FILE LOCK TYPES ====================
 
+export type LockType = "exclusive" | "shared";
+
+export interface FileLockLineRange {
+  start: number;
+  end: number;
+}
+
+/**
+ * The server lock endpoints return snake_case (and the list omits project_id),
+ * unlike the camelCase Resources elsewhere. `project_id` is stamped client-side
+ * in fetchLocks so the per-project getter works.
+ */
 export interface FileLock {
   id: string;
-  projectId: string;
+  project_id: string;
   path: string;
-  lockedBy: string;
+  locked_by: string;
   reason: string | null;
-  lockedAt: string;
-  expiresAt: string;
+  lock_type: LockType;
+  line_range: FileLockLineRange | null;
+  queue_position: number | null;
+  locked_at: string;
+  expires_at: string;
+  remaining_seconds: number | null;
 }
 
 // ==================== ACTIVITY TYPES ====================

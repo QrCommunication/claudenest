@@ -150,7 +150,7 @@ export const useProjectsStore = create<ProjectsState>()(
       getProjectTasks: (projectId: string) =>
         get().tasks.filter((t) => t.projectId === projectId),
       getProjectLocks: (projectId: string) =>
-        get().locks.filter((l) => l.projectId === projectId),
+        get().locks.filter((l) => l.project_id === projectId),
       getProjectInstances: (projectId: string) =>
         get().instances.filter((i) => i.projectId === projectId),
       getProjectActivity: (projectId: string) =>
@@ -233,7 +233,7 @@ export const useProjectsStore = create<ProjectsState>()(
           set((state) => ({
             projects: state.projects.filter((p) => p.id !== id),
             tasks: state.tasks.filter((t) => t.projectId !== id),
-            locks: state.locks.filter((l) => l.projectId !== id),
+            locks: state.locks.filter((l) => l.project_id !== id),
             instances: state.instances.filter((i) => i.projectId !== id),
             activityLogs: state.activityLogs.filter((a) => a.projectId !== id),
             selectedProjectId:
@@ -444,10 +444,16 @@ export const useProjectsStore = create<ProjectsState>()(
       fetchLocks: async (projectId: string) => {
         try {
           const response = await locksApi.list(projectId);
+          // The list endpoint omits project_id — stamp it so the per-project
+          // getter and dedupe work.
+          const fresh = (response.data ?? []).map((l) => ({
+            ...l,
+            project_id: projectId,
+          }));
           set((state) => ({
             locks: [
-              ...state.locks.filter((l) => l.projectId !== projectId),
-              ...response.data!,
+              ...state.locks.filter((l) => l.project_id !== projectId),
+              ...fresh,
             ],
           }));
         } catch (err) {
@@ -457,12 +463,10 @@ export const useProjectsStore = create<ProjectsState>()(
       },
 
       createLock: async (projectId: string, path: string, reason?: string) => {
-        const response = await locksApi.create(projectId, path, reason);
-        const lock = response.data!;
-
-        set((state) => ({
-          locks: [...state.locks, lock],
-        }));
+        await locksApi.create(projectId, path, reason);
+        // The create response shape differs from the list — refetch for a
+        // consistent, fully-populated lock list.
+        await get().fetchLocks(projectId);
       },
 
       deleteLock: async (projectId: string, path: string) => {
@@ -470,7 +474,7 @@ export const useProjectsStore = create<ProjectsState>()(
 
         set((state) => ({
           locks: state.locks.filter(
-            (l) => !(l.projectId === projectId && l.path === path),
+            (l) => !(l.project_id === projectId && l.path === path),
           ),
         }));
       },
