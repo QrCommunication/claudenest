@@ -936,6 +936,7 @@ class ProjectController extends Controller
                                 new OA\Property(property: 'total_tasks', type: 'integer'),
                                 new OA\Property(property: 'pending_tasks', type: 'integer'),
                                 new OA\Property(property: 'completed_tasks', type: 'integer'),
+                                new OA\Property(property: 'remaining_tasks', type: 'integer', description: 'Not-done tasks excluding those stranded in a completed/cancelled sprint (scopeRemaining)'),
                                 new OA\Property(property: 'active_instances', type: 'integer'),
                                 new OA\Property(property: 'context_chunks', type: 'integer'),
                                 new OA\Property(property: 'active_locks', type: 'integer'),
@@ -966,6 +967,12 @@ class ProjectController extends Controller
             'total_tasks' => $project->tasks()->count(),
             'pending_tasks' => $project->tasks()->where('status', 'pending')->count(),
             'completed_tasks' => $project->tasks()->where('status', 'done')->count(),
+            // "Remaining work" reuses SharedTask::scopeRemaining as the single
+            // source of truth (not done AND not stranded in a completed/cancelled
+            // sprint) so this counter stays consistent with SprintResource and the
+            // task panel. Completing a sprint drops its tasks from this count while
+            // backlog tasks (no sprint_id) are retained.
+            'remaining_tasks' => $project->tasks()->remaining()->count(),
             'active_instances' => $project->claudeInstances()->whereNull('disconnected_at')->count(),
             'context_chunks' => $project->contextChunks()->count(),
             'active_locks' => $project->fileLocks()->where('expires_at', '>', now())->count(),

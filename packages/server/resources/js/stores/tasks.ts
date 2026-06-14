@@ -2,6 +2,8 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { api } from '@/composables/useApi';
 import { useMultiAsyncAction } from '@/composables/useAsyncAction';
+import { getEchoClient } from '@/services/echo';
+import { useSprintsStore } from '@/stores/sprints';
 import type {
   SharedTask,
   TaskStatus,
@@ -13,10 +15,42 @@ import type {
   PaginatedResponse,
 } from '@/types';
 
+// ── Server broadcast payloads (see app/Events/Task*::broadcastWith) ───────────
+
+/** `.task.claimed` — fired when an instance atomically claims a task. */
+interface TaskClaimedPayload {
+  task_id: string;
+  project_id: string;
+  title: string;
+  status: TaskStatus;
+  assigned_to: string | null;
+  sprint_id: string | null;
+  epic_id: string | null;
+  claimed_at: string | null;
+  timestamp: string;
+}
+
+/** `.task.completed` — fired when a task is completed (status → done). */
+interface TaskCompletedPayload {
+  task_id: string;
+  project_id: string;
+  title: string;
+  status: TaskStatus;
+  sprint_id: string | null;
+  epic_id: string | null;
+  assigned_to: string | null;
+  completion_summary: string | null;
+  files_modified: string[] | null;
+  completed_at: string | null;
+}
+
 export const useTasksStore = defineStore('tasks', () => {
   // ==================== STATE ====================
   const tasks = ref<SharedTask[]>([]);
   const selectedTask = ref<SharedTask | null>(null);
+
+  // Real-time teardown closure (not reactive — holds the Echo detach handlers).
+  let unsubscribeRealtimeFn: (() => void) | null = null;
 
   const { states, error, run, clearError } = useMultiAsyncAction([
     'loading',
@@ -121,6 +155,31 @@ export const useTasksStore = defineStore('tasks', () => {
   const completedStoryPoints = computed(() =>
     tasks.value.filter(t => t.status === 'done').reduce((sum, t) => sum + (t.story_points || 0), 0)
   );
+
+  /**
+   * Local mirror of `SharedTask::scopeRemaining`: counts tasks that are not
+   * done AND are not stranded in a completed/cancelled sprint (backlog tasks
+   * with no sprint always count). Replicated client-side so the remaining
+   * counter updates in real time on claim/complete without a stats refetch.
+   *
+   * Sprint statuses come from the sibling sprints store (lazy lookup). If the
+   * sprints store is not yet populated, the closed-sprint exclusion degrades
+   * gracefully to "exclude done only" — never over-excludes.
+   */
+  const remainingTasksCount = computed(() => {
+    const sprintsStore = useSprintsStore();
+    const closedSprintIds = new Set(
+      sprintsStore.sprints
+        .filter(s => s.status === 'completed' || s.status === 'cancelled')
+        .map(s => s.id),
+    );
+
+    return tasks.value.filter(t => {
+      if (t.status === 'done') return false;
+      if (t.sprint_id && closedSprintIds.has(t.sprint_id)) return false;
+      return true;
+    }).length;
+  });
 
   // ==================== ACTIONS ====================
 
@@ -411,6 +470,84 @@ export const useTasksStore = defineStore('tasks', () => {
   }
 
   /**
+   * Subscribe to real-time task mutations on the `projects.{id}` channel.
+   *
+   * Applies targeted local updates from `TaskClaimed` / `TaskCompleted`
+   * broadcasts (status, assignee, completion fields) without a global refetch,
+   * so the board and the `remainingTasksCount` getter update the instant a
+   * worker claims or completes a task elsewhere.
+   *
+   * Idempotent: re-subscribing detaches the previous handlers first. The
+   * channel is shared with `useProjectChannel` and the epics/sprints stores,
+   * so teardown only `stopListening` our own handlers — never `leave()`, which
+   * would drop those sibling subscriptions.
+   */
+  function subscribeRealtime(projectId: string): void {
+    unsubscribeRealtime();
+
+    let client: ReturnType<typeof getEchoClient>;
+    try {
+      client = getEchoClient();
+    } catch {
+      // Reverb config missing (tests, degraded boot) — real-time disabled.
+      return;
+    }
+
+    const channel = `projects.${projectId}`;
+
+    const onClaimed = (payload: TaskClaimedPayload): void => {
+      updateTaskLocal(payload.task_id, {
+        status: payload.status,
+        assigned_to: payload.assigned_to,
+        claimed_at: payload.claimed_at,
+        sprint_id: payload.sprint_id,
+        epic_id: payload.epic_id,
+        is_claimed: !!payload.assigned_to,
+        is_completed: payload.status === 'done',
+      });
+    };
+
+    const onCompleted = (payload: TaskCompletedPayload): void => {
+      updateTaskLocal(payload.task_id, {
+        status: payload.status,
+        assigned_to: payload.assigned_to,
+        completed_at: payload.completed_at,
+        completion_summary: payload.completion_summary ?? undefined,
+        files_modified: payload.files_modified ?? undefined,
+        sprint_id: payload.sprint_id,
+        epic_id: payload.epic_id,
+        is_completed: payload.status === 'done',
+        is_claimed: !!payload.assigned_to,
+      });
+    };
+
+    client
+      .private(channel)
+      .listen('.task.claimed', onClaimed as (p: unknown) => void)
+      .listen('.task.completed', onCompleted as (p: unknown) => void);
+
+    unsubscribeRealtimeFn = () => {
+      try {
+        client
+          .private(channel)
+          .stopListening('.task.claimed', onClaimed as (p: unknown) => void)
+          .stopListening('.task.completed', onCompleted as (p: unknown) => void);
+      } catch {
+        // Channel already gone.
+      }
+    };
+  }
+
+  /**
+   * Detach the real-time task listeners (call on component unmount or when
+   * switching projects).
+   */
+  function unsubscribeRealtime(): void {
+    unsubscribeRealtimeFn?.();
+    unsubscribeRealtimeFn = null;
+  }
+
+  /**
    * @deprecated Use fetchTasks with extended filters instead.
    * Kept for backward compatibility.
    */
@@ -441,6 +578,7 @@ export const useTasksStore = defineStore('tasks', () => {
     rootTasks,
     totalStoryPoints,
     completedStoryPoints,
+    remainingTasksCount,
 
     // Actions
     fetchTasks,
@@ -460,6 +598,8 @@ export const useTasksStore = defineStore('tasks', () => {
     updateTaskLocal,
     addTaskLocal,
     removeTaskLocal,
+    subscribeRealtime,
+    unsubscribeRealtime,
     fetchSubtasks,
     moveTaskTo,
     fetchTasksFiltered,

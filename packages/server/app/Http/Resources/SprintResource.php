@@ -23,11 +23,27 @@ class SprintResource extends JsonResource
             'sort_order' => $this->sort_order,
             'tasks_count' => $this->tasks_count,
             'completed_tasks_count' => $this->completed_tasks_count,
+            // "Remaining" reuses SharedTask::scopeRemaining as the single source of
+            // truth (not done AND not stranded in a closed sprint) so the detail
+            // view stays consistent with the project/sprint stats counters.
+            'remaining_tasks_count' => $this->tasks()->remaining()->count(),
             'total_story_points' => $this->total_story_points,
             'completed_story_points' => $this->completed_story_points,
             'progress_percentage' => $this->progress_percentage,
             'remaining_days' => $this->remaining_days,
             'is_overdue' => $this->is_overdue,
+            // Embedded task list — only serialized when the relation is eager-loaded
+            // (sprint detail endpoint). The paginated index listing stays lightweight.
+            'tasks' => $this->whenLoaded('tasks', fn () => $this->tasks
+                ->map(fn ($task) => [
+                    'id' => $task->id,
+                    'title' => $task->title,
+                    'status' => $task->status,
+                    'priority' => $task->priority,
+                    'story_points' => $task->story_points,
+                    'assigned_to' => $task->assigned_to,
+                ])
+                ->values()),
             'created_at' => $this->created_at->toIso8601String(),
             'updated_at' => $this->updated_at->toIso8601String(),
         ];

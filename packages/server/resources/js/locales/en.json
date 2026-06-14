@@ -1306,7 +1306,25 @@
     "daysLeft": "days left",
     "completeSprint": "Complete sprint",
     "noActiveSprint": "No active sprint",
-    "startNewSprint": "Start a new sprint"
+    "startNewSprint": "Start a new sprint",
+    "navLabel": "Sprint navigation",
+    "previousSprint": "Previous sprint",
+    "nextSprint": "Next sprint",
+    "selectSprint": "Select a sprint",
+    "activeTag": "active",
+    "loadingDetail": "Loading sprint…"
+  },
+  "multiagentSprintdetail": {
+    "noSprintSelected": "No sprint selected",
+    "dates": "Dates",
+    "daysLeft": "Days left",
+    "velocityCapacity": "Velocity / Capacity",
+    "pts": "pts",
+    "tasks": "Tasks",
+    "done": "done",
+    "remaining": "remaining",
+    "noTasks": "No tasks in this sprint",
+    "storyPoints": "Story points"
   },
   "docsApitryit": {
     "tryIt": "Try It",

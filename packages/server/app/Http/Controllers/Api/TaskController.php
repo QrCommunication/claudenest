@@ -4,16 +4,21 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\EpicUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\TaskResource;
+use App\Models\Epic;
 use App\Models\SharedProject;
 use App\Models\SharedTask;
+use App\Models\Sprint;
 use App\Services\ContextRAGService;
 use App\Services\CoordinatorService;
 use App\Services\WorkerLoopService;
+use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use OpenApi\Attributes as OA;
 use Throwable;
 
@@ -32,6 +37,8 @@ class TaskController extends Controller
             new OA\Parameter(name: 'status', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['pending', 'in_progress', 'blocked', 'review', 'done'])),
             new OA\Parameter(name: 'assigned_to', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
             new OA\Parameter(name: 'priority', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['low', 'medium', 'high', 'critical'])),
+            new OA\Parameter(name: 'sprint_id', in: 'query', required: false, description: 'Filter by sprint UUID, or "none" for backlog (tasks without a sprint). Bypasses the default visibility filter.', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'include_all', in: 'query', required: false, description: 'Override the default visibility filter to return every task (including tasks completed before today).', schema: new OA\Schema(type: 'boolean')),
             new OA\Parameter(name: 'per_page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 20)),
         ],
         responses: [
@@ -49,12 +56,39 @@ class TaskController extends Controller
             'assigned_to' => 'string',
             'priority' => 'string|in:low,medium,high,critical',
             'epic_id' => 'uuid|exists:epics,id',
-            'sprint_id' => 'uuid|exists:sprints,id',
+            // sprint_id accepts a sprint UUID, or the literal "none" for the
+            // backlog (tasks without any sprint). Validated by hand because
+            // "none" is not a UUID and Str::isUuid() guards the DB against the
+            // PostgreSQL "invalid input syntax for type uuid" (22P02) error.
+            'sprint_id' => [
+                'string',
+                function (string $attribute, mixed $value, Closure $fail): void {
+                    if ($value === 'none') {
+                        return;
+                    }
+
+                    if (! Str::isUuid($value) || ! Sprint::whereKey($value)->exists()) {
+                        $fail('The sprint_id must be a valid sprint UUID or "none".');
+                    }
+                },
+            ],
             'parent_id' => 'uuid|exists:shared_tasks,id',
             'root_only' => 'boolean',
+            'include_all' => 'boolean',
         ]);
 
         $query = $project->tasks()->orderBy('created_at', 'desc');
+
+        // A sprint filter (specific sprint or "none" backlog) is an explicit
+        // narrowing that bypasses the default visibility filter below.
+        $sprintFilterApplied = isset($validated['sprint_id']);
+        if ($sprintFilterApplied) {
+            if ($validated['sprint_id'] === 'none') {
+                $query->whereNull('sprint_id');
+            } else {
+                $query->bySprint($validated['sprint_id']);
+            }
+        }
 
         if (isset($validated['status'])) {
             $query->byStatus($validated['status']);
@@ -72,16 +106,23 @@ class TaskController extends Controller
             $query->byEpic($validated['epic_id']);
         }
 
-        if (isset($validated['sprint_id'])) {
-            $query->bySprint($validated['sprint_id']);
-        }
-
         if (isset($validated['parent_id'])) {
             $query->subtasksOf($validated['parent_id']);
         }
 
         if ($request->boolean('root_only')) {
             $query->rootTasks();
+        }
+
+        // Default visibility (in-progress tasks + tasks completed today) keeps
+        // the task panel focused on the current day. It is skipped when the
+        // caller already narrows the result set explicitly — by sprint, by an
+        // exact status, or via the include_all override — since combining it
+        // with those filters would surprisingly hide matching tasks.
+        if (! $sprintFilterApplied
+            && ! isset($validated['status'])
+            && ! $request->boolean('include_all')) {
+            $query->defaultVisible();
         }
 
         $tasks = $query->paginate($request->input('per_page', 20));
@@ -510,8 +551,30 @@ class TaskController extends Controller
             ]);
         }
 
-        // Broadcast task completion
+        // Broadcast task completion (scalar payload, see TaskCompleted::broadcastWith).
         broadcast(new \App\Events\TaskCompleted($task))->toOthers();
+
+        // Cascade epic status: completing a task may have been the last one
+        // needed for its epic to reach `done` (or move it from `open` to
+        // `in_progress`). The epic↔task link is direct via epic_id. Only
+        // broadcast EpicUpdated when recomputeStatus() actually mutated the epic
+        // (isDirty → true). Best-effort: the completion is already persisted and
+        // must never be broken by a recompute failure.
+        if ($task->epic_id) {
+            try {
+                $epic = Epic::find($task->epic_id);
+
+                if ($epic && $epic->recomputeStatus()) {
+                    broadcast(new EpicUpdated($epic->fresh(), 'updated'))->toOthers();
+                }
+            } catch (Throwable $e) {
+                Log::warning('Epic recompute failed on task completion', [
+                    'task_id' => $task->id,
+                    'epic_id' => $task->epic_id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
 
         return response()->json([
             'success' => true,

@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\EpicUpdated;
 use App\Events\SprintUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\SprintResource;
+use App\Models\Epic;
 use App\Models\SharedProject;
 use App\Models\Sprint;
 use App\Services\CoordinatorService;
@@ -96,7 +98,9 @@ class SprintController extends Controller
      */
     public function show(Request $request, string $id): JsonResponse
     {
-        $sprint = Sprint::with('tasks')->findOrFail($id);
+        // Eager-load tasks (ordered) so the detail view embeds a deterministic
+        // task list via SprintResource::whenLoaded('tasks').
+        $sprint = Sprint::with(['tasks' => fn ($query) => $query->ordered()])->findOrFail($id);
         $this->authorize('view', $sprint->project);
 
         return response()->json([
@@ -225,6 +229,29 @@ class SprintController extends Controller
 
         // Broadcast sprint completion to the project channel
         broadcast(new SprintUpdated($sprint->fresh(), 'completed'))->toOthers();
+
+        // Cascade epic completion: closing a sprint may have been the last open
+        // sprint blocking an epic from reaching `done` (see Epic::recomputeStatus).
+        // The epic↔sprint link is indirect — resolved through the sprint's tasks.
+        // Best-effort: the sprint is already completed, recompute must never break
+        // the completion response. Only broadcast EpicUpdated when the status moved.
+        try {
+            $epicIds = $sprint->tasks()
+                ->whereNotNull('epic_id')
+                ->distinct()
+                ->pluck('epic_id');
+
+            Epic::whereIn('id', $epicIds)->get()->each(function (Epic $epic): void {
+                if ($epic->recomputeStatus()) {
+                    broadcast(new EpicUpdated($epic->fresh(), 'updated'))->toOthers();
+                }
+            });
+        } catch (Throwable $e) {
+            Log::warning('Epic cascade failed on sprint completion', [
+                'sprint_id' => $sprint->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         // Coordinator trigger: a completed sprint is a review opportunity.
         // Best-effort — coordination must never break the completion itself.

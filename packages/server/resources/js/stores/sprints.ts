@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { api } from '@/composables/useApi';
+import { getEchoClient } from '@/services/echo';
 import type {
   Sprint,
   SprintStatus,
@@ -10,6 +11,29 @@ import type {
   ApiResponse,
   PaginatedResponse,
 } from '@/types';
+
+// ── Server broadcast payloads (see app/Events/Sprint*::broadcastWith) ─────────
+
+/** `.sprint.updated` — fired on create/update/start and any status change. */
+interface SprintUpdatedPayload {
+  sprint_id: string;
+  action: string;
+  name: string;
+  status: SprintStatus;
+  progress_percentage: number;
+  remaining_days: number | null;
+  timestamp: string;
+}
+
+/** `.sprint.completed` — fired when a sprint transitions active → completed. */
+interface SprintCompletedPayload {
+  sprint_id: string;
+  name: string;
+  velocity: number | null;
+  completed_story_points: number;
+  total_story_points: number;
+  timestamp: string;
+}
 
 export const useSprintsStore = defineStore('sprints', () => {
   // ==================== STATE ====================
@@ -23,6 +47,9 @@ export const useSprintsStore = defineStore('sprints', () => {
   const isDeleting = ref(false);
   const isFetchingBurndown = ref(false);
   const error = ref<string | null>(null);
+
+  // Real-time teardown closure (not reactive — holds the Echo detach handlers).
+  let unsubscribeRealtimeFn: (() => void) | null = null;
 
   // ==================== GETTERS ====================
   const sprintsByStatus = computed(() => {
@@ -384,6 +411,94 @@ export const useSprintsStore = defineStore('sprints', () => {
   }
 
   /**
+   * Reconcile the `activeSprint` ref after a real-time status mutation.
+   * The `currentSprint` getter recomputes itself from the list, but the
+   * standalone `activeSprint` ref must be promoted/cleared explicitly so the
+   * Sprint screen never shows a stale "active" sprint that just completed.
+   */
+  function reconcileActiveSprint(sprintId: string, status: SprintStatus): void {
+    if (status === 'active') {
+      const promoted = sprints.value.find(s => s.id === sprintId) ?? null;
+      if (promoted) activeSprint.value = promoted;
+    } else if (activeSprint.value?.id === sprintId) {
+      activeSprint.value = null;
+    }
+  }
+
+  /**
+   * Subscribe to real-time sprint mutations on the `projects.{id}` channel.
+   *
+   * Applies targeted local updates from `SprintUpdated` / `SprintCompleted`
+   * broadcasts (status, velocity, progress) without a global refetch.
+   * Idempotent: re-subscribing detaches the previous handlers first.
+   *
+   * The channel is shared with `useProjectChannel` and sibling stores, so
+   * teardown only `stopListening` our own handlers — never `leave()`, which
+   * would drop those sibling subscriptions.
+   */
+  function subscribeRealtime(projectId: string): void {
+    unsubscribeRealtime();
+
+    let client: ReturnType<typeof getEchoClient>;
+    try {
+      client = getEchoClient();
+    } catch {
+      // Reverb config missing (tests, degraded boot) — real-time disabled.
+      return;
+    }
+
+    const channel = `projects.${projectId}`;
+
+    const onUpdated = (payload: SprintUpdatedPayload): void => {
+      updateSprintLocal(payload.sprint_id, {
+        name: payload.name,
+        status: payload.status,
+        progress_percentage: payload.progress_percentage,
+        remaining_days: payload.remaining_days,
+      });
+      reconcileActiveSprint(payload.sprint_id, payload.status);
+    };
+
+    const onCompleted = (payload: SprintCompletedPayload): void => {
+      updateSprintLocal(payload.sprint_id, {
+        status: 'completed',
+        velocity: payload.velocity,
+        completed_story_points: payload.completed_story_points,
+        total_story_points: payload.total_story_points,
+      });
+      // A completed sprint is no longer active.
+      if (activeSprint.value?.id === payload.sprint_id) {
+        activeSprint.value = null;
+      }
+    };
+
+    client
+      .private(channel)
+      .listen('.sprint.updated', onUpdated as (p: unknown) => void)
+      .listen('.sprint.completed', onCompleted as (p: unknown) => void);
+
+    unsubscribeRealtimeFn = () => {
+      try {
+        client
+          .private(channel)
+          .stopListening('.sprint.updated', onUpdated as (p: unknown) => void)
+          .stopListening('.sprint.completed', onCompleted as (p: unknown) => void);
+      } catch {
+        // Channel already gone.
+      }
+    };
+  }
+
+  /**
+   * Detach the real-time sprint listeners (call on component unmount or when
+   * switching projects).
+   */
+  function unsubscribeRealtime(): void {
+    unsubscribeRealtimeFn?.();
+    unsubscribeRealtimeFn = null;
+  }
+
+  /**
    * Clear error
    */
   function clearError(): void {
@@ -428,6 +543,8 @@ export const useSprintsStore = defineStore('sprints', () => {
     updateSprintLocal,
     addSprintLocal,
     removeSprintLocal,
+    subscribeRealtime,
+    unsubscribeRealtime,
     clearBurndownData,
     clearError,
   };

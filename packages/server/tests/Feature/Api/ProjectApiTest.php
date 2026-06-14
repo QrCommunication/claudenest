@@ -6,6 +6,8 @@ use PHPUnit\Framework\Attributes\Test;
 
 use App\Models\Machine;
 use App\Models\SharedProject;
+use App\Models\SharedTask;
+use App\Models\Sprint;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -247,6 +249,53 @@ class ProjectApiTest extends TestCase
                 ],
                 'meta',
             ]);
+    }
+
+    #[Test]
+    public function project_stats_remaining_tasks_uses_scope_remaining(): void
+    {
+        $user = User::factory()->create();
+        $machine = Machine::factory()->for($user)->create();
+        $project = SharedProject::factory()->for($user)->for($machine)->create();
+
+        // A completed sprint: its still-open tasks are stranded and must NOT
+        // count toward "remaining work" (mirrors SharedTask::scopeRemaining).
+        $completedSprint = $project->sprints()->create([
+            'name' => 'Completed sprint',
+            'status' => 'completed',
+            'sort_order' => 1,
+        ]);
+        // An active sprint: its open tasks DO count as remaining.
+        $activeSprint = $project->sprints()->create([
+            'name' => 'Active sprint',
+            'status' => 'active',
+            'sort_order' => 2,
+        ]);
+
+        // 1) Backlog (no sprint), not done -> remaining.
+        SharedTask::factory()->for($project, 'project')->create(['status' => 'pending']);
+        // 2) Done -> excluded by the status filter.
+        SharedTask::factory()->for($project, 'project')->completed()->create();
+        // 3) Pending but stranded in a completed sprint -> excluded.
+        SharedTask::factory()->for($project, 'project')->create([
+            'status' => 'pending',
+            'sprint_id' => $completedSprint->id,
+        ]);
+        // 4) In progress in an active sprint -> remaining.
+        SharedTask::factory()->for($project, 'project')->create([
+            'status' => 'in_progress',
+            'sprint_id' => $activeSprint->id,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->getJson("/api/projects/{$project->id}/stats");
+
+        $response->assertOk()
+            ->assertJsonPath('data.total_tasks', 4)
+            ->assertJsonPath('data.completed_tasks', 1)
+            // Only the backlog (1) and the active-sprint (4) tasks remain;
+            // the done task (2) and the closed-sprint task (3) are excluded.
+            ->assertJsonPath('data.remaining_tasks', 2);
     }
 
     #[Test]

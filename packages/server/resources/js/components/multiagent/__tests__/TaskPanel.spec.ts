@@ -121,12 +121,46 @@ describe('TaskPanel — sprint filter', () => {
     expect(wrapper.find('.task-panel-empty').exists()).toBe(true);
   });
 
-  it('loads tasks and sprints for the project on mount', async () => {
+  it('loads the default task view and the sprints for the project on mount', async () => {
     mocked.projectsStore.selectedProject = { id: 'proj-1', name: 'Demo' };
 
     await mountPanel();
 
-    expect(mocked.tasksStore.fetchTasks).toHaveBeenCalledWith('proj-1');
+    // Default "All" filter -> no sprint param -> server applies its default
+    // visibility (in-progress tasks + tasks completed today).
+    expect(mocked.tasksStore.fetchTasks).toHaveBeenCalledWith('proj-1', undefined);
     expect(mocked.sprintsStore.fetchSprints).toHaveBeenCalledWith('proj-1');
+  });
+
+  it('re-fetches the sprint task set from the server when a sprint is selected', async () => {
+    mocked.projectsStore.selectedProject = { id: 'proj-1', name: 'Demo' };
+    mocked.sprintsStore.sprints = [makeSprint('s1', 'Sprint 1')];
+
+    const wrapper = await mountPanel();
+    await wrapper.find('select').setValue('s1');
+
+    // Server-driven: selecting a sprint must hit the API with ?sprint_id=<uuid>
+    // so its full task set (incl. statuses hidden by the default view) is loaded.
+    expect(mocked.tasksStore.fetchTasks).toHaveBeenLastCalledWith('proj-1', { sprint_id: 's1' });
+  });
+
+  it('re-fetches the backlog from the server under the "No sprint" filter', async () => {
+    mocked.projectsStore.selectedProject = { id: 'proj-1', name: 'Demo' };
+
+    const wrapper = await mountPanel();
+    await wrapper.find('select').setValue('__none__');
+
+    expect(mocked.tasksStore.fetchTasks).toHaveBeenLastCalledWith('proj-1', { sprint_id: 'none' });
+  });
+
+  it('re-fetches the default view when switching back to "All"', async () => {
+    mocked.projectsStore.selectedProject = { id: 'proj-1', name: 'Demo' };
+    mocked.sprintsStore.sprints = [makeSprint('s1', 'Sprint 1')];
+
+    const wrapper = await mountPanel();
+    await wrapper.find('select').setValue('s1');
+    await wrapper.find('select').setValue('__all__');
+
+    expect(mocked.tasksStore.fetchTasks).toHaveBeenLastCalledWith('proj-1', undefined);
   });
 });

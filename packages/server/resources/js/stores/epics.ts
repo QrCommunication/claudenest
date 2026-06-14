@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { api } from '@/composables/useApi';
 import { useMultiAsyncAction } from '@/composables/useAsyncAction';
+import { getEchoClient } from '@/services/echo';
 import type {
   Epic,
   EpicStatus,
@@ -12,10 +13,29 @@ import type {
   TaskPriority,
 } from '@/types';
 
+// ── Server broadcast payload (see app/Events/EpicUpdated::broadcastWith) ──────
+
+/**
+ * `.epic.updated` — fired on update (status/progress change) and reorder.
+ * Cascades (last sprint completed, ReconcileEpicStatusCommand) emit it with
+ * `action='updated'` and the recomputed `status`/`progress_percentage`.
+ */
+interface EpicUpdatedPayload {
+  epic_id: string;
+  action: string;
+  title: string;
+  status: EpicStatus;
+  progress_percentage: number;
+  timestamp: string;
+}
+
 export const useEpicsStore = defineStore('epics', () => {
   // ==================== STATE ====================
   const epics = ref<Epic[]>([]);
   const selectedEpic = ref<Epic | null>(null);
+
+  // Real-time teardown closure (not reactive — holds the Echo detach handler).
+  let unsubscribeRealtimeFn: (() => void) | null = null;
 
   const { states, error, run, clearError } = useMultiAsyncAction([
     'loading',
@@ -243,6 +263,64 @@ export const useEpicsStore = defineStore('epics', () => {
     }
   }
 
+  /**
+   * Subscribe to real-time epic mutations on the `projects.{id}` channel.
+   *
+   * Applies targeted local updates from `EpicUpdated` broadcasts (status,
+   * progress, title) without a global refetch. This is what makes an epic
+   * cascaded to `done` (last sprint completed, or the reconcile command) show
+   * as terminated on other clients without a refresh.
+   *
+   * Idempotent: re-subscribing detaches the previous handler first. The
+   * channel is shared with `useProjectChannel` and the sprints store, so
+   * teardown only `stopListening` our own handler — never `leave()`, which
+   * would drop those sibling subscriptions.
+   */
+  function subscribeRealtime(projectId: string): void {
+    unsubscribeRealtime();
+
+    let client: ReturnType<typeof getEchoClient>;
+    try {
+      client = getEchoClient();
+    } catch {
+      // Reverb config missing (tests, degraded boot) — real-time disabled.
+      return;
+    }
+
+    const channel = `projects.${projectId}`;
+
+    const onUpdated = (payload: EpicUpdatedPayload): void => {
+      updateEpicLocal(payload.epic_id, {
+        title: payload.title,
+        status: payload.status,
+        progress_percentage: payload.progress_percentage,
+      });
+    };
+
+    client
+      .private(channel)
+      .listen('.epic.updated', onUpdated as (p: unknown) => void);
+
+    unsubscribeRealtimeFn = () => {
+      try {
+        client
+          .private(channel)
+          .stopListening('.epic.updated', onUpdated as (p: unknown) => void);
+      } catch {
+        // Channel already gone.
+      }
+    };
+  }
+
+  /**
+   * Detach the real-time epic listener (call on component unmount or when
+   * switching projects).
+   */
+  function unsubscribeRealtime(): void {
+    unsubscribeRealtimeFn?.();
+    unsubscribeRealtimeFn = null;
+  }
+
   return {
     // State
     epics,
@@ -276,6 +354,8 @@ export const useEpicsStore = defineStore('epics', () => {
     updateEpicLocal,
     addEpicLocal,
     removeEpicLocal,
+    subscribeRealtime,
+    unsubscribeRealtime,
     clearError,
   };
 });

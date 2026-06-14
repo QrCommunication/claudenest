@@ -51,8 +51,12 @@ class TaskClaimed implements ShouldBroadcast
             'task_id' => $this->task->id,
             'project_id' => $this->task->project_id,
             'title' => $this->task->title,
+            'status' => $this->task->status,
             'assigned_to' => $this->task->assigned_to,
+            'sprint_id' => $this->task->sprint_id,
+            'epic_id' => $this->task->epic_id,
             'claimed_at' => $this->task->claimed_at?->toIso8601String(),
+            'timestamp' => now()->toIso8601String(),
         ];
     }
 }

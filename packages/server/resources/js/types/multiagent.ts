@@ -184,6 +184,20 @@ export interface UpdateEpicForm {
 
 export type SprintStatus = 'planning' | 'active' | 'completed' | 'cancelled';
 
+/**
+ * Lightweight task shape embedded in the sprint detail endpoint
+ * (`GET /sprints/{id}` → SprintResource `whenLoaded('tasks')`).
+ * Only the fields the sprint detail view needs are serialized.
+ */
+export interface SprintTask {
+  id: string;
+  title: string;
+  status: TaskStatus;
+  priority: TaskPriority;
+  story_points: number | null;
+  assigned_to: string | null;
+}
+
 export interface Sprint {
   id: string;
   project_id: string;
@@ -197,11 +211,22 @@ export interface Sprint {
   sort_order: number;
   tasks_count: number;
   completed_tasks_count: number;
+  /**
+   * Remaining tasks (SharedTask::scopeRemaining): excludes done tasks AND
+   * tasks stranded in a closed sprint. Single source of truth shared with the
+   * project/sprint stats counters.
+   */
+  remaining_tasks_count?: number;
   total_story_points: number;
   completed_story_points: number;
   progress_percentage: number;
   remaining_days: number | null;
   is_overdue: boolean;
+  /**
+   * Embedded task list — only present on the sprint detail endpoint
+   * (eager-loaded). Absent on the paginated index listing.
+   */
+  tasks?: SprintTask[];
   created_at: string;
   updated_at: string;
 }

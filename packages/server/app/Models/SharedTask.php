@@ -152,6 +152,46 @@ class SharedTask extends Model
         return $query->where('status', 'done');
     }
 
+    /**
+     * Source of truth for "remaining work" counts (front display + project/sprint stats).
+     *
+     * A task counts as remaining when it is NOT yet done AND it is not stranded in a
+     * sprint that has been closed (completed / cancelled). Tasks with no sprint
+     * (backlog) are kept: whereDoesntHave only excludes tasks whose sprint actually
+     * matches the closed-status filter, so a NULL sprint_id has no matching relation
+     * and is therefore retained.
+     */
+    public function scopeRemaining($query)
+    {
+        return $query
+            ->where('status', '!=', 'done')
+            ->whereDoesntHave('sprint', function ($sprintQuery) {
+                $sprintQuery->whereIn('status', ['completed', 'cancelled']);
+            });
+    }
+
+    /**
+     * Default visibility filter for task panels.
+     *
+     * Shows every task that still represents work to track — anything not yet
+     * done (pending / in_progress / blocked / review / backlog) — PLUS the
+     * tasks completed *today* so a worker still sees what it just finished.
+     * Tasks done before today are hidden to keep the board focused on the
+     * current day. The whole condition is wrapped in a nested where() so the
+     * inner orWhere does not leak past sibling constraints (forProject,
+     * bySprint, ...) and accidentally surface done tasks from other scopes.
+     */
+    public function scopeDefaultVisible($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('status', '!=', 'done')
+                ->orWhere(function ($sub) {
+                    $sub->where('status', 'done')
+                        ->where('completed_at', '>=', now()->startOfDay());
+                });
+        });
+    }
+
     public function scopeByStatus($query, string $status)
     {
         return $query->where('status', $status);
