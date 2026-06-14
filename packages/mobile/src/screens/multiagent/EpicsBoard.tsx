@@ -179,6 +179,7 @@ const FAB = memo(function FAB({ onPress, onDecompose }: FABProps) {
         style={styles.fabSecondary}
         onPress={onDecompose}
         activeOpacity={0.85}
+        accessibilityRole="button"
         accessibilityLabel="Decompose a PRD into an epic"
       >
         <Icon name="auto-awesome" size={20} color={colors.accent.cyan} />
@@ -187,6 +188,8 @@ const FAB = memo(function FAB({ onPress, onDecompose }: FABProps) {
         style={styles.fab}
         onPress={onPress}
         activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel="New epic"
       >
         <Icon name="add" size={26} color={colors.text.primary} />
       </TouchableOpacity>

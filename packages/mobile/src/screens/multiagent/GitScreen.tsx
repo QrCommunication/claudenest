@@ -99,6 +99,9 @@ function PullRequestRow({ pr, method, merging, onMerge, onOpen }: PullRow) {
         style={styles.prHead}
         activeOpacity={0.7}
         onPress={() => onOpen(pr.url)}
+        accessibilityRole="link"
+        accessibilityLabel={`Pull request ${pr.number}: ${pr.title}`}
+        accessibilityHint="Opens on GitHub"
       >
         <Text style={styles.prNumber}>#{pr.number}</Text>
         <Text style={styles.prTitle} numberOfLines={1}>
@@ -135,6 +138,12 @@ function PullRequestRow({ pr, method, merging, onMerge, onOpen }: PullRow) {
         disabled={pr.isDraft || conflicting || merging}
         onPress={() => onMerge(pr.number)}
         activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel={`Merge pull request ${pr.number} with ${method}`}
+        accessibilityState={{
+          disabled: pr.isDraft || conflicting || merging,
+          busy: merging,
+        }}
       >
         <Icon
           name={merging ? "hourglass-empty" : "merge-type"}
