@@ -2,8 +2,8 @@
   "expo": {
     "name": "ClaudeNest",
     "slug": "claudenest",
-    "version": "0.7.0",
-    "orientation": "portrait",
+    "version": "0.8.0",
+    "orientation": "default",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "scheme": "claudenest",
