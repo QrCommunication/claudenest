@@ -3,20 +3,32 @@
  * Simplified single-screen project creation form
  */
 
-import React, { memo, useState, useCallback, useEffect, useRef } from 'react';
-import { View, Text, TextInput, ScrollView, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, Animated, ActivityIndicator } from 'react-native';
+import React, { memo, useState, useCallback, useEffect, useRef } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  Animated,
+  ActivityIndicator,
+} from "react-native";
 import { showAlert } from "@/services/dialog";
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons as Icon } from '@expo/vector-icons';
-import { colors, spacing, borderRadius, typography } from '@/theme';
-import { useMachinesStore } from '@/stores/machinesStore';
-import { useProjectsStore } from '@/stores/projectsStore';
-import { useFadeIn } from '@/utils/animations';
-import type { Machine } from '@/types';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { ProjectsStackParamList } from '@/navigation/types';
+import { SafeAreaView } from "react-native-safe-area-context";
+import { MaterialIcons as Icon } from "@expo/vector-icons";
+import { colors, spacing, borderRadius, typography } from "@/theme";
+import { useMachinesStore } from "@/stores/machinesStore";
+import { useProjectsStore } from "@/stores/projectsStore";
+import { projectsApi } from "@/services/api";
+import { useFadeIn } from "@/utils/animations";
+import type { Machine, ProjectScanResult } from "@/types";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type { ProjectsStackParamList } from "@/navigation/types";
 
-type Props = NativeStackScreenProps<ProjectsStackParamList, 'NewProject'>;
+type Props = NativeStackScreenProps<ProjectsStackParamList, "NewProject">;
 
 // ==================== MACHINE SELECTOR ====================
 
@@ -39,16 +51,13 @@ const MachineSelector = memo(function MachineSelector({
       onSelect(id);
       setOpen(false);
     },
-    [onSelect]
+    [onSelect],
   );
 
   return (
     <View>
       <TouchableOpacity
-        style={[
-          styles.dropdownTrigger,
-          open && styles.dropdownTriggerOpen,
-        ]}
+        style={[styles.dropdownTrigger, open && styles.dropdownTriggerOpen]}
         onPress={() => setOpen((v) => !v)}
         activeOpacity={0.8}
       >
@@ -60,11 +69,11 @@ const MachineSelector = memo(function MachineSelector({
                   styles.statusDot,
                   {
                     backgroundColor:
-                      selected.status === 'online'
+                      selected.status === "online"
                         ? colors.semantic.success
-                        : selected.status === 'connecting'
-                        ? colors.semantic.warning
-                        : colors.semantic.error,
+                        : selected.status === "connecting"
+                          ? colors.semantic.warning
+                          : colors.semantic.error,
                   },
                 ]}
               />
@@ -75,7 +84,7 @@ const MachineSelector = memo(function MachineSelector({
           )}
         </View>
         <Icon
-          name={open ? 'expand-less' : 'expand-more'}
+          name={open ? "expand-less" : "expand-more"}
           size={20}
           color={colors.text.muted}
         />
@@ -85,7 +94,9 @@ const MachineSelector = memo(function MachineSelector({
         <View style={styles.dropdownList}>
           {machines.length === 0 ? (
             <View style={styles.dropdownEmpty}>
-              <Text style={styles.dropdownEmptyText}>No machines available</Text>
+              <Text style={styles.dropdownEmptyText}>
+                No machines available
+              </Text>
             </View>
           ) : (
             machines.map((machine) => (
@@ -103,17 +114,19 @@ const MachineSelector = memo(function MachineSelector({
                     styles.statusDot,
                     {
                       backgroundColor:
-                        machine.status === 'online'
+                        machine.status === "online"
                           ? colors.semantic.success
-                          : machine.status === 'connecting'
-                          ? colors.semantic.warning
-                          : colors.semantic.error,
+                          : machine.status === "connecting"
+                            ? colors.semantic.warning
+                            : colors.semantic.error,
                     },
                   ]}
                 />
                 <View style={styles.dropdownItemInfo}>
                   <Text style={styles.dropdownItemName}>{machine.name}</Text>
-                  <Text style={styles.dropdownItemHost}>{machine.hostname}</Text>
+                  <Text style={styles.dropdownItemHost}>
+                    {machine.hostname}
+                  </Text>
                 </View>
                 {machine.id === selectedId && (
                   <Icon name="check" size={16} color={colors.primary.purple} />
@@ -137,7 +150,13 @@ interface FieldProps {
   error?: string;
 }
 
-const Field = memo(function Field({ label, required, children, hint, error }: FieldProps) {
+const Field = memo(function Field({
+  label,
+  required,
+  children,
+  hint,
+  error,
+}: FieldProps) {
   return (
     <View style={styles.field}>
       <View style={styles.fieldLabelRow}>
@@ -158,15 +177,21 @@ export const NewProjectScreen = memo(function NewProjectScreen({
 }: Props) {
   const fadeStyle = useFadeIn();
 
-  const { machines, fetchMachines, isLoading: machinesLoading } = useMachinesStore();
+  const {
+    machines,
+    fetchMachines,
+    isLoading: machinesLoading,
+  } = useMachinesStore();
   const { createProject, isLoading: projectLoading } = useProjectsStore();
 
   const [machineId, setMachineId] = useState<string | null>(null);
-  const [projectPath, setProjectPath] = useState('');
-  const [projectName, setProjectName] = useState('');
-  const [summary, setSummary] = useState('');
+  const [projectPath, setProjectPath] = useState("");
+  const [projectName, setProjectName] = useState("");
+  const [summary, setSummary] = useState("");
   const [nameManuallyEdited, setNameManuallyEdited] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanResult, setScanResult] = useState<ProjectScanResult | null>(null);
 
   const nameRef = useRef<TextInput>(null);
   const summaryRef = useRef<TextInput>(null);
@@ -179,7 +204,7 @@ export const NewProjectScreen = memo(function NewProjectScreen({
   // Auto-select first online machine
   useEffect(() => {
     if (!machineId && machines.length > 0) {
-      const onlineMachine = machines.find((m) => m.status === 'online');
+      const onlineMachine = machines.find((m) => m.status === "online");
       if (onlineMachine) setMachineId(onlineMachine.id);
     }
   }, [machines, machineId]);
@@ -187,8 +212,11 @@ export const NewProjectScreen = memo(function NewProjectScreen({
   // Auto-generate project name from path (unless manually edited)
   useEffect(() => {
     if (!nameManuallyEdited && projectPath.trim()) {
-      const segments = projectPath.replace(/\\/g, '/').split('/').filter(Boolean);
-      const lastSegment = segments[segments.length - 1] ?? '';
+      const segments = projectPath
+        .replace(/\\/g, "/")
+        .split("/")
+        .filter(Boolean);
+      const lastSegment = segments[segments.length - 1] ?? "";
       if (lastSegment) {
         setProjectName(lastSegment);
       }
@@ -198,13 +226,42 @@ export const NewProjectScreen = memo(function NewProjectScreen({
   const validate = useCallback((): boolean => {
     const next: Record<string, string> = {};
 
-    if (!machineId) next.machine = 'Please select a machine';
-    if (!projectPath.trim()) next.projectPath = 'Project path is required';
-    if (!projectName.trim()) next.projectName = 'Project name is required';
+    if (!machineId) next.machine = "Please select a machine";
+    if (!projectPath.trim()) next.projectPath = "Project path is required";
+    if (!projectName.trim()) next.projectName = "Project name is required";
 
     setErrors(next);
     return Object.keys(next).length === 0;
   }, [machineId, projectPath, projectName]);
+
+  // Preview the project on disk: confirms the path exists and auto-detects the
+  // real name + tech stack before creating (wires the ProjectScan endpoint).
+  const handleScan = useCallback(async () => {
+    if (!machineId) {
+      setErrors((e) => ({ ...e, machine: "Please select a machine" }));
+      return;
+    }
+    if (!projectPath.trim()) {
+      setErrors((e) => ({ ...e, projectPath: "Project path is required" }));
+      return;
+    }
+    setIsScanning(true);
+    setScanResult(null);
+    try {
+      const res = await projectsApi.scan(machineId, projectPath.trim());
+      const result = res.data ?? null;
+      setScanResult(result);
+      if (!nameManuallyEdited && result?.project_name) {
+        setProjectName(result.project_name);
+      }
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Could not scan that path";
+      showAlert("Scan failed", message);
+    } finally {
+      setIsScanning(false);
+    }
+  }, [machineId, projectPath, nameManuallyEdited]);
 
   const handleCreate = useCallback(async () => {
     if (!validate()) return;
@@ -219,22 +276,29 @@ export const NewProjectScreen = memo(function NewProjectScreen({
       // The API create endpoint does not accept summary directly
       // It would require a follow-up PATCH — skipped for MVP
 
-      navigation.replace('ProjectDetail', { projectId: project.id });
+      navigation.replace("ProjectDetail", { projectId: project.id });
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : 'Failed to create project';
-      showAlert('Error', message);
+        err instanceof Error ? err.message : "Failed to create project";
+      showAlert("Error", message);
     }
-  }, [validate, createProject, machineId, projectName, projectPath, navigation]);
+  }, [
+    validate,
+    createProject,
+    machineId,
+    projectName,
+    projectPath,
+    navigation,
+  ]);
 
   const isSubmitting = projectLoading;
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+    <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 24}
       >
         <Animated.View style={[styles.flex, fadeStyle]}>
           <ScrollView
@@ -245,7 +309,11 @@ export const NewProjectScreen = memo(function NewProjectScreen({
           >
             {/* Section header */}
             <View style={styles.sectionHeader}>
-              <Icon name="folder-shared" size={32} color={colors.primary.purple} />
+              <Icon
+                name="folder-shared"
+                size={32}
+                color={colors.primary.purple}
+              />
               <Text style={styles.sectionTitle}>New Multi-Agent Project</Text>
               <Text style={styles.sectionSubtitle}>
                 Create a shared project to coordinate multiple Claude instances
@@ -261,7 +329,10 @@ export const NewProjectScreen = memo(function NewProjectScreen({
             >
               {machinesLoading ? (
                 <View style={styles.loadingRow}>
-                  <ActivityIndicator size="small" color={colors.primary.purple} />
+                  <ActivityIndicator
+                    size="small"
+                    color={colors.primary.purple}
+                  />
                   <Text style={styles.loadingText}>Loading machines…</Text>
                 </View>
               ) : (
@@ -281,7 +352,10 @@ export const NewProjectScreen = memo(function NewProjectScreen({
               hint="Absolute path on the host machine, e.g. /home/user/my-project"
             >
               <TextInput
-                style={[styles.input, errors.projectPath ? styles.inputError : null]}
+                style={[
+                  styles.input,
+                  errors.projectPath ? styles.inputError : null,
+                ]}
                 value={projectPath}
                 onChangeText={setProjectPath}
                 placeholder="/home/user/my-project"
@@ -291,6 +365,66 @@ export const NewProjectScreen = memo(function NewProjectScreen({
                 returnKeyType="next"
                 onSubmitEditing={() => nameRef.current?.focus()}
               />
+              <TouchableOpacity
+                style={[styles.scanBtn, isScanning && styles.scanBtnBusy]}
+                onPress={handleScan}
+                disabled={isScanning || !projectPath.trim()}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel="Scan path to detect the project"
+                accessibilityState={{ disabled: isScanning, busy: isScanning }}
+              >
+                {isScanning ? (
+                  <ActivityIndicator size="small" color={colors.accent.cyan} />
+                ) : (
+                  <Icon name="radar" size={16} color={colors.accent.cyan} />
+                )}
+                <Text style={styles.scanBtnText}>
+                  {isScanning ? "Scanning…" : "Scan path"}
+                </Text>
+              </TouchableOpacity>
+
+              {scanResult ? (
+                <View
+                  style={styles.scanResult}
+                  accessible
+                  accessibilityLabel={`Detected ${scanResult.project_name}${scanResult.has_git ? ", git repository" : ""}, tech: ${scanResult.tech_stack.join(", ") || "unknown"}`}
+                >
+                  <View style={styles.scanResultHead}>
+                    <Icon
+                      name="check-circle"
+                      size={14}
+                      color={colors.semantic.success}
+                    />
+                    <Text style={styles.scanResultName} numberOfLines={1}>
+                      {scanResult.project_name || "Project"}
+                    </Text>
+                    {scanResult.has_git ? (
+                      <View style={styles.gitPill}>
+                        <Icon
+                          name="merge-type"
+                          size={10}
+                          color={colors.accent.purple}
+                        />
+                        <Text style={styles.gitPillText}>git</Text>
+                      </View>
+                    ) : null}
+                  </View>
+                  {scanResult.tech_stack.length > 0 ? (
+                    <View style={styles.techRow}>
+                      {scanResult.tech_stack.slice(0, 6).map((t) => (
+                        <View key={t} style={styles.techChip}>
+                          <Text style={styles.techChipText}>{t}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  ) : (
+                    <Text style={styles.scanResultMuted}>
+                      No tech stack detected
+                    </Text>
+                  )}
+                </View>
+              ) : null}
             </Field>
 
             {/* Project name */}
@@ -302,7 +436,10 @@ export const NewProjectScreen = memo(function NewProjectScreen({
             >
               <TextInput
                 ref={nameRef}
-                style={[styles.input, errors.projectName ? styles.inputError : null]}
+                style={[
+                  styles.input,
+                  errors.projectName ? styles.inputError : null,
+                ]}
                 value={projectName}
                 onChangeText={(text) => {
                   setProjectName(text);
@@ -343,7 +480,10 @@ export const NewProjectScreen = memo(function NewProjectScreen({
           {/* Submit button — pinned above keyboard */}
           <View style={styles.footer}>
             <TouchableOpacity
-              style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
+              style={[
+                styles.submitButton,
+                isSubmitting && styles.submitButtonDisabled,
+              ]}
               onPress={handleCreate}
               disabled={isSubmitting}
               activeOpacity={0.8}
@@ -352,7 +492,11 @@ export const NewProjectScreen = memo(function NewProjectScreen({
                 <ActivityIndicator size="small" color={colors.text.primary} />
               ) : (
                 <>
-                  <Icon name="add-circle-outline" size={20} color={colors.text.primary} />
+                  <Icon
+                    name="add-circle-outline"
+                    size={20}
+                    color={colors.text.primary}
+                  />
                   <Text style={styles.submitText}>Create Project</Text>
                 </>
               )}
@@ -384,21 +528,21 @@ const styles = StyleSheet.create({
 
   // Section header
   sectionHeader: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: spacing.lg,
     marginBottom: spacing.md,
   },
   sectionTitle: {
     fontSize: typography.size.xl,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.text.primary,
     marginTop: spacing.sm,
-    textAlign: 'center',
+    textAlign: "center",
   },
   sectionSubtitle: {
     fontSize: typography.size.sm,
     color: colors.text.secondary,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: spacing.xs,
     lineHeight: 20,
     paddingHorizontal: spacing.lg,
@@ -409,22 +553,22 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   fieldLabelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: spacing.xs,
     gap: 2,
   },
   fieldLabel: {
     fontSize: typography.size.sm,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.text.secondary,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   fieldRequired: {
     fontSize: typography.size.sm,
     color: colors.primary.purple,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   fieldHint: {
     fontSize: typography.size.xs,
@@ -442,7 +586,7 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: colors.background.dark2,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: "rgba(255, 255, 255, 0.08)",
     borderRadius: borderRadius.md,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm + 2,
@@ -451,7 +595,83 @@ const styles = StyleSheet.create({
     minHeight: 48,
   },
   inputError: {
-    borderColor: colors.semantic.error + '80',
+    borderColor: colors.semantic.error + "80",
+  },
+  scanBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: spacing.xs,
+    marginTop: spacing.sm,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.base,
+    borderWidth: 1,
+    borderColor: colors.accent.cyan + "55",
+    backgroundColor: colors.accent.cyan + "14",
+  },
+  scanBtnBusy: {
+    opacity: 0.7,
+  },
+  scanBtnText: {
+    fontSize: typography.size.sm,
+    fontWeight: "600",
+    color: colors.accent.cyan,
+  },
+  scanResult: {
+    marginTop: spacing.sm,
+    padding: spacing.sm,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border.subtle,
+    backgroundColor: colors.bg.input,
+    gap: spacing.xs,
+  },
+  scanResultHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+  },
+  scanResultName: {
+    flex: 1,
+    fontSize: typography.size.sm,
+    fontWeight: "700",
+    color: colors.text.primary,
+  },
+  scanResultMuted: {
+    fontSize: typography.size.xs,
+    color: colors.text.muted,
+  },
+  gitPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    paddingVertical: 1,
+    paddingHorizontal: 6,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.accent.purple + "22",
+  },
+  gitPillText: {
+    fontSize: 9,
+    fontWeight: "800",
+    color: colors.accent.purple,
+  },
+  techRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.xs,
+  },
+  techChip: {
+    paddingVertical: 2,
+    paddingHorizontal: 7,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.bg.card,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+  },
+  techChipText: {
+    fontSize: typography.size.xs,
+    color: colors.text.secondary,
   },
   inputMultiline: {
     minHeight: 96,
@@ -462,13 +682,13 @@ const styles = StyleSheet.create({
   dropdownTrigger: {
     backgroundColor: colors.background.dark2,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: "rgba(255, 255, 255, 0.08)",
     borderRadius: borderRadius.md,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm + 2,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     minHeight: 48,
   },
   dropdownTriggerOpen: {
@@ -477,8 +697,8 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 0,
   },
   dropdownTriggerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.sm,
     flex: 1,
   },
@@ -497,11 +717,11 @@ const styles = StyleSheet.create({
     borderColor: colors.primary.purple,
     borderBottomLeftRadius: borderRadius.md,
     borderBottomRightRadius: borderRadius.md,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   dropdownItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm + 2,
     gap: spacing.sm,
@@ -509,7 +729,7 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border.subtle,
   },
   dropdownItemSelected: {
-    backgroundColor: 'rgba(168, 85, 247, 0.08)',
+    backgroundColor: "rgba(168, 85, 247, 0.08)",
   },
   dropdownItemInfo: {
     flex: 1,
@@ -517,7 +737,7 @@ const styles = StyleSheet.create({
   dropdownItemName: {
     fontSize: typography.size.base,
     color: colors.text.primary,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   dropdownItemHost: {
     fontSize: typography.size.xs,
@@ -526,7 +746,7 @@ const styles = StyleSheet.create({
   },
   dropdownEmpty: {
     padding: spacing.md,
-    alignItems: 'center',
+    alignItems: "center",
   },
   dropdownEmptyText: {
     fontSize: typography.size.sm,
@@ -543,8 +763,8 @@ const styles = StyleSheet.create({
 
   // Loading state
   loadingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.sm,
     minHeight: 48,
     paddingHorizontal: spacing.md,
@@ -569,9 +789,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary.purple,
     borderRadius: borderRadius.md,
     paddingVertical: spacing.sm + 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: spacing.sm,
     minHeight: 52,
   },
@@ -580,7 +800,7 @@ const styles = StyleSheet.create({
   },
   submitText: {
     fontSize: typography.size.base,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.text.primary,
   },
 });

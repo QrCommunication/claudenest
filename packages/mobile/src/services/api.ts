@@ -324,6 +324,14 @@ export const projectsApi = {
       data,
     ),
 
+  // Preview a project on disk before creating it (auto-detect name, tech stack,
+  // git). RAW snake_case payload → ProjectScanResult.
+  scan: (machineId: string, path: string) =>
+    api.post<import("@/types").ProjectScanResult>(
+      `/machines/${machineId}/projects/scan`,
+      { path },
+    ),
+
   update: (id: string, data: Partial<import("@/types").SharedProject>) =>
     api.patch<import("@/types").SharedProject>(`/projects/${id}`, data),
 

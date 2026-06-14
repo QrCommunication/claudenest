@@ -677,3 +677,13 @@ export interface RunnerAutoUpdateResult {
   updates: RunnerAutoUpdate[];
   count: number;
 }
+
+// ─── Project scan (path preview before creation) ─────────────────────────────
+// ProjectScanController returns a RAW snake_case preview of a project on disk.
+export interface ProjectScanResult {
+  project_name: string;
+  tech_stack: string[];
+  has_git: boolean;
+  readme: string | null;
+  structure: string[];
+}
