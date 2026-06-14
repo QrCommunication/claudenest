@@ -408,16 +408,20 @@ const sprintFilter = ref('');
 const showCreateEpicModal = ref(false);
 const planningChatRef = ref<InstanceType<typeof PlanningChat> | null>(null);
 
-// Complete the active sprint (was a no-op: SprintBoard emitted to nobody).
+// Complete the active sprint → triggers PR generation (SprintFinalizeService).
+// Toast wording is aligned on the "Générer la PR" button label.
 async function handleCompleteSprint(): Promise<void> {
   const sprint = sprintsStore.currentSprint;
   if (!sprint) return;
+  const pendingId = toast.info(t('projectsShow.prGenerating'));
   try {
     await sprintsStore.completeSprint(sprint.id);
-    toast.success(t('projectsShow.sprintCompleted'));
+    toast.removeToast(pendingId);
+    toast.success(t('projectsShow.prGenerated'));
     await sprintsStore.fetchSprints(projectId.value);
   } catch {
-    toast.error(t('projectsShow.sprintCompleteFailed'));
+    toast.removeToast(pendingId);
+    toast.error(t('projectsShow.prGenerationFailed'));
   }
 }
 

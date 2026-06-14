@@ -54,9 +54,11 @@
           <button
             v-if="selectedSprintSummary?.status === 'active'"
             class="complete-sprint-btn"
+            :title="t('multiagentSprintboard.generatePrTitle')"
+            :aria-label="t('multiagentSprintboard.generatePrTitle')"
             @click="$emit('complete-sprint')"
           >
-            {{ t('multiagentSprintboard.completeSprint') }}
+            {{ t('multiagentSprintboard.generatePr') }}
           </button>
           <button
             class="create-sprint-btn"
@@ -68,6 +70,35 @@
           </button>
         </div>
       </nav>
+
+      <!-- ==================== SÉLECTEUR NUMÉROTÉ ==================== -->
+      <div
+        v-if="sortedSprints.length > 1"
+        class="sprint-pager"
+        role="tablist"
+        :aria-label="t('multiagentSprintboard.navLabel')"
+      >
+        <button
+          v-for="(s, i) in sortedSprints"
+          :key="s.id"
+          type="button"
+          class="pager-dot"
+          :class="{ 'is-current': s.id === selectedSprintId }"
+          role="tab"
+          :aria-selected="s.id === selectedSprintId"
+          :aria-current="s.id === selectedSprintId ? 'true' : undefined"
+          :title="`${t('multiagentSprintboard.goToSprint', { number: i + 1 })} — ${s.name}`"
+          :aria-label="t('multiagentSprintboard.goToSprint', { number: i + 1 })"
+          @click="selectedSprintId = s.id"
+        >
+          <span
+            class="pager-status"
+            :style="{ background: statusColor(s.status) }"
+            aria-hidden="true"
+          />
+          {{ i + 1 }}
+        </button>
+      </div>
 
       <!-- ==================== DÉTAIL DU SPRINT SÉLECTIONNÉ ==================== -->
       <div class="sprint-detail-wrap">
@@ -129,6 +160,23 @@ const selectedSprintSummary = computed<Sprint | null>(
 const currentIndex = computed(() =>
   sortedSprints.value.findIndex(s => s.id === selectedSprintId.value)
 );
+
+/**
+ * Status accent for a numbered pager dot — parity with the mobile
+ * sprintStatusDotColor helper (active / completed / cancelled / planning).
+ */
+function statusColor(status: string): string {
+  switch (status) {
+    case 'active':
+      return 'var(--accent-purple)';
+    case 'completed':
+      return 'var(--status-success)';
+    case 'cancelled':
+      return 'var(--status-error)';
+    default: // planning
+      return 'var(--text-disabled)';
+  }
+}
 
 function goPrev(): void {
   if (currentIndex.value > 0) {
@@ -319,6 +367,55 @@ watch(
   color: var(--accent-purple);
   background: color-mix(in srgb, var(--accent-purple) 8%, var(--bg-secondary));
   border-color: color-mix(in srgb, var(--accent-purple) 30%, var(--border-color));
+}
+
+/* ==================== SÉLECTEUR NUMÉROTÉ ==================== */
+.sprint-pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0 0.125rem;
+}
+
+.pager-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 1.75rem;
+  height: 1.75rem;
+  padding: 0 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+.pager-dot:hover {
+  color: var(--accent-purple);
+  border-color: color-mix(in srgb, var(--accent-purple) 40%, var(--border-color));
+  background: color-mix(in srgb, var(--accent-purple) 8%, var(--bg-secondary));
+}
+.pager-dot:focus-visible {
+  outline: none;
+  border-color: var(--accent-purple);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-purple) 30%, transparent);
+}
+.pager-dot.is-current {
+  color: var(--accent-purple);
+  background: color-mix(in srgb, var(--accent-purple) 12%, var(--bg-secondary));
+  border-color: color-mix(in srgb, var(--accent-purple) 50%, var(--border-color));
+}
+
+.pager-status {
+  width: 0.5rem;
+  height: 0.5rem;
+  flex-shrink: 0;
+  border-radius: 999px;
 }
 
 /* ==================== DETAIL ==================== */

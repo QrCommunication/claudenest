@@ -1312,7 +1312,10 @@
     "nextSprint": "Sprint suivant",
     "selectSprint": "Sélectionner un sprint",
     "activeTag": "actif",
-    "loadingDetail": "Chargement du sprint…"
+    "loadingDetail": "Chargement du sprint…",
+    "generatePr": "Générer la PR",
+    "generatePrTitle": "Clôturer le sprint et ouvrir une pull request",
+    "goToSprint": "Aller au sprint {number}"
   },
   "multiagentSprintdetail": {
     "noSprintSelected": "Aucun sprint sélectionné",
@@ -2253,6 +2256,9 @@
     "noActivityRecorded": "Aucune activité enregistrée pour le moment",
     "projectNotFound": "Projet introuvable",
     "sprintCompleted": "Sprint clôturé",
+    "prGenerating": "Génération de la pull request…",
+    "prGenerated": "Pull request générée",
+    "prGenerationFailed": "Échec de la génération de la pull request",
     "epicDeleted": "Epic supprimé",
     "epicDeleteFailed": "Échec de la suppression de l'epic",
     "deleteEpicConfirm": "Supprimer l'epic « {name} » ainsi que tous ses sprints et tâches ? Cette action est irréversible.",
@@ -2593,6 +2599,9 @@
     "allAssignees": "Tous les assignés",
     "unassigned": "Non assigné",
     "assigned": "Assigné",
+    "filterBySprint": "Filtrer par sprint",
+    "allSprints": "Tous les sprints",
+    "noSprint": "Sans sprint (backlog)",
     "totalTasks": "Total des tâches",
     "loadingTasks": "Chargement des tâches...",
     "noTasksFound": "Aucune tâche trouvée",

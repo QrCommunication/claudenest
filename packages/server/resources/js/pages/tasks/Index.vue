@@ -71,6 +71,23 @@
             <option value="assigned">{{ t('tasksIndex.assigned') }}</option>
           </select>
         </div>
+        <!-- Sprint filter: scoped to the selected project (sprints belong to a
+             project), so it is only shown once a project is picked. It re-fetches
+             server-side because a sprint_id bypasses the default visibility scope. -->
+        <div class="filter-group" v-if="selectedProjectId">
+          <select
+            v-model="sprintFilter"
+            class="filter-select"
+            :aria-label="t('tasksIndex.filterBySprint')"
+            @change="loadTasks"
+          >
+            <option value="">{{ t('tasksIndex.allSprints') }}</option>
+            <option :value="NONE_SPRINT">{{ t('tasksIndex.noSprint') }}</option>
+            <option v-for="sprint in sprints" :key="sprint.id" :value="sprint.id">
+              {{ sprint.name }}
+            </option>
+          </select>
+        </div>
       </div>
     </div>
 
@@ -311,6 +328,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useTasksStore } from '@/stores/tasks';
 import { useProjectsStore } from '@/stores/projects';
+import { useSprintsStore } from '@/stores/sprints';
 import { useToastStore } from '@/stores/toasts';
 import Card from '@/components/common/Card.vue';
 import Button from '@/components/common/Button.vue';
@@ -325,7 +343,12 @@ import { KANBAN_COLUMNS, type SharedTask, type TaskStatus, type TaskPriority } f
 const { t } = useI18n();
 const tasksStore = useTasksStore();
 const projectsStore = useProjectsStore();
+const sprintsStore = useSprintsStore();
 const toastStore = useToastStore();
+
+// Sentinel value for the "backlog" option (tasks without a sprint). It cannot
+// collide with a real sprint UUID; the empty string means "all sprints".
+const NONE_SPRINT = '__none__';
 
 // State
 const selectedProjectId = ref('');
@@ -333,6 +356,7 @@ const searchQuery = ref('');
 const statusFilter = ref<TaskStatus | ''>('');
 const priorityFilter = ref<TaskPriority | ''>('');
 const assigneeFilter = ref('');
+const sprintFilter = ref('');
 const viewMode = ref<'kanban' | 'list'>('kanban');
 
 const showCreateModal = ref(false);
@@ -382,9 +406,11 @@ const pendingCount = computed(() => filteredTasks.value.filter(t => t.status ===
 const inProgressCount = computed(() => filteredTasks.value.filter(t => t.status === 'in_progress').length);
 const doneCount = computed(() => filteredTasks.value.filter(t => t.status === 'done').length);
 
-const availableInstances = computed(() => 
+const availableInstances = computed(() =>
   projectsStore.instances.filter(i => i.is_available || i.status === 'idle')
 );
+
+const sprints = computed(() => sprintsStore.sprints);
 
 // Lifecycle
 onMounted(() => {
@@ -393,19 +419,40 @@ onMounted(() => {
 
 // Methods
 async function onProjectChange() {
+  // Reset the sprint filter so a stale sprint id from a previously selected
+  // project can never leak into the next project's task fetch.
+  sprintFilter.value = '';
+
   if (selectedProjectId.value) {
-    await loadTasks();
-    await projectsStore.fetchInstances(selectedProjectId.value);
+    // Independent fetches — run them in parallel to avoid a request waterfall.
+    await Promise.all([
+      loadTasks(),
+      sprintsStore.fetchSprints(selectedProjectId.value),
+      projectsStore.fetchInstances(selectedProjectId.value),
+    ]);
   } else {
     tasksStore.tasks = [];
   }
 }
 
+// Maps the sprint filter to a query param: '' (all) -> no param (default
+// visibility), the backlog sentinel -> sprint_id=none, a UUID -> that sprint.
+// A sprint_id bypasses the server-side default visibility scope.
+function sprintFilterParams(): { sprint_id?: string } | undefined {
+  if (sprintFilter.value === '') {
+    return undefined;
+  }
+  if (sprintFilter.value === NONE_SPRINT) {
+    return { sprint_id: 'none' };
+  }
+  return { sprint_id: sprintFilter.value };
+}
+
 async function loadTasks() {
   if (!selectedProjectId.value) return;
-  
+
   try {
-    await tasksStore.fetchTasks(selectedProjectId.value);
+    await tasksStore.fetchTasks(selectedProjectId.value, sprintFilterParams());
   } catch (err) {
     toastStore.error(t('tasksIndex.toastLoadFailed'));
   }
