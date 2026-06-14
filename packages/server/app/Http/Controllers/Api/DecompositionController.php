@@ -2,19 +2,17 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Events\SessionCreated;
 use App\Events\SessionTerminated;
 use App\Http\Controllers\Controller;
 use App\Models\ClaudeCredential;
 use App\Models\ClaudeInstance;
-use App\Models\Session;
 use App\Models\SharedProject;
 use App\Services\AgentGateway;
 use App\Services\CredentialService;
 use App\Services\DecompositionService;
+use App\Services\DecompositionSessionService;
 use App\Services\DecompositionStreamService;
 use App\Services\MultiAgentSessionService;
-use App\Services\SessionPayloadBuilder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -23,19 +21,11 @@ use Throwable;
 
 class DecompositionController extends Controller
 {
-    /**
-     * Decomposition runs as an interactive session (subscription, no `claude -p`),
-     * scoped to a single extra ability so the only thing it can do on the API is
-     * submit its plan via the `submit_master_plan` MCP tool. Sandboxed like a
-     * worker (read-all, writes confined to the project).
-     */
-    private const DECOMPOSE_ABILITY = 'decompose';
-
     public function __construct(
         private DecompositionService $decompositionService,
         private CredentialService $credentialService,
         private DecompositionStreamService $decompositionStream,
-        private SessionPayloadBuilder $payloadBuilder,
+        private DecompositionSessionService $decompositionSession,
         private MultiAgentSessionService $multiAgentSessionService,
     ) {}
 
@@ -73,57 +63,21 @@ class DecompositionController extends Controller
             return $this->errorResponse('CREDENTIAL_NOT_FOUND', 'Credential not found', 404);
         }
 
-        // Validate the credential is usable (OAuth fresh / API key present) before
-        // spawning — surfaces a clean 422 instead of a session that 401s on boot.
-        try {
-            $this->credentialService->getSessionEnv($credential);
-        } catch (\RuntimeException $e) {
-            return $this->errorResponse('CREDENTIAL_ERROR', $e->getMessage(), 422);
-        }
-
         $machine = $project->machine;
         if (! $machine || $machine->status !== 'online') {
             return $this->errorResponse('MACHINE_OFFLINE', 'Machine is not online', 422);
         }
 
-        // Persist the PRD + release the one-result-per-run lock so this run can
-        // emit its decompose:result (see DecompositionStreamService).
+        // Persist the PRD so the spawn (and any auth-error relaunch) reads it.
         $project->update(['prd' => $validated['prd']]);
-        $this->decompositionStream->reset($project->id);
 
-        $scanResult = $project->settings['scan_result'] ?? null;
-        $systemPrompt = $this->decompositionService->buildDecompositionSystemPrompt(
-            $validated['prd'],
-            $scanResult,
-        );
-
-        // Ephemeral interactive session: instance + scoped token (decompose
-        // ability) + MCP env, exactly like a worker/coordinator. bypassPermissions
-        // so it never stalls calling its MCP tool; the system prompt forbids edits
-        // and the bwrap sandbox confines any write to the project as a safety net.
-        $session = Session::create([
-            'machine_id' => $project->machine_id,
-            'user_id' => $project->user_id,
-            'shared_project_id' => $project->id,
-            'mode' => 'interactive',
-            'project_path' => $project->project_path,
-            'initial_prompt' => 'Decompose the PRD in your instructions into a master plan, '
-                .'then submit it with the submit_master_plan tool. Do not edit any files.',
-            'credential_id' => $credential->id,
-            'status' => 'created',
-            'orchestrated' => false,
-        ]);
-
-        $payload = $this->payloadBuilder->build(
-            $session,
-            $project,
-            'bypassPermissions',
-            extraAbilities: [self::DECOMPOSE_ABILITY],
-            systemPromptOverride: $systemPrompt,
-        );
-
-        AgentGateway::send($machine->id, 'session:create', $payload);
-        broadcast(new SessionCreated($session))->toOthers();
+        // Spawn the ephemeral interactive decompose session. Validates the
+        // credential first (clean 422 instead of a session that 401s on boot).
+        try {
+            $session = $this->decompositionSession->launch($project, $credential);
+        } catch (\RuntimeException $e) {
+            return $this->errorResponse('CREDENTIAL_ERROR', $e->getMessage(), 422);
+        }
 
         return response()->json([
             'success' => true,

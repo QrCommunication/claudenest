@@ -687,8 +687,14 @@ class AgentServe extends Command
      * the PR URL (or the error) to the project channel and record an activity.
      */
     /**
-     * A worker's Claude credential returned 401 ("Please run /login"). Renew the
-     * (rotating) OAuth token and relaunch the worker so it resumes its task.
+     * A session's Claude credential returned 401 ("Please run /login" — a
+     * rotated OAuth token, not the scoped MCP token). Renew the credential and
+     * relaunch so the session resumes:
+     *  - orchestrated worker  → WorkerPoolService::relaunchOnAuthError (resume task)
+     *  - decompose session    → DecompositionSessionService::relaunchOnAuthError
+     *
+     * Other non-orchestrated sessions (planning/coordinator/human) are left
+     * untouched — a 401 there surfaces to the user, who can re-run.
      */
     private function onSessionAuthError(array $data): void
     {
@@ -698,14 +704,23 @@ class AgentServe extends Command
         }
 
         $session = Session::find($sessionId);
-        if (! $session || ! $session->orchestrated) {
+        if (! $session) {
             return;
         }
 
-        $this->warn('['.date('H:i:s')."] Worker auth 401 ({$sessionId}) — renewing credential + relaunching");
+        $decompositionSession = app(\App\Services\DecompositionSessionService::class);
 
         try {
-            $result = app(\App\Services\WorkerPoolService::class)->relaunchOnAuthError($session);
+            if ($session->orchestrated) {
+                $this->warn('['.date('H:i:s')."] Worker auth 401 ({$sessionId}) — renewing credential + relaunching");
+                $result = app(\App\Services\WorkerPoolService::class)->relaunchOnAuthError($session);
+            } elseif ($decompositionSession->isDecomposeSession($session)) {
+                $this->warn('['.date('H:i:s')."] Decompose auth 401 ({$sessionId}) — renewing credential + relaunching");
+                $result = $decompositionSession->relaunchOnAuthError($session);
+            } else {
+                return;
+            }
+
             $this->info('['.date('H:i:s').'] Auth recovery: '.json_encode($result));
         } catch (\Throwable $e) {
             Log::error('Auth-error recovery failed', [
