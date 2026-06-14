@@ -1,13 +1,18 @@
 /**
  * Main Navigator
- * Bottom tab navigation for authenticated users
+ * Adaptive primary navigation: a bottom tab bar on phones, a left navigation
+ * rail on tablet/desktop (the "Claude OS" desktop shell). Driven by
+ * `useResponsiveLayout` + the bottom-tabs v7 `tabBarPosition` API, which lays
+ * out the screens beside the rail (no manual inset juggling).
  */
 
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { MaterialIcons as Icon } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { MainTabParamList } from "./types";
 import { colors } from "@/theme";
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 
 // Navigators
 import { MachinesNavigator } from "./MachinesNavigator";
@@ -18,19 +23,35 @@ import { SettingsNavigator } from "./SettingsNavigator";
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 export const MainNavigator: React.FC = () => {
+  const { isExpanded } = useResponsiveLayout();
+  const insets = useSafeAreaInsets();
+
+  const tabBarStyle = isExpanded
+    ? {
+        width: 108,
+        backgroundColor: colors.bg.secondary,
+        borderRightColor: colors.border.strong,
+        borderRightWidth: 1,
+        borderTopWidth: 0,
+        paddingTop: insets.top + 16,
+        elevation: 0 as const,
+      }
+    : {
+        backgroundColor: colors.bg.secondary,
+        borderTopColor: colors.border.strong,
+        borderTopWidth: 1,
+        paddingBottom: 10,
+        paddingTop: 10,
+        height: 66,
+        elevation: 0 as const,
+      };
+
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarStyle: {
-          backgroundColor: colors.bg.secondary,
-          borderTopColor: colors.border.strong,
-          borderTopWidth: 1,
-          paddingBottom: 10,
-          paddingTop: 10,
-          height: 66,
-          elevation: 0,
-        },
+        tabBarPosition: isExpanded ? "left" : "bottom",
+        tabBarStyle,
         tabBarActiveTintColor: colors.accent.purple,
         tabBarInactiveTintColor: colors.text.muted,
         tabBarLabelStyle: {
@@ -38,9 +59,9 @@ export const MainNavigator: React.FC = () => {
           fontWeight: "600",
           letterSpacing: 0.3,
         },
-        tabBarItemStyle: {
-          paddingTop: 2,
-        },
+        tabBarItemStyle: isExpanded
+          ? { paddingVertical: 12 }
+          : { paddingTop: 2 },
       }}
     >
       <Tab.Screen

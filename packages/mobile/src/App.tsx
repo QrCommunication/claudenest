@@ -23,6 +23,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { RootNavigator } from "@/navigation/RootNavigator";
 import { DialogHost, NotificationBanner } from "@/components/common";
+import { ClaudeOSDock } from "@/components/os";
 import { handleAttentionNotification } from "@/stores/attentionStore";
 import { websocket } from "@/services/websocket";
 import { attachNotificationListeners } from "@/services/pushNotifications";
@@ -92,6 +93,8 @@ export default function App() {
         <QueryClientProvider client={queryClient}>
           <RootNavigator />
         </QueryClientProvider>
+        {/* Claude OS dock — live-session taskbar / switcher overlay */}
+        <ClaudeOSDock />
         {/* In-app dialogs (replaces native Alert.alert / Alert.prompt) */}
         <DialogHost />
         {/* Realtime in-app notifications (session.notification banners) */}
