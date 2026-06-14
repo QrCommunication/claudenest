@@ -304,6 +304,8 @@ const ToolItem = memo(function ToolItem({
           style={styles.toolExecuteBtn}
           onPress={() => onExecute(tool)}
           activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel={`Run tool ${tool.name}`}
         >
           <Icon name="play-arrow" size={18} color={colors.primary.purple} />
         </TouchableOpacity>

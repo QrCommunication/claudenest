@@ -197,6 +197,8 @@ export const MachinesListScreen: React.FC<Props> = ({ navigation }) => {
         <TouchableOpacity
           onPress={() => navigation.navigate("PairMachine")}
           style={styles.headerButton}
+          accessibilityRole="button"
+          accessibilityLabel="Pair a machine"
         >
           <Icon name="add" size={28} color={colors.primary.purple} />
         </TouchableOpacity>

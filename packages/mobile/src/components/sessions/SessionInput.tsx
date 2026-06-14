@@ -3,16 +3,11 @@
  * Input field for sending commands to a session
  */
 
-import React, { useState, useCallback } from 'react';
-import {
-  View,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
-import { MaterialIcons as Icon } from '@expo/vector-icons';
-import { colors, spacing, borderRadius, typography } from '@/theme';
-import { useSessionsStore } from '@/stores/sessionsStore';
+import React, { useState, useCallback } from "react";
+import { View, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { MaterialIcons as Icon } from "@expo/vector-icons";
+import { colors, spacing, borderRadius, typography } from "@/theme";
+import { useSessionsStore } from "@/stores/sessionsStore";
 
 interface SessionInputProps {
   sessionId: string;
@@ -23,23 +18,23 @@ export const SessionInput: React.FC<SessionInputProps> = ({
   sessionId,
   disabled = false,
 }) => {
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const sendInput = useSessionsStore((state) => state.sendInput);
 
   const handleSend = useCallback(() => {
     if (input.trim() && !disabled) {
-      sendInput(sessionId, input + '\n');
-      setInput('');
+      sendInput(sessionId, input + "\n");
+      setInput("");
     }
   }, [input, sessionId, disabled, sendInput]);
 
   const handleKeyPress = useCallback(
     ({ nativeEvent }: { nativeEvent: { key: string } }) => {
-      if (nativeEvent.key === 'Enter') {
+      if (nativeEvent.key === "Enter") {
         handleSend();
       }
     },
-    [handleSend]
+    [handleSend],
   );
 
   return (
@@ -60,6 +55,9 @@ export const SessionInput: React.FC<SessionInputProps> = ({
         style={[styles.sendButton, disabled && styles.sendButtonDisabled]}
         onPress={handleSend}
         disabled={disabled || !input.trim()}
+        accessibilityRole="button"
+        accessibilityLabel="Send"
+        accessibilityState={{ disabled: disabled || !input.trim() }}
       >
         <Icon
           name="send"
@@ -73,8 +71,8 @@ export const SessionInput: React.FC<SessionInputProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: colors.background.dark3,
     borderRadius: borderRadius.md,
     paddingHorizontal: spacing.md,

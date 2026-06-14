@@ -3,7 +3,16 @@
  * Manage Claude API keys and OAuth tokens
  */
 import React, { useEffect, useState, useCallback } from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, ActivityIndicator, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
+  ScrollView,
+} from "react-native";
 import { showAlert } from "@/services/dialog";
 import { MaterialIcons as Icon } from "@expo/vector-icons";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -407,6 +416,9 @@ const CredentialCard: React.FC<{
           style={[cardStyles.actionBtn, cardStyles.deleteBtn]}
           onPress={onDelete}
           disabled={isActionLoading}
+          accessibilityRole="button"
+          accessibilityLabel={`Delete credential ${credential.name}`}
+          accessibilityState={{ disabled: isActionLoading }}
         >
           <Icon name="delete" size={16} color={colors.semantic.error} />
         </TouchableOpacity>
@@ -444,6 +456,8 @@ export const CredentialsScreen: React.FC<Props> = ({ navigation }) => {
         <TouchableOpacity
           onPress={() => setShowAddModal(true)}
           style={{ marginRight: spacing.sm }}
+          accessibilityRole="button"
+          accessibilityLabel="Add credential"
         >
           <Icon name="add" size={26} color={colors.primary.purple} />
         </TouchableOpacity>

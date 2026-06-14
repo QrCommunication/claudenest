@@ -2,10 +2,10 @@
  * ErrorMessage Component
  */
 
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { MaterialIcons as Icon } from '@expo/vector-icons';
-import { colors, spacing, typography, borderRadius } from '@/theme';
+import React from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { MaterialIcons as Icon } from "@expo/vector-icons";
+import { colors, spacing, typography, borderRadius } from "@/theme";
 
 interface ErrorMessageProps {
   message: string;
@@ -31,7 +31,12 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
           </TouchableOpacity>
         )}
         {onDismiss && (
-          <TouchableOpacity onPress={onDismiss} style={styles.dismissButton}>
+          <TouchableOpacity
+            onPress={onDismiss}
+            style={styles.dismissButton}
+            accessibilityRole="button"
+            accessibilityLabel="Dismiss error"
+          >
             <Icon name="close" size={18} color={colors.text.muted} />
           </TouchableOpacity>
         )}
@@ -42,9 +47,9 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.semantic.error + '15',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.semantic.error + "15",
     borderRadius: borderRadius.md,
     padding: spacing.md,
     marginHorizontal: spacing.md,
@@ -57,8 +62,8 @@ const styles = StyleSheet.create({
     color: colors.semantic.error,
   },
   actions: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginLeft: spacing.sm,
   },
   actionButton: {
@@ -66,7 +71,7 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontSize: typography.size.sm,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.semantic.error,
   },
   dismissButton: {

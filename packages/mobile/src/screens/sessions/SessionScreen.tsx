@@ -137,6 +137,12 @@ export const SessionScreen: React.FC<Props> = ({ route, navigation }) => {
             onPress={handleTerminate}
             disabled={isTerminating || session.status === "completed"}
             style={styles.headerButton}
+            accessibilityRole="button"
+            accessibilityLabel="Terminate session"
+            accessibilityState={{
+              disabled: isTerminating || session.status === "completed",
+              busy: isTerminating,
+            }}
           >
             <Icon
               name="close"

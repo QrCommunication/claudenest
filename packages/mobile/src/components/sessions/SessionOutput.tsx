@@ -3,7 +3,7 @@
  * Displays terminal-like output for a session
  */
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -12,10 +12,10 @@ import {
   TouchableOpacity,
   type NativeSyntheticEvent,
   type NativeScrollEvent,
-} from 'react-native';
-import { MaterialIcons as Icon } from '@expo/vector-icons';
-import { colors, spacing, typography, borderRadius } from '@/theme';
-import { useSessionsStore } from '@/stores/sessionsStore';
+} from "react-native";
+import { MaterialIcons as Icon } from "@expo/vector-icons";
+import { colors, spacing, typography, borderRadius } from "@/theme";
+import { useSessionsStore } from "@/stores/sessionsStore";
 
 interface SessionOutputProps {
   sessionId: string;
@@ -31,8 +31,8 @@ export const SessionOutput: React.FC<SessionOutputProps> = ({
   const output = useSessionsStore((state) => state.getSessionOutput(sessionId));
 
   // Limit output lines
-  const lines = output.split('\n').slice(-maxLines);
-  const displayOutput = lines.join('\n');
+  const lines = output.split("\n").slice(-maxLines);
+  const displayOutput = lines.join("\n");
 
   // Auto-scroll to bottom when new output arrives
   useEffect(() => {
@@ -62,12 +62,30 @@ export const SessionOutput: React.FC<SessionOutputProps> = ({
       <View style={styles.toolbar}>
         <Text style={styles.toolbarText}>Output</Text>
         <View style={styles.toolbarActions}>
-          <TouchableOpacity onPress={handleClear} style={styles.toolbarButton}>
-            <Icon name="delete-outline" size={18} color={colors.text.secondary} />
+          <TouchableOpacity
+            onPress={handleClear}
+            style={styles.toolbarButton}
+            accessibilityRole="button"
+            accessibilityLabel="Clear output"
+          >
+            <Icon
+              name="delete-outline"
+              size={18}
+              color={colors.text.secondary}
+            />
           </TouchableOpacity>
           {!autoScroll && (
-            <TouchableOpacity onPress={scrollToBottom} style={styles.toolbarButton}>
-              <Icon name="vertical-align-bottom" size={18} color={colors.primary.purple} />
+            <TouchableOpacity
+              onPress={scrollToBottom}
+              style={styles.toolbarButton}
+              accessibilityRole="button"
+              accessibilityLabel="Scroll to bottom"
+            >
+              <Icon
+                name="vertical-align-bottom"
+                size={18}
+                color={colors.primary.purple}
+              />
             </TouchableOpacity>
           )}
         </View>
@@ -81,7 +99,7 @@ export const SessionOutput: React.FC<SessionOutputProps> = ({
         showsVerticalScrollIndicator
       >
         <Text style={styles.output} selectable>
-          {displayOutput || 'No output yet...'}
+          {displayOutput || "No output yet..."}
         </Text>
       </ScrollView>
     </View>
@@ -93,12 +111,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.terminal.background,
     borderRadius: borderRadius.md,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   toolbar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     backgroundColor: colors.background.dark3,
@@ -107,12 +125,12 @@ const styles = StyleSheet.create({
   },
   toolbarText: {
     fontSize: typography.size.sm,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.text.secondary,
   },
   toolbarActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.sm,
   },
   toolbarButton: {
