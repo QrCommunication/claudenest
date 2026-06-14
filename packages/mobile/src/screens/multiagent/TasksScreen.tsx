@@ -208,6 +208,9 @@ const ViewModeToggle = memo(function ViewModeToggle({
         ]}
         onPress={() => onChange("list")}
         activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityState={{ selected: mode === "list" }}
+        accessibilityLabel="List view"
       >
         <Icon
           name="view-list"
@@ -222,6 +225,9 @@ const ViewModeToggle = memo(function ViewModeToggle({
         ]}
         onPress={() => onChange("kanban")}
         activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityState={{ selected: mode === "kanban" }}
+        accessibilityLabel="Kanban view"
       >
         <Icon
           name="view-kanban"
@@ -427,6 +433,8 @@ export const TasksScreen: React.FC<Props> = ({ route, navigation }) => {
         <TouchableOpacity
           onPress={handleCreateTask}
           style={styles.headerButton}
+          accessibilityRole="button"
+          accessibilityLabel="New task"
         >
           <Icon name="add" size={28} color={colors.primary.purple} />
         </TouchableOpacity>
@@ -757,6 +765,8 @@ export const TasksScreen: React.FC<Props> = ({ route, navigation }) => {
         style={styles.fab}
         onPress={handleCreateTask}
         activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel="New task"
       >
         <Icon name="add" size={28} color={colors.text.primary} />
       </TouchableOpacity>
