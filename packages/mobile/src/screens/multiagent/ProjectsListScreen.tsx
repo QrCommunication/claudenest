@@ -19,6 +19,7 @@ import { MaterialIcons as Icon } from "@expo/vector-icons";
 import { colors, spacing, borderRadius, typography } from "@/theme";
 import { useProjectsStore } from "@/stores/projectsStore";
 import { useMachinesStore } from "@/stores/machinesStore";
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 import { showAlert } from "@/services/dialog";
 import { websocket } from "@/services/websocket";
 import type { SharedProject } from "@/types";
@@ -118,6 +119,8 @@ export const ProjectsListScreen: React.FC<Props> = ({ navigation }) => {
     clearError,
   } = useProjectsStore();
   const { machines, fetchMachines } = useMachinesStore();
+  const { isExpanded } = useResponsiveLayout();
+  const numColumns = isExpanded ? 2 : 1;
 
   const [archivedExpanded, setArchivedExpanded] = useState(false);
   const [restoringId, setRestoringId] = useState<string | null>(null);
@@ -231,13 +234,15 @@ export const ProjectsListScreen: React.FC<Props> = ({ navigation }) => {
 
   const renderItem = useCallback(
     ({ item }: { item: SharedProject }) => (
-      <ProjectCard
-        project={item}
-        onPress={() => handlePressProject(item)}
-        onLongPress={() => handleArchive(item)}
-      />
+      <View style={numColumns > 1 ? styles.gridCell : undefined}>
+        <ProjectCard
+          project={item}
+          onPress={() => handlePressProject(item)}
+          onLongPress={() => handleArchive(item)}
+        />
+      </View>
     ),
-    [handlePressProject, handleArchive],
+    [handlePressProject, handleArchive, numColumns],
   );
 
   const keyExtractor = useCallback((item: SharedProject) => item.id, []);
@@ -300,9 +305,13 @@ export const ProjectsListScreen: React.FC<Props> = ({ navigation }) => {
       )}
 
       <FlatList
+        // numColumns can't change without remounting — key on it.
+        key={`cols-${numColumns}`}
         data={activeProjects}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
+        numColumns={numColumns}
+        columnWrapperStyle={numColumns > 1 ? styles.columnWrapper : undefined}
         contentContainerStyle={styles.listContent}
         refreshControl={
           <RefreshControl
@@ -334,6 +343,13 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     paddingBottom: spacing.xl,
     flexGrow: 1,
+  },
+  // Tablet/landscape 2-column grid.
+  columnWrapper: {
+    gap: spacing.md,
+  },
+  gridCell: {
+    flex: 1,
   },
   projectCard: {
     marginBottom: spacing.md,
