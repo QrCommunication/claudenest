@@ -2,50 +2,19 @@
  * useResponsiveLayout — the backbone of the phone/tablet "Claude OS" shell.
  *
  * React Native has no CSS media queries, so every adaptive layout reads from
- * this hook. `deviceClass` is derived from the SHORT side (stable identity: a
- * phone in landscape stays a phone), while the multi-pane flags read the
- * CURRENT width (the space actually available drives rail/split decisions).
+ * this hook. The classification logic lives in the pure, unit-tested
+ * `classifyLayout` helper; this hook only feeds it the live window dimensions.
  */
 
 import { useWindowDimensions } from "react-native";
-import { breakpoints, type DeviceClass } from "@/theme";
+import {
+  classifyLayout,
+  type ResponsiveLayout,
+} from "@/utils/responsiveLayout";
 
-export interface ResponsiveLayout {
-  width: number;
-  height: number;
-  orientation: "portrait" | "landscape";
-  deviceClass: DeviceClass;
-  isPhone: boolean;
-  isTablet: boolean;
-  isDesktop: boolean;
-  /** Worthwhile to show a two-pane (rail + content) layout at this width. */
-  isExpanded: boolean;
-  /** Very wide — allow a third pane and cap content width. */
-  isWide: boolean;
-}
+export type { ResponsiveLayout };
 
 export function useResponsiveLayout(): ResponsiveLayout {
   const { width, height } = useWindowDimensions();
-  const shortSide = Math.min(width, height);
-  const orientation: "portrait" | "landscape" =
-    width >= height ? "landscape" : "portrait";
-
-  const deviceClass: DeviceClass =
-    shortSide >= breakpoints.desktop
-      ? "desktop"
-      : shortSide >= breakpoints.tablet
-        ? "tablet"
-        : "phone";
-
-  return {
-    width,
-    height,
-    orientation,
-    deviceClass,
-    isPhone: deviceClass === "phone",
-    isTablet: deviceClass === "tablet",
-    isDesktop: deviceClass === "desktop",
-    isExpanded: width >= breakpoints.tablet,
-    isWide: width >= breakpoints.desktop,
-  };
+  return classifyLayout(width, height);
 }
