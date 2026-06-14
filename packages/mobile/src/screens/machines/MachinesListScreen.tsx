@@ -11,11 +11,21 @@ import React, {
   useRef,
   memo,
 } from "react";
-import { View, Text, FlatList, StyleSheet, RefreshControl, TouchableOpacity, ScrollView, Animated } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  RefreshControl,
+  TouchableOpacity,
+  ScrollView,
+  Animated,
+} from "react-native";
 import { showAlert } from "@/services/dialog";
 import { MaterialIcons as Icon } from "@expo/vector-icons";
 import { colors, spacing, borderRadius, typography } from "@/theme";
 import { useMachinesStore } from "@/stores/machinesStore";
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 import type { Machine } from "@/types";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { MachinesStackParamList } from "@/navigation/types";
@@ -155,6 +165,8 @@ export const MachinesListScreen: React.FC<Props> = ({ navigation }) => {
     deleteMachine,
     clearError,
   } = useMachinesStore();
+  const { isExpanded } = useResponsiveLayout();
+  const numColumns = isExpanded ? 2 : 1;
 
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
   const headerOpacity = useRef(new Animated.Value(0)).current;
@@ -273,14 +285,16 @@ export const MachinesListScreen: React.FC<Props> = ({ navigation }) => {
 
   const renderItem = useCallback(
     ({ item, index }: { item: Machine; index: number }) => (
-      <AnimatedMachineCard
-        machine={item}
-        onPress={handlePressMachine}
-        onLongPress={handleLongPressMachine}
-        index={index}
-      />
+      <View style={numColumns > 1 ? styles.gridCell : undefined}>
+        <AnimatedMachineCard
+          machine={item}
+          onPress={handlePressMachine}
+          onLongPress={handleLongPressMachine}
+          index={index}
+        />
+      </View>
     ),
-    [handlePressMachine, handleLongPressMachine],
+    [handlePressMachine, handleLongPressMachine, numColumns],
   );
 
   const keyExtractor = useCallback((item: Machine) => item.id, []);
@@ -356,9 +370,12 @@ export const MachinesListScreen: React.FC<Props> = ({ navigation }) => {
 
       {/* List */}
       <FlatList
+        key={`cols-${numColumns}`}
         data={filteredMachines}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
+        numColumns={numColumns}
+        columnWrapperStyle={numColumns > 1 ? styles.columnWrapper : undefined}
         contentContainerStyle={styles.listContent}
         refreshControl={
           <RefreshControl
@@ -505,5 +522,11 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
     paddingBottom: spacing.xl,
     flexGrow: 1,
+  },
+  columnWrapper: {
+    gap: spacing.md,
+  },
+  gridCell: {
+    flex: 1,
   },
 });
