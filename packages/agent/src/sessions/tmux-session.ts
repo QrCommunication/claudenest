@@ -354,23 +354,26 @@ export class TmuxSession extends EventEmitter {
     this.linkUserConfigInto(configDir);
 
     // For OAuth: write .credentials.json in Claude Code's native format.
-    // Completeness is what stops the recurring "/login" prompt with a token
-    // that is NOT expired: Claude Code requires accessToken + refreshToken +
-    // expiresAt AND the full `scopes` (esp. user:sessions:claude_code) plus
-    // the account-level `subscriptionType`/`rateLimitTier`. Account-level
-    // fields come from the server when stored, else from the machine's real
-    // ~/.claude/.credentials.json (same user), else sane defaults.
+    //
+    // The recurring "/login" with a NON-expired token is caused by INCOMPLETE
+    // `scopes` — Claude Code requires `user:sessions:claude_code` to accept a
+    // token for its own sessions. So we always write the full scope set.
+    //
+    // We deliberately do NOT synthesize `subscriptionType`/`rateLimitTier` from
+    // the machine's own login: those are account-level billing fields and the
+    // injected credential may be a DIFFERENT Claude account than the machine's
+    // — writing the machine's tier made interactive sessions bill to extra
+    // usage instead of the credential's Max plan. They are written ONLY when
+    // the server forwards them from the SAME credential's captured metadata
+    // (oauth_meta); otherwise they are omitted and Claude Code derives the
+    // correct billing from the token itself.
     if (hasOAuth) {
       const expiresAtMs = Number(credEnv['CLAUDE_CODE_OAUTH_EXPIRES_AT']);
-      const machineMeta = this.readMachineOAuthMeta();
 
       const scopes = this.parseCsv(credEnv['CLAUDE_CODE_OAUTH_SCOPES'])
-        ?? machineMeta.scopes
         ?? [...CLAUDE_CODE_OAUTH_SCOPES];
-      const subscriptionType =
-        credEnv['CLAUDE_CODE_OAUTH_SUBSCRIPTION_TYPE'] ?? machineMeta.subscriptionType;
-      const rateLimitTier =
-        credEnv['CLAUDE_CODE_OAUTH_RATE_LIMIT_TIER'] ?? machineMeta.rateLimitTier;
+      const subscriptionType = credEnv['CLAUDE_CODE_OAUTH_SUBSCRIPTION_TYPE'];
+      const rateLimitTier = credEnv['CLAUDE_CODE_OAUTH_RATE_LIMIT_TIER'];
 
       const credsFile = path.join(configDir, '.credentials.json');
       const credsData = JSON.stringify({
@@ -418,45 +421,6 @@ export class TmuxSession extends EventEmitter {
     if (!value) return null;
     const parts = value.split(',').map((s) => s.trim()).filter(Boolean);
     return parts.length > 0 ? parts : null;
-  }
-
-  /**
-   * Read the account-level OAuth metadata (scopes, subscriptionType,
-   * rateLimitTier) from the machine's real ~/.claude/.credentials.json.
-   *
-   * These describe the Claude account, not a specific token, so they are a
-   * safe fallback for a session whose injected credential lacks them (e.g. a
-   * credential captured before we stored this metadata). Best-effort — returns
-   * empty fields when the file is absent or malformed.
-   */
-  private readMachineOAuthMeta(): {
-    scopes: string[] | null;
-    subscriptionType?: string;
-    rateLimitTier?: string;
-  } {
-    try {
-      const file = path.join(os.homedir(), '.claude', '.credentials.json');
-      const raw = JSON.parse(fs.readFileSync(file, 'utf8')) as {
-        claudeAiOauth?: {
-          scopes?: unknown;
-          subscriptionType?: unknown;
-          rateLimitTier?: unknown;
-        };
-      };
-      const oauth = raw.claudeAiOauth ?? {};
-      const scopes = Array.isArray(oauth.scopes)
-        ? oauth.scopes.filter((s): s is string => typeof s === 'string')
-        : null;
-      return {
-        scopes: scopes && scopes.length > 0 ? scopes : null,
-        subscriptionType:
-          typeof oauth.subscriptionType === 'string' ? oauth.subscriptionType : undefined,
-        rateLimitTier:
-          typeof oauth.rateLimitTier === 'string' ? oauth.rateLimitTier : undefined,
-      };
-    } catch {
-      return { scopes: null };
-    }
   }
 
   /**
