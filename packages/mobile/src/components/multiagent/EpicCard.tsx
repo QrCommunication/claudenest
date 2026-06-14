@@ -32,6 +32,11 @@ export const EpicCard = memo(function EpicCard({
       onLongPress={onLongPress ? handleLongPress : undefined}
       style={styles.container}
       activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={`Epic ${epic.title}, ${epic.status.replace("_", " ")}, ${epic.completed_tasks_count} of ${epic.tasks_count} tasks done`}
+      accessibilityHint={
+        onLongPress ? "Long-press for more actions" : undefined
+      }
     >
       <View style={styles.header}>
         <View style={[styles.colorDot, { backgroundColor: epic.color }]} />

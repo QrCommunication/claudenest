@@ -67,7 +67,19 @@ export const LockCard = memo(function LockCard({
           />
         </View>
 
-        <View style={styles.content}>
+        <View
+          style={styles.content}
+          accessible
+          accessibilityLabel={[
+            `Lock on ${fileName}`,
+            isShared ? "shared reader" : "exclusive writer",
+            range ?? "whole file",
+            `held by ${lock.locked_by}`,
+            remaining ? `${remaining} left` : null,
+          ]
+            .filter(Boolean)
+            .join(", ")}
+        >
           <Text style={styles.fileName} numberOfLines={1}>
             {fileName}
           </Text>
@@ -115,7 +127,12 @@ export const LockCard = memo(function LockCard({
         </View>
 
         {canUnlock && (
-          <TouchableOpacity style={styles.unlockButton} onPress={handleUnlock}>
+          <TouchableOpacity
+            style={styles.unlockButton}
+            onPress={handleUnlock}
+            accessibilityRole="button"
+            accessibilityLabel={`Unlock ${fileName}`}
+          >
             <Icon name="lock-open" size={18} color={colors.semantic.error} />
           </TouchableOpacity>
         )}

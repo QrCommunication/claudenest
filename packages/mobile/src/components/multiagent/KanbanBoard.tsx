@@ -129,6 +129,13 @@ const MoveSheet = memo(function MoveSheet({
               onPress={() => task && onMove(task, col.status)}
               disabled={isCurrent}
               activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityState={{ disabled: isCurrent, selected: isCurrent }}
+              accessibilityLabel={
+                isCurrent
+                  ? `${col.label}, current column`
+                  : `Move to ${col.label}`
+              }
             >
               <View
                 style={[sheetStyles.colorDot, { backgroundColor: col.color }]}
@@ -195,6 +202,16 @@ const KanbanTaskCard = memo(function KanbanTaskCard({
         onLongPress={() => onLongPress(task)}
         activeOpacity={0.75}
         delayLongPress={350}
+        accessibilityRole="button"
+        accessibilityLabel={[
+          task.title,
+          `${task.priority} priority`,
+          task.story_points != null ? `${task.story_points} points` : null,
+          task.assignedTo ? `assigned to ${task.assignedTo}` : null,
+        ]
+          .filter(Boolean)
+          .join(", ")}
+        accessibilityHint="Long-press to move to another column"
       >
         {/* Priority stripe */}
         <View style={[cardStyles.stripe, { backgroundColor: priorityColor }]} />
@@ -352,6 +369,9 @@ function FilterSelect<T extends { id: string; title?: string; name?: string }>({
           ]}
           onPress={() => onSelect(undefined)}
           activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityState={{ selected: !selectedId }}
+          accessibilityLabel={`${label}: all`}
         >
           <Text style={[filterStyles.chipText, !selectedId && { color }]}>
             All
@@ -372,6 +392,9 @@ function FilterSelect<T extends { id: string; title?: string; name?: string }>({
               ]}
               onPress={() => onSelect(item.id)}
               activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isActive }}
+              accessibilityLabel={`${label}: ${display}`}
             >
               <Text style={[filterStyles.chipText, isActive && { color }]}>
                 {display}

@@ -1,6 +1,6 @@
-import React, { memo, useCallback } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import type { Sprint } from '../../types';
+import React, { memo, useCallback } from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import type { Sprint } from "../../types";
 
 interface SprintCardProps {
   sprint: Sprint;
@@ -8,30 +8,73 @@ interface SprintCardProps {
 }
 
 const SPRINT_STATUS_COLORS: Record<string, string> = {
-  planning: '#94a3b8',
-  active: '#a855f7',
-  completed: '#22c55e',
-  cancelled: '#ef4444',
+  planning: "#94a3b8",
+  active: "#a855f7",
+  completed: "#22c55e",
+  cancelled: "#ef4444",
 };
 
-export const SprintCard = memo(function SprintCard({ sprint, onPress }: SprintCardProps) {
+export const SprintCard = memo(function SprintCard({
+  sprint,
+  onPress,
+}: SprintCardProps) {
   const handlePress = useCallback(() => onPress(sprint), [sprint, onPress]);
 
   const formatDate = (d: string | null) => {
-    if (!d) return '—';
-    return new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+    if (!d) return "—";
+    return new Date(d).toLocaleDateString("fr-FR", {
+      day: "numeric",
+      month: "short",
+    });
   };
 
+  const a11yLabel = [
+    `Sprint ${sprint.name}`,
+    sprint.status,
+    `${sprint.completed_story_points} of ${sprint.total_story_points} points`,
+    sprint.remaining_days !== null
+      ? sprint.is_overdue
+        ? `${Math.abs(sprint.remaining_days)} days overdue`
+        : `${sprint.remaining_days} days left`
+      : null,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
   return (
-    <TouchableOpacity onPress={handlePress} style={styles.container} activeOpacity={0.7}>
+    <TouchableOpacity
+      onPress={handlePress}
+      style={styles.container}
+      activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={a11yLabel}
+    >
       <View style={styles.header}>
-        <Text style={styles.name} numberOfLines={1}>{sprint.name}</Text>
-        <View style={[styles.statusBadge, { backgroundColor: SPRINT_STATUS_COLORS[sprint.status] + '25' }]}>
-          <Text style={[styles.statusText, { color: SPRINT_STATUS_COLORS[sprint.status] }]}>{sprint.status}</Text>
+        <Text style={styles.name} numberOfLines={1}>
+          {sprint.name}
+        </Text>
+        <View
+          style={[
+            styles.statusBadge,
+            { backgroundColor: SPRINT_STATUS_COLORS[sprint.status] + "25" },
+          ]}
+        >
+          <Text
+            style={[
+              styles.statusText,
+              { color: SPRINT_STATUS_COLORS[sprint.status] },
+            ]}
+          >
+            {sprint.status}
+          </Text>
         </View>
       </View>
 
-      {sprint.goal && <Text style={styles.goal} numberOfLines={1}>{sprint.goal}</Text>}
+      {sprint.goal && (
+        <Text style={styles.goal} numberOfLines={1}>
+          {sprint.goal}
+        </Text>
+      )}
 
       <View style={styles.metricsRow}>
         <Text style={styles.metric}>
@@ -50,7 +93,12 @@ export const SprintCard = memo(function SprintCard({ sprint, onPress }: SprintCa
       </View>
 
       <View style={styles.progressBar}>
-        <View style={[styles.progressFill, { width: `${sprint.progress_percentage}%` }]} />
+        <View
+          style={[
+            styles.progressFill,
+            { width: `${sprint.progress_percentage}%` },
+          ]}
+        />
       </View>
     </TouchableOpacity>
   );
@@ -58,23 +106,47 @@ export const SprintCard = memo(function SprintCard({ sprint, onPress }: SprintCa
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#24283b',
+    backgroundColor: "#24283b",
     borderRadius: 8,
     padding: 12,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: "rgba(255,255,255,0.06)",
   },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  name: { fontSize: 14, fontWeight: '600', color: 'rgba(255,255,255,0.9)', flex: 1 },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  name: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "rgba(255,255,255,0.9)",
+    flex: 1,
+  },
   statusBadge: { paddingHorizontal: 6, paddingVertical: 1, borderRadius: 4 },
-  statusText: { fontSize: 10, fontWeight: '600', textTransform: 'uppercase' },
-  goal: { fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 4 },
-  metricsRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 8 },
-  metric: { fontSize: 12, color: 'rgba(255,255,255,0.6)', fontVariant: ['tabular-nums'] },
-  dates: { fontSize: 11, color: 'rgba(255,255,255,0.4)' },
-  days: { fontSize: 11, color: '#22d3ee', fontWeight: '500' },
-  overdue: { color: '#ef4444' },
-  progressBar: { height: 3, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 2, overflow: 'hidden', marginTop: 8 },
-  progressFill: { height: '100%', backgroundColor: '#a855f7', borderRadius: 2 },
+  statusText: { fontSize: 10, fontWeight: "600", textTransform: "uppercase" },
+  goal: { fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 4 },
+  metricsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginTop: 8,
+  },
+  metric: {
+    fontSize: 12,
+    color: "rgba(255,255,255,0.6)",
+    fontVariant: ["tabular-nums"],
+  },
+  dates: { fontSize: 11, color: "rgba(255,255,255,0.4)" },
+  days: { fontSize: 11, color: "#22d3ee", fontWeight: "500" },
+  overdue: { color: "#ef4444" },
+  progressBar: {
+    height: 3,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderRadius: 2,
+    overflow: "hidden",
+    marginTop: 8,
+  },
+  progressFill: { height: "100%", backgroundColor: "#a855f7", borderRadius: 2 },
 });

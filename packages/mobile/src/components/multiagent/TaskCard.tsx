@@ -3,13 +3,19 @@
  * Displays a shared task in a card format
  */
 
-import React, { memo, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
-import { useFadeIn } from '@/utils/animations';
-import { MaterialIcons as Icon } from '@expo/vector-icons';
-import { colors, spacing, borderRadius, typography } from '@/theme';
-import type { SharedTask, TaskPriority, TaskStatus } from '@/types';
-import { Badge } from '@/components/common';
+import React, { memo, useCallback } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Animated,
+} from "react-native";
+import { useFadeIn } from "@/utils/animations";
+import { MaterialIcons as Icon } from "@expo/vector-icons";
+import { colors, spacing, borderRadius, typography } from "@/theme";
+import type { SharedTask, TaskPriority, TaskStatus } from "@/types";
+import { Badge } from "@/components/common";
 
 interface TaskCardProps {
   task: SharedTask;
@@ -38,40 +44,40 @@ export const TaskCard = memo(function TaskCard({
 
   const getPriorityVariant = (priority: TaskPriority) => {
     switch (priority) {
-      case 'critical':
-        return 'error';
-      case 'high':
-        return 'warning';
-      case 'medium':
-        return 'primary';
-      case 'low':
-        return 'default';
+      case "critical":
+        return "error";
+      case "high":
+        return "warning";
+      case "medium":
+        return "primary";
+      case "low":
+        return "default";
       default:
-        return 'default';
+        return "default";
     }
   };
 
   const getStatusVariant = (status: TaskStatus) => {
     switch (status) {
-      case 'done':
-        return 'success';
-      case 'in_progress':
-        return 'primary';
-      case 'review':
-        return 'info';
-      case 'blocked':
-        return 'error';
-      case 'pending':
-        return 'default';
-      case 'backlog':
-        return 'default';
+      case "done":
+        return "success";
+      case "in_progress":
+        return "primary";
+      case "review":
+        return "info";
+      case "blocked":
+        return "error";
+      case "pending":
+        return "default";
+      case "backlog":
+        return "default";
       default:
-        return 'default';
+        return "default";
     }
   };
 
-  const isPending = task.status === 'pending';
-  const isInProgress = task.status === 'in_progress';
+  const isPending = task.status === "pending";
+  const isInProgress = task.status === "in_progress";
 
   const fadeStyle = useFadeIn();
 
@@ -81,6 +87,15 @@ export const TaskCard = memo(function TaskCard({
         style={styles.container}
         onPress={handlePress}
         activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={[
+          `Task ${task.title}`,
+          `priority ${task.priority}`,
+          `status ${task.status}`,
+          task.assignedTo ? `assigned to ${task.assignedTo}` : null,
+        ]
+          .filter(Boolean)
+          .join(", ")}
       >
         <View style={styles.header}>
           <View style={styles.titleContainer}>
@@ -122,7 +137,7 @@ export const TaskCard = memo(function TaskCard({
             <View style={styles.files}>
               <Icon name="description" size={14} color={colors.text.muted} />
               <Text style={styles.filesText}>
-                {task.files.length} file{task.files.length > 1 ? 's' : ''}
+                {task.files.length} file{task.files.length > 1 ? "s" : ""}
               </Text>
             </View>
           )}
@@ -130,7 +145,12 @@ export const TaskCard = memo(function TaskCard({
 
         <View style={styles.footer}>
           {isPending && onClaim && (
-            <TouchableOpacity style={styles.actionButton} onPress={handleClaim}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={handleClaim}
+              accessibilityRole="button"
+              accessibilityLabel={`Claim task ${task.title}`}
+            >
               <Text style={styles.actionButtonText}>Claim</Text>
             </TouchableOpacity>
           )}
@@ -138,8 +158,12 @@ export const TaskCard = memo(function TaskCard({
             <TouchableOpacity
               style={[styles.actionButton, styles.completeButton]}
               onPress={handleComplete}
+              accessibilityRole="button"
+              accessibilityLabel={`Complete task ${task.title}`}
             >
-              <Text style={[styles.actionButtonText, styles.completeButtonText]}>
+              <Text
+                style={[styles.actionButtonText, styles.completeButtonText]}
+              >
                 Complete
               </Text>
             </TouchableOpacity>
@@ -168,7 +192,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: typography.size.md,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.text.primary,
   },
   description: {
@@ -180,14 +204,14 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   badgeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.sm,
     marginBottom: spacing.xs,
   },
   assignment: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.xs,
   },
   assignmentText: {
@@ -195,8 +219,8 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
   },
   files: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.xs,
   },
   filesText: {
@@ -204,23 +228,23 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
   },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
+    flexDirection: "row",
+    justifyContent: "flex-end",
     marginTop: spacing.md,
   },
   actionButton: {
-    backgroundColor: colors.primary.purple + '20',
+    backgroundColor: colors.primary.purple + "20",
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.base,
   },
   actionButtonText: {
     fontSize: typography.size.sm,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.primary.purple,
   },
   completeButton: {
-    backgroundColor: colors.semantic.success + '20',
+    backgroundColor: colors.semantic.success + "20",
   },
   completeButtonText: {
     color: colors.semantic.success,
