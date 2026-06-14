@@ -23,6 +23,7 @@ import { colors, spacing, borderRadius, typography } from "@/theme";
 import { useMachinesStore } from "@/stores/machinesStore";
 import { useProjectsStore } from "@/stores/projectsStore";
 import { projectsApi } from "@/services/api";
+import { FolderPickerModal } from "@/components/sessions/FolderPickerModal";
 import { useFadeIn } from "@/utils/animations";
 import type { Machine, ProjectScanResult } from "@/types";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -192,6 +193,7 @@ export const NewProjectScreen = memo(function NewProjectScreen({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<ProjectScanResult | null>(null);
+  const [pickerVisible, setPickerVisible] = useState(false);
 
   const nameRef = useRef<TextInput>(null);
   const summaryRef = useRef<TextInput>(null);
@@ -365,24 +367,55 @@ export const NewProjectScreen = memo(function NewProjectScreen({
                 returnKeyType="next"
                 onSubmitEditing={() => nameRef.current?.focus()}
               />
-              <TouchableOpacity
-                style={[styles.scanBtn, isScanning && styles.scanBtnBusy]}
-                onPress={handleScan}
-                disabled={isScanning || !projectPath.trim()}
-                activeOpacity={0.8}
-                accessibilityRole="button"
-                accessibilityLabel="Scan path to detect the project"
-                accessibilityState={{ disabled: isScanning, busy: isScanning }}
-              >
-                {isScanning ? (
-                  <ActivityIndicator size="small" color={colors.accent.cyan} />
-                ) : (
-                  <Icon name="radar" size={16} color={colors.accent.cyan} />
-                )}
-                <Text style={styles.scanBtnText}>
-                  {isScanning ? "Scanning…" : "Scan path"}
-                </Text>
-              </TouchableOpacity>
+              <View style={styles.pathActions}>
+                <TouchableOpacity
+                  style={styles.browseBtn}
+                  onPress={() => {
+                    if (!machineId) {
+                      setErrors((e) => ({
+                        ...e,
+                        machine: "Please select a machine",
+                      }));
+                      return;
+                    }
+                    setPickerVisible(true);
+                  }}
+                  activeOpacity={0.8}
+                  accessibilityRole="button"
+                  accessibilityLabel="Browse folders on the machine"
+                >
+                  <Icon
+                    name="folder-open"
+                    size={16}
+                    color={colors.primary.purple}
+                  />
+                  <Text style={styles.browseBtnText}>Browse</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.scanBtn, isScanning && styles.scanBtnBusy]}
+                  onPress={handleScan}
+                  disabled={isScanning || !projectPath.trim()}
+                  activeOpacity={0.8}
+                  accessibilityRole="button"
+                  accessibilityLabel="Scan path to detect the project"
+                  accessibilityState={{
+                    disabled: isScanning,
+                    busy: isScanning,
+                  }}
+                >
+                  {isScanning ? (
+                    <ActivityIndicator
+                      size="small"
+                      color={colors.accent.cyan}
+                    />
+                  ) : (
+                    <Icon name="radar" size={16} color={colors.accent.cyan} />
+                  )}
+                  <Text style={styles.scanBtnText}>
+                    {isScanning ? "Scanning…" : "Scan path"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
 
               {scanResult ? (
                 <View
@@ -504,6 +537,19 @@ export const NewProjectScreen = memo(function NewProjectScreen({
           </View>
         </Animated.View>
       </KeyboardAvoidingView>
+
+      {machineId ? (
+        <FolderPickerModal
+          visible={pickerVisible}
+          machineId={machineId}
+          onClose={() => setPickerVisible(false)}
+          onSelect={(path) => {
+            setProjectPath(path);
+            setScanResult(null);
+            setErrors((e) => ({ ...e, projectPath: "" }));
+          }}
+        />
+      ) : null}
     </SafeAreaView>
   );
 });
@@ -597,12 +643,31 @@ const styles = StyleSheet.create({
   inputError: {
     borderColor: colors.semantic.error + "80",
   },
+  pathActions: {
+    flexDirection: "row",
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  browseBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.base,
+    borderWidth: 1,
+    borderColor: colors.primary.purple + "55",
+    backgroundColor: colors.primary.purple + "14",
+  },
+  browseBtnText: {
+    fontSize: typography.size.sm,
+    fontWeight: "600",
+    color: colors.primary.purple,
+  },
   scanBtn: {
     flexDirection: "row",
     alignItems: "center",
-    alignSelf: "flex-start",
     gap: spacing.xs,
-    marginTop: spacing.sm,
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.sm,
     borderRadius: borderRadius.base,
