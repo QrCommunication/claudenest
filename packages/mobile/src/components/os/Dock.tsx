@@ -64,7 +64,14 @@ const DockItem = memo(function DockItem({
       onLongPress={onLongPress}
       delayLongPress={350}
       accessibilityRole="button"
-      accessibilityLabel={`Open session ${sessionLabel(session)} (long-press to terminate)`}
+      accessibilityState={{ selected: active }}
+      accessibilityLabel={[
+        `Open session ${sessionLabel(session)}`,
+        needsAttention ? "needs attention" : null,
+        "long-press to terminate",
+      ]
+        .filter(Boolean)
+        .join(", ")}
     >
       <View
         style={[
@@ -151,8 +158,20 @@ export const ClaudeOSDock = memo(function ClaudeOSDock() {
         { left: isExpanded ? layout.os.railWidth : 0, bottom: bottomOffset },
       ]}
     >
-      <View style={styles.dock}>
-        <View style={styles.handle}>
+      <View
+        style={styles.dock}
+        accessibilityRole="toolbar"
+        accessibilityLabel={
+          attentionCount > 0
+            ? `Session dock, ${live.length} live, ${attentionCount} need attention`
+            : `Session dock, ${live.length} live`
+        }
+      >
+        <View
+          style={styles.handle}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+        >
           <Icon name="dock" size={14} color={colors.accent.cyan} />
           <Text style={styles.handleText}>{live.length}</Text>
           {attentionCount > 0 ? (

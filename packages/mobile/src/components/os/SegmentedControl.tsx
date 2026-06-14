@@ -48,7 +48,11 @@ export function SegmentedControl<T extends string>({
             activeOpacity={0.7}
             accessibilityRole="tab"
             accessibilityState={{ selected: isActive }}
-            accessibilityLabel={opt.label}
+            accessibilityLabel={
+              typeof opt.count === "number"
+                ? `${opt.label}, ${opt.count}`
+                : opt.label
+            }
           >
             {opt.icon ? (
               <Icon

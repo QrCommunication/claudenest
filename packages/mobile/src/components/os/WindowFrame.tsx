@@ -60,12 +60,20 @@ export const WindowFrame = memo(function WindowFrame({
       ]}
     >
       <View style={styles.header}>
-        <View style={styles.lights}>
+        <View
+          style={styles.lights}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+        >
           {TRAFFIC.map((c) => (
             <View key={c} style={[styles.light, { backgroundColor: c }]} />
           ))}
         </View>
-        <View style={styles.titleWrap}>
+        <View
+          style={styles.titleWrap}
+          accessibilityRole="header"
+          accessibilityLabel={subtitle ? `${title}, ${subtitle}` : title}
+        >
           <Text style={styles.title} numberOfLines={1}>
             {title}
           </Text>
