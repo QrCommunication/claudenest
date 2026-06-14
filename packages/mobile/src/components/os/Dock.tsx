@@ -11,7 +11,7 @@
  * bar) it docks bottom-centered macOS-style.
  */
 
-import React, { memo, useMemo } from "react";
+import React, { memo, useCallback, useMemo } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -35,6 +35,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { useSessionsStore } from "@/stores/sessionsStore";
 import { useAttentionStore } from "@/stores/attentionStore";
 import { navigateToSession } from "@/navigation/navigationRef";
+import { showAlert } from "@/services/dialog";
 import type { Session, SessionStatus } from "@/types";
 
 const LIVE_STATUSES = new Set<SessionStatus>([
@@ -74,20 +75,24 @@ interface DockItemProps {
   session: Session;
   active: boolean;
   needsAttention: boolean;
+  onLongPress: () => void;
 }
 
 const DockItem = memo(function DockItem({
   session,
   active,
   needsAttention,
+  onLongPress,
 }: DockItemProps) {
   return (
     <TouchableOpacity
       style={styles.item}
       activeOpacity={0.8}
       onPress={() => navigateToSession(session.id)}
+      onLongPress={onLongPress}
+      delayLongPress={350}
       accessibilityRole="button"
-      accessibilityLabel={`Open session ${sessionLabel(session)}`}
+      accessibilityLabel={`Open session ${sessionLabel(session)} (long-press to terminate)`}
     >
       <View
         style={[
@@ -126,9 +131,32 @@ export const ClaudeOSDock = memo(function ClaudeOSDock() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const sessions = useSessionsStore((s) => s.sessions);
   const selectedId = useSessionsStore((s) => s.selectedSessionId);
+  const terminateSession = useSessionsStore((s) => s.terminateSession);
   const attention = useAttentionStore((s) => s.bySession);
 
   const live = useMemo(() => sessions.filter(isLiveSession), [sessions]);
+
+  const handleTerminate = useCallback(
+    (session: Session) => {
+      showAlert(
+        "Terminate session",
+        `Stop "${sessionLabel(session)}"? The running Claude session will be ended.`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Terminate",
+            style: "destructive",
+            onPress: () => {
+              void terminateSession(session.id).catch(() =>
+                showAlert("Error", "Failed to terminate the session."),
+              );
+            },
+          },
+        ],
+      );
+    },
+    [terminateSession],
+  );
   const attentionCount = useMemo(
     () => live.filter((s) => attention[s.id]).length,
     [live, attention],
@@ -173,6 +201,7 @@ export const ClaudeOSDock = memo(function ClaudeOSDock() {
               session={s}
               active={s.id === selectedId}
               needsAttention={Boolean(attention[s.id])}
+              onLongPress={() => handleTerminate(s)}
             />
           ))}
         </ScrollView>
