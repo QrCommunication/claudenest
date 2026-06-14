@@ -76,6 +76,10 @@ interface ProjectsState {
   fetchArchivedProjects: (machineId: string) => Promise<void>;
   archiveProject: (id: string) => Promise<void>;
   unarchiveProject: (id: string) => Promise<void>;
+  /** Realtime: drop an externally-archived project from the active list. */
+  applyProjectArchived: (projectId: string) => void;
+  /** Realtime: an externally-restored project re-enters the active list. */
+  applyProjectUnarchived: (projectId: string, machineId?: string) => void;
 
   // Actions - Tasks
   fetchTasks: (projectId: string) => Promise<void>;
@@ -281,6 +285,29 @@ export const useProjectsStore = create<ProjectsState>()(
           archivedProjects: state.archivedProjects.filter((p) => p.id !== id),
           projects: [project, ...state.projects.filter((p) => p.id !== id)],
         }));
+      },
+
+      applyProjectArchived: (projectId: string) => {
+        set((state) => {
+          if (!state.projects.some((p) => p.id === projectId)) return state;
+          return {
+            projects: state.projects.filter((p) => p.id !== projectId),
+            selectedProjectId:
+              state.selectedProjectId === projectId
+                ? null
+                : state.selectedProjectId,
+          };
+        });
+      },
+
+      applyProjectUnarchived: (projectId: string, machineId?: string) => {
+        set((state) => ({
+          archivedProjects: state.archivedProjects.filter(
+            (p) => p.id !== projectId,
+          ),
+        }));
+        // Re-fetch the active list to pull the restored project with full data.
+        if (machineId) void get().fetchProjects(machineId);
       },
 
       // Tasks

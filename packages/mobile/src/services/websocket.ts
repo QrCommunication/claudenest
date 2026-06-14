@@ -249,6 +249,12 @@ class WebSocketService {
       )
       .listen(".machine.command", (e: ReverbPayload) =>
         this.emit("machine:status", { machineId, ...e }),
+      )
+      .listen(".project.archived", (e: ReverbPayload) =>
+        this.emit("project:archived", { machineId, ...e }),
+      )
+      .listen(".project.unarchived", (e: ReverbPayload) =>
+        this.emit("project:unarchived", { machineId, ...e }),
       );
   }
 

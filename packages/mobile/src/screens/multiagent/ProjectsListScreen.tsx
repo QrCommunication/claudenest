@@ -20,6 +20,7 @@ import { colors, spacing, borderRadius, typography } from "@/theme";
 import { useProjectsStore } from "@/stores/projectsStore";
 import { useMachinesStore } from "@/stores/machinesStore";
 import { showAlert } from "@/services/dialog";
+import { websocket } from "@/services/websocket";
 import type { SharedProject } from "@/types";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { ProjectsStackParamList } from "@/navigation/types";
@@ -112,6 +113,8 @@ export const ProjectsListScreen: React.FC<Props> = ({ navigation }) => {
     fetchArchivedProjects,
     archiveProject,
     unarchiveProject,
+    applyProjectArchived,
+    applyProjectUnarchived,
     clearError,
   } = useProjectsStore();
   const { machines, fetchMachines } = useMachinesStore();
@@ -125,6 +128,27 @@ export const ProjectsListScreen: React.FC<Props> = ({ navigation }) => {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Realtime archive/restore (another device or a worker) — keep the active
+  // and archived lists in sync. Only the internal listeners are torn down;
+  // the Echo machine channel is left joined (MachineDetail may share it).
+  useEffect(() => {
+    machines.forEach((m) => websocket.subscribeToMachine(m.id));
+
+    const offArchived = websocket.on("project:archived", (raw) => {
+      const p = raw as { project_id?: string };
+      if (p.project_id) applyProjectArchived(p.project_id);
+    });
+    const offUnarchived = websocket.on("project:unarchived", (raw) => {
+      const p = raw as { project_id?: string; machine_id?: string };
+      if (p.project_id) applyProjectUnarchived(p.project_id, p.machine_id);
+    });
+
+    return () => {
+      offArchived();
+      offUnarchived();
+    };
+  }, [machines, applyProjectArchived, applyProjectUnarchived]);
 
   const handleRefresh = useCallback(() => {
     machines.forEach((m) => fetchProjects(m.id));
