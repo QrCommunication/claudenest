@@ -33,6 +33,10 @@ interface CardProps {
   onLongPress?: () => void;
   disabled?: boolean;
   entering?: boolean;
+  /** Override the auto-derived screen-reader label (else children text is used). */
+  accessibilityLabel?: string;
+  /** Describe a secondary action (e.g. "Long-press to archive"). */
+  accessibilityHint?: string;
 }
 
 export const Card = memo(function Card({
@@ -42,6 +46,8 @@ export const Card = memo(function Card({
   onLongPress,
   disabled,
   entering = true,
+  accessibilityLabel,
+  accessibilityHint,
 }: CardProps) {
   const scale = useSharedValue(1);
 
@@ -78,6 +84,8 @@ export const Card = memo(function Card({
         disabled={disabled}
         accessibilityRole="button"
         accessibilityState={{ disabled }}
+        accessibilityLabel={accessibilityLabel}
+        accessibilityHint={accessibilityHint}
         style={animatedStyle}
       >
         <Animated.View

@@ -40,7 +40,13 @@ const ProjectCard: React.FC<{
   onPress: () => void;
   onLongPress: () => void;
 }> = ({ project, onPress, onLongPress }) => (
-  <Card onPress={onPress} onLongPress={onLongPress} style={styles.projectCard}>
+  <Card
+    onPress={onPress}
+    onLongPress={onLongPress}
+    style={styles.projectCard}
+    accessibilityLabel={`Project ${project.name}, ${project.projectPath}`}
+    accessibilityHint="Long-press to archive"
+  >
     <View style={styles.projectHeader}>
       <View style={styles.iconContainer}>
         <Icon name="folder-shared" size={24} color={colors.primary.purple} />
@@ -90,6 +96,9 @@ const ArchivedRow: React.FC<{
       onPress={onRestore}
       disabled={restoring}
       activeOpacity={0.8}
+      accessibilityRole="button"
+      accessibilityLabel={`Restore project ${project.name}`}
+      accessibilityState={{ disabled: restoring, busy: restoring }}
     >
       {restoring ? (
         <ActivityIndicator size="small" color={colors.accent.cyan} />
@@ -253,6 +262,9 @@ export const ProjectsListScreen: React.FC<Props> = ({ navigation }) => {
         style={styles.archivedHeader}
         onPress={handleToggleArchived}
         activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: archivedExpanded }}
+        accessibilityLabel={`Archived projects, ${uniqueArchived.length}`}
       >
         <Icon
           name={archivedExpanded ? "expand-more" : "chevron-right"}
