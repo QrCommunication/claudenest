@@ -1,19 +1,22 @@
 /**
  * PlanningScreen
  * Merged Epics + Sprints view (web parity: the "Planning" project tab).
- * A lightweight segmented control switches between the two existing boards —
- * no material-top-tabs dependency, just local state.
+ *
+ * Uses the shared OS primitives: a reusable `SegmentedControl` switches between
+ * the two boards, and the active board is framed in a `WindowFrame`. On tablet
+ * the column is centered and width-capped via `useResponsiveLayout`.
  */
 
-import React, { memo, useCallback, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { MaterialIcons as Icon } from "@expo/vector-icons";
+import React, { useCallback, useMemo, useState } from "react";
+import { StyleSheet, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type {
   PlanningSegment,
   ProjectsStackParamList,
 } from "@/navigation/types";
-import { borderRadius, colors, spacing, typography } from "@/theme";
+import { colors, layout, spacing } from "@/theme";
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
+import { SegmentedControl, WindowFrame } from "@/components/os";
 import { useEpicsStore } from "@/stores/epicsStore";
 import { useSprintsStore } from "@/stores/sprintsStore";
 import { EpicsBoard } from "./EpicsBoard";
@@ -21,64 +24,12 @@ import { SprintsBoard } from "./SprintsBoard";
 
 type Props = NativeStackScreenProps<ProjectsStackParamList, "Planning">;
 
-// ==================== SEGMENTED CONTROL ====================
-
-interface SegmentButtonProps {
-  label: string;
-  icon: React.ComponentProps<typeof Icon>["name"];
-  count: number;
-  isActive: boolean;
-  onPress: () => void;
-}
-
-const SegmentButton = memo(function SegmentButton({
-  label,
-  icon,
-  count,
-  isActive,
-  onPress,
-}: SegmentButtonProps) {
-  return (
-    <TouchableOpacity
-      style={[styles.segment, isActive && styles.segmentActive]}
-      onPress={onPress}
-      activeOpacity={0.7}
-      accessibilityRole="tab"
-      accessibilityState={{ selected: isActive }}
-    >
-      <Icon
-        name={icon}
-        size={16}
-        color={isActive ? colors.primary.purple : colors.text.muted}
-      />
-      <Text
-        style={[styles.segmentLabel, isActive && styles.segmentLabelActive]}
-      >
-        {label}
-      </Text>
-      <View
-        style={[styles.segmentCount, isActive && styles.segmentCountActive]}
-      >
-        <Text
-          style={[
-            styles.segmentCountText,
-            isActive && styles.segmentCountTextActive,
-          ]}
-        >
-          {count > 99 ? "99+" : count}
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
-});
-
-// ==================== MAIN SCREEN ====================
-
 export const PlanningScreen: React.FC<Props> = ({ route }) => {
   const { projectId, segment: initialSegment } = route.params;
   const [segment, setSegment] = useState<PlanningSegment>(
     initialSegment ?? "epics",
   );
+  const { isExpanded } = useResponsiveLayout();
 
   const epicsCount = useEpicsStore(
     (s) => s.getEpicsByProject(projectId).length,
@@ -87,98 +38,70 @@ export const PlanningScreen: React.FC<Props> = ({ route }) => {
     (s) => s.getSprintsByProject(projectId).length,
   );
 
-  const showEpics = useCallback(() => setSegment("epics"), []);
-  const showSprints = useCallback(() => setSegment("sprints"), []);
+  const options = useMemo(
+    () => [
+      {
+        value: "epics" as const,
+        label: "Epics",
+        icon: "flag" as const,
+        count: epicsCount,
+      },
+      {
+        value: "sprints" as const,
+        label: "Sprints",
+        icon: "loop" as const,
+        count: sprintsCount,
+      },
+    ],
+    [epicsCount, sprintsCount],
+  );
+
+  const handleChange = useCallback((v: PlanningSegment) => setSegment(v), []);
 
   return (
     <View style={styles.container}>
-      <View style={styles.segmentBar} accessibilityRole="tablist">
-        <SegmentButton
-          label="Epics"
-          icon="flag"
-          count={epicsCount}
-          isActive={segment === "epics"}
-          onPress={showEpics}
+      <View style={[styles.column, isExpanded && styles.columnExpanded]}>
+        <SegmentedControl
+          options={options}
+          value={segment}
+          onChange={handleChange}
         />
-        <SegmentButton
-          label="Sprints"
-          icon="loop"
-          count={sprintsCount}
-          isActive={segment === "sprints"}
-          onPress={showSprints}
-        />
-      </View>
 
-      <View style={styles.content}>
-        {segment === "epics" ? (
-          <EpicsBoard projectId={projectId} />
-        ) : (
-          <SprintsBoard projectId={projectId} />
-        )}
+        <WindowFrame
+          title={segment === "epics" ? "epics.board" : "sprints.board"}
+          subtitle={`${segment === "epics" ? epicsCount : sprintsCount} items`}
+          flush
+          style={styles.window}
+        >
+          {segment === "epics" ? (
+            <EpicsBoard projectId={projectId} />
+          ) : (
+            <SprintsBoard projectId={projectId} />
+          )}
+        </WindowFrame>
       </View>
     </View>
   );
 };
 
-// ==================== STYLES ====================
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.dark2,
-  },
-  segmentBar: {
-    flexDirection: "row",
-    gap: spacing.xs,
-    backgroundColor: colors.background.dark3,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border.default,
-    padding: spacing.xs,
-    marginHorizontal: spacing.md,
-    marginTop: spacing.md,
-  },
-  segment: {
-    flex: 1,
-    flexDirection: "row",
+    backgroundColor: colors.bg.secondary,
     alignItems: "center",
-    justifyContent: "center",
-    gap: spacing.xs,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.base,
   },
-  segmentActive: {
-    backgroundColor: "rgba(168,85,247,0.15)",
-  },
-  segmentLabel: {
-    fontSize: typography.size.sm,
-    fontWeight: "600",
-    color: colors.text.muted,
-  },
-  segmentLabelActive: {
-    color: colors.primary.purple,
-  },
-  segmentCount: {
-    minWidth: 18,
-    height: 18,
-    borderRadius: borderRadius.full,
-    backgroundColor: colors.background.dark4,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 4,
-  },
-  segmentCountActive: {
-    backgroundColor: "rgba(168,85,247,0.3)",
-  },
-  segmentCountText: {
-    fontSize: typography.size.xs,
-    fontWeight: "700",
-    color: colors.text.muted,
-  },
-  segmentCountTextActive: {
-    color: colors.primary.purple,
-  },
-  content: {
+  column: {
     flex: 1,
+    width: "100%",
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
+    gap: spacing.md,
+  },
+  columnExpanded: {
+    maxWidth: layout.os.contentMaxWidth,
+  },
+  window: {
+    flex: 1,
+    marginBottom: spacing.md,
   },
 });

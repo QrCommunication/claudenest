@@ -1,10 +1,20 @@
-import { colors } from './colors';
-import { typography } from './typography';
-import { spacing } from './spacing';
-import { borderRadius } from './borderRadius';
-import { shadows } from './shadows';
+import { colors } from "./colors";
+import { typography } from "./typography";
+import { spacing } from "./spacing";
+import { borderRadius } from "./borderRadius";
+import { shadows } from "./shadows";
+import { layout, breakpoints } from "./layout";
 
-export { colors, typography, spacing, borderRadius, shadows };
+export {
+  colors,
+  typography,
+  spacing,
+  borderRadius,
+  shadows,
+  layout,
+  breakpoints,
+};
+export type { DeviceClass, Layout } from "./layout";
 
 export const theme = {
   colors,
@@ -12,6 +22,7 @@ export const theme = {
   spacing,
   borderRadius,
   shadows,
+  layout,
 } as const;
 
 export type Theme = typeof theme;
