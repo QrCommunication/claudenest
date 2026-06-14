@@ -53,6 +53,7 @@ export type ProjectsStackParamList = {
   Planning: { projectId: string; segment?: PlanningSegment };
   PlanningChat: { projectId: string };
   Orchestration: { projectId: string };
+  Git: { projectId: string };
 };
 
 // Settings Stack

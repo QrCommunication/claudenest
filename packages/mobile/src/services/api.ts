@@ -571,4 +571,29 @@ export const credentialsApi = {
     apiClient.post(`/credentials/${id}/oauth/initiate`),
 };
 
+// ============================================================
+// Git worktree + pull requests (server proxies to the sandboxed agent)
+// ============================================================
+export const gitApi = {
+  status: (projectId: string) =>
+    api.get<import("@/types").GitStatus>(`/projects/${projectId}/git/status`),
+
+  pulls: (projectId: string) =>
+    api.get<{
+      pulls: import("@/types").PullRequest[];
+      sandboxed: boolean;
+    }>(`/projects/${projectId}/pulls`),
+
+  merge: (
+    projectId: string,
+    number: number,
+    method: import("@/types").MergeMethod = "squash",
+    deleteBranch = true,
+  ) =>
+    api.post<{ merged: boolean; number: number; sandboxed: boolean }>(
+      `/projects/${projectId}/pulls/${number}/merge`,
+      { method, delete_branch: deleteBranch },
+    ),
+};
+
 export default apiClient;

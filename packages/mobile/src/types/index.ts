@@ -544,3 +544,39 @@ export interface ApiError {
   message: string;
   status: number;
 }
+
+// ============================================================
+// Git worktree + pull requests (web parity: stores/git.ts)
+// ============================================================
+
+export interface GitFileChange {
+  path: string;
+  /** Two-letter porcelain code, e.g. " M", "??", "A ". */
+  code: string;
+}
+
+export interface GitStatus {
+  branch: string | null;
+  ahead: number;
+  behind: number;
+  clean: boolean;
+  files: GitFileChange[];
+  remote_url: string | null;
+  last_commit: string | null;
+  sandboxed: boolean;
+}
+
+export interface PullRequest {
+  number: number;
+  title: string;
+  headRefName: string;
+  baseRefName: string;
+  isDraft: boolean;
+  mergeable?: string;
+  mergeStateStatus?: string;
+  url: string;
+  createdAt: string;
+  author?: { login?: string } | null;
+}
+
+export type MergeMethod = "squash" | "merge" | "rebase";

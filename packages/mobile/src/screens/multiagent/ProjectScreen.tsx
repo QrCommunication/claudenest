@@ -53,6 +53,7 @@ type TabKey =
   | "planning"
   | "context"
   | "locks"
+  | "git"
   | "orchestration"
   | "assistant";
 
@@ -69,6 +70,7 @@ const TABS: TabConfig[] = [
   { key: "planning", label: "Planning", icon: "event-note" },
   { key: "context", label: "Context", icon: "description" },
   { key: "locks", label: "Locks", icon: "lock" },
+  { key: "git", label: "Git", icon: "merge-type" },
   { key: "orchestration", label: "Orchestration", icon: "account-tree" },
   { key: "assistant", label: "Assistant", icon: "chat" },
 ];
@@ -745,6 +747,17 @@ export const ProjectScreen: React.FC<Props> = ({ route, navigation }) => {
             description={`${locks.length} active lock${locks.length !== 1 ? "s" : ""}`}
             actionLabel="Open Locks"
             onAction={() => navigation.navigate("Locks", { projectId })}
+          />
+        );
+
+      case "git":
+        return (
+          <PlaceholderTab
+            icon="merge-type"
+            title="Git & Pull Requests"
+            description="Worktree status and PR merge for this project"
+            actionLabel="Open Git"
+            onAction={() => navigation.navigate("Git", { projectId })}
           />
         );
 
