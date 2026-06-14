@@ -21,6 +21,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons as Icon } from "@expo/vector-icons";
 import { colors, spacing, borderRadius, typography } from "@/theme";
 import { useEpicsStore } from "@/stores/epicsStore";
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 import { useFadeIn } from "@/utils/animations";
 import { EpicCard } from "@/components/multiagent/EpicCard";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -269,6 +270,8 @@ export const EpicsBoard = memo(function EpicsBoard({
 }: EpicsBoardProps) {
   const navigation =
     useNavigation<NativeStackNavigationProp<ProjectsStackParamList>>();
+  const { isExpanded } = useResponsiveLayout();
+  const numColumns = isExpanded ? 2 : 1;
   const {
     getEpicsByProject,
     fetchEpics,
@@ -346,13 +349,15 @@ export const EpicsBoard = memo(function EpicsBoard({
 
   const renderItem = useCallback(
     ({ item }: { item: Epic }) => (
-      <EpicCard
-        epic={item}
-        onPress={handleEpicPress}
-        onLongPress={handleDeleteEpic}
-      />
+      <View style={numColumns > 1 ? styles.gridCell : undefined}>
+        <EpicCard
+          epic={item}
+          onPress={handleEpicPress}
+          onLongPress={handleDeleteEpic}
+        />
+      </View>
     ),
-    [handleEpicPress, handleDeleteEpic],
+    [handleEpicPress, handleDeleteEpic, numColumns],
   );
 
   const keyExtractor = useCallback((item: Epic) => item.id, []);
@@ -392,9 +397,12 @@ export const EpicsBoard = memo(function EpicsBoard({
       ) : null}
 
       <FlatList
+        key={`cols-${numColumns}`}
         data={epics}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
+        numColumns={numColumns}
+        columnWrapperStyle={numColumns > 1 ? styles.columnWrapper : undefined}
         ListHeaderComponent={
           <ListHeaderComponent
             total={epics.length}
@@ -450,6 +458,13 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     paddingBottom: spacing.xl + 64, // FAB clearance
     flexGrow: 1,
+  },
+  // Tablet/landscape 2-column grid.
+  columnWrapper: {
+    gap: spacing.md,
+  },
+  gridCell: {
+    flex: 1,
   },
   // Summary header
   listHeader: {
