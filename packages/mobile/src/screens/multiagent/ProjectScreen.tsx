@@ -37,7 +37,10 @@ import {
   LoadingSpinner,
 } from "@/components/common";
 import { InstanceCard } from "@/components/multiagent";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type {
+  NativeStackNavigationProp,
+  NativeStackScreenProps,
+} from "@react-navigation/native-stack";
 import type { ProjectsStackParamList } from "@/navigation/types";
 import type { SharedProject, ClaudeInstance } from "@/types";
 
@@ -578,11 +581,26 @@ const placeholderStyles = StyleSheet.create({
 });
 
 // ---------------------------------------------------------------------------
-// ProjectScreen
+// ProjectDetailContent — the project detail body, decoupled from route params
+// so it can be embedded in the tablet master-detail split (right pane) as well
+// as rendered as a full screen. Sub-tabs still push onto the shared stack.
 // ---------------------------------------------------------------------------
 
-export const ProjectScreen: React.FC<Props> = ({ route, navigation }) => {
-  const { projectId } = route.params;
+interface ProjectDetailContentProps {
+  projectId: string;
+  // Only `navigate` is needed; typing it this way lets BOTH the ProjectDetail
+  // route nav (full screen) and the ProjectsList route nav (tablet split) pass
+  // without setParams variance friction.
+  navigation: Pick<
+    NativeStackNavigationProp<ProjectsStackParamList>,
+    "navigate"
+  >;
+}
+
+export const ProjectDetailContent: React.FC<ProjectDetailContentProps> = ({
+  projectId,
+  navigation,
+}) => {
   const {
     getProjectById,
     fetchProject,
@@ -855,6 +873,18 @@ export const ProjectScreen: React.FC<Props> = ({ route, navigation }) => {
     </View>
   );
 };
+
+// ---------------------------------------------------------------------------
+// ProjectScreen — thin route wrapper (full-screen, phone flow). The detail body
+// lives in ProjectDetailContent so the tablet split can reuse it.
+// ---------------------------------------------------------------------------
+
+export const ProjectScreen: React.FC<Props> = ({ route, navigation }) => (
+  <ProjectDetailContent
+    projectId={route.params.projectId}
+    navigation={navigation}
+  />
+);
 
 // ---------------------------------------------------------------------------
 // Styles

@@ -32,6 +32,7 @@ import {
   ErrorMessage,
   Card,
 } from "@/components/common";
+import { ProjectDetailContent } from "@/screens/multiagent/ProjectScreen";
 
 type Props = NativeStackScreenProps<ProjectsStackParamList, "ProjectsList">;
 
@@ -39,11 +40,16 @@ const ProjectCard: React.FC<{
   project: SharedProject;
   onPress: () => void;
   onLongPress: () => void;
-}> = ({ project, onPress, onLongPress }) => (
+  selected?: boolean;
+}> = ({ project, onPress, onLongPress, selected }) => (
   <Card
     onPress={onPress}
     onLongPress={onLongPress}
-    style={styles.projectCard}
+    style={
+      selected
+        ? { ...styles.projectCard, ...styles.projectCardSelected }
+        : styles.projectCard
+    }
     accessibilityLabel={`Project ${project.name}, ${project.projectPath}`}
     accessibilityHint="Long-press to archive"
   >
@@ -128,11 +134,18 @@ export const ProjectsListScreen: React.FC<Props> = ({ navigation }) => {
     clearError,
   } = useProjectsStore();
   const { machines, fetchMachines } = useMachinesStore();
-  const { isExpanded } = useResponsiveLayout();
-  const numColumns = isExpanded ? 2 : 1;
+  const { isExpanded, isWide } = useResponsiveLayout();
+  // On a wide surface (≥1024) switch to a master-detail split: the list is the
+  // left rail (1 column) and the selected project renders inline on the right.
+  // Otherwise keep the full-screen flow (2-col grid when expanded, else 1).
+  const useSplit = isWide;
+  const numColumns = useSplit ? 1 : isExpanded ? 2 : 1;
 
   const [archivedExpanded, setArchivedExpanded] = useState(false);
   const [restoringId, setRestoringId] = useState<string | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     fetchMachines().then(() => {
@@ -171,9 +184,13 @@ export const ProjectsListScreen: React.FC<Props> = ({ navigation }) => {
 
   const handlePressProject = useCallback(
     (project: SharedProject) => {
-      navigation.navigate("ProjectDetail", { projectId: project.id });
+      if (useSplit) {
+        setSelectedProjectId(project.id);
+      } else {
+        navigation.navigate("ProjectDetail", { projectId: project.id });
+      }
     },
-    [navigation],
+    [navigation, useSplit],
   );
 
   const handleArchive = useCallback(
@@ -233,6 +250,22 @@ export const ProjectsListScreen: React.FC<Props> = ({ navigation }) => {
     [projects],
   );
 
+  // Keep the split selection coherent: default to the first project on a wide
+  // surface, drop a selection that no longer exists, and clear it entirely when
+  // we leave split mode so the phone flow starts fresh.
+  useEffect(() => {
+    if (!useSplit) {
+      if (selectedProjectId !== null) setSelectedProjectId(null);
+      return;
+    }
+    const stillExists =
+      selectedProjectId !== null &&
+      activeProjects.some((p) => p.id === selectedProjectId);
+    if (!stillExists) {
+      setSelectedProjectId(activeProjects[0]?.id ?? null);
+    }
+  }, [useSplit, activeProjects, selectedProjectId]);
+
   const uniqueArchived = useMemo(
     () =>
       archivedProjects.filter(
@@ -248,10 +281,17 @@ export const ProjectsListScreen: React.FC<Props> = ({ navigation }) => {
           project={item}
           onPress={() => handlePressProject(item)}
           onLongPress={() => handleArchive(item)}
+          selected={useSplit && item.id === selectedProjectId}
         />
       </View>
     ),
-    [handlePressProject, handleArchive, numColumns],
+    [
+      handlePressProject,
+      handleArchive,
+      numColumns,
+      useSplit,
+      selectedProjectId,
+    ],
   );
 
   const keyExtractor = useCallback((item: SharedProject) => item.id, []);
@@ -306,6 +346,35 @@ export const ProjectsListScreen: React.FC<Props> = ({ navigation }) => {
     return <LoadingSpinner text="Loading projects..." fullScreen />;
   }
 
+  const listView = (
+    <FlatList
+      // numColumns can't change without remounting — key on it.
+      key={`cols-${numColumns}`}
+      data={activeProjects}
+      renderItem={renderItem}
+      keyExtractor={keyExtractor}
+      numColumns={numColumns}
+      columnWrapperStyle={numColumns > 1 ? styles.columnWrapper : undefined}
+      contentContainerStyle={styles.listContent}
+      refreshControl={
+        <RefreshControl
+          refreshing={isLoading}
+          onRefresh={handleRefresh}
+          tintColor={colors.primary.purple}
+          colors={[colors.primary.purple]}
+        />
+      }
+      ListEmptyComponent={
+        <EmptyState
+          icon="folder-shared"
+          title="No projects"
+          description="Create a project to enable multi-agent collaboration"
+        />
+      }
+      ListFooterComponent={ArchivedSection}
+    />
+  );
+
   return (
     <View style={styles.container}>
       {error && (
@@ -316,32 +385,28 @@ export const ProjectsListScreen: React.FC<Props> = ({ navigation }) => {
         />
       )}
 
-      <FlatList
-        // numColumns can't change without remounting — key on it.
-        key={`cols-${numColumns}`}
-        data={activeProjects}
-        renderItem={renderItem}
-        keyExtractor={keyExtractor}
-        numColumns={numColumns}
-        columnWrapperStyle={numColumns > 1 ? styles.columnWrapper : undefined}
-        contentContainerStyle={styles.listContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={isLoading}
-            onRefresh={handleRefresh}
-            tintColor={colors.primary.purple}
-            colors={[colors.primary.purple]}
-          />
-        }
-        ListEmptyComponent={
-          <EmptyState
-            icon="folder-shared"
-            title="No projects"
-            description="Create a project to enable multi-agent collaboration"
-          />
-        }
-        ListFooterComponent={ArchivedSection}
-      />
+      {useSplit ? (
+        <View style={styles.split}>
+          <View style={styles.masterPane}>{listView}</View>
+          <View style={styles.detailPane}>
+            {selectedProjectId ? (
+              <ProjectDetailContent
+                key={selectedProjectId}
+                projectId={selectedProjectId}
+                navigation={navigation}
+              />
+            ) : (
+              <EmptyState
+                icon="touch-app"
+                title="Select a project"
+                description="Pick a project on the left to see its details here."
+              />
+            )}
+          </View>
+        </View>
+      ) : (
+        listView
+      )}
     </View>
   );
 };
@@ -350,6 +415,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background.dark2,
+  },
+  // Tablet master-detail split.
+  split: {
+    flex: 1,
+    flexDirection: "row",
+  },
+  masterPane: {
+    width: 340,
+    borderRightWidth: 1,
+    borderRightColor: colors.border.subtle,
+  },
+  detailPane: {
+    flex: 1,
   },
   listContent: {
     padding: spacing.md,
@@ -365,6 +443,10 @@ const styles = StyleSheet.create({
   },
   projectCard: {
     marginBottom: spacing.md,
+  },
+  projectCardSelected: {
+    borderColor: colors.primary.purple,
+    backgroundColor: colors.background.dark3,
   },
   projectHeader: {
     flexDirection: "row",
