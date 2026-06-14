@@ -18,5 +18,5 @@
     "index.js",
     "src/uniwind-types.d.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "**/*.test.ts", "**/*.test.tsx"]
 }

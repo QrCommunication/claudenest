@@ -36,40 +36,12 @@ import { useSessionsStore } from "@/stores/sessionsStore";
 import { useAttentionStore } from "@/stores/attentionStore";
 import { navigateToSession } from "@/navigation/navigationRef";
 import { showAlert } from "@/services/dialog";
-import type { Session, SessionStatus } from "@/types";
-
-const LIVE_STATUSES = new Set<SessionStatus>([
-  "created",
-  "starting",
-  "running",
-  "waiting_input",
-]);
-
-function isLiveSession(s: Session): boolean {
-  return LIVE_STATUSES.has(s.status);
-}
-
-function dockStatusColor(status: SessionStatus): string {
-  switch (status) {
-    case "running":
-      return colors.status.online;
-    case "waiting_input":
-      return colors.status.warning;
-    case "starting":
-    case "created":
-      return colors.status.connecting;
-    case "error":
-      return colors.status.error;
-    default:
-      return colors.status.idle;
-  }
-}
-
-function sessionLabel(s: Session): string {
-  const base = s.project_path?.split("/").filter(Boolean).pop();
-  if (base) return base;
-  return `sh-${s.id.slice(0, 4)}`;
-}
+import {
+  isLiveSession,
+  sessionLabel,
+  sessionStatusColor,
+} from "@/utils/sessionStatus";
+import type { Session } from "@/types";
 
 interface DockItemProps {
   session: Session;
@@ -109,7 +81,7 @@ const DockItem = memo(function DockItem({
         <View
           style={[
             styles.statusDot,
-            { backgroundColor: dockStatusColor(session.status) },
+            { backgroundColor: sessionStatusColor(session.status) },
           ]}
         />
         {needsAttention ? <View style={styles.attentionDot} /> : null}
