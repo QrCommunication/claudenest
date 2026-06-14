@@ -580,3 +580,19 @@ export interface PullRequest {
 }
 
 export type MergeMethod = "squash" | "merge" | "rebase";
+
+// ============================================================
+// Audit trail (web parity: components/multiagent/AuditTrail.vue)
+// ============================================================
+
+export interface AuditEntry {
+  id: string;
+  type: string;
+  message: string;
+  icon: string | null;
+  color: string | null;
+  instance_id: string | null;
+  details: Record<string, unknown> | null;
+  created_at: string | null;
+  created_at_human: string | null;
+}

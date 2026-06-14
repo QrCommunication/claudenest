@@ -596,4 +596,24 @@ export const gitApi = {
     ),
 };
 
+// ============================================================
+// Audit trail (paginated activity log, no plan gating)
+// ============================================================
+export const auditApi = {
+  list: (
+    projectId: string,
+    params?: {
+      page?: number;
+      per_page?: number;
+      type?: string;
+      instance_id?: string;
+      from?: string;
+      to?: string;
+    },
+  ) =>
+    api.get<import("@/types").AuditEntry[]>(`/projects/${projectId}/audit`, {
+      params,
+    }),
+};
+
 export default apiClient;

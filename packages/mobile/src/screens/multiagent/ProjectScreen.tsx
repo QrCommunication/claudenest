@@ -54,6 +54,7 @@ type TabKey =
   | "context"
   | "locks"
   | "git"
+  | "audit"
   | "orchestration"
   | "assistant";
 
@@ -71,6 +72,7 @@ const TABS: TabConfig[] = [
   { key: "context", label: "Context", icon: "description" },
   { key: "locks", label: "Locks", icon: "lock" },
   { key: "git", label: "Git", icon: "merge-type" },
+  { key: "audit", label: "Audit", icon: "history" },
   { key: "orchestration", label: "Orchestration", icon: "account-tree" },
   { key: "assistant", label: "Assistant", icon: "chat" },
 ];
@@ -758,6 +760,17 @@ export const ProjectScreen: React.FC<Props> = ({ route, navigation }) => {
             description="Worktree status and PR merge for this project"
             actionLabel="Open Git"
             onAction={() => navigation.navigate("Git", { projectId })}
+          />
+        );
+
+      case "audit":
+        return (
+          <PlaceholderTab
+            icon="history"
+            title="Audit Trail"
+            description="Read-only history of all project activity"
+            actionLabel="Open Audit"
+            onAction={() => navigation.navigate("Audit", { projectId })}
           />
         );
 

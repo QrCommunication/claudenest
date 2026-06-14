@@ -19,6 +19,7 @@ import { PlanningScreen } from "@/screens/multiagent/PlanningScreen";
 import { PlanningChatScreen } from "@/screens/multiagent/PlanningChatScreen";
 import { OrchestrationScreen } from "@/screens/multiagent/OrchestrationScreen";
 import { GitScreen } from "@/screens/multiagent/GitScreen";
+import { AuditScreen } from "@/screens/multiagent/AuditScreen";
 
 const Stack = createNativeStackNavigator<ProjectsStackParamList>();
 
@@ -87,6 +88,11 @@ export const ProjectsNavigator: React.FC = () => {
         name="Git"
         component={GitScreen}
         options={{ title: "Git & Pull Requests" }}
+      />
+      <Stack.Screen
+        name="Audit"
+        component={AuditScreen}
+        options={{ title: "Audit Trail" }}
       />
     </Stack.Navigator>
   );
