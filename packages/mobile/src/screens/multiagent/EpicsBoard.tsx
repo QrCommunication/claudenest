@@ -25,6 +25,9 @@ import { useFadeIn } from "@/utils/animations";
 import { EpicCard } from "@/components/multiagent/EpicCard";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Modal } from "@/components/common";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { ProjectsStackParamList } from "@/navigation/types";
 import type { Epic } from "@/types";
 
 // ==================== PROPS ====================
@@ -164,12 +167,21 @@ const CreateEpicModal = memo(function CreateEpicModal({
 
 interface FABProps {
   onPress: () => void;
+  onDecompose: () => void;
 }
 
-const FAB = memo(function FAB({ onPress }: FABProps) {
+const FAB = memo(function FAB({ onPress, onDecompose }: FABProps) {
   const fadeStyle = useFadeIn();
   return (
     <Animated.View style={[styles.fabWrap, fadeStyle]}>
+      <TouchableOpacity
+        style={styles.fabSecondary}
+        onPress={onDecompose}
+        activeOpacity={0.85}
+        accessibilityLabel="Decompose a PRD into an epic"
+      >
+        <Icon name="auto-awesome" size={20} color={colors.accent.cyan} />
+      </TouchableOpacity>
       <TouchableOpacity
         style={styles.fab}
         onPress={onPress}
@@ -255,6 +267,8 @@ const ListHeaderComponent = memo(function ListHeaderComponent({
 export const EpicsBoard = memo(function EpicsBoard({
   projectId,
 }: EpicsBoardProps) {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<ProjectsStackParamList>>();
   const {
     getEpicsByProject,
     fetchEpics,
@@ -411,7 +425,12 @@ export const EpicsBoard = memo(function EpicsBoard({
 
       {/* FAB — hidden when list is empty (EmptyState has its own CTA) */}
       {epics.length > 0 ? (
-        <FAB onPress={() => setIsModalVisible(true)} />
+        <FAB
+          onPress={() => setIsModalVisible(true)}
+          onDecompose={() =>
+            navigation.navigate("DecomposeEpic", { projectId })
+          }
+        />
       ) : null}
 
       <CreateEpicModal
@@ -497,6 +516,18 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: spacing.xl,
     right: spacing.md,
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  fabSecondary: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.bg.card,
+    borderWidth: 1,
+    borderColor: colors.accent.cyan,
+    justifyContent: "center",
+    alignItems: "center",
   },
   fab: {
     width: 56,

@@ -21,6 +21,7 @@ import { OrchestrationScreen } from "@/screens/multiagent/OrchestrationScreen";
 import { GitScreen } from "@/screens/multiagent/GitScreen";
 import { AuditScreen } from "@/screens/multiagent/AuditScreen";
 import { SprintDetailScreen } from "@/screens/multiagent/SprintDetailScreen";
+import { DecomposeEpicScreen } from "@/screens/multiagent/DecomposeEpicScreen";
 
 const Stack = createNativeStackNavigator<ProjectsStackParamList>();
 
@@ -99,6 +100,11 @@ export const ProjectsNavigator: React.FC = () => {
         name="SprintDetail"
         component={SprintDetailScreen}
         options={{ title: "Sprint" }}
+      />
+      <Stack.Screen
+        name="DecomposeEpic"
+        component={DecomposeEpicScreen}
+        options={{ title: "Decompose PRD → Epic" }}
       />
     </Stack.Navigator>
   );

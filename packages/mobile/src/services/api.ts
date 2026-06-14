@@ -615,6 +615,34 @@ export const gitApi = {
 };
 
 // ============================================================
+// PRD decomposition → epic (spawns a sandboxed interactive session that
+// submits a master plan; result arrives via the `decompose:result` broadcast)
+// ============================================================
+export const decomposeApi = {
+  decompose: (projectId: string, prd: string, credentialId: string) =>
+    api.post<{ session_id?: string }>(`/projects/${projectId}/decompose`, {
+      prd,
+      credential_id: credentialId,
+    }),
+
+  createEpicFromPlan: (
+    projectId: string,
+    data: {
+      title: string;
+      description?: string;
+      color?: string;
+      icon?: string;
+      priority?: string;
+    },
+  ) =>
+    api.post<{
+      epic: import("@/types").Epic;
+      created: number;
+      sprints: number;
+    }>(`/projects/${projectId}/epics/from-plan`, data),
+};
+
+// ============================================================
 // Audit trail (paginated activity log, no plan gating)
 // ============================================================
 export const auditApi = {

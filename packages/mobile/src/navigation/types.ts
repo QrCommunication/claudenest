@@ -56,6 +56,7 @@ export type ProjectsStackParamList = {
   Git: { projectId: string };
   Audit: { projectId: string };
   SprintDetail: { sprintId: string };
+  DecomposeEpic: { projectId: string };
 };
 
 // Settings Stack
