@@ -423,15 +423,12 @@ export const EpicsBoard = memo(function EpicsBoard({
         }
       />
 
-      {/* FAB — hidden when list is empty (EmptyState has its own CTA) */}
-      {epics.length > 0 ? (
-        <FAB
-          onPress={() => setIsModalVisible(true)}
-          onDecompose={() =>
-            navigation.navigate("DecomposeEpic", { projectId })
-          }
-        />
-      ) : null}
+      {/* FAB — always visible so "decompose a PRD" is reachable even with an
+          empty board (the create CTA in the EmptyState only covers manual epics). */}
+      <FAB
+        onPress={() => setIsModalVisible(true)}
+        onDecompose={() => navigation.navigate("DecomposeEpic", { projectId })}
+      />
 
       <CreateEpicModal
         visible={isModalVisible}

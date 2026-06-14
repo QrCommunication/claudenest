@@ -68,12 +68,14 @@ interface ActiveSprintCardProps {
   sprint: Sprint;
   onStart: (sprint: Sprint) => void;
   onComplete: (sprint: Sprint) => void;
+  onPress: (sprint: Sprint) => void;
 }
 
 const ActiveSprintCard = memo(function ActiveSprintCard({
   sprint,
   onStart,
   onComplete,
+  onPress,
 }: ActiveSprintCardProps) {
   const fadeStyle = useFadeIn();
 
@@ -209,6 +211,16 @@ const ActiveSprintCard = memo(function ActiveSprintCard({
 
       {/* Action buttons */}
       <View style={styles.activeCardActions}>
+        <TouchableOpacity
+          style={[styles.actionBtn, styles.actionBtnDetails]}
+          onPress={() => onPress(sprint)}
+          activeOpacity={0.8}
+        >
+          <Icon name="insights" size={18} color={colors.accent.cyan} />
+          <Text style={[styles.actionBtnText, { color: colors.accent.cyan }]}>
+            Details
+          </Text>
+        </TouchableOpacity>
         {isPlanning && (
           <TouchableOpacity
             style={[styles.actionBtn, styles.actionBtnStart]}
@@ -397,6 +409,7 @@ export const SprintsBoard = memo(function SprintsBoard({
           sprint={featuredSprint}
           onStart={handleStart}
           onComplete={handleComplete}
+          onPress={handleSprintPress}
         />
       ) : null}
 
@@ -660,6 +673,11 @@ const styles = StyleSheet.create({
   },
   actionBtnComplete: {
     backgroundColor: colors.primary.purple,
+  },
+  actionBtnDetails: {
+    backgroundColor: colors.bg.input,
+    borderWidth: 1,
+    borderColor: colors.accent.cyan,
   },
   actionBtnText: {
     fontSize: typography.size.sm,
