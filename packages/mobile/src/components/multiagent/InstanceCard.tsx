@@ -3,13 +3,13 @@
  * Displays a Claude instance in a card format
  */
 
-import React, { memo } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
-import { useFadeIn } from '@/utils/animations';
-import { MaterialIcons as Icon } from '@expo/vector-icons';
-import { colors, spacing, borderRadius, typography } from '@/theme';
-import type { ClaudeInstance, InstanceStatus } from '@/types';
-import { StatusDot } from '@/components/common';
+import React, { memo } from "react";
+import { View, Text, StyleSheet, Animated } from "react-native";
+import { useFadeIn } from "@/utils/animations";
+import { MaterialIcons as Icon } from "@expo/vector-icons";
+import { colors, spacing, borderRadius, typography } from "@/theme";
+import type { ClaudeInstance, InstanceStatus } from "@/types";
+import { StatusDot } from "@/components/common";
 
 interface InstanceCardProps {
   instance: ClaudeInstance;
@@ -20,28 +20,40 @@ export const InstanceCard = memo(function InstanceCard({
 }: InstanceCardProps) {
   const getStatusLabel = (status: InstanceStatus) => {
     switch (status) {
-      case 'active':
-        return 'Active';
-      case 'idle':
-        return 'Idle';
-      case 'busy':
-        return 'Busy';
-      case 'disconnected':
-        return 'Disconnected';
+      case "active":
+        return "Active";
+      case "idle":
+        return "Idle";
+      case "busy":
+        return "Busy";
+      case "disconnected":
+        return "Disconnected";
       default:
         return status;
     }
   };
 
   const contextPercentage = Math.round(
-    (instance.contextTokens / instance.maxContextTokens) * 100
+    (instance.contextTokens / instance.maxContextTokens) * 100,
   );
 
   const fadeStyle = useFadeIn();
 
   return (
     <Animated.View style={fadeStyle}>
-      <View style={styles.container}>
+      <View
+        style={styles.container}
+        accessible
+        accessibilityLabel={[
+          `Instance ${instance.id.slice(0, 8)}`,
+          getStatusLabel(instance.status),
+          `${instance.tasksCompleted} tasks completed`,
+          `${contextPercentage} percent context used`,
+          instance.currentTaskId ? "working on a task" : null,
+        ]
+          .filter(Boolean)
+          .join(", ")}
+      >
         <View style={styles.header}>
           <View style={styles.iconContainer}>
             <Icon name="smart-toy" size={20} color={colors.primary.cyan} />
@@ -50,11 +62,13 @@ export const InstanceCard = memo(function InstanceCard({
             <Text style={styles.id} numberOfLines={1}>
               {instance.id.slice(0, 8)}...
             </Text>
-            <Text style={styles.status}>
-              {getStatusLabel(instance.status)}
-            </Text>
+            <Text style={styles.status}>{getStatusLabel(instance.status)}</Text>
           </View>
-          <StatusDot status={instance.status === 'active' ? 'online' : instance.status} size={10} pulse={instance.status === 'busy'} />
+          <StatusDot
+            status={instance.status === "active" ? "online" : instance.status}
+            size={10}
+            pulse={instance.status === "busy"}
+          />
         </View>
 
         <View style={styles.stats}>
@@ -93,8 +107,8 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: spacing.md,
   },
   iconContainer: {
@@ -102,8 +116,8 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: borderRadius.base,
     backgroundColor: colors.background.dark2,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: spacing.sm,
   },
   titleContainer: {
@@ -111,7 +125,7 @@ const styles = StyleSheet.create({
   },
   id: {
     fontSize: typography.size.base,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.text.primary,
     fontFamily: typography.fontFamily.mono,
   },
@@ -121,19 +135,19 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   stats: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: colors.background.dark2,
     borderRadius: borderRadius.base,
     padding: spacing.md,
   },
   stat: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
   },
   statValue: {
     fontSize: typography.size.lg,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.text.primary,
   },
   statLabel: {
@@ -147,8 +161,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.dark4,
   },
   currentTask: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.xs,
     marginTop: spacing.md,
     paddingTop: spacing.md,

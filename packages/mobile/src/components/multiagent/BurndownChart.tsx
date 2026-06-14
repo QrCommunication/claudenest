@@ -37,9 +37,25 @@ export const BurndownChart = memo(function BurndownChart({
   }
 
   const last = data[data.length - 1];
+  const first = data[0]!;
+
+  // Screen-reader summary: the chart itself is opaque to assistive tech, so we
+  // describe the trajectory and whether the team is ahead/behind the ideal line.
+  const delta = last!.remaining - last!.ideal;
+  const trackVerdict =
+    Math.abs(delta) <= 0.5
+      ? "on track"
+      : delta > 0
+        ? `${Math.round(delta)} points behind the ideal`
+        : `${Math.round(-delta)} points ahead of the ideal`;
+  const chartA11yLabel = `Burndown chart: ${Math.round(first.remaining)} points remaining at the start, ${Math.round(last!.remaining)} now over ${data.length} days, ${trackVerdict}.`;
 
   return (
-    <View>
+    <View
+      accessible
+      accessibilityRole="image"
+      accessibilityLabel={chartA11yLabel}
+    >
       <View style={styles.chart}>
         {data.map((d, i) => {
           const barH = (d.remaining / max) * CHART_HEIGHT;
