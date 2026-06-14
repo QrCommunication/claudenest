@@ -21,6 +21,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use OpenApi\Attributes as OA;
 
 class ProjectController extends Controller
@@ -1006,6 +1007,13 @@ class ProjectController extends Controller
             'max_workers' => 'integer|min:1|max:10',
             'permission_mode' => 'nullable|in:default,plan,acceptEdits,bypassPermissions',
             'coordinator' => 'nullable|boolean',
+            // The credential workers run under — the selected one is used, not
+            // blindly the default. Must belong to the requesting user.
+            'credential_id' => [
+                'nullable',
+                'uuid',
+                Rule::exists('claude_credentials', 'id')->where('user_id', $request->user()->id),
+            ],
         ]);
 
         // bypassPermissions is the explicit, operator-chosen default for
@@ -1019,6 +1027,7 @@ class ProjectController extends Controller
                 (int) ($validated['max_workers'] ?? 3),
                 $validated['permission_mode'] ?? WorkerPoolService::DEFAULT_PERMISSION_MODE,
                 (bool) ($validated['coordinator'] ?? true),
+                $validated['credential_id'] ?? null,
             );
         } catch (WorkerPoolException $e) {
             return $this->errorResponse($e->errorCode, $e->getMessage(), $e->httpStatus);

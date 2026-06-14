@@ -86,7 +86,7 @@ class Session extends Model
 
     // ==================== CONSTANTS ====================
 
-    public const MODES = ['interactive', 'headless', 'oneshot', 'bash'];
+    public const MODES = ['interactive', 'headless', 'bash'];
 
     public const STATUSES = ['created', 'starting', 'running', 'waiting_input', 'completed', 'error', 'terminated'];
 

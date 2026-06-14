@@ -24,6 +24,21 @@ import type { SessionConfig, SessionStatus } from '../types/index.js';
 export const TMUX_SOCKET = 'claudenest';
 export const SESSION_PREFIX = 'cn-';
 
+/**
+ * Full OAuth scope set Claude Code grants itself at login. The synthetic
+ * `.credentials.json` we write for an isolated session MUST carry these —
+ * crucially `user:sessions:claude_code` — otherwise Claude Code does not
+ * consider the token valid for Claude Code sessions and prompts "/login"
+ * even though the access token is perfectly fresh.
+ */
+const CLAUDE_CODE_OAUTH_SCOPES = [
+  'user:file_upload',
+  'user:inference',
+  'user:mcp_servers',
+  'user:profile',
+  'user:sessions:claude_code',
+] as const;
+
 interface TmuxSessionOptions extends SessionConfig {
   claudePath: string;
   sessionId: string;
@@ -339,12 +354,24 @@ export class TmuxSession extends EventEmitter {
     this.linkUserConfigInto(configDir);
 
     // For OAuth: write .credentials.json in Claude Code's native format.
-    // An accessToken alone is treated as a degraded login; refreshToken and
-    // expiresAt (forwarded by the server when the credential has them) let
-    // Claude Code see a complete, non-expired session instead of prompting
-    // for /login.
+    // Completeness is what stops the recurring "/login" prompt with a token
+    // that is NOT expired: Claude Code requires accessToken + refreshToken +
+    // expiresAt AND the full `scopes` (esp. user:sessions:claude_code) plus
+    // the account-level `subscriptionType`/`rateLimitTier`. Account-level
+    // fields come from the server when stored, else from the machine's real
+    // ~/.claude/.credentials.json (same user), else sane defaults.
     if (hasOAuth) {
       const expiresAtMs = Number(credEnv['CLAUDE_CODE_OAUTH_EXPIRES_AT']);
+      const machineMeta = this.readMachineOAuthMeta();
+
+      const scopes = this.parseCsv(credEnv['CLAUDE_CODE_OAUTH_SCOPES'])
+        ?? machineMeta.scopes
+        ?? [...CLAUDE_CODE_OAUTH_SCOPES];
+      const subscriptionType =
+        credEnv['CLAUDE_CODE_OAUTH_SUBSCRIPTION_TYPE'] ?? machineMeta.subscriptionType;
+      const rateLimitTier =
+        credEnv['CLAUDE_CODE_OAUTH_RATE_LIMIT_TIER'] ?? machineMeta.rateLimitTier;
+
       const credsFile = path.join(configDir, '.credentials.json');
       const credsData = JSON.stringify({
         claudeAiOauth: {
@@ -355,7 +382,9 @@ export class TmuxSession extends EventEmitter {
           ...(Number.isFinite(expiresAtMs) && expiresAtMs > 0
             ? { expiresAt: expiresAtMs }
             : {}),
-          scopes: ['user:inference', 'user:profile'],
+          scopes,
+          ...(subscriptionType ? { subscriptionType } : {}),
+          ...(rateLimitTier ? { rateLimitTier } : {}),
         },
       });
       fs.writeFileSync(credsFile, credsData, { mode: 0o600 });
@@ -363,6 +392,9 @@ export class TmuxSession extends EventEmitter {
       delete credEnv['CLAUDE_CODE_OAUTH_TOKEN'];
       delete credEnv['CLAUDE_CODE_OAUTH_REFRESH_TOKEN'];
       delete credEnv['CLAUDE_CODE_OAUTH_EXPIRES_AT'];
+      delete credEnv['CLAUDE_CODE_OAUTH_SCOPES'];
+      delete credEnv['CLAUDE_CODE_OAUTH_SUBSCRIPTION_TYPE'];
+      delete credEnv['CLAUDE_CODE_OAUTH_RATE_LIMIT_TIER'];
     }
 
     // Seed the onboarding/approval state — without it Claude Code re-runs
@@ -379,6 +411,52 @@ export class TmuxSession extends EventEmitter {
       { configDir, hasApiKey, hasOAuth },
       'Credential isolation: created isolated config dir',
     );
+  }
+
+  /** Split a CSV env var into a trimmed string array, or null when absent/empty. */
+  private parseCsv(value: string | undefined): string[] | null {
+    if (!value) return null;
+    const parts = value.split(',').map((s) => s.trim()).filter(Boolean);
+    return parts.length > 0 ? parts : null;
+  }
+
+  /**
+   * Read the account-level OAuth metadata (scopes, subscriptionType,
+   * rateLimitTier) from the machine's real ~/.claude/.credentials.json.
+   *
+   * These describe the Claude account, not a specific token, so they are a
+   * safe fallback for a session whose injected credential lacks them (e.g. a
+   * credential captured before we stored this metadata). Best-effort — returns
+   * empty fields when the file is absent or malformed.
+   */
+  private readMachineOAuthMeta(): {
+    scopes: string[] | null;
+    subscriptionType?: string;
+    rateLimitTier?: string;
+  } {
+    try {
+      const file = path.join(os.homedir(), '.claude', '.credentials.json');
+      const raw = JSON.parse(fs.readFileSync(file, 'utf8')) as {
+        claudeAiOauth?: {
+          scopes?: unknown;
+          subscriptionType?: unknown;
+          rateLimitTier?: unknown;
+        };
+      };
+      const oauth = raw.claudeAiOauth ?? {};
+      const scopes = Array.isArray(oauth.scopes)
+        ? oauth.scopes.filter((s): s is string => typeof s === 'string')
+        : null;
+      return {
+        scopes: scopes && scopes.length > 0 ? scopes : null,
+        subscriptionType:
+          typeof oauth.subscriptionType === 'string' ? oauth.subscriptionType : undefined,
+        rateLimitTier:
+          typeof oauth.rateLimitTier === 'string' ? oauth.rateLimitTier : undefined,
+      };
+    } catch {
+      return { scopes: null };
+    }
   }
 
   /**
@@ -479,9 +557,7 @@ export class TmuxSession extends EventEmitter {
     // particular) can run test/lint/build commands without an approval dialog.
     const permissionMode =
       this.options.permissionMode ??
-      (this.options.mode === 'headless' || this.options.mode === 'oneshot'
-        ? 'acceptEdits'
-        : undefined);
+      (this.options.mode === 'headless' ? 'acceptEdits' : undefined);
     if (permissionMode === 'acceptEdits') {
       settings['permissions'] = {
         allow: [
@@ -708,12 +784,11 @@ export class TmuxSession extends EventEmitter {
 
   /**
    * bwrap argv prefix for sandboxing this worker, or null when sandboxing is
-   * disabled, not applicable (bash/oneshot/non-project), or bwrap is absent.
+   * disabled, not applicable (bash/non-project), or bwrap is absent.
    * Uses the cached bwrap path (install happens once at agent startup).
    */
   private buildSandboxPrefix(): string[] | null {
     if (process.env['CLAUDENEST_SANDBOX'] === '0') return null;
-    if (this.options.mode === 'oneshot') return null;
     if (!this.options.projectPath) return null;
     // Only multi-agent workers carry a runtime/mcp config — sandbox those.
     if (!this.mcpConfigPath) return null;
@@ -741,18 +816,11 @@ export class TmuxSession extends EventEmitter {
       args.push('--append-system-prompt', this.options.appendSystemPrompt);
     }
 
-    // Oneshot utility sessions (PRD decomposition) run claude in print mode:
-    // -p emits the answer on stdout and EXITS. A positional prompt WITHOUT -p
-    // opens the interactive TUI, which never exits on its own — the session
-    // 'exit' event (and the result parse) would never fire.
-    if (this.options.mode === 'oneshot') {
-      args.push('-p');
-    }
-
     // Permission mode: use explicit value if provided, otherwise map legacy
     // headless mode to acceptEdits so it behaves as an auto-accept interactive
-    // session (--headless does not exist). Oneshot stays unprivileged: print
-    // mode answers text and must not be able to edit anything.
+    // session (--headless does not exist). Every session is interactive — the
+    // `claude -p` print-mode path was removed (decomposition now submits its
+    // plan via the submit_master_plan MCP tool instead of parsing stdout).
     const permissionMode =
       this.options.permissionMode ??
       (this.options.mode === 'headless' ? 'acceptEdits' : undefined);

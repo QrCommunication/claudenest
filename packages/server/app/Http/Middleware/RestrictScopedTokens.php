@@ -58,7 +58,12 @@ class RestrictScopedTokens
 
         $scopedProjectId = $this->extractScopedProjectId($token->abilities ?? []);
 
-        if ($scopedProjectId && $this->isAllowed($request, $scopedProjectId, $token->can('planning'))) {
+        if ($scopedProjectId && $this->isAllowed(
+            $request,
+            $scopedProjectId,
+            $token->can('planning'),
+            $token->can('decompose'),
+        )) {
             return $next($request);
         }
 
@@ -91,8 +96,27 @@ class RestrictScopedTokens
         return null;
     }
 
-    private function isAllowed(Request $request, string $scopedProjectId, bool $hasPlanning = false): bool
+    /**
+     * Resolve a route parameter to its scalar key, whether the router gave us a
+     * raw value or a bound Eloquent model (implicit route-model binding).
+     */
+    private function routeParamId(\Illuminate\Routing\Route $route, string $name): ?string
     {
+        $param = $route->parameter($name);
+
+        if ($param instanceof \Illuminate\Database\Eloquent\Model) {
+            return (string) $param->getKey();
+        }
+
+        return $param === null ? null : (string) $param;
+    }
+
+    private function isAllowed(
+        Request $request,
+        string $scopedProjectId,
+        bool $hasPlanning = false,
+        bool $hasDecompose = false,
+    ): bool {
         $route = $request->route();
         if (! $route) {
             return false;
@@ -102,7 +126,10 @@ class RestrictScopedTokens
 
         // ---- projects/{project}/... (own project only) ----
         if ($uri === 'api/projects/{project}' || str_starts_with($uri, 'api/projects/{project}/')) {
-            if ((string) $route->parameter('project') !== $scopedProjectId) {
+            // `{project}` is a raw ID on worker routes but a bound SharedProject
+            // model on routes that type-hint it (e.g. decompose). Normalise both
+            // to the key before comparing — a stringified model is NOT the ID.
+            if ((string) $this->routeParamId($route, 'project') !== $scopedProjectId) {
                 return false;
             }
 
@@ -111,6 +138,13 @@ class RestrictScopedTokens
             }
 
             $rest = substr($uri, strlen('api/projects/{project}/'));
+
+            // Decomposition sessions get a SINGLE extra endpoint on their scoped
+            // project: submitting the generated master plan. Nothing else — the
+            // decompose token must not be able to claim work or mutate the backlog.
+            if ($hasDecompose && $rest === 'decompose/submit') {
+                return $request->isMethod('POST');
+            }
 
             $prefixes = ['tasks', 'locks', 'context', 'broadcast', 'instances', 'activity'];
 

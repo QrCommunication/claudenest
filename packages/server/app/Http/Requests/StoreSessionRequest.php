@@ -24,7 +24,7 @@ class StoreSessionRequest extends FormRequest
     {
         return [
             'project_path' => ['nullable', 'string', 'max:512'],
-            'mode' => ['required', 'string', Rule::in(['interactive', 'headless', 'oneshot'])],
+            'mode' => ['required', 'string', Rule::in(['interactive', 'headless'])],
             'initial_prompt' => ['nullable', 'string'],
             'pty_size' => ['nullable', 'array'],
             'pty_size.cols' => ['nullable', 'integer', 'min:20', 'max:500'],
@@ -41,7 +41,7 @@ class StoreSessionRequest extends FormRequest
     {
         return [
             'mode.required' => 'The session mode is required.',
-            'mode.in' => 'The session mode must be one of: interactive, headless, or oneshot.',
+            'mode.in' => 'The session mode must be one of: interactive or headless.',
             'project_path.max' => 'The project path cannot exceed 512 characters.',
             'pty_size.cols.min' => 'Terminal columns must be at least 20.',
             'pty_size.cols.max' => 'Terminal columns cannot exceed 500.',

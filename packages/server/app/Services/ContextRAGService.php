@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\ContextChunk;
 use App\Models\SharedProject;
 use App\Models\SharedTask;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -17,6 +18,15 @@ class ContextRAGService
      * completions are kept in the project's living context.
      */
     private const MAX_RECENT_CHANGES = 15;
+
+    /**
+     * Minimum delay between two global-summary regenerations per project. The
+     * summary is rebuilt from accumulated completions via Ollama, which is too
+     * costly to run on every single completion during a burst; one refresh per
+     * window keeps it current while the rolling recent_changes log captures
+     * every completion in between.
+     */
+    private const SUMMARY_REFRESH_THROTTLE_SECONDS = 90;
 
     private EmbeddingService $embeddingService;
     private SummarizationService $summarizationService;
@@ -120,6 +130,67 @@ class ContextRAGService
                 'project_id' => $project->id,
                 'error' => $e->getMessage(),
             ]);
+        }
+
+        try {
+            $this->refreshGlobalSummary($project);
+        } catch (\Throwable $e) {
+            Log::warning('Global summary refresh failed on task completion', [
+                'task_id' => $task->id,
+                'project_id' => $project->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Regenerate the project's GLOBAL summary from the work completed so far,
+     * so the high-level summary keeps pace with the project instead of staying
+     * frozen at creation. Throttled (see SUMMARY_REFRESH_THROTTLE_SECONDS) and
+     * best-effort — never blocks task completion.
+     */
+    private function refreshGlobalSummary(SharedProject $project): void
+    {
+        if (! $this->summarizationService->isAvailable()) {
+            return;
+        }
+
+        $throttleKey = "claudenest:summary_refresh:{$project->id}";
+        if (! Cache::add($throttleKey, 1, self::SUMMARY_REFRESH_THROTTLE_SECONDS)) {
+            return;
+        }
+
+        $project->refresh();
+
+        $recent = $project->contextChunks()
+            ->where('type', 'task_completion')
+            ->active()
+            ->orderBy('created_at', 'desc')
+            ->limit(20)
+            ->pluck('content')
+            ->implode("\n");
+
+        if (trim($recent) === '') {
+            return;
+        }
+
+        $current = trim((string) $project->summary);
+        $prompt = <<<PROMPT
+You maintain the living summary of a software project named "{$project->name}".
+Update the project summary so it reflects the latest completed work. Keep it to
+ONE concise paragraph (3-5 sentences) describing what the project IS and its
+current state. Output ONLY the summary text — no preamble, no markdown headers.
+
+## Current summary
+{$current}
+
+## Recently completed work
+{$recent}
+PROMPT;
+
+        $updated = $this->summarizationService->generate($prompt, 600);
+        if ($updated && trim($updated) !== '') {
+            $project->update(['summary' => Str::limit(trim($updated), 2000)]);
         }
     }
 

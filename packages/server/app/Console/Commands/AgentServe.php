@@ -13,7 +13,6 @@ use App\Models\Machine;
 use App\Models\Session;
 use App\Models\SharedProject;
 use App\Services\AgentGateway;
-use App\Services\DecompositionStreamService;
 use App\Services\MultiAgentSessionService;
 use App\Services\Redis\AgentWakeSubscriber;
 use App\Services\WorkerLoopService;
@@ -53,12 +52,6 @@ class AgentServe extends Command
 
     /** @var array<int, array{buffer: string, upgraded: bool, machineId: ?string, frameBuffer: string, type: ?string, sessionId: ?string}> */
     private array $connState = [];
-
-    /**
-     * Decomposition stream router (singleton — holds the in-memory output
-     * buffers of ephemeral decompose-* sessions for this process).
-     */
-    private ?DecompositionStreamService $decompositionStream = null;
 
     /**
      * Throttle map for presence writes (machineId => last epoch second written).
@@ -456,8 +449,6 @@ class AgentServe extends Command
                 'pr:merge:result' => $this->onRequestResponse($data),
                 'orchestrator:state' => $this->onRequestResponse($data),
                 'orchestrator:error' => $this->onRequestResponse($data),
-                'decompose:progress' => $this->onDecomposeProgress($data),
-                'decompose:result' => $this->onDecomposeResult($data),
                 'claude_sessions:discovered' => $this->onClaudeSessionsDiscovered($machineId, $data),
                 'claude_sessions:transcript' => $this->onClaudeSessionTranscript($data),
                 'claude_sessions:discover_result' => $this->onRequestResponse($data),
@@ -542,10 +533,7 @@ class AgentServe extends Command
     /**
      * Guard: a non-UUID session id must NEVER reach a uuid-typed query
      * (`sessions.id` is uuid — PostgreSQL throws SQLSTATE[22P02] and the
-     * whole agent message is dropped).
-     *
-     * Ephemeral `decompose-*` sessions are routed to the decomposition flow;
-     * any other non-UUID id is skipped with a log.
+     * whole agent message is dropped). Such ids are skipped with a log.
      *
      * @return bool true when the message was fully consumed (caller returns)
      */
@@ -553,20 +541,6 @@ class AgentServe extends Command
     {
         if (Str::isUuid($sessionId)) {
             return false;
-        }
-
-        $stream = $this->decompositionStream ??= app(DecompositionStreamService::class);
-
-        if ($stream->isDecomposeSessionId($sessionId)) {
-            match ($kind) {
-                'output' => $stream->handleOutput($sessionId, (string) ($data['data'] ?? '')),
-                'exited' => $stream->handleExited($sessionId),
-                // status / error carry no payload the decomposition needs —
-                // the exit handler finalizes (success or parse failure) anyway.
-                default => null,
-            };
-
-            return true;
         }
 
         Log::debug('Ignoring agent message for non-UUID session id', [
@@ -929,54 +903,6 @@ class AgentServe extends Command
             $data['events'] ?? [],
             (bool) ($data['replace'] ?? false),
         ));
-    }
-
-    private function onDecomposeProgress(array $data): void
-    {
-        $project = $this->findDecomposeProject($data);
-        if (! $project) {
-            return;
-        }
-
-        // Broadcast progress to frontend via Reverb
-        broadcast(new ProjectBroadcast(
-            $project,
-            [
-                'type' => 'decompose:progress',
-                'data' => $data['output'] ?? '',
-                'percent' => $data['percent'] ?? null,
-            ],
-        ));
-    }
-
-    /**
-     * Agent-side completion path. Converges with the server-side
-     * session:exited parse in DecompositionStreamService::complete()
-     * (idempotent — whichever path lands first wins).
-     */
-    private function onDecomposeResult(array $data): void
-    {
-        $project = $this->findDecomposeProject($data);
-        if (! $project) {
-            return;
-        }
-
-        $stream = $this->decompositionStream ??= app(DecompositionStreamService::class);
-        $stream->completeFromAgentResult($project, $data);
-    }
-
-    /**
-     * Resolve the project of a decompose:* message — uuid-guarded so a
-     * malformed projectId never reaches the uuid-typed query (22P02).
-     */
-    private function findDecomposeProject(array $data): ?SharedProject
-    {
-        $projectId = $data['projectId'] ?? null;
-        if (! $projectId || ! Str::isUuid((string) $projectId)) {
-            return null;
-        }
-
-        return SharedProject::find($projectId);
     }
 
     // ==================== OAuth Relay ====================

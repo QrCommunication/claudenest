@@ -113,7 +113,6 @@
         <ul>
           <li><code>interactive</code> - {{ $t('docDocsSessions.modeInteractive') }}</li>
           <li><code>headless</code> - {{ $t('docDocsSessions.modeHeadless') }}</li>
-          <li><code>oneshot</code> - {{ $t('docDocsSessions.modeOneshot') }}</li>
         </ul>
       </div>
 
@@ -238,7 +237,7 @@ const listResponses = [
 // Create Session
 const createParams = [
   { name: 'machine', type: 'uuid', required: true, description: 'Machine ID' },
-  { name: 'mode', type: 'enum', required: false, description: 'Session mode', enum: ['interactive', 'headless', 'oneshot'], default: 'interactive' },
+  { name: 'mode', type: 'enum', required: false, description: 'Session mode', enum: ['interactive', 'headless'], default: 'interactive' },
   { name: 'project_path', type: 'string', required: false, description: 'Working directory path' },
   { name: 'initial_prompt', type: 'string', required: false, description: 'Initial prompt to send' },
   { name: 'pty_size', type: 'object', required: false, description: 'Terminal size {cols, rows}', default: { cols: 120, rows: 40 } },

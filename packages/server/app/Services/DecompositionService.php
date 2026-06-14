@@ -90,86 +90,6 @@ class DecompositionService
     }
 
     /**
-     * Parse a JSON master plan from Claude's raw output.
-     * Strips ANSI codes and finds the JSON block.
-     *
-     * @return array{success: bool, plan: ?array, error: ?string}
-     */
-    public function parseFromOutput(string $rawOutput): array
-    {
-        // Strip ANSI escape codes
-        $clean = preg_replace('/\x1b\[[0-9;]*[a-zA-Z]/', '', $rawOutput);
-        $clean = preg_replace('/\x1b\].*?\x07/', '', $clean);
-
-        $jsonStr = $this->extractPlanJson($clean);
-        if ($jsonStr === null) {
-            return ['success' => false, 'plan' => null, 'error' => 'No JSON block found in output'];
-        }
-
-        $decoded = json_decode($jsonStr, true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            return [
-                'success' => false,
-                'plan' => null,
-                'error' => 'Invalid JSON: ' . json_last_error_msg(),
-            ];
-        }
-
-        $validation = $this->validateMasterPlan($decoded);
-        if (!$validation['valid']) {
-            return [
-                'success' => false,
-                'plan' => $validation['plan'],
-                'error' => implode('; ', $validation['errors']),
-            ];
-        }
-
-        return ['success' => true, 'plan' => $validation['plan'], 'error' => null];
-    }
-
-    /**
-     * Find the master plan JSON in cleaned PTY output.
-     *
-     * The PTY stream usually echoes the decomposition prompt, which itself
-     * contains a ```json schema EXAMPLE (see buildDecompositionPrompt).
-     * Candidates are therefore scanned from the END (Claude's answer is
-     * printed after the echo) and any block carrying the example's sentinel
-     * placeholder is skipped — a first-match parse used to return the echoed
-     * schema example as a "successful" 1-task plan.
-     */
-    private function extractPlanJson(string $clean): ?string
-    {
-        $candidates = [];
-
-        // Preferred: ```json ... ``` fenced blocks.
-        if (preg_match_all('/```json\s*(\{[\s\S]*?\})\s*```/', $clean, $matches) && $matches[1]) {
-            $candidates = $matches[1];
-        }
-
-        // Fallback: raw JSON starting with {"version": 1 (greedy to the last
-        // closing brace, anchored on each occurrence).
-        if (!$candidates && preg_match_all('/\{"version"\s*:\s*1/', $clean, $matches, PREG_OFFSET_CAPTURE)) {
-            foreach ($matches[0] as $match) {
-                $candidate = substr($clean, (int) $match[1]);
-                $endPos = strrpos($candidate, '}');
-                if ($endPos !== false) {
-                    $candidates[] = substr($candidate, 0, $endPos + 1);
-                }
-            }
-        }
-
-        foreach (array_reverse($candidates) as $candidate) {
-            if (str_contains($candidate, 'Short task title')) {
-                continue; // echoed prompt example, not Claude's answer
-            }
-
-            return $candidate;
-        }
-
-        return null;
-    }
-
-    /**
      * Apply a master plan to a project — create SharedTasks from waves.
      *
      * When $epic is given (epic-from-PRD flow), the generated tasks are linked
@@ -461,54 +381,46 @@ PROMPT;
     }
 
     /**
-     * Build the decomposition prompt for Claude.
+     * Build the SYSTEM prompt for an interactive decomposition session.
+     *
+     * The decomposition runs as a normal interactive Claude session (on the
+     * user's subscription — no `claude -p`). The session reads this PRD, may
+     * inspect the repository read-only, and returns its result by calling the
+     * `submit_master_plan` MCP tool — NOT by printing JSON to stdout.
      */
-    public function buildDecompositionPrompt(string $prd, ?array $scanResult = null): string
+    public function buildDecompositionSystemPrompt(string $prd, ?array $scanResult = null): string
     {
         $contextBlock = '';
         if ($scanResult) {
             $techStack = implode(', ', $scanResult['tech_stack'] ?? []);
+            $hasGit = ! empty($scanResult['has_git']) ? 'yes' : 'no';
             $contextBlock = <<<CONTEXT
 
 ## Project Context
 - Tech stack: {$techStack}
-- Has git: {$scanResult['has_git']}
+- Has git: {$hasGit}
 CONTEXT;
         }
 
         return <<<PROMPT
-You are a software architect. Decompose the following PRD (Product Requirements Document) into a structured Master Plan with waves and tasks.
+You are a software architect performing a PRD decomposition for this project.
+Your ONLY job is to produce a structured Master Plan and submit it. You must
+NOT edit, create, or delete any project file. You may read files to understand
+the codebase before planning.
 {$contextBlock}
 
 ## PRD
 {$prd}
 
-## Output Format
-Return ONLY a JSON block (wrapped in ```json ... ```) with this exact schema:
+## How to return your result
+When the plan is ready, call the MCP tool `submit_master_plan` with these
+arguments (do NOT print the plan as text — submit it through the tool):
+- version: 1
+- prd_summary: one-paragraph summary of the PRD
+- waves: an array of waves, each { id, name, description, tasks: [ ... ] }
+  where each task = { title, description, priority, files, estimated_tokens, depends_on }
 
-```json
-{
-  "version": 1,
-  "prd_summary": "One-paragraph summary of the PRD",
-  "waves": [
-    {
-      "id": 0,
-      "name": "Wave name (e.g. Foundation, Backend, Frontend)",
-      "description": "What this wave accomplishes",
-      "tasks": [
-        {
-          "title": "Short task title",
-          "description": "Detailed description with acceptance criteria",
-          "priority": "critical|high|medium|low",
-          "files": ["path/to/file.ext"],
-          "estimated_tokens": 5000,
-          "depends_on": ["Title of dependency task"]
-        }
-      ]
-    }
-  ]
-}
-```
+Call `submit_master_plan` exactly ONCE, then stop.
 
 ## Rules
 1. Wave 0 = Foundation (DB, models, config)
@@ -517,7 +429,7 @@ Return ONLY a JSON block (wrapped in ```json ... ```) with this exact schema:
 4. Wave 3 = Integration (tests, docs, CI/CD)
 5. Each task = ONE atomic unit of work (1 file or 1 logical change)
 6. Tasks should be completable in < 30 minutes each
-7. Dependencies reference task titles from earlier waves
+7. Dependencies reference task titles from earlier waves (depends_on = array of titles)
 8. Priority: critical = blocks everything, high = important, medium = standard, low = nice-to-have
 9. Estimate tokens per task (5000-50000 range)
 10. Be specific about file paths when possible

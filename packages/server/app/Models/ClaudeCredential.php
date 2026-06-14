@@ -20,7 +20,7 @@ class ClaudeCredential extends Model
     protected $fillable = [
         'user_id', 'name', 'auth_type',
         'api_key_enc', 'access_token_enc', 'refresh_token_enc',
-        'key_hint', 'expires_at', 'claude_dir_mode', 'is_default', 'last_used_at',
+        'key_hint', 'expires_at', 'oauth_meta', 'claude_dir_mode', 'is_default', 'last_used_at',
     ];
 
     protected $hidden = [
@@ -30,6 +30,7 @@ class ClaudeCredential extends Model
     protected $casts = [
         'expires_at' => 'datetime',
         'last_used_at' => 'datetime',
+        'oauth_meta' => 'array',
         'is_default' => 'boolean',
     ];
 

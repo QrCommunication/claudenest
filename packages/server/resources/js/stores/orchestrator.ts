@@ -25,6 +25,8 @@ export interface StartOrchestratorConfig {
   permission_mode?: PermissionMode;
   /** Enable the incident coordinator (auto-opens a Claude session on incidents). */
   coordinator?: boolean;
+  /** Credential the workers run under. Omitted → the user's default credential. */
+  credential_id?: string;
 }
 
 export interface OrchestratorWorker {

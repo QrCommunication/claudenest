@@ -144,6 +144,8 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
 
     // ==================== DECOMPOSITION (PRD → Master Plan) ====================
     Route::post('projects/{project}/decompose', [Api\DecompositionController::class, 'decompose']);
+    // Hit by a decomposition session's submit_master_plan MCP tool (scoped token).
+    Route::post('projects/{project}/decompose/submit', [Api\DecompositionController::class, 'submitFromAgent']);
     Route::get('projects/{project}/master-plan', [Api\DecompositionController::class, 'getMasterPlan']);
     Route::put('projects/{project}/master-plan', [Api\DecompositionController::class, 'updateMasterPlan']);
     Route::post('projects/{project}/master-plan/apply', [Api\DecompositionController::class, 'applyMasterPlan']);

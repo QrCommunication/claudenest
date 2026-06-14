@@ -296,4 +296,44 @@ class WorkerOrchestrationTest extends TestCase
             ->assertJsonPath('data.pendingTasks', 1)
             ->assertJsonPath('data.completedTasks', 1);
     }
+
+    #[Test]
+    public function start_runs_workers_under_the_selected_credential_not_the_default(): void
+    {
+        $this->spy(AgentGateway::class);
+
+        $user = User::factory()->create();
+        $machine = Machine::factory()->for($user)->create();
+        $project = $this->makeProject($user, $machine);
+        SharedTask::factory()->create(['project_id' => $project->id, 'status' => 'pending']);
+
+        // The user has a default credential AND a separate, explicitly-selected
+        // one (both with a usable token so payload env resolution succeeds).
+        $default = \App\Models\ClaudeCredential::create([
+            'user_id' => $user->id, 'name' => 'default', 'auth_type' => 'oauth', 'is_default' => true,
+            'access_token_enc' => \Illuminate\Support\Facades\Crypt::encryptString('tok-default'),
+            'expires_at' => now()->addHours(8),
+        ]);
+        $selected = \App\Models\ClaudeCredential::create([
+            'user_id' => $user->id, 'name' => 'selected', 'auth_type' => 'oauth', 'is_default' => false,
+            'access_token_enc' => \Illuminate\Support\Facades\Crypt::encryptString('tok-selected'),
+            'expires_at' => now()->addHours(8),
+        ]);
+
+        $this->actingAs($user)
+            ->postJson("/api/projects/{$project->id}/orchestrator/start", [
+                'max_workers' => 1,
+                'credential_id' => $selected->id,
+            ])
+            ->assertOk();
+
+        // The spawned worker session runs under the SELECTED credential…
+        $worker = Session::where('shared_project_id', $project->id)->where('orchestrated', true)->first();
+        $this->assertNotNull($worker);
+        $this->assertSame($selected->id, $worker->credential_id);
+        $this->assertNotSame($default->id, $worker->credential_id);
+
+        // …and the selection is persisted so relaunch/recycle keep using it.
+        $this->assertSame($selected->id, $project->fresh()->getSetting('orchestration')['credential_id']);
+    }
 }

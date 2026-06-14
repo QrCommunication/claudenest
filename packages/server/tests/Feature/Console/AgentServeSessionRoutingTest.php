@@ -9,7 +9,6 @@ use App\Models\Machine;
 use App\Models\Session;
 use App\Models\SharedProject;
 use App\Models\User;
-use App\Services\DecompositionStreamService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use PHPUnit\Framework\Attributes\Test;
@@ -19,8 +18,7 @@ use Tests\TestCase;
 /**
  * Anti-regression for the prod incident "SQLSTATE[22P02] invalid input
  * syntax for type uuid": agent messages whose session id is NOT a UUID
- * (ephemeral `decompose-{projectId}-{ts}` sessions) must never reach
- * `Session::find()` — they are routed to the decomposition flow or skipped.
+ * must never reach `Session::find()` — they are skipped with a log.
  *
  * Runs against real PostgreSQL: before the guard, every one of these
  * handler calls threw a QueryException (22P02) and the message was lost.
@@ -45,8 +43,6 @@ class AgentServeSessionRoutingTest extends TestCase
             ->for($this->user)
             ->for($this->machine)
             ->create(['master_plan' => null]);
-
-        app(DecompositionStreamService::class)->reset($this->project->id);
     }
 
     /** Invoke a private AgentServe agent-message handler directly. */
@@ -60,79 +56,6 @@ class AgentServeSessionRoutingTest extends TestCase
             new \Symfony\Component\Console\Output\BufferedOutput(),
         ));
         (new ReflectionMethod($command, $method))->invoke($command, ...$args);
-    }
-
-    private function decomposeSessionId(): string
-    {
-        return 'decompose-' . $this->project->id . '-' . now()->getTimestampMs();
-    }
-
-    #[Test]
-    public function decompose_session_messages_are_routed_to_the_decomposition_flow(): void
-    {
-        Event::fake([ProjectBroadcast::class]);
-        $sessionId = $this->decomposeSessionId();
-
-        $plan = json_encode([
-            'version' => 1,
-            'prd_summary' => 'Routed through AgentServe',
-            'waves' => [
-                ['id' => 0, 'name' => 'Foundation', 'tasks' => [['title' => 'Create schema']]],
-            ],
-        ]);
-
-        // Full ephemeral lifecycle exactly as the agent forwards it.
-        // Pre-guard: each call threw SQLSTATE[22P02] on Session::find().
-        $this->invokeHandler('onSessionStatus', [$this->machine->id, [
-            'sessionId' => $sessionId, 'status' => 'running', 'pid' => 4242,
-        ]]);
-        $this->invokeHandler('onSessionOutput', [$this->machine->id, [
-            'sessionId' => $sessionId, 'data' => "```json\n" . $plan,
-        ]]);
-        $this->invokeHandler('onSessionOutput', [$this->machine->id, [
-            'sessionId' => $sessionId, 'data' => "\n```\n",
-        ]]);
-        $this->invokeHandler('onSessionExited', [$this->machine->id, [
-            'sessionId' => $sessionId, 'exitCode' => 0,
-        ]]);
-
-        // The decomposition completed: plan stored + result broadcast on the
-        // channel/event the frontend listens to (useDecomposition.ts).
-        $this->assertSame(
-            'Routed through AgentServe',
-            $this->project->fresh()->master_plan['prd_summary'],
-        );
-
-        Event::assertDispatched(ProjectBroadcast::class, function (ProjectBroadcast $event) {
-            return $event->project->id === $this->project->id
-                && $event->message['type'] === 'decompose:result'
-                && $event->message['success'] === true;
-        });
-    }
-
-    #[Test]
-    public function decompose_result_message_from_agent_completes_via_the_same_flow(): void
-    {
-        Event::fake([ProjectBroadcast::class]);
-
-        $this->invokeHandler('onDecomposeResult', [[
-            'projectId' => $this->project->id,
-            'success' => true,
-            'plan' => [
-                'version' => 1,
-                'prd_summary' => 'From agent result',
-                'waves' => [
-                    ['id' => 0, 'name' => 'Backend', 'tasks' => [['title' => 'Build API']]],
-                ],
-            ],
-        ]]);
-
-        $this->assertSame('From agent result', $this->project->fresh()->master_plan['prd_summary']);
-        Event::assertDispatched(ProjectBroadcast::class, fn (ProjectBroadcast $e) => $e->message['success'] === true);
-
-        // Malformed projectId never reaches the uuid-typed query.
-        $this->invokeHandler('onDecomposeResult', [['projectId' => 'not-a-uuid', 'success' => true]]);
-        $this->invokeHandler('onDecomposeProgress', [['projectId' => 'not-a-uuid', 'output' => 'x']]);
     }
 
     #[Test]

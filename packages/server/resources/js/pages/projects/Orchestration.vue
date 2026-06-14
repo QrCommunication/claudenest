@@ -248,6 +248,21 @@
           </select>
         </div>
 
+        <div class="form-group" v-if="credentialsStore.credentials.length > 0">
+          <label for="orchestrator-credential">{{ t('projectsOrchestration.credential') }}</label>
+          <select id="orchestrator-credential" v-model="startForm.credentialId">
+            <option value="">{{ t('projectsOrchestration.credentialDefault') }}</option>
+            <option
+              v-for="cred in credentialsStore.credentials"
+              :key="cred.id"
+              :value="cred.id"
+            >
+              {{ cred.name }}{{ cred.is_default ? ' ★' : '' }}
+            </option>
+          </select>
+          <span class="form-hint">{{ t('projectsOrchestration.credentialHint') }}</span>
+        </div>
+
         <div class="form-group">
           <label class="checkbox-label" for="orchestrator-coordinator">
             <input
@@ -293,6 +308,7 @@ import {
   type PermissionMode,
 } from '@/stores/orchestrator';
 import { useProjectsStore } from '@/stores/projects';
+import { useCredentialsStore } from '@/stores/credentials';
 import { useToast } from '@/composables/useToast';
 import { getApiErrorCode } from '@/composables/useApi';
 import { useProjectChannel } from '@/composables/useProjectChannel';
@@ -307,6 +323,7 @@ const { t } = useI18n();
 const toast = useToast();
 const orchestratorStore = useOrchestratorStore();
 const projectsStore = useProjectsStore();
+const credentialsStore = useCredentialsStore();
 
 const projectId = computed(() => route.params.id as string);
 const project = computed(() => projectsStore.selectedProject);
@@ -334,14 +351,24 @@ const PERMISSION_MODE_OPTIONS: ReadonlyArray<{ value: PermissionMode; labelKey: 
 
 const showStartModal = ref(false);
 const planLimitError = ref<string | null>(null);
-const startForm = ref<{ maxWorkers: number; permissionMode: PermissionMode; coordinator: boolean }>({
+const startForm = ref<{
+  maxWorkers: number;
+  permissionMode: PermissionMode;
+  coordinator: boolean;
+  credentialId: string;
+}>({
   maxWorkers: 3,
   permissionMode: 'acceptEdits',
   coordinator: true,
+  credentialId: '',
 });
 
 function openStartModal(): void {
   planLimitError.value = null;
+  // Load the user's credentials so they can pick which one the workers use.
+  if (credentialsStore.credentials.length === 0) {
+    void credentialsStore.fetchCredentials();
+  }
   showStartModal.value = true;
 }
 
@@ -366,6 +393,7 @@ async function handleStartOrchestrator(): Promise<void> {
       max_workers: startForm.value.maxWorkers,
       permission_mode: startForm.value.permissionMode,
       coordinator: startForm.value.coordinator,
+      ...(startForm.value.credentialId ? { credential_id: startForm.value.credentialId } : {}),
     });
     showStartModal.value = false;
     toast.success(

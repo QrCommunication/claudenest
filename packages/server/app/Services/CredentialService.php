@@ -38,10 +38,12 @@ class CredentialService
             $env['CLAUDE_CODE_OAUTH_TOKEN'] = $token;
 
             // Transport-only vars: the agent assembles a complete
-            // .credentials.json (accessToken + refreshToken + expiresAt) in the
+            // .credentials.json (accessToken + refreshToken + expiresAt + the
+            // account-level scopes/subscriptionType/rateLimitTier) in the
             // session's isolated CLAUDE_CONFIG_DIR, then strips these from the
-            // environment. Without refreshToken/expiresAt Claude Code treats
-            // the synthetic credentials as a degraded login and prompts again.
+            // environment. Without the full metadata — crucially the
+            // `user:sessions:claude_code` scope — Claude Code treats the
+            // synthetic credentials as a degraded login and prompts again.
             $refreshToken = $credential->getRefreshToken();
             if ($refreshToken) {
                 $env['CLAUDE_CODE_OAUTH_REFRESH_TOKEN'] = $refreshToken;
@@ -49,11 +51,50 @@ class CredentialService
             if ($credential->expires_at) {
                 $env['CLAUDE_CODE_OAUTH_EXPIRES_AT'] = (string) $credential->expires_at->getTimestampMs();
             }
+
+            $meta = $credential->oauth_meta ?? [];
+            if (! empty($meta['scopes']) && is_array($meta['scopes'])) {
+                $env['CLAUDE_CODE_OAUTH_SCOPES'] = implode(',', $meta['scopes']);
+            }
+            if (! empty($meta['subscriptionType'])) {
+                $env['CLAUDE_CODE_OAUTH_SUBSCRIPTION_TYPE'] = (string) $meta['subscriptionType'];
+            }
+            if (! empty($meta['rateLimitTier'])) {
+                $env['CLAUDE_CODE_OAUTH_RATE_LIMIT_TIER'] = (string) $meta['rateLimitTier'];
+            }
         }
 
         $credential->markUsed();
 
         return $env;
+    }
+
+    /**
+     * Extract the account-level OAuth metadata from a captured `claudeAiOauth`
+     * object. Returns null when nothing useful is present so a re-capture
+     * without the file content never wipes previously-stored metadata.
+     *
+     * @param  array<string, mixed>  $oauth
+     * @return array{scopes?: array<int, string>, subscriptionType?: string, rateLimitTier?: string}|null
+     */
+    private function extractOAuthMeta(array $oauth): ?array
+    {
+        $meta = [];
+
+        if (! empty($oauth['scopes']) && is_array($oauth['scopes'])) {
+            $meta['scopes'] = array_values(array_filter(
+                $oauth['scopes'],
+                static fn ($s) => is_string($s) && $s !== '',
+            ));
+        }
+        if (! empty($oauth['subscriptionType']) && is_string($oauth['subscriptionType'])) {
+            $meta['subscriptionType'] = $oauth['subscriptionType'];
+        }
+        if (! empty($oauth['rateLimitTier']) && is_string($oauth['rateLimitTier'])) {
+            $meta['rateLimitTier'] = $oauth['rateLimitTier'];
+        }
+
+        return $meta === [] ? null : $meta;
     }
 
     /**
@@ -145,6 +186,7 @@ class CredentialService
         $accessToken = '';
         $refreshToken = '';
         $expiresAt = 0;
+        $oauth = [];
 
         // Option 1: Direct token parameters
         if (!empty($params['access_token'])) {
@@ -190,6 +232,7 @@ class CredentialService
             'access_token_enc' => Crypt::encryptString($accessToken),
             'refresh_token_enc' => $refreshToken ? Crypt::encryptString($refreshToken) : null,
             'expires_at' => $expiresAt > 0 ? \Carbon\Carbon::createFromTimestampMs($expiresAt) : null,
+            'oauth_meta' => $this->extractOAuthMeta($oauth) ?? $credential->oauth_meta,
             'key_hint' => $hint,
         ]);
 

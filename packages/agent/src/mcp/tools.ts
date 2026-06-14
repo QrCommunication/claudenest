@@ -27,6 +27,7 @@ import {
   sprintCreate,
   planningContext,
   orchestratorStart,
+  submitMasterPlan,
 } from "./api.js";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -333,6 +334,62 @@ export function registerTools(
   if (abilities.has("planning")) {
     registerPlanningTools(server, env);
   }
+
+  // ── Conditionally register the decomposition tool ────────────────────────
+  if (abilities.has("decompose")) {
+    registerDecomposeTools(server, env);
+  }
+}
+
+// ─── Decomposition tool registration (gated) ────────────────────────────────
+
+/**
+ * Register `submit_master_plan` — only when `decompose` ∈ abilities.
+ *
+ * This is how a decomposition session returns its result. The session runs
+ * INTERACTIVELY on the user's subscription (no `claude -p`): it analyses the
+ * PRD, produces a master plan, and calls this tool with the full plan. The
+ * server validates + stores it, broadcasts `decompose:result`, and ends the
+ * session. The whole stdout-JSON-parsing path is gone.
+ */
+function registerDecomposeTools(server: McpServer, env: McpEnv): void {
+  const taskSchema = z.object({
+    title: z.string().min(1).max(255),
+    description: z.string().default(""),
+    priority: z.enum(["low", "medium", "high", "critical"]).default("medium"),
+    files: z.array(z.string()).default([]),
+    estimated_tokens: z.number().int().positive().optional(),
+    depends_on: z.array(z.string()).default([]),
+  });
+
+  const waveSchema = z.object({
+    id: z.number().int().nonnegative(),
+    name: z.string().min(1),
+    description: z.string().default(""),
+    tasks: z.array(taskSchema).min(1),
+  });
+
+  server.tool(
+    "submit_master_plan",
+    "Submit the decomposed master plan for this project. Call this ONCE when the " +
+      "plan is complete: pass the full plan (version=1, prd_summary, and waves, " +
+      "each wave with at least one task). The server creates the sprints and tasks " +
+      "and finishes the decomposition. Do NOT edit project files.",
+    {
+      version: z.literal(1),
+      prd_summary: z.string().default(""),
+      waves: z.array(waveSchema).min(1),
+    },
+    async ({ version, prd_summary, waves }) => {
+      const res = await submitMasterPlan(env, { version, prd_summary, waves });
+      if (!res.ok) return toolErr(`Cannot submit master plan: ${res.error}`);
+      const taskCount = waves.reduce((n, w) => n + w.tasks.length, 0);
+      return toolOk(
+        `Master plan submitted: ${waves.length} wave(s), ${taskCount} task(s). ` +
+          `Decomposition complete — you can stop now.`,
+      );
+    },
+  );
 }
 
 // ─── Planning tool registration (gated) ─────────────────────────────────────

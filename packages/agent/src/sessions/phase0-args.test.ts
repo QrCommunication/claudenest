@@ -129,20 +129,20 @@ describe('TmuxSession.buildArgs() — Phase 0 correct CLI flags', () => {
     expect(args[idx + 1]).toBe('acceptEdits');
   });
 
-  it('mode:oneshot maps to print mode (-p) without permission-mode', () => {
-    const args = getArgs(makeSession({ mode: 'oneshot', initialPrompt: 'decompose this' }));
-
-    expect(args).not.toContain('--oneshot');
-    // Print mode: claude answers on stdout and exits — a positional prompt
-    // without -p would open the interactive TUI, which never exits.
-    expect(args).toContain('-p');
-    // Least privilege: a print-mode utility session must not auto-accept edits.
-    expect(args).not.toContain('--permission-mode');
-    // Prompt stays positional and last.
-    expect(args[args.length - 1]).toBe('decompose this');
+  it('never runs claude in print mode (-p) — decomposition submits via MCP now', () => {
+    // The `claude -p` print-mode path was removed: it risks separate metering
+    // and a positional prompt without -p opens the TUI anyway. Every session is
+    // interactive; decomposition returns its result via the submit_master_plan
+    // MCP tool, not stdout. -p must NEVER appear.
+    for (const cfg of [
+      { mode: 'interactive' as const, initialPrompt: 'decompose this' },
+      { mode: 'headless' as const, initialPrompt: 'do it' },
+    ]) {
+      expect(getArgs(makeSession(cfg))).not.toContain('-p');
+    }
   });
 
-  it('explicit permissionMode overrides the legacy headless/oneshot default', () => {
+  it('explicit permissionMode overrides the legacy headless default', () => {
     const args = getArgs(makeSession({ mode: 'headless', permissionMode: 'plan' }));
 
     const idx = args.indexOf('--permission-mode');
@@ -190,16 +190,15 @@ describe('TmuxSession.buildArgs() — Phase 0 correct CLI flags', () => {
     expect(args[args.length - 1]).toBe(prompt);
   });
 
-  // Verify none of the three deprecated flags ever appear in ANY config
+  // Verify none of the deprecated/forbidden flags ever appear in ANY config.
+  // -p (print mode) is forbidden: the `claude -p` path was removed entirely.
   describe('forbidden flags — never emitted in any configuration', () => {
-    const forbiddenFlags = ['--headless', '--oneshot', '--prompt'];
+    const forbiddenFlags = ['--headless', '--oneshot', '--prompt', '-p'];
     const testCases: Array<[string, Partial<TmuxSessionOptions>]> = [
       ['bare interactive', { mode: 'interactive' }],
       ['headless mode', { mode: 'headless' }],
-      ['oneshot mode', { mode: 'oneshot' }],
       ['with initialPrompt', { initialPrompt: 'hello' }],
       ['headless + prompt', { mode: 'headless', initialPrompt: 'go' }],
-      ['oneshot + prompt', { mode: 'oneshot', initialPrompt: 'go' }],
     ];
 
     for (const [label, cfg] of testCases) {

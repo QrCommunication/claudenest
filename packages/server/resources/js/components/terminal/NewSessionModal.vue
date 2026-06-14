@@ -220,12 +220,6 @@ const modes = computed(() => [
     icon: '⚙️',
     description: t('terminalNewsessionmodal.modeHeadlessDesc'),
   },
-  {
-    value: 'oneshot' as SessionMode,
-    label: t('terminalNewsessionmodal.modeOneshot'),
-    icon: '⚡',
-    description: t('terminalNewsessionmodal.modeOneshotDesc'),
-  },
 ]);
 
 // ============================================================================

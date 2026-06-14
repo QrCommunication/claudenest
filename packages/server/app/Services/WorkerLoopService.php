@@ -296,13 +296,16 @@ class WorkerLoopService
         $this->workerPool->terminateWorker($session);
 
         // Spawn the replacement only while orchestration is still active. The
-        // termination above just freed a plan-cap slot, so the spawn fits.
+        // termination above just freed a slot, so the spawn fits. Keep the
+        // orchestration's selected credential so the recycled worker doesn't
+        // silently switch to the default.
         $user = $project->user;
         if (! empty($orchestration['active']) && $user) {
             $this->workerPool->spawnWorker(
                 $project,
                 $user,
                 (string) ($orchestration['permission_mode'] ?? WorkerPoolService::DEFAULT_PERMISSION_MODE),
+                isset($orchestration['credential_id']) ? (string) $orchestration['credential_id'] : null,
             );
         }
     }

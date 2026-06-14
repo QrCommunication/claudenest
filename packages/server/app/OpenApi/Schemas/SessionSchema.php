@@ -15,7 +15,7 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'id', type: 'string', format: 'uuid', example: '7c9e6679-7425-40de-944b-e07fc1f90ae7', description: 'Unique identifier for the session'),
         new OA\Property(property: 'machine_id', type: 'string', format: 'uuid', example: '3fa85f64-5717-4562-b3fc-2c963f66afa6', description: 'UUID of the machine hosting this session'),
         new OA\Property(property: 'user_id', type: 'string', format: 'uuid', example: '9d8f3c2a-1b4e-4f7d-a9c6-2e5b8f0d3a71', description: 'UUID of the user who owns this session'),
-        new OA\Property(property: 'mode', type: 'string', enum: ['interactive', 'headless', 'oneshot'], example: 'interactive', description: 'Execution mode of the session'),
+        new OA\Property(property: 'mode', type: 'string', enum: ['interactive', 'headless'], example: 'interactive', description: 'Execution mode of the session'),
         new OA\Property(property: 'project_path', type: 'string', example: '/home/user/projects/myapp', description: 'Absolute working directory path for the session on the remote machine', nullable: true),
         new OA\Property(property: 'initial_prompt', type: 'string', example: 'Review the authentication module and suggest improvements', description: 'Initial prompt sent to Claude Code when the session starts', nullable: true),
         new OA\Property(property: 'status', type: 'string', enum: ['pending', 'starting', 'running', 'paused', 'completed', 'failed', 'terminated'], example: 'running', description: 'Current lifecycle status of the session'),
@@ -50,7 +50,7 @@ use OpenApi\Attributes as OA;
     type: 'object',
     required: ['mode'],
     properties: [
-        new OA\Property(property: 'mode', type: 'string', enum: ['interactive', 'headless', 'oneshot'], example: 'interactive', description: 'Execution mode: interactive (PTY attached), headless (background), oneshot (single prompt)'),
+        new OA\Property(property: 'mode', type: 'string', enum: ['interactive', 'headless'], example: 'interactive', description: 'Execution mode: interactive (PTY attached), headless (background)'),
         new OA\Property(property: 'project_path', type: 'string', example: '/home/user/projects/myapp', description: 'Absolute working directory path on the remote machine'),
         new OA\Property(property: 'initial_prompt', type: 'string', example: 'Review the authentication module and suggest improvements', description: 'Initial prompt to send to Claude Code on session start (required for headless/oneshot modes)'),
         new OA\Property(property: 'credential_id', type: 'string', format: 'uuid', example: 'b1e2c3d4-5678-4abc-9def-0123456789ab', description: "UUID of a specific credential to use for this session. Omit to use the user's default credential."),

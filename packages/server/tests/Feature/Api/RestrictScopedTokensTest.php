@@ -392,4 +392,72 @@ class RestrictScopedTokensTest extends TestCase
 
         $response->assertStatus(403)->assertJsonPath('error.code', 'AUTH_003');
     }
+
+    /**
+     * Token of a decomposition session: project scoping + the 'decompose'
+     * ability (only the decompose/submit endpoint on top of the base surface).
+     */
+    private function withDecomposeToken(): static
+    {
+        $token = PersonalAccessToken::createForUser(
+            $this->user->id,
+            "mcp:{$this->session->id}",
+            ['multiagent', 'decompose', "project:{$this->project->id}"],
+        );
+
+        return $this->withHeader('Authorization', 'Bearer ' . $token['plainTextToken']);
+    }
+
+    #[Test]
+    public function decompose_token_can_submit_a_master_plan(): void
+    {
+        $plan = [
+            'version' => 1,
+            'prd_summary' => 'A small project',
+            'waves' => [[
+                'id' => 0,
+                'name' => 'Foundation',
+                'description' => 'Base',
+                'tasks' => [[
+                    'title' => 'Set up the database',
+                    'description' => 'Create the schema',
+                    'priority' => 'high',
+                    'files' => ['db/schema.sql'],
+                    'depends_on' => [],
+                ]],
+            ]],
+        ];
+
+        $response = $this->withDecomposeToken()
+            ->postJson("/api/projects/{$this->project->id}/decompose/submit", [
+                'master_plan' => $plan,
+            ]);
+
+        $response->assertOk()->assertJson(['success' => true]);
+        $this->assertNotEmpty($this->project->fresh()->master_plan);
+    }
+
+    #[Test]
+    public function worker_token_without_decompose_ability_cannot_submit_a_plan(): void
+    {
+        $response = $this->withScopedToken()
+            ->postJson("/api/projects/{$this->project->id}/decompose/submit", [
+                'master_plan' => ['version' => 1, 'waves' => []],
+            ]);
+
+        $response->assertStatus(403)->assertJsonPath('error.code', 'AUTH_003');
+    }
+
+    #[Test]
+    public function decompose_token_cannot_submit_to_another_project(): void
+    {
+        $otherProject = SharedProject::factory()->for($this->user)->for($this->machine)->create();
+
+        $response = $this->withDecomposeToken()
+            ->postJson("/api/projects/{$otherProject->id}/decompose/submit", [
+                'master_plan' => ['version' => 1, 'waves' => []],
+            ]);
+
+        $response->assertStatus(403)->assertJsonPath('error.code', 'AUTH_003');
+    }
 }

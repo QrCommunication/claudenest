@@ -20,7 +20,6 @@ import {
   createContextHandlers,
   createFileHandlers,
   createScanHandlers,
-  createDecomposeHandlers,
   createOAuthHandlers,
   createDiscoveryHandlers,
   createSprintHandlers,
@@ -430,13 +429,6 @@ export class ClaudeNestAgent extends EventEmitter {
       logger: this.logger,
     });
 
-    // Decompose handlers
-    const decomposeHandlers = createDecomposeHandlers({
-      sessionManager: this.sessionManager,
-      wsClient: this.wsClient,
-      logger: this.logger,
-    });
-
     // OAuth handlers
     const oauthHandlers = createOAuthHandlers({
       wsClient: this.wsClient,
@@ -476,9 +468,6 @@ export class ClaudeNestAgent extends EventEmitter {
       this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
     }
     for (const [type, handler] of Object.entries(scanHandlers)) {
-      this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
-    }
-    for (const [type, handler] of Object.entries(decomposeHandlers)) {
       this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
     }
     for (const [type, handler] of Object.entries(oauthHandlers)) {

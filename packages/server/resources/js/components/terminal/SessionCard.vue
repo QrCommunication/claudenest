@@ -153,7 +153,6 @@ const modeLabel = computed(() => {
   const labels: Record<SessionMode, string> = {
     interactive: t('terminalSessioncard.modeInteractive'),
     headless: t('terminalSessioncard.modeHeadless'),
-    oneshot: t('terminalSessioncard.modeOneshot'),
     bash: t('terminalSessioncard.modeBash'),
   };
   return labels[props.session.mode] || props.session.mode;
@@ -407,11 +406,6 @@ function handleViewLogs(): void {
 .mode-badge.headless {
   background: color-mix(in srgb, var(--accent-indigo, #6366f1) 15%, transparent);
   color: var(--accent-indigo, #6366f1);
-}
-
-.mode-badge.oneshot {
-  background: color-mix(in srgb, var(--accent-cyan, #22d3ee) 15%, transparent);
-  color: var(--accent-cyan, #22d3ee);
 }
 
 /* Actions */

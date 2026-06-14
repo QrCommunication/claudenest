@@ -2,27 +2,51 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\SessionCreated;
+use App\Events\SessionTerminated;
 use App\Http\Controllers\Controller;
 use App\Models\ClaudeCredential;
+use App\Models\ClaudeInstance;
+use App\Models\Session;
 use App\Models\SharedProject;
 use App\Services\AgentGateway;
 use App\Services\CredentialService;
 use App\Services\DecompositionService;
 use App\Services\DecompositionStreamService;
+use App\Services\MultiAgentSessionService;
+use App\Services\SessionPayloadBuilder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use Throwable;
 
 class DecompositionController extends Controller
 {
+    /**
+     * Decomposition runs as an interactive session (subscription, no `claude -p`),
+     * scoped to a single extra ability so the only thing it can do on the API is
+     * submit its plan via the `submit_master_plan` MCP tool. Sandboxed like a
+     * worker (read-all, writes confined to the project).
+     */
+    private const DECOMPOSE_ABILITY = 'decompose';
+
     public function __construct(
         private DecompositionService $decompositionService,
         private CredentialService $credentialService,
         private DecompositionStreamService $decompositionStream,
+        private SessionPayloadBuilder $payloadBuilder,
+        private MultiAgentSessionService $multiAgentSessionService,
     ) {}
 
     /**
-     * Launch PRD decomposition via the agent (async).
+     * Launch PRD decomposition as an INTERACTIVE session (async).
+     *
+     * The decomposition runs on the user's subscription — a normal interactive
+     * Claude session (NOT `claude -p`/print mode, which risks separate metering).
+     * The session is scoped with the `decompose` ability and an MCP env, then
+     * returns its result by calling the `submit_master_plan` tool (see
+     * submitFromAgent) rather than printing JSON to stdout.
      *
      * POST /api/projects/{project}/decompose
      */
@@ -41,63 +65,164 @@ class DecompositionController extends Controller
             ],
         ]);
 
-        // Resolve credential
         $credential = ClaudeCredential::where('id', $validated['credential_id'])
             ->where('user_id', $request->user()->id)
             ->first();
 
-        if (!$credential) {
+        if (! $credential) {
             return $this->errorResponse('CREDENTIAL_NOT_FOUND', 'Credential not found', 404);
         }
 
-        // Get credential env vars
+        // Validate the credential is usable (OAuth fresh / API key present) before
+        // spawning — surfaces a clean 422 instead of a session that 401s on boot.
         try {
-            $credentialEnv = $this->credentialService->getSessionEnv($credential);
+            $this->credentialService->getSessionEnv($credential);
         } catch (\RuntimeException $e) {
             return $this->errorResponse('CREDENTIAL_ERROR', $e->getMessage(), 422);
         }
 
         $machine = $project->machine;
-        if (!$machine || $machine->status !== 'online') {
+        if (! $machine || $machine->status !== 'online') {
             return $this->errorResponse('MACHINE_OFFLINE', 'Machine is not online', 422);
         }
 
-        // Store PRD on project
+        // Persist the PRD + release the one-result-per-run lock so this run can
+        // emit its decompose:result (see DecompositionStreamService).
         $project->update(['prd' => $validated['prd']]);
+        $this->decompositionStream->reset($project->id);
 
-        // Build decomposition prompt
-        $scanResult = null;
-        if ($project->settings && isset($project->settings['scan_result'])) {
-            $scanResult = $project->settings['scan_result'];
-        }
-        $prompt = $this->decompositionService->buildDecompositionPrompt(
+        $scanResult = $project->settings['scan_result'] ?? null;
+        $systemPrompt = $this->decompositionService->buildDecompositionSystemPrompt(
             $validated['prd'],
             $scanResult,
         );
 
-        // New run — release the one-result-per-run lock so this decomposition
-        // can emit its decompose:result (see DecompositionStreamService).
-        $this->decompositionStream->reset($project->id);
-
-        // Send decompose command to agent (async — result comes via WebSocket)
-        AgentGateway::send($machine->id, 'decompose:start', [
-            'projectId' => $project->id,
-            'projectPath' => $project->project_path,
-            'prompt' => $prompt,
-            'credentialEnv' => $credentialEnv,
+        // Ephemeral interactive session: instance + scoped token (decompose
+        // ability) + MCP env, exactly like a worker/coordinator. bypassPermissions
+        // so it never stalls calling its MCP tool; the system prompt forbids edits
+        // and the bwrap sandbox confines any write to the project as a safety net.
+        $session = Session::create([
+            'machine_id' => $project->machine_id,
+            'user_id' => $project->user_id,
+            'shared_project_id' => $project->id,
+            'mode' => 'interactive',
+            'project_path' => $project->project_path,
+            'initial_prompt' => 'Decompose the PRD in your instructions into a master plan, '
+                .'then submit it with the submit_master_plan tool. Do not edit any files.',
+            'credential_id' => $credential->id,
+            'status' => 'created',
+            'orchestrated' => false,
         ]);
+
+        $payload = $this->payloadBuilder->build(
+            $session,
+            $project,
+            'bypassPermissions',
+            extraAbilities: [self::DECOMPOSE_ABILITY],
+            systemPromptOverride: $systemPrompt,
+        );
+
+        AgentGateway::send($machine->id, 'session:create', $payload);
+        broadcast(new SessionCreated($session))->toOthers();
 
         return response()->json([
             'success' => true,
             'data' => [
                 'status' => 'decomposing',
-                'message' => 'Decomposition started. Results will be streamed via WebSocket.',
+                'session_id' => $session->id,
+                'message' => 'Decomposition session started. The plan will arrive via WebSocket.',
             ],
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
             ],
         ]);
+    }
+
+    /**
+     * Receive the master plan from a decomposition session's `submit_master_plan`
+     * MCP tool. Validates + stores the plan, broadcasts decompose:result (the
+     * finalize path the wizard awaits), and tears the session down.
+     *
+     * Hit by the session's scoped token (decompose ability) — see
+     * RestrictScopedTokens.
+     *
+     * POST /api/projects/{project}/decompose/submit
+     */
+    public function submitFromAgent(Request $request, SharedProject $project): JsonResponse
+    {
+        $validated = $request->validate([
+            'master_plan' => 'required|array',
+            'master_plan.version' => 'required|integer|in:1',
+            'master_plan.waves' => 'required|array|min:1',
+            'master_plan.waves.*.name' => 'required|string',
+            'master_plan.waves.*.tasks' => 'required|array|min:1',
+            'master_plan.waves.*.tasks.*.title' => 'required|string',
+        ]);
+
+        $validation = $this->decompositionService->validateMasterPlan($validated['master_plan']);
+        if (! $validation['valid']) {
+            return $this->errorResponse(
+                'INVALID_PLAN',
+                'Master plan validation failed: '.implode('; ', $validation['errors']),
+                422,
+            );
+        }
+
+        // Store master_plan + broadcast decompose:result (same finalize the old
+        // agent stdout-result used). The wizard refetches the plan on the signal.
+        $this->decompositionStream->completeFromAgentResult($project, [
+            'success' => true,
+            'plan' => $validation['plan'],
+        ]);
+
+        // The session has done its single job — tear it down so it never lingers.
+        $this->teardownDecomposeSession($request);
+
+        $waves = $validation['plan']['waves'] ?? [];
+        $taskCount = array_sum(array_map(fn ($w) => count($w['tasks'] ?? []), $waves));
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'status' => 'submitted',
+                'waves' => count($waves),
+                'created' => $taskCount,
+            ],
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
+    }
+
+    /**
+     * Terminate the decomposition session that submitted the plan. Resolved via
+     * the MCP instance header (X-Instance-ID). Best-effort — a failed teardown
+     * must never fail the submit (the plan is already stored + broadcast).
+     */
+    private function teardownDecomposeSession(Request $request): void
+    {
+        try {
+            $instanceId = (string) $request->header('X-Instance-ID', '');
+            if ($instanceId === '') {
+                return;
+            }
+
+            $session = ClaudeInstance::find($instanceId)?->session;
+            if (! $session) {
+                return;
+            }
+
+            $session->markAsTerminated();
+            $this->multiAgentSessionService->teardown($session);
+            AgentGateway::send($session->machine_id, 'session:terminate', [
+                'sessionId' => $session->id,
+            ]);
+            broadcast(new SessionTerminated($session))->toOthers();
+        } catch (Throwable $e) {
+            Log::warning('Decompose session teardown failed', ['error' => $e->getMessage()]);
+        }
     }
 
     /**

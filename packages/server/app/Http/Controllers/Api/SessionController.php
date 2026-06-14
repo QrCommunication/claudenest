@@ -121,7 +121,7 @@ class SessionController extends Controller
         // only gates on session creation.
 
         $validated = $request->validate([
-            'mode' => 'sometimes|string|in:interactive,headless,oneshot,bash',
+            'mode' => 'sometimes|string|in:interactive,headless,bash',
             'project_path' => 'nullable|string|max:512',
             'initial_prompt' => 'nullable|string',
             'credential_id' => [

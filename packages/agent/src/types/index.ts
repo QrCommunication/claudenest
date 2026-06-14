@@ -120,7 +120,7 @@ export interface SessionConfig {
   appendSystemPrompt?: string;
   /**
    * Claude Code permission mode (`--permission-mode`).
-   * Defaults to `acceptEdits` for headless/oneshot modes (Phase 0 legacy mapping).
+   * Defaults to `acceptEdits` for headless mode (Phase 0 legacy mapping).
    */
   permissionMode?: 'default' | 'plan' | 'acceptEdits' | 'bypassPermissions';
   /**
@@ -144,7 +144,7 @@ export type SessionStatus =
   | 'error' 
   | 'terminated';
 
-export type SessionMode = 'interactive' | 'headless' | 'oneshot' | 'bash';
+export type SessionMode = 'interactive' | 'headless' | 'bash';
 
 export interface PTYSize {
   cols: number;
@@ -198,7 +198,6 @@ export type IncomingMessageType =
   | 'file:unlock'
   | 'file:browse'
   | 'project:scan'
-  | 'decompose:start'
   | 'claude_sessions:discover'
   | 'claude_sessions:open'
   | 'claude_sessions:close'
@@ -219,8 +218,6 @@ export type OutgoingMessageType =
   | 'file:lock_update'
   | 'file:browse_result'
   | 'project:scan_result'
-  | 'decompose:progress'
-  | 'decompose:result'
   | 'claude_sessions:discovered'
   | 'claude_sessions:discover_result'
   | 'claude_sessions:transcript'
@@ -516,52 +513,6 @@ export interface ProjectScanResult {
   error?: string;
 }
 
-
-// ============================================
-// Decomposition (PRD → Master Plan)
-// ============================================
-
-export interface DecomposeStartPayload {
-  projectId: string;
-  projectPath: string;
-  prompt: string;
-  credentialEnv?: Record<string, string>;
-}
-
-export interface DecomposeProgressPayload {
-  projectId: string;
-  output: string;
-  percent?: number;
-}
-
-export interface DecomposeResultPayload {
-  projectId: string;
-  success: boolean;
-  plan?: MasterPlan;
-  error?: string;
-}
-
-export interface MasterPlan {
-  version: 1;
-  prd_summary: string;
-  waves: MasterPlanWave[];
-}
-
-export interface MasterPlanWave {
-  id: number;
-  name: string;
-  description: string;
-  tasks: MasterPlanTask[];
-}
-
-export interface MasterPlanTask {
-  title: string;
-  description: string;
-  priority: TaskPriority;
-  files: string[];
-  estimated_tokens?: number;
-  depends_on: string[];
-}
 
 // ============================================
 // Claude Session Discovery (scanned, not agent-spawned)

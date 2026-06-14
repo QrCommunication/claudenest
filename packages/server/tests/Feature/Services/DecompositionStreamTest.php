@@ -13,10 +13,10 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
- * Decomposition stream routing: ephemeral `decompose-{projectId}-{ts}`
- * sessions have no Session row — their output is accumulated and parsed
- * server-side on exit, converging with the agent's own decompose:result
- * path on an idempotent completion.
+ * Decomposition completion: an interactive decomposition session submits its
+ * plan via the `submit_master_plan` MCP tool, which routes here through
+ * completeFromAgentResult(). The plan is stored and a slim `decompose:result`
+ * is broadcast, idempotently (one completion per run, reset on a new run).
  */
 class DecompositionStreamTest extends TestCase
 {
@@ -39,11 +39,6 @@ class DecompositionStreamTest extends TestCase
 
         $this->stream = app(DecompositionStreamService::class);
         $this->stream->reset($this->project->id);
-    }
-
-    private function sessionId(): string
-    {
-        return 'decompose-' . $this->project->id . '-' . now()->getTimestampMs();
     }
 
     private function planJson(string $summary = 'Real summary'): string
@@ -71,40 +66,18 @@ class DecompositionStreamTest extends TestCase
         ]);
     }
 
-    /** The ```json schema example embedded in the decomposition prompt (echoed by the PTY). */
-    private function echoedPromptExample(): string
-    {
-        return "## Output Format\n```json\n" . json_encode([
-            'version' => 1,
-            'prd_summary' => 'One-paragraph summary of the PRD',
-            'waves' => [
-                [
-                    'id' => 0,
-                    'name' => 'Wave name (e.g. Foundation, Backend, Frontend)',
-                    'tasks' => [['title' => 'Short task title', 'priority' => 'critical|high|medium|low']],
-                ],
-            ],
-        ]) . "\n```\n";
-    }
-
     #[Test]
-    public function output_stream_is_parsed_on_exit_and_broadcasts_the_result(): void
+    public function submitted_plan_is_stored_and_broadcast_slim(): void
     {
         Event::fake([ProjectBroadcast::class]);
-        $sessionId = $this->sessionId();
 
-        // PTY stream: ANSI noise + echoed prompt (with its example block),
-        // then Claude's actual plan split across chunks.
-        $this->stream->handleOutput($sessionId, "\x1b[1mLaunching\x1b[0m\n" . $this->echoedPromptExample());
-        $plan = $this->planJson();
-        $half = (int) (strlen($plan) / 2);
-        $this->stream->handleOutput($sessionId, "Here is the plan:\n```json\n" . substr($plan, 0, $half));
-        $this->stream->handleOutput($sessionId, substr($plan, $half) . "\n```\nDone.\n");
-
-        $this->stream->handleExited($sessionId);
+        $this->stream->completeFromAgentResult($this->project, [
+            'success' => true,
+            'plan' => json_decode($this->planJson('Agent summary'), true),
+        ]);
 
         $fresh = $this->project->fresh();
-        $this->assertSame('Real summary', $fresh->master_plan['prd_summary']);
+        $this->assertSame('Agent summary', $fresh->master_plan['prd_summary']);
         $this->assertSame('Create users migration', $fresh->master_plan['waves'][0]['tasks'][0]['title']);
 
         // Slim signal: the plan must NOT travel in the broadcast (a real plan
@@ -115,47 +88,29 @@ class DecompositionStreamTest extends TestCase
                 && $event->message['type'] === 'decompose:result'
                 && $event->message['success'] === true
                 && $event->message['has_plan'] === true
+                && $event->message['errors'] === []
                 && !array_key_exists('plan', $event->message);
         });
     }
 
     #[Test]
-    public function result_is_emitted_once_when_agent_result_arrives_after_the_exit_parse(): void
-    {
-        Event::fake([ProjectBroadcast::class]);
-        $sessionId = $this->sessionId();
-
-        $this->stream->handleOutput($sessionId, "```json\n" . $this->planJson() . "\n```\n");
-        $this->stream->handleExited($sessionId);
-
-        // The agent's own decompose:result lands right after — suppressed.
-        $this->stream->completeFromAgentResult($this->project->fresh(), [
-            'success' => true,
-            'plan' => json_decode($this->planJson('Agent summary'), true),
-        ]);
-
-        Event::assertDispatchedTimes(ProjectBroadcast::class, 1);
-        // First completion won: the server-side parse, not the agent payload.
-        $this->assertSame('Real summary', $this->project->fresh()->master_plan['prd_summary']);
-    }
-
-    #[Test]
-    public function agent_result_path_still_completes_on_its_own(): void
+    public function a_duplicate_submit_in_the_same_run_is_suppressed(): void
     {
         Event::fake([ProjectBroadcast::class]);
 
         $this->stream->completeFromAgentResult($this->project, [
             'success' => true,
-            'plan' => json_decode($this->planJson('Agent summary'), true),
+            'plan' => json_decode($this->planJson(), true),
+        ]);
+        // A retried submit (same run) must not double-broadcast.
+        $this->stream->completeFromAgentResult($this->project->fresh(), [
+            'success' => true,
+            'plan' => json_decode($this->planJson('Second attempt'), true),
         ]);
 
-        $this->assertSame('Agent summary', $this->project->fresh()->master_plan['prd_summary']);
-
-        Event::assertDispatched(ProjectBroadcast::class, function (ProjectBroadcast $event) {
-            return $event->message['type'] === 'decompose:result'
-                && $event->message['success'] === true
-                && $event->message['errors'] === [];
-        });
+        Event::assertDispatchedTimes(ProjectBroadcast::class, 1);
+        // First completion won.
+        $this->assertSame('Real summary', $this->project->fresh()->master_plan['prd_summary']);
     }
 
     #[Test]
@@ -168,7 +123,7 @@ class DecompositionStreamTest extends TestCase
             'error' => 'first run failed',
         ]);
 
-        // decompose:start (or regenerate) resets the one-result-per-run lock.
+        // Starting a new decomposition resets the one-result-per-run lock.
         $this->stream->reset($this->project->id);
 
         $this->stream->completeFromAgentResult($this->project->fresh(), [
@@ -181,13 +136,14 @@ class DecompositionStreamTest extends TestCase
     }
 
     #[Test]
-    public function unparseable_output_broadcasts_a_failure_result(): void
+    public function a_failed_submit_broadcasts_a_failure_and_stores_no_plan(): void
     {
         Event::fake([ProjectBroadcast::class]);
-        $sessionId = $this->sessionId();
 
-        $this->stream->handleOutput($sessionId, "claude: command not found\n");
-        $this->stream->handleExited($sessionId);
+        $this->stream->completeFromAgentResult($this->project, [
+            'success' => false,
+            'error' => 'model produced no plan',
+        ]);
 
         $this->assertNull($this->project->fresh()->master_plan);
 
@@ -197,63 +153,5 @@ class DecompositionStreamTest extends TestCase
                 && is_string($event->message['error'])
                 && $event->message['error'] !== '';
         });
-    }
-
-    #[Test]
-    public function echoed_prompt_example_is_never_mistaken_for_the_plan(): void
-    {
-        Event::fake([ProjectBroadcast::class]);
-        $sessionId = $this->sessionId();
-
-        // Claude produced nothing: the only JSON block in the buffer is the
-        // schema example echoed from the prompt. Must FAIL, not "succeed"
-        // with a bogus 1-task plan.
-        $this->stream->handleOutput($sessionId, $this->echoedPromptExample());
-        $this->stream->handleExited($sessionId);
-
-        $this->assertNull($this->project->fresh()->master_plan);
-
-        Event::assertDispatched(ProjectBroadcast::class, function (ProjectBroadcast $event) {
-            return $event->message['type'] === 'decompose:result'
-                && $event->message['success'] === false;
-        });
-    }
-
-    #[Test]
-    public function exited_without_any_buffered_output_still_unblocks_the_frontend(): void
-    {
-        Event::fake([ProjectBroadcast::class]);
-
-        // No handleOutput at all (output frames lost) — the exit must still
-        // emit a failure result instead of leaving the UI decomposing forever.
-        $this->stream->handleExited($this->sessionId());
-
-        Event::assertDispatched(ProjectBroadcast::class, function (ProjectBroadcast $event) {
-            return $event->message['type'] === 'decompose:result'
-                && $event->message['success'] === false;
-        });
-    }
-
-    #[Test]
-    public function malformed_or_foreign_session_ids_are_ignored_safely(): void
-    {
-        Event::fake([ProjectBroadcast::class]);
-
-        $this->assertTrue($this->stream->isDecomposeSessionId('decompose-x-1'));
-        $this->assertFalse($this->stream->isDecomposeSessionId('worker-abc'));
-
-        $this->assertSame(
-            $this->project->id,
-            $this->stream->extractProjectId('decompose-' . $this->project->id . '-1749600000000'),
-        );
-        $this->assertNull($this->stream->extractProjectId('decompose-not-a-uuid-123'));
-        $this->assertNull($this->stream->extractProjectId('decompose-' . $this->project->id));
-
-        // Malformed id: no uuid query, no broadcast, no exception.
-        $this->stream->handleExited('decompose-not-a-uuid-123');
-        // Unknown (but well-formed) project id: ignored.
-        $this->stream->handleExited('decompose-' . \Illuminate\Support\Str::uuid() . '-123');
-
-        Event::assertNotDispatched(ProjectBroadcast::class);
     }
 }

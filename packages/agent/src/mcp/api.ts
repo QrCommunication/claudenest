@@ -527,3 +527,24 @@ export function orchestratorStart(
     payload as Record<string, unknown>,
   );
 }
+
+// ─── Decomposition API ─────────────────────────────────────────────────────────
+
+/**
+ * POST /api/projects/{p}/decompose/submit — hand the generated master plan
+ * back to the server. This replaces the legacy `claude -p` stdout-parsing
+ * path: the decomposition session runs interactively (on the subscription)
+ * and submits its result through this MCP tool. The server validates, stores
+ * `master_plan`, broadcasts `decompose:result`, and tears the session down.
+ */
+export function submitMasterPlan(
+  env: McpEnv,
+  plan: Record<string, unknown>,
+): Promise<FetchResult<{ created?: number; waves?: number }>> {
+  return apiRequest(
+    env,
+    "POST",
+    `/api/projects/${env.projectId}/decompose/submit`,
+    { master_plan: plan },
+  );
+}

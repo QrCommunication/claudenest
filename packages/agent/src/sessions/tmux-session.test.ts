@@ -78,6 +78,9 @@ describe('TmuxSession — credential isolation', () => {
     expect(creds.claudeAiOauth.refreshToken).toBe('refresh-token-def');
     expect(creds.claudeAiOauth.expiresAt).toBe(1781200000000);
     expect(Array.isArray(creds.claudeAiOauth.scopes)).toBe(true);
+    // The critical scope: without it Claude Code rejects the token for its
+    // own sessions and prompts /login even though the token is fresh.
+    expect(creds.claudeAiOauth.scopes).toContain('user:sessions:claude_code');
 
     // Transport-only vars must not leak into the session environment.
     expect(credentialEnv.CLAUDE_CODE_OAUTH_TOKEN).toBeUndefined();
@@ -90,6 +93,34 @@ describe('TmuxSession — credential isolation', () => {
       fs.readFileSync(path.join(configDir, '.claude.json'), 'utf8'),
     );
     expect(state.hasCompletedOnboarding).toBe(true);
+  });
+
+  it('uses server-forwarded scopes + subscriptionType/rateLimitTier when present', () => {
+    const credentialEnv: Record<string, string> = {
+      CLAUDE_CODE_OAUTH_TOKEN: 'access-token-abc',
+      CLAUDE_CODE_OAUTH_SCOPES: 'user:inference,user:sessions:claude_code,user:profile',
+      CLAUDE_CODE_OAUTH_SUBSCRIPTION_TYPE: 'max',
+      CLAUDE_CODE_OAUTH_RATE_LIMIT_TIER: 'default_claude_max',
+      CLAUDE_CONFIG_DIR: configDir,
+    };
+
+    prepareIsolation(makeSession(credentialEnv));
+
+    const creds = JSON.parse(
+      fs.readFileSync(path.join(configDir, '.credentials.json'), 'utf8'),
+    );
+    expect(creds.claudeAiOauth.scopes).toEqual([
+      'user:inference',
+      'user:sessions:claude_code',
+      'user:profile',
+    ]);
+    expect(creds.claudeAiOauth.subscriptionType).toBe('max');
+    expect(creds.claudeAiOauth.rateLimitTier).toBe('default_claude_max');
+
+    // The account-level transport vars are stripped too.
+    expect(credentialEnv.CLAUDE_CODE_OAUTH_SCOPES).toBeUndefined();
+    expect(credentialEnv.CLAUDE_CODE_OAUTH_SUBSCRIPTION_TYPE).toBeUndefined();
+    expect(credentialEnv.CLAUDE_CODE_OAUTH_RATE_LIMIT_TIER).toBeUndefined();
   });
 
   it('omits refreshToken/expiresAt when the credential has none', () => {

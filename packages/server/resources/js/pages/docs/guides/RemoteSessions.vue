@@ -97,30 +97,6 @@
       </p>
     </section>
 
-    <section id="oneshot-mode">
-      <h2>{{ t('docDocsGuidesRemotesessions.oneshotHeading') }}</h2>
-      <p>
-        {{ t('docDocsGuidesRemotesessions.oneshotPara1') }}
-      </p>
-
-      <CodeTabs :tabs="oneshotSessionTabs" />
-
-      <CodeBlock
-        :code="oneshotResponse"
-        language="json"
-        filename="Response"
-      />
-
-      <p>
-        {{ t('docDocsGuidesRemotesessions.oneshotPara2') }}
-      </p>
-
-      <p class="tip">
-        <span class="tip-icon">&#128161;</span>
-        {{ t('docDocsGuidesRemotesessions.oneshotTip') }}
-      </p>
-    </section>
-
     <section id="monitoring">
       <h2>{{ t('docDocsGuidesRemotesessions.monitoringHeading') }}</h2>
       <p>
@@ -466,84 +442,6 @@ const headlessResponse = `{
   "meta": {
     "timestamp": "2026-02-17T11:00:00Z",
     "request_id": "req_headless_001"
-  }
-}`;
-
-const oneshotSessionTabs = ref([
-  {
-    label: 'cURL',
-    language: 'bash',
-    code: `curl -X POST https://claudenest.yourdomain.com/api/machines/MACHINE_ID/sessions \\
-  -H "Authorization: Bearer YOUR_TOKEN" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "mode": "oneshot",
-    "project_path": "/home/user/myproject",
-    "initial_prompt": "Explain the purpose of src/auth/middleware.ts"
-  }'`,
-    filename: 'Request',
-  },
-  {
-    label: 'JavaScript',
-    language: 'javascript',
-    code: `const response = await fetch(
-  'https://claudenest.yourdomain.com/api/machines/MACHINE_ID/sessions',
-  {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Bearer YOUR_TOKEN',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      mode: 'oneshot',
-      project_path: '/home/user/myproject',
-      initial_prompt: 'Explain the purpose of src/auth/middleware.ts',
-    }),
-  }
-);
-
-const session = await response.json();
-console.log('Oneshot result:', session.data.id);`,
-    filename: 'oneshot.js',
-  },
-  {
-    label: 'Python',
-    language: 'python',
-    code: `import requests
-
-response = requests.post(
-    "https://claudenest.yourdomain.com/api/machines/MACHINE_ID/sessions",
-    headers={
-        "Authorization": "Bearer YOUR_TOKEN",
-        "Content-Type": "application/json",
-    },
-    json={
-        "mode": "oneshot",
-        "project_path": "/home/user/myproject",
-        "initial_prompt": "Explain the purpose of src/auth/middleware.ts",
-    },
-)
-
-session = response.json()
-print("Oneshot result:", session["data"]["id"])`,
-    filename: 'oneshot.py',
-  },
-]);
-
-const oneshotResponse = `{
-  "success": true,
-  "data": {
-    "id": "550e8400-e29b-41d4-a716-446655440004",
-    "machine_id": "550e8400-e29b-41d4-a716-446655440001",
-    "mode": "oneshot",
-    "project_path": "/home/user/myproject",
-    "status": "created",
-    "is_running": false,
-    "created_at": "2026-02-17T11:30:00Z"
-  },
-  "meta": {
-    "timestamp": "2026-02-17T11:30:00Z",
-    "request_id": "req_oneshot_001"
   }
 }`;
 

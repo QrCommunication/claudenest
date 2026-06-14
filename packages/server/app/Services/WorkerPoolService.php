@@ -74,11 +74,17 @@ class WorkerPoolService
         int $maxWorkers,
         string $permissionMode = self::DEFAULT_PERMISSION_MODE,
         bool $coordinator = true,
+        ?string $credentialId = null,
     ): array {
         $machine = $project->machine;
         if (! $machine || $machine->status !== 'online') {
             throw WorkerPoolException::machineOffline();
         }
+
+        // Resolve the credential ONCE so every worker (and later relaunch /
+        // recycle, via the persisted orchestration setting) uses the selected
+        // one — not whatever happens to be the default.
+        $credential = $this->resolveCredential($user, $credentialId);
 
         // Resume before new: tasks left in_progress by previously-terminated
         // workers return to the claimable pool (and are claimed first via
@@ -90,7 +96,7 @@ class WorkerPoolService
 
         $spawned = [];
         for ($i = 0; $i < $toSpawn; $i++) {
-            $spawned[] = $this->spawnWorker($project, $user, $permissionMode);
+            $spawned[] = $this->spawnWorker($project, $user, $permissionMode, $credential?->id);
         }
 
         $project->setSetting('orchestration', [
@@ -98,6 +104,7 @@ class WorkerPoolService
             'max_workers' => $maxWorkers,
             'permission_mode' => $permissionMode,
             'coordinator' => $coordinator,
+            'credential_id' => $credential?->id,
             'started_at' => now()->toIso8601String(),
         ]);
 
@@ -113,16 +120,21 @@ class WorkerPoolService
     }
 
     /**
-     * Spawn a single orchestrated worker session (interactive mode, default
-     * credential of the user) and send the same camelCase session:create
-     * payload as SessionController::store.
+     * Spawn a single orchestrated worker session (interactive mode) and send
+     * the same camelCase session:create payload as SessionController::store.
+     *
+     * The worker runs under the credential SELECTED for the orchestration (the
+     * one the operator picked), not blindly the default — resolved via
+     * resolveCredential(). Falls back to the user's default only when no
+     * selection is stored or the selected credential no longer exists.
      */
     public function spawnWorker(
         SharedProject $project,
         User $user,
         string $permissionMode = self::DEFAULT_PERMISSION_MODE,
+        ?string $credentialId = null,
     ): Session {
-        $credential = $user->credentials()->default()->first();
+        $credential = $this->resolveCredential($user, $credentialId);
 
         /** @var Session $session */
         $session = Session::create([
@@ -148,9 +160,26 @@ class WorkerPoolService
         Log::info('Worker spawned', [
             'project_id' => $project->id,
             'session_id' => $session->id,
+            'credential_id' => $credential?->id,
         ]);
 
         return $session;
+    }
+
+    /**
+     * Resolve the credential a worker should run under: the explicitly selected
+     * one when it exists and belongs to the user, else the user's default.
+     */
+    private function resolveCredential(User $user, ?string $credentialId): ?\App\Models\ClaudeCredential
+    {
+        if ($credentialId) {
+            $selected = $user->credentials()->whereKey($credentialId)->first();
+            if ($selected) {
+                return $selected;
+            }
+        }
+
+        return $user->credentials()->default()->first();
     }
 
     /**
@@ -273,8 +302,11 @@ class WorkerPoolService
         }
 
         // Fresh worker: new scoped MCP token + renewed credential env; its
-        // bootstrap prompt claims the reclaimed task → resume.
-        $new = $this->spawnWorker($project, $user, $permissionMode);
+        // bootstrap prompt claims the reclaimed task → resume. Keep the
+        // orchestration's selected credential (fall back to the stuck
+        // session's own credential).
+        $credentialId = $orchestration['credential_id'] ?? $session->credential_id;
+        $new = $this->spawnWorker($project, $user, $permissionMode, $credentialId);
         $result['relaunched'] = true;
         $result['new_session'] = $new->id;
 
