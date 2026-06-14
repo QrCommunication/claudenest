@@ -55,6 +55,7 @@ export type ProjectsStackParamList = {
   Orchestration: { projectId: string };
   Git: { projectId: string };
   Audit: { projectId: string };
+  RunnerHealth: { projectId: string };
   SprintDetail: { sprintId: string };
   DecomposeEpic: { projectId: string };
 };

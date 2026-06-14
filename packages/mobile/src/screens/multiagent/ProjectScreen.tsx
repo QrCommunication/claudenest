@@ -55,6 +55,7 @@ type TabKey =
   | "locks"
   | "git"
   | "audit"
+  | "health"
   | "orchestration"
   | "assistant";
 
@@ -73,6 +74,7 @@ const TABS: TabConfig[] = [
   { key: "locks", label: "Locks", icon: "lock" },
   { key: "git", label: "Git", icon: "merge-type" },
   { key: "audit", label: "Audit", icon: "history" },
+  { key: "health", label: "Health", icon: "monitor-heart" },
   { key: "orchestration", label: "Orchestration", icon: "account-tree" },
   { key: "assistant", label: "Assistant", icon: "chat" },
 ];
@@ -781,6 +783,17 @@ export const ProjectScreen: React.FC<Props> = ({ route, navigation }) => {
             description="Read-only history of all project activity"
             actionLabel="Open Audit"
             onAction={() => navigation.navigate("Audit", { projectId })}
+          />
+        );
+
+      case "health":
+        return (
+          <PlaceholderTab
+            icon="monitor-heart"
+            title="Runner Health"
+            description="Alerts, task/sprint checks and a one-tap status sweep"
+            actionLabel="Open Health"
+            onAction={() => navigation.navigate("RunnerHealth", { projectId })}
           />
         );
 

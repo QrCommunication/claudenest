@@ -614,3 +614,66 @@ export interface AuditEntry {
   created_at: string | null;
   created_at_human: string | null;
 }
+
+// ─── Runner Agent (health monitor) ───────────────────────────────────────────
+// Server returns RAW snake_case arrays (RunnerController → RunnerAgentService),
+// NOT a camelCase Resource — type the shape verbatim.
+
+export interface RunnerTasksCheck {
+  total: number;
+  completed: number;
+  blocked: number;
+  overdue: number;
+  unestimated: number;
+}
+
+export interface RunnerActiveSprintCheck {
+  id: string;
+  name: string;
+  progress: number;
+  remaining_days: number | null;
+  is_overdue: boolean;
+}
+
+export interface RunnerSprintsCheck {
+  active: RunnerActiveSprintCheck | null;
+  planning_count: number;
+  completed_count: number;
+}
+
+export interface RunnerEpicCheck {
+  id: string;
+  title: string;
+  status: string;
+  progress: number;
+}
+
+export type RunnerAlertLevel = "warning" | "critical";
+
+export interface RunnerAlert {
+  level: RunnerAlertLevel;
+  message: string;
+  type: string;
+}
+
+export interface RunnerHealth {
+  project_id: string;
+  checked_at: string;
+  tasks: RunnerTasksCheck;
+  sprints: RunnerSprintsCheck;
+  epics: RunnerEpicCheck[];
+  alerts: RunnerAlert[];
+  recommendations: string[];
+}
+
+export interface RunnerAutoUpdate {
+  type: string;
+  id: string;
+  title?: string;
+  name?: string;
+}
+
+export interface RunnerAutoUpdateResult {
+  updates: RunnerAutoUpdate[];
+  count: number;
+}

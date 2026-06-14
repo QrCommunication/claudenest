@@ -20,6 +20,7 @@ import { PlanningChatScreen } from "@/screens/multiagent/PlanningChatScreen";
 import { OrchestrationScreen } from "@/screens/multiagent/OrchestrationScreen";
 import { GitScreen } from "@/screens/multiagent/GitScreen";
 import { AuditScreen } from "@/screens/multiagent/AuditScreen";
+import { RunnerHealthScreen } from "@/screens/multiagent/RunnerHealthScreen";
 import { SprintDetailScreen } from "@/screens/multiagent/SprintDetailScreen";
 import { DecomposeEpicScreen } from "@/screens/multiagent/DecomposeEpicScreen";
 
@@ -95,6 +96,11 @@ export const ProjectsNavigator: React.FC = () => {
         name="Audit"
         component={AuditScreen}
         options={{ title: "Audit Trail" }}
+      />
+      <Stack.Screen
+        name="RunnerHealth"
+        component={RunnerHealthScreen}
+        options={{ title: "Health" }}
       />
       <Stack.Screen
         name="SprintDetail"

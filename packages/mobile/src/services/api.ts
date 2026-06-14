@@ -446,23 +446,19 @@ export const planningApi = {
     ),
 };
 
+// Runner Agent — automated health monitor (RunnerController). Returns RAW
+// snake_case arrays (no Resource transform), mirrored in RunnerHealth /
+// RunnerAutoUpdateResult.
 export const runnerApi = {
   getHealth: (projectId: string) =>
-    api.get<{ status: string; details: Record<string, unknown> }>(
+    api.get<import("@/types").RunnerHealth>(
       `/projects/${projectId}/runner/health`,
     ),
 
   autoUpdate: (projectId: string) =>
-    api.post<{ updated: boolean; message: string }>(
+    api.post<import("@/types").RunnerAutoUpdateResult>(
       `/projects/${projectId}/runner/auto-update`,
     ),
-
-  getProgress: (projectId: string) =>
-    api.get<{
-      progress: number;
-      current_task: string | null;
-      details: Record<string, unknown>;
-    }>(`/projects/${projectId}/runner/progress`),
 };
 
 // Multi-agent orchestrator (server contract v1.5). Orchestration no longer
