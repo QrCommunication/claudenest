@@ -1,9 +1,11 @@
 /**
  * ProjectsListScreen
- * Displays list of multi-agent projects
+ * Active multi-agent projects + a collapsible "Archived" section.
+ * Archiving is reversible (the server keeps a context snapshot and deletes
+ * nothing); long-press a project to archive, expand "Archived" to restore.
  */
 
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useMemo, useState } from "react";
 import {
   View,
   FlatList,
@@ -11,24 +13,32 @@ import {
   RefreshControl,
   TouchableOpacity,
   Text,
-} from 'react-native';
-import { MaterialIcons as Icon } from '@expo/vector-icons';
-import { colors, spacing, borderRadius, typography } from '@/theme';
-import { useProjectsStore } from '@/stores/projectsStore';
-import { useMachinesStore } from '@/stores/machinesStore';
-import type { SharedProject } from '@/types';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { ProjectsStackParamList } from '@/navigation/types';
+  ActivityIndicator,
+} from "react-native";
+import { MaterialIcons as Icon } from "@expo/vector-icons";
+import { colors, spacing, borderRadius, typography } from "@/theme";
+import { useProjectsStore } from "@/stores/projectsStore";
+import { useMachinesStore } from "@/stores/machinesStore";
+import { showAlert } from "@/services/dialog";
+import type { SharedProject } from "@/types";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type { ProjectsStackParamList } from "@/navigation/types";
 
-import { LoadingSpinner, EmptyState, ErrorMessage, Card } from '@/components/common';
+import {
+  LoadingSpinner,
+  EmptyState,
+  ErrorMessage,
+  Card,
+} from "@/components/common";
 
-type Props = NativeStackScreenProps<ProjectsStackParamList, 'ProjectsList'>;
+type Props = NativeStackScreenProps<ProjectsStackParamList, "ProjectsList">;
 
 const ProjectCard: React.FC<{
   project: SharedProject;
   onPress: () => void;
-}> = ({ project, onPress }) => (
-  <Card onPress={onPress} style={styles.projectCard}>
+  onLongPress: () => void;
+}> = ({ project, onPress, onLongPress }) => (
+  <Card onPress={onPress} onLongPress={onLongPress} style={styles.projectCard}>
     <View style={styles.projectHeader}>
       <View style={styles.iconContainer}>
         <Icon name="folder-shared" size={24} color={colors.primary.purple} />
@@ -58,35 +68,198 @@ const ProjectCard: React.FC<{
   </Card>
 );
 
+const ArchivedRow: React.FC<{
+  project: SharedProject;
+  restoring: boolean;
+  onRestore: () => void;
+}> = ({ project, restoring, onRestore }) => (
+  <View style={styles.archivedRow}>
+    <Icon name="inventory-2" size={18} color={colors.text.muted} />
+    <View style={styles.archivedInfo}>
+      <Text style={styles.archivedName} numberOfLines={1}>
+        {project.name}
+      </Text>
+      <Text style={styles.archivedPath} numberOfLines={1}>
+        {project.projectPath}
+      </Text>
+    </View>
+    <TouchableOpacity
+      style={styles.restoreBtn}
+      onPress={onRestore}
+      disabled={restoring}
+      activeOpacity={0.8}
+    >
+      {restoring ? (
+        <ActivityIndicator size="small" color={colors.accent.cyan} />
+      ) : (
+        <>
+          <Icon name="unarchive" size={15} color={colors.accent.cyan} />
+          <Text style={styles.restoreText}>Restore</Text>
+        </>
+      )}
+    </TouchableOpacity>
+  </View>
+);
+
 export const ProjectsListScreen: React.FC<Props> = ({ navigation }) => {
-  const { projects, isLoading, error, fetchProjects, clearError } = useProjectsStore();
+  const {
+    projects,
+    archivedProjects,
+    isLoading,
+    isLoadingArchived,
+    error,
+    fetchProjects,
+    fetchArchivedProjects,
+    archiveProject,
+    unarchiveProject,
+    clearError,
+  } = useProjectsStore();
   const { machines, fetchMachines } = useMachinesStore();
+
+  const [archivedExpanded, setArchivedExpanded] = useState(false);
+  const [restoringId, setRestoringId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchMachines().then(() => {
       machines.forEach((m) => fetchProjects(m.id));
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleRefresh = useCallback(() => {
     machines.forEach((m) => fetchProjects(m.id));
-  }, [machines, fetchProjects]);
+    if (archivedExpanded) {
+      machines.forEach((m) => void fetchArchivedProjects(m.id));
+    }
+  }, [machines, fetchProjects, fetchArchivedProjects, archivedExpanded]);
 
   const handlePressProject = useCallback(
     (project: SharedProject) => {
-      navigation.navigate('ProjectDetail', { projectId: project.id });
+      navigation.navigate("ProjectDetail", { projectId: project.id });
     },
-    [navigation]
+    [navigation],
+  );
+
+  const handleArchive = useCallback(
+    (project: SharedProject) => {
+      showAlert(
+        "Archive project",
+        `Archive "${project.name}"? It's reversible — nothing is deleted and you can restore it from the Archived section.`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Archive",
+            style: "destructive",
+            onPress: async () => {
+              try {
+                await archiveProject(project.id);
+              } catch {
+                showAlert("Error", "Failed to archive project");
+              }
+            },
+          },
+        ],
+      );
+    },
+    [archiveProject],
+  );
+
+  const handleToggleArchived = useCallback(() => {
+    const next = !archivedExpanded;
+    setArchivedExpanded(next);
+    if (next && archivedProjects.length === 0) {
+      machines.forEach((m) => void fetchArchivedProjects(m.id));
+    }
+  }, [
+    archivedExpanded,
+    archivedProjects.length,
+    machines,
+    fetchArchivedProjects,
+  ]);
+
+  const handleRestore = useCallback(
+    async (project: SharedProject) => {
+      setRestoringId(project.id);
+      try {
+        await unarchiveProject(project.id);
+      } catch {
+        showAlert("Error", "Failed to restore project");
+      } finally {
+        setRestoringId(null);
+      }
+    },
+    [unarchiveProject],
+  );
+
+  const activeProjects = useMemo(
+    () =>
+      projects.filter((p, i, arr) => arr.findIndex((x) => x.id === p.id) === i),
+    [projects],
+  );
+
+  const uniqueArchived = useMemo(
+    () =>
+      archivedProjects.filter(
+        (p, i, arr) => arr.findIndex((x) => x.id === p.id) === i,
+      ),
+    [archivedProjects],
   );
 
   const renderItem = useCallback(
     ({ item }: { item: SharedProject }) => (
-      <ProjectCard project={item} onPress={() => handlePressProject(item)} />
+      <ProjectCard
+        project={item}
+        onPress={() => handlePressProject(item)}
+        onLongPress={() => handleArchive(item)}
+      />
     ),
-    [handlePressProject]
+    [handlePressProject, handleArchive],
   );
 
   const keyExtractor = useCallback((item: SharedProject) => item.id, []);
+
+  const ArchivedSection = (
+    <View style={styles.archivedSection}>
+      <TouchableOpacity
+        style={styles.archivedHeader}
+        onPress={handleToggleArchived}
+        activeOpacity={0.7}
+      >
+        <Icon
+          name={archivedExpanded ? "expand-more" : "chevron-right"}
+          size={20}
+          color={colors.text.muted}
+        />
+        <Icon name="archive" size={16} color={colors.text.muted} />
+        <Text style={styles.archivedTitle}>Archived</Text>
+        {uniqueArchived.length > 0 ? (
+          <View style={styles.countPill}>
+            <Text style={styles.countText}>{uniqueArchived.length}</Text>
+          </View>
+        ) : null}
+      </TouchableOpacity>
+
+      {archivedExpanded ? (
+        isLoadingArchived && uniqueArchived.length === 0 ? (
+          <ActivityIndicator
+            style={styles.archivedLoader}
+            color={colors.accent.purple}
+          />
+        ) : uniqueArchived.length === 0 ? (
+          <Text style={styles.archivedEmpty}>No archived projects</Text>
+        ) : (
+          uniqueArchived.map((p) => (
+            <ArchivedRow
+              key={p.id}
+              project={p}
+              restoring={restoringId === p.id}
+              onRestore={() => handleRestore(p)}
+            />
+          ))
+        )
+      ) : null}
+    </View>
+  );
 
   if (isLoading && projects.length === 0) {
     return <LoadingSpinner text="Loading projects..." fullScreen />;
@@ -95,11 +268,15 @@ export const ProjectsListScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <View style={styles.container}>
       {error && (
-        <ErrorMessage message={error} onRetry={handleRefresh} onDismiss={clearError} />
+        <ErrorMessage
+          message={error}
+          onRetry={handleRefresh}
+          onDismiss={clearError}
+        />
       )}
 
       <FlatList
-        data={projects.filter((p, i, arr) => arr.findIndex(x => x.id === p.id) === i)}
+        data={activeProjects}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         contentContainerStyle={styles.listContent}
@@ -118,6 +295,7 @@ export const ProjectsListScreen: React.FC<Props> = ({ navigation }) => {
             description="Create a project to enable multi-agent collaboration"
           />
         }
+        ListFooterComponent={ArchivedSection}
       />
     </View>
   );
@@ -137,8 +315,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   projectHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: spacing.sm,
   },
   iconContainer: {
@@ -146,8 +324,8 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: borderRadius.md,
     backgroundColor: colors.background.dark2,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: spacing.md,
   },
   projectInfo: {
@@ -155,7 +333,7 @@ const styles = StyleSheet.create({
   },
   projectName: {
     fontSize: typography.size.md,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.text.primary,
   },
   projectPath: {
@@ -170,20 +348,104 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   projectStats: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginTop: spacing.md,
     paddingTop: spacing.md,
     borderTopWidth: 1,
     borderTopColor: colors.border.subtle,
   },
   stat: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.xs,
   },
   statText: {
     fontSize: typography.size.xs,
     color: colors.text.muted,
+  },
+  // Archived section
+  archivedSection: {
+    marginTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.border.subtle,
+    paddingTop: spacing.md,
+  },
+  archivedHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+  },
+  archivedTitle: {
+    fontSize: typography.size.sm,
+    fontWeight: "700",
+    color: colors.text.secondary,
+    letterSpacing: 0.3,
+  },
+  countPill: {
+    minWidth: 18,
+    height: 18,
+    borderRadius: borderRadius.full,
+    paddingHorizontal: 5,
+    backgroundColor: colors.bg.input,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  countText: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: colors.text.muted,
+  },
+  archivedLoader: {
+    paddingVertical: spacing.md,
+  },
+  archivedEmpty: {
+    fontSize: typography.size.sm,
+    color: colors.text.muted,
+    paddingVertical: spacing.sm,
+    paddingLeft: spacing.lg,
+  },
+  archivedRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    backgroundColor: colors.bg.card,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border.subtle,
+    padding: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  archivedInfo: {
+    flex: 1,
+  },
+  archivedName: {
+    fontSize: typography.size.sm,
+    fontWeight: "600",
+    color: colors.text.secondary,
+  },
+  archivedPath: {
+    ...typography.mono,
+    fontSize: 10,
+    color: colors.text.muted,
+    marginTop: 1,
+  },
+  restoreBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.base,
+    borderWidth: 1,
+    borderColor: colors.accent.cyan,
+    minWidth: 78,
+    justifyContent: "center",
+  },
+  restoreText: {
+    fontSize: typography.size.xs,
+    fontWeight: "700",
+    color: colors.accent.cyan,
   },
 });

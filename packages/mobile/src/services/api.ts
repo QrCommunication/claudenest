@@ -300,6 +300,21 @@ export const projectsApi = {
       `/machines/${machineId}/projects`,
     ),
 
+  listArchived: (machineId: string) =>
+    api.get<import("@/types").SharedProject[]>(
+      `/machines/${machineId}/projects`,
+      { params: { archived: true } },
+    ),
+
+  archive: (id: string) =>
+    api.post<import("@/types").SharedProject>(`/projects/${id}/archive`),
+
+  unarchive: (id: string) =>
+    api.post<import("@/types").SharedProject>(`/projects/${id}/unarchive`),
+
+  recover: (id: string) =>
+    api.post<import("@/types").SharedProject>(`/projects/${id}/recover`),
+
   get: (id: string) =>
     api.get<import("@/types").SharedProject>(`/projects/${id}`),
 

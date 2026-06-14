@@ -45,6 +45,8 @@ const isInstanceStatus = (value: unknown): value is ClaudeInstance["status"] =>
 interface ProjectsState {
   // State
   projects: SharedProject[];
+  archivedProjects: SharedProject[];
+  isLoadingArchived: boolean;
   tasks: SharedTask[];
   locks: FileLock[];
   instances: ClaudeInstance[];
@@ -71,6 +73,9 @@ interface ProjectsState {
   ) => Promise<SharedProject>;
   updateProject: (id: string, data: Partial<SharedProject>) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
+  fetchArchivedProjects: (machineId: string) => Promise<void>;
+  archiveProject: (id: string) => Promise<void>;
+  unarchiveProject: (id: string) => Promise<void>;
 
   // Actions - Tasks
   fetchTasks: (projectId: string) => Promise<void>;
@@ -123,6 +128,8 @@ export const useProjectsStore = create<ProjectsState>()(
     (set, get) => ({
       // Initial state
       projects: [],
+      archivedProjects: [],
+      isLoadingArchived: false,
       tasks: [],
       locks: [],
       instances: [],
@@ -232,6 +239,48 @@ export const useProjectsStore = create<ProjectsState>()(
           console.error("Failed to delete project:", err);
           throw err;
         }
+      },
+
+      fetchArchivedProjects: async (machineId: string) => {
+        set({ isLoadingArchived: true });
+        try {
+          const response = await projectsApi.listArchived(machineId);
+          set((state) => ({
+            archivedProjects: [
+              ...state.archivedProjects.filter(
+                (p) => p.machineId !== machineId,
+              ),
+              ...response.data!,
+            ],
+            isLoadingArchived: false,
+          }));
+        } catch (err) {
+          set({ isLoadingArchived: false });
+          console.error("Failed to fetch archived projects:", err);
+          throw err;
+        }
+      },
+
+      archiveProject: async (id: string) => {
+        const project = await projectsApi.archive(id).then((r) => r.data!);
+        // Reversible: move from the active list into the archived list locally.
+        set((state) => ({
+          projects: state.projects.filter((p) => p.id !== id),
+          archivedProjects: [
+            project,
+            ...state.archivedProjects.filter((p) => p.id !== id),
+          ],
+          selectedProjectId:
+            state.selectedProjectId === id ? null : state.selectedProjectId,
+        }));
+      },
+
+      unarchiveProject: async (id: string) => {
+        const project = await projectsApi.unarchive(id).then((r) => r.data!);
+        set((state) => ({
+          archivedProjects: state.archivedProjects.filter((p) => p.id !== id),
+          projects: [project, ...state.projects.filter((p) => p.id !== id)],
+        }));
       },
 
       // Tasks

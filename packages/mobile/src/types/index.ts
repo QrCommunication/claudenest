@@ -194,6 +194,8 @@ export interface SharedProject {
   settings: ProjectSettings;
   createdAt: string;
   updatedAt: string;
+  /** Set when the project is archived (reversible — nothing is deleted). */
+  archivedAt?: string | null;
 }
 
 export interface ProjectSettings {
