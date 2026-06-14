@@ -3,20 +3,20 @@
  * Displays and manages file locks
  */
 
-import React, { useEffect, useCallback } from 'react';
-import { View, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useEffect, useCallback } from "react";
+import { View, FlatList, StyleSheet, TouchableOpacity } from "react-native";
 import { showAlert, showPrompt } from "@/services/dialog";
-import { MaterialIcons as Icon } from '@expo/vector-icons';
-import { colors, spacing } from '@/theme';
-import { useProjectsStore } from '@/stores/projectsStore';
-import type { FileLock } from '@/types';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { ProjectsStackParamList } from '@/navigation/types';
+import { MaterialIcons as Icon } from "@expo/vector-icons";
+import { colors, spacing } from "@/theme";
+import { useProjectsStore } from "@/stores/projectsStore";
+import type { FileLock } from "@/types";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type { ProjectsStackParamList } from "@/navigation/types";
 
-import { LoadingSpinner, EmptyState, ErrorMessage } from '@/components/common';
-import { LockCard } from '@/components/multiagent';
+import { LoadingSpinner, EmptyState, ErrorMessage } from "@/components/common";
+import { LockCard } from "@/components/multiagent";
 
-type Props = NativeStackScreenProps<ProjectsStackParamList, 'Locks'>;
+type Props = NativeStackScreenProps<ProjectsStackParamList, "Locks">;
 
 export const LocksScreen: React.FC<Props> = ({ route, navigation }) => {
   const { projectId } = route.params;
@@ -40,7 +40,12 @@ export const LocksScreen: React.FC<Props> = ({ route, navigation }) => {
   useEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <TouchableOpacity onPress={handleCreateLock} style={styles.headerButton}>
+        <TouchableOpacity
+          onPress={handleCreateLock}
+          style={styles.headerButton}
+          accessibilityRole="button"
+          accessibilityLabel="New file lock"
+        >
           <Icon name="add" size={28} color={colors.primary.purple} />
         </TouchableOpacity>
       ),
@@ -49,56 +54,56 @@ export const LocksScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const handleCreateLock = useCallback(() => {
     showPrompt(
-      'Lock File',
-      'Enter file path to lock:',
+      "Lock File",
+      "Enter file path to lock:",
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: "Cancel", style: "cancel" },
         {
-          text: 'Lock',
+          text: "Lock",
           onPress: async (path: string | undefined) => {
             if (path) {
               try {
-                await createLock(projectId, path, 'Locked from mobile app');
+                await createLock(projectId, path, "Locked from mobile app");
               } catch (error) {
-                showAlert('Error', 'Failed to lock file');
+                showAlert("Error", "Failed to lock file");
               }
             }
           },
         },
       ],
-      'plain-text'
+      "plain-text",
     );
   }, [projectId, createLock]);
 
   const handleUnlock = useCallback(
     async (lock: FileLock) => {
       showAlert(
-        'Unlock File?',
+        "Unlock File?",
         `Are you sure you want to unlock "${lock.path}"?`,
         [
-          { text: 'Cancel', style: 'cancel' },
+          { text: "Cancel", style: "cancel" },
           {
-            text: 'Unlock',
-            style: 'destructive',
+            text: "Unlock",
+            style: "destructive",
             onPress: async () => {
               try {
                 await deleteLock(projectId, lock.path);
               } catch (error) {
-                showAlert('Error', 'Failed to unlock file');
+                showAlert("Error", "Failed to unlock file");
               }
             },
           },
-        ]
+        ],
       );
     },
-    [projectId, deleteLock]
+    [projectId, deleteLock],
   );
 
   const renderItem = useCallback(
     ({ item }: { item: FileLock }) => (
       <LockCard lock={item} onUnlock={handleUnlock} canUnlock={true} />
     ),
-    [handleUnlock]
+    [handleUnlock],
   );
 
   const keyExtractor = useCallback((item: FileLock) => item.id, []);
@@ -110,7 +115,11 @@ export const LocksScreen: React.FC<Props> = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       {error && (
-        <ErrorMessage message={error} onRetry={() => fetchLocks(projectId)} onDismiss={clearError} />
+        <ErrorMessage
+          message={error}
+          onRetry={() => fetchLocks(projectId)}
+          onDismiss={clearError}
+        />
       )}
 
       <FlatList

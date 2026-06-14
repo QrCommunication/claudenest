@@ -645,7 +645,11 @@ export const PlanningChatScreen: React.FC<Props> = ({ route }) => {
               color={colors.semantic.error}
             />
             <Text style={styles.errorText}>{error}</Text>
-            <TouchableOpacity onPress={() => setError(null)}>
+            <TouchableOpacity
+              onPress={() => setError(null)}
+              accessibilityRole="button"
+              accessibilityLabel="Dismiss error"
+            >
               <Icon name="close" size={16} color={colors.semantic.error} />
             </TouchableOpacity>
           </View>
@@ -695,6 +699,9 @@ export const PlanningChatScreen: React.FC<Props> = ({ route }) => {
             onPress={handleSend}
             disabled={!inputText.trim() || isTyping}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="Send message"
+            accessibilityState={{ disabled: !inputText.trim() || isTyping }}
           >
             <Icon
               name="send"

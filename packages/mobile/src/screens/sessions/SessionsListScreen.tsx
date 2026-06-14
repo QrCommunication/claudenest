@@ -187,6 +187,8 @@ export const SessionsListScreen: React.FC<Props> = ({ route, navigation }) => {
         <TouchableOpacity
           onPress={handleNewSession}
           style={styles.headerButton}
+          accessibilityRole="button"
+          accessibilityLabel="New session"
         >
           <Icon name="add" size={28} color={colors.primary.purple} />
         </TouchableOpacity>
@@ -368,6 +370,8 @@ export const SessionsListScreen: React.FC<Props> = ({ route, navigation }) => {
         style={styles.fab}
         onPress={handleNewSession}
         activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel="New session"
       >
         <Icon name="add" size={28} color={colors.text.primary} />
       </TouchableOpacity>

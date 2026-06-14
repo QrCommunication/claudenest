@@ -518,7 +518,12 @@ export const OrchestrationScreen: React.FC<Props> = ({ route }) => {
         <View style={styles.errorBanner}>
           <Icon name="error-outline" size={16} color={colors.semantic.error} />
           <Text style={styles.errorText}>{errorMessage}</Text>
-          <TouchableOpacity onPress={clearError} hitSlop={8}>
+          <TouchableOpacity
+            onPress={clearError}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Dismiss error"
+          >
             <Icon name="close" size={16} color={colors.semantic.error} />
           </TouchableOpacity>
         </View>
