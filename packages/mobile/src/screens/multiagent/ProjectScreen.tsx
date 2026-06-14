@@ -185,7 +185,7 @@ const TabBar = memo(function TabBar({
   );
 
   return (
-    <View style={tabStyles.wrapper}>
+    <View style={tabStyles.wrapper} accessibilityRole="tablist">
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -201,6 +201,13 @@ const TabBar = memo(function TabBar({
               style={[tabStyles.tab, isActive && tabStyles.tabActive]}
               onPress={() => onSelect(tab.key)}
               activeOpacity={0.7}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: isActive }}
+              accessibilityLabel={
+                badge !== undefined && badge > 0
+                  ? `${tab.label}, ${badge}`
+                  : tab.label
+              }
               onLayout={(e) =>
                 handleTabLayout(
                   tab.key,
@@ -349,6 +356,9 @@ const OverviewTab = memo(function OverviewTab({
         onPress={onBroadcast}
         disabled={isBroadcasting}
         activeOpacity={0.75}
+        accessibilityRole="button"
+        accessibilityLabel="Broadcast to all instances"
+        accessibilityState={{ disabled: isBroadcasting, busy: isBroadcasting }}
       >
         <Icon
           name="campaign"
