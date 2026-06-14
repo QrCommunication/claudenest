@@ -135,7 +135,7 @@ export const NewSessionScreen: React.FC<Props> = ({ route, navigation }) => {
       showAlert(
         "Error",
         code === "PLAN_001"
-          ? "Plan limit reached (PLAN_001) — your plan caps concurrent sessions. Stop other sessions or upgrade your plan."
+          ? "Too many concurrent sessions (PLAN_001) — stop another running session and retry."
           : "Failed to create session. Please try again.",
       );
     }

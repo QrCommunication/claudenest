@@ -121,7 +121,7 @@ const PlanningSessionModal = memo(function PlanningSessionModal({
       const code = getApiErrorCode(err);
       setFieldError(
         code === "PLAN_001"
-          ? "Plan limit reached (PLAN_001) — your plan caps concurrent sessions. Stop other sessions or upgrade your plan."
+          ? "Too many concurrent sessions (PLAN_001) — stop another running session and retry."
           : "Failed to start the planning session. Check that the machine is online.",
       );
     } finally {

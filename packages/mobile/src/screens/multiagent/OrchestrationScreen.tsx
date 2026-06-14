@@ -74,7 +74,7 @@ const PERMISSION_MODES: PermissionModeOption[] = [
 /** User-facing messages for the server contract error codes. */
 const ERROR_CODE_MESSAGES: Record<string, string> = {
   PLAN_001:
-    "Plan limit reached (PLAN_001) — your plan caps concurrent sessions. Stop other sessions or upgrade your plan.",
+    "Too many concurrent sessions (PLAN_001) — stop another running session and retry.",
   MCH_002:
     "The project's machine is offline (MCH_002). Wake it before starting the orchestrator.",
 };
@@ -178,7 +178,7 @@ const StartOrchestratorModal = memo(function StartOrchestratorModal({
     >
       <Text style={modalStyles.subtitle}>
         Spawns worker sessions that claim and execute the project's pending
-        tasks. Workers count against your plan's session cap.
+        tasks. The pool size scales to the number of pending tasks.
       </Text>
 
       {/* Max workers stepper */}
@@ -212,8 +212,7 @@ const StartOrchestratorModal = memo(function StartOrchestratorModal({
           </TouchableOpacity>
         </View>
         <Text style={modalStyles.fieldHelper}>
-          The server also caps the pool at your plan limit and the number of
-          pending tasks.
+          The server also caps the pool at the number of pending tasks.
         </Text>
       </View>
 
