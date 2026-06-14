@@ -529,7 +529,10 @@ export const sprintsApi = {
     api.post<import("@/types").Sprint>(`/sprints/${id}/complete`),
 
   getBurndown: (id: string) =>
-    api.get<import("@/types").BurndownDataPoint[]>(`/sprints/${id}/burndown`),
+    api.get<{
+      sprint: import("@/types").Sprint;
+      burndown: import("@/types").BurndownDataPoint[];
+    }>(`/sprints/${id}/burndown`),
 };
 
 export const locksApi = {

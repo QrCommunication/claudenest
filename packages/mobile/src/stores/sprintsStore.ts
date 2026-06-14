@@ -3,11 +3,11 @@
  * Manages project sprints and burndown data
  */
 
-import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { Sprint, BurndownDataPoint } from '@/types';
-import { sprintsApi } from '@/services/api';
+import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import type { Sprint, BurndownDataPoint } from "@/types";
+import { sprintsApi } from "@/services/api";
 
 interface CreateSprintData {
   name: string;
@@ -60,7 +60,7 @@ export const useSprintsStore = create<SprintsState>()(
 
       getActiveSprintForProject: (projectId: string) =>
         get().sprints.find(
-          (s) => s.project_id === projectId && s.status === 'active'
+          (s) => s.project_id === projectId && s.status === "active",
         ) ?? null,
 
       // Actions
@@ -72,7 +72,9 @@ export const useSprintsStore = create<SprintsState>()(
           const sprints = response.data!;
 
           const activeSprint =
-            sprints.find((s) => s.project_id === projectId && s.status === 'active') ?? null;
+            sprints.find(
+              (s) => s.project_id === projectId && s.status === "active",
+            ) ?? null;
 
           set((state) => ({
             sprints: [
@@ -84,7 +86,7 @@ export const useSprintsStore = create<SprintsState>()(
           }));
         } catch (err) {
           const message =
-            err instanceof Error ? err.message : 'Failed to fetch sprints';
+            err instanceof Error ? err.message : "Failed to fetch sprints";
           set({ isLoading: false, error: message });
           throw err;
         }
@@ -108,7 +110,7 @@ export const useSprintsStore = create<SprintsState>()(
           return sprint;
         } catch (err) {
           const message =
-            err instanceof Error ? err.message : 'Failed to create sprint';
+            err instanceof Error ? err.message : "Failed to create sprint";
           set({ isLoading: false, error: message });
           throw err;
         }
@@ -126,7 +128,7 @@ export const useSprintsStore = create<SprintsState>()(
           }));
         } catch (err) {
           const message =
-            err instanceof Error ? err.message : 'Failed to update sprint';
+            err instanceof Error ? err.message : "Failed to update sprint";
           set({ error: message });
           throw err;
         }
@@ -143,7 +145,7 @@ export const useSprintsStore = create<SprintsState>()(
           }));
         } catch (err) {
           const message =
-            err instanceof Error ? err.message : 'Failed to delete sprint';
+            err instanceof Error ? err.message : "Failed to delete sprint";
           set({ error: message });
           throw err;
         }
@@ -160,7 +162,7 @@ export const useSprintsStore = create<SprintsState>()(
           }));
         } catch (err) {
           const message =
-            err instanceof Error ? err.message : 'Failed to start sprint';
+            err instanceof Error ? err.message : "Failed to start sprint";
           set({ error: message });
           throw err;
         }
@@ -178,7 +180,7 @@ export const useSprintsStore = create<SprintsState>()(
           }));
         } catch (err) {
           const message =
-            err instanceof Error ? err.message : 'Failed to complete sprint';
+            err instanceof Error ? err.message : "Failed to complete sprint";
           set({ error: message });
           throw err;
         }
@@ -187,10 +189,13 @@ export const useSprintsStore = create<SprintsState>()(
       fetchBurndown: async (sprintId: string) => {
         try {
           const response = await sprintsApi.getBurndown(sprintId);
-          set({ burndownData: response.data! });
+          // Server returns { sprint, burndown } — extract the series.
+          set({ burndownData: response.data?.burndown ?? [] });
         } catch (err) {
           const message =
-            err instanceof Error ? err.message : 'Failed to fetch burndown data';
+            err instanceof Error
+              ? err.message
+              : "Failed to fetch burndown data";
           set({ error: message });
           throw err;
         }
@@ -199,12 +204,12 @@ export const useSprintsStore = create<SprintsState>()(
       clearError: () => set({ error: null }),
     }),
     {
-      name: 'sprints-storage',
+      name: "sprints-storage",
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         sprints: state.sprints,
         activeSprint: state.activeSprint,
       }),
-    }
-  )
+    },
+  ),
 );

@@ -20,6 +20,7 @@ import { PlanningChatScreen } from "@/screens/multiagent/PlanningChatScreen";
 import { OrchestrationScreen } from "@/screens/multiagent/OrchestrationScreen";
 import { GitScreen } from "@/screens/multiagent/GitScreen";
 import { AuditScreen } from "@/screens/multiagent/AuditScreen";
+import { SprintDetailScreen } from "@/screens/multiagent/SprintDetailScreen";
 
 const Stack = createNativeStackNavigator<ProjectsStackParamList>();
 
@@ -93,6 +94,11 @@ export const ProjectsNavigator: React.FC = () => {
         name="Audit"
         component={AuditScreen}
         options={{ title: "Audit Trail" }}
+      />
+      <Stack.Screen
+        name="SprintDetail"
+        component={SprintDetailScreen}
+        options={{ title: "Sprint" }}
       />
     </Stack.Navigator>
   );

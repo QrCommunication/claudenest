@@ -24,6 +24,9 @@ import { useSprintsStore } from "@/stores/sprintsStore";
 import { useFadeIn } from "@/utils/animations";
 import { SprintCard } from "@/components/multiagent/SprintCard";
 import { EmptyState } from "@/components/common/EmptyState";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { ProjectsStackParamList } from "@/navigation/types";
 import type { Sprint } from "@/types";
 
 // ==================== PROPS ====================
@@ -236,6 +239,8 @@ const ActiveSprintCard = memo(function ActiveSprintCard({
 export const SprintsBoard = memo(function SprintsBoard({
   projectId,
 }: SprintsBoardProps) {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<ProjectsStackParamList>>();
   const {
     getSprintsByProject,
     getActiveSprintForProject,
@@ -331,9 +336,11 @@ export const SprintsBoard = memo(function SprintsBoard({
     [completeSprint],
   );
 
-  const handleSprintPress = useCallback((_sprint: Sprint) => {
-    // Navigate to sprint detail when screen is created
-  }, []);
+  const handleSprintPress = useCallback(
+    (sprint: Sprint) =>
+      navigation.navigate("SprintDetail", { sprintId: sprint.id }),
+    [navigation],
+  );
 
   const renderItem = useCallback(
     ({ item }: { item: Sprint }) => (
