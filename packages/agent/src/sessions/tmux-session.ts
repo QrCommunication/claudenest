@@ -138,7 +138,7 @@ export class TmuxSession extends EventEmitter {
 
       // 3. Start claude via respawn-pane (replaces the default shell).
       //    exec ensures claude IS the pane process (clean exit).
-      const shellCmd = this.buildShellCommand();
+      const shellCmd = this.tmuxLaunchCommand(this.buildShellCommand());
       this.logger.info({ cmd: shellCmd }, 'Starting claude in tmux pane');
 
       const respawnArgs = ['respawn-pane', '-k', '-t', this.tmuxName];
@@ -748,6 +748,38 @@ export class TmuxSession extends EventEmitter {
 
     const escaped = fullParts.map(p => shellQuote(p)).join(' ');
     return `exec ${escaped}`;
+  }
+
+  /**
+   * tmux's new-session/respawn-pane reject a command string above an internal
+   * length limit, returning "command too long" → the session is marked as
+   * error and the terminal opens then closes immediately. A large
+   * `--append-system-prompt` (the decomposition prompt carries the PRD + the
+   * project scan) blows past it. When the command is long, write it to a
+   * launcher script and hand tmux a short `bash <script>` instead — the long
+   * content lives in the file, the tmux argument stays tiny. The exec chain
+   * (tmux → `exec bash script` → `exec claude`) keeps the pane PID on claude.
+   */
+  private tmuxLaunchCommand(shellCmd: string): string {
+    // Well below any tmux command-buffer limit; short commands stay inline.
+    const TMUX_ARG_SAFE_LIMIT = 4096;
+    if (shellCmd.length <= TMUX_ARG_SAFE_LIMIT) return shellCmd;
+
+    const dir = this.runtimeDir
+      ?? path.join(getCacheDir(), 'sessions', this.options.sessionId);
+    try {
+      fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
+      const scriptPath = path.join(dir, 'launch.sh');
+      fs.writeFileSync(scriptPath, `#!/usr/bin/env bash\n${shellCmd}\n`, { mode: 0o700 });
+      this.logger.info(
+        { scriptPath, len: shellCmd.length },
+        'Command exceeds tmux arg limit — launching via script',
+      );
+      return `exec bash ${shellQuote(scriptPath)}`;
+    } catch (err) {
+      this.logger.warn({ err }, 'Failed to write launcher script — using inline command');
+      return shellCmd;
+    }
   }
 
   /**

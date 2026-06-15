@@ -543,3 +543,37 @@ describe('buildCleanProcessEnv() — env var filtering', () => {
     expect(cleaned).toHaveProperty('HOME');
   });
 });
+
+// ── tmuxLaunchCommand() — long command → launcher script ─────────────────────
+
+import fs from 'fs';
+
+function getLaunchCommand(session: TmuxSession, shellCmd: string): string {
+  return (
+    session as unknown as { tmuxLaunchCommand(c: string): string }
+  ).tmuxLaunchCommand(shellCmd);
+}
+
+describe('TmuxSession.tmuxLaunchCommand() — tmux "command too long" guard', () => {
+  it('returns the command inline when short', () => {
+    const session = makeSession({ mode: 'interactive' });
+    const cmd = 'exec /usr/local/bin/claude';
+    expect(getLaunchCommand(session, cmd)).toBe(cmd);
+  });
+
+  it('writes a launcher script and returns `exec bash <script>` when long', () => {
+    const session = makeSession({ sessionId: 'launch-test-session', mode: 'interactive' });
+    // A huge --append-system-prompt (decomposition PRD + scan) blows past the
+    // tmux arg limit; the command must be moved into a script file.
+    const longCmd = `exec /usr/local/bin/claude --append-system-prompt '${'x'.repeat(8000)}'`;
+
+    const result = getLaunchCommand(session, longCmd);
+
+    const match = result.match(/^exec bash (\S+)$/);
+    expect(match).not.toBeNull();
+    const scriptPath = match![1].replace(/^'|'$/g, '');
+    expect(fs.existsSync(scriptPath)).toBe(true);
+    expect(fs.readFileSync(scriptPath, 'utf8')).toContain(longCmd);
+    fs.rmSync(scriptPath, { force: true });
+  });
+});
