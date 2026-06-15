@@ -6,8 +6,10 @@ use App\Models\Epic;
 use App\Models\SharedProject;
 use App\Models\SharedTask;
 use App\Models\Sprint;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class DecompositionService
 {
@@ -25,24 +27,27 @@ class DecompositionService
     {
         $errors = [];
 
-        if (!isset($plan['version']) || $plan['version'] !== 1) {
+        if (! isset($plan['version']) || $plan['version'] !== 1) {
             $errors[] = 'Missing or invalid version (expected 1)';
         }
 
-        if (empty($plan['waves']) || !is_array($plan['waves'])) {
+        if (empty($plan['waves']) || ! is_array($plan['waves'])) {
             $errors[] = 'Missing or empty waves array';
+
             return ['valid' => false, 'plan' => null, 'errors' => $errors];
         }
 
         $normalizedWaves = [];
         foreach ($plan['waves'] as $i => $wave) {
-            if (!isset($wave['name'])) {
+            if (! isset($wave['name'])) {
                 $errors[] = "Wave {$i}: missing name";
+
                 continue;
             }
 
-            if (empty($wave['tasks']) || !is_array($wave['tasks'])) {
+            if (empty($wave['tasks']) || ! is_array($wave['tasks'])) {
                 $errors[] = "Wave {$i} ({$wave['name']}): missing or empty tasks";
+
                 continue;
             }
 
@@ -50,6 +55,7 @@ class DecompositionService
             foreach ($wave['tasks'] as $j => $task) {
                 if (empty($task['title'])) {
                     $errors[] = "Wave {$i}, Task {$j}: missing title";
+
                     continue;
                 }
 
@@ -73,6 +79,7 @@ class DecompositionService
 
         if (empty($normalizedWaves)) {
             $errors[] = 'No valid waves found';
+
             return ['valid' => false, 'plan' => null, 'errors' => $errors];
         }
 
@@ -98,7 +105,7 @@ class DecompositionService
      * never disturb the project's current active sprint. Without an epic
      * (project bootstrap), the first wave's sprint starts `active`.
      *
-     * @return array{created: int, sprints: int, tasks: \Illuminate\Support\Collection}
+     * @return array{created: int, sprints: int, tasks: Collection}
      */
     public function applyMasterPlan(SharedProject $project, ?Epic $epic = null): array
     {
@@ -134,8 +141,15 @@ class DecompositionService
                 : 0;
             $isFirstWave = true;
 
-            foreach ($plan['waves'] as $wave) {
-                $waveId = $wave['id'];
+            foreach ($plan['waves'] as $waveIndex => $wave) {
+                // master_plan may be stored un-normalized (the streaming submit
+                // path and a wizard PATCH persist the raw plan, where the
+                // optional wave `id` can be absent). Mirror validateMasterPlan()'s
+                // `$wave['id'] ?? $i` so applying the plan never throws
+                // "Undefined array key id" — that crash aborted the whole
+                // transaction, leaving zero tasks/sprints created and no worker
+                // ever spawned.
+                $waveId = $wave['id'] ?? $waveIndex;
 
                 $sprint = Sprint::create([
                     'project_id' => $project->id,
@@ -173,9 +187,9 @@ class DecompositionService
             // Second pass: resolve depends_on references (by title)
             foreach ($plan['waves'] as $wave) {
                 foreach ($wave['tasks'] as $taskDef) {
-                    if (!empty($taskDef['depends_on'])) {
+                    if (! empty($taskDef['depends_on'])) {
                         $taskId = $titleToId[$taskDef['title']] ?? null;
-                        if (!$taskId) {
+                        if (! $taskId) {
                             continue;
                         }
 
@@ -186,7 +200,7 @@ class DecompositionService
                             }
                         }
 
-                        if (!empty($depIds)) {
+                        if (! empty($depIds)) {
                             SharedTask::where('id', $taskId)
                                 ->update(['dependencies' => json_encode($depIds)]);
                         }
@@ -197,7 +211,7 @@ class DecompositionService
             // Last-resort summary from the plan if context generation produced
             // nothing usable (offline Ollama + empty PRD summary is unlikely but
             // the field should never stay empty once a plan exists).
-            if (!empty($plan['prd_summary']) && empty($project->fresh()->summary)) {
+            if (! empty($plan['prd_summary']) && empty($project->fresh()->summary)) {
                 $project->update(['summary' => $plan['prd_summary']]);
             }
 
@@ -252,7 +266,7 @@ class DecompositionService
 
             $fallbackSummary = $planSummary !== ''
                 ? $planSummary
-                : ($prd !== '' ? \Illuminate\Support\Str::limit($prd, 280) : trim((string) $project->name).' project.');
+                : ($prd !== '' ? Str::limit($prd, 280) : trim((string) $project->name).' project.');
 
             $sections = [
                 'summary' => $this->sectionString($generated['summary'] ?? null) ?? $fallbackSummary,
@@ -297,7 +311,7 @@ class DecompositionService
      * the generated project context is immediately searchable by instances.
      * Best-effort: a RAG failure must never block the decomposition.
      *
-     * @param array<string, string> $sections
+     * @param  array<string, string>  $sections
      */
     private function seedContextChunks(SharedProject $project, array $sections): void
     {
@@ -349,7 +363,7 @@ class DecompositionService
      * Build the single-call JSON prompt asking Ollama for the project context
      * sections, grounded in the PRD + plan summary + detected tech stack.
      *
-     * @param array<int, string> $techStack
+     * @param  array<int, string>  $techStack
      */
     private function buildProjectContextPrompt(
         string $projectName,
@@ -358,7 +372,7 @@ class DecompositionService
         string $planSummary,
     ): string {
         $techStackStr = $techStack !== [] ? implode(', ', $techStack) : 'unknown';
-        $prdExcerpt = $prd !== '' ? \Illuminate\Support\Str::limit($prd, 3000) : 'No PRD provided.';
+        $prdExcerpt = $prd !== '' ? Str::limit($prd, 3000) : 'No PRD provided.';
         $planBlock = $planSummary !== '' ? "Plan summary:\n{$planSummary}\n" : '';
 
         return <<<PROMPT

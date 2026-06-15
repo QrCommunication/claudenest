@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Services;
 
+use App\Models\Epic;
 use App\Models\Machine;
 use App\Models\SharedProject;
 use App\Models\SharedTask;
@@ -124,7 +125,7 @@ class DecompositionServiceTest extends TestCase
     public function apply_master_plan_with_epic_links_tasks_and_appends_planning_sprints(): void
     {
         $project = $this->projectWithPlan();
-        $epic = \App\Models\Epic::create([
+        $epic = Epic::create([
             'project_id' => $project->id,
             'title' => 'Billing',
             'color' => '#a855f7',
@@ -164,6 +165,35 @@ class DecompositionServiceTest extends TestCase
         $this->assertSame('Curated summary', $project->summary);
         $this->assertSame('Curated architecture', $project->architecture);
         $this->assertSame('Curated conventions', $project->conventions);
+    }
+
+    /**
+     * The streaming submit path and the wizard PATCH persist the raw plan,
+     * where the optional wave `id` can be absent. applyMasterPlan must fall
+     * back to the wave index instead of throwing "Undefined array key id"
+     * (which aborted the transaction → no tasks/sprints → no worker spawned).
+     */
+    #[Test]
+    public function apply_master_plan_handles_waves_without_id(): void
+    {
+        $project = $this->projectWithPlan([
+            'master_plan' => [
+                'version' => 1,
+                'prd_summary' => '',
+                'waves' => [
+                    ['name' => 'Foundation', 'tasks' => [['title' => 'Setup types']]],
+                    ['name' => 'Backend', 'tasks' => [['title' => 'Build engine']]],
+                ],
+            ],
+        ]);
+
+        $result = app(DecompositionService::class)->applyMasterPlan($project);
+
+        $this->assertSame(2, $result['created']);
+        $this->assertSame(2, $result['sprints']);
+        // Wave index used as fallback id.
+        $this->assertSame(0, SharedTask::where('title', 'Setup types')->first()->wave);
+        $this->assertSame(1, SharedTask::where('title', 'Build engine')->first()->wave);
     }
 
     protected function tearDown(): void
