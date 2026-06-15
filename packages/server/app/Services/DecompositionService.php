@@ -115,11 +115,15 @@ class DecompositionService
             throw new \InvalidArgumentException('Project has no master plan to apply');
         }
 
-        // Generate the onboarding context (summary/architecture/conventions)
-        // BEFORE the task transaction so workers spawned right after applying
-        // the plan already have a populated project context to read from. Best
-        // effort — a context-generation failure must never block task creation.
-        $this->ensureProjectContext($project);
+        // Generate the onboarding context (summary/architecture/conventions) via
+        // a background INTERACTIVE Claude session (bypassPermissions) that reads
+        // the codebase and saves it through the project_context_set MCP tool.
+        // Fire-and-forget (a single agent message): the plan applies and returns
+        // immediately. This replaces the inline Ollama summarization, which took
+        // minutes on a CPU host and blocked the apply request past the proxy
+        // timeout → 502 with the sprints/tasks never created. Best-effort — the
+        // launch swallows every failure and never blocks plan application.
+        app(ContextSessionService::class)->launch($project);
 
         return DB::transaction(function () use ($project, $plan, $epic) {
             $created = 0;

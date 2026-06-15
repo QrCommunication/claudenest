@@ -330,6 +330,22 @@ export function contextAdd(
   );
 }
 
+/** PATCH /api/projects/{p}/context — set the onboarding context fields. */
+export function contextSet(
+  env: McpEnv,
+  fields: {
+    summary?: string;
+    architecture?: string;
+    conventions?: string;
+    current_focus?: string;
+  },
+): Promise<FetchResult<unknown>> {
+  return apiRequest(env, "PATCH", `/api/projects/${env.projectId}/context`, {
+    ...fields,
+    instance_id: env.instanceId,
+  });
+}
+
 /** POST /api/projects/{p}/broadcast */
 export function broadcastMessage(
   env: McpEnv,

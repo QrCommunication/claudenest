@@ -110,14 +110,17 @@ class DecompositionServiceTest extends TestCase
     }
 
     #[Test]
-    public function apply_master_plan_generates_missing_project_context(): void
+    public function ensure_project_context_generates_missing_context(): void
     {
         $project = $this->projectWithPlan();
 
-        app(DecompositionService::class)->applyMasterPlan($project);
+        // applyMasterPlan now offloads context generation to a background
+        // interactive session (ContextSessionService); ensureProjectContext is
+        // the synchronous Ollama-backed path still used by the manual
+        // generate-context flow. Ollama is mocked unavailable → falls back.
+        app(DecompositionService::class)->ensureProjectContext($project);
 
         $project->refresh();
-        // Ollama unavailable → summary falls back to the plan summary.
         $this->assertSame('A collaborative todo application.', $project->summary);
     }
 
@@ -151,7 +154,7 @@ class DecompositionServiceTest extends TestCase
     }
 
     #[Test]
-    public function apply_master_plan_does_not_overwrite_existing_context(): void
+    public function ensure_project_context_does_not_overwrite_existing_context(): void
     {
         $project = $this->projectWithPlan([
             'summary' => 'Curated summary',
@@ -159,7 +162,7 @@ class DecompositionServiceTest extends TestCase
             'conventions' => 'Curated conventions',
         ]);
 
-        app(DecompositionService::class)->applyMasterPlan($project);
+        app(DecompositionService::class)->ensureProjectContext($project);
 
         $project->refresh();
         $this->assertSame('Curated summary', $project->summary);

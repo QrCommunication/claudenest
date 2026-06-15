@@ -18,6 +18,7 @@ import {
   lockCheck,
   contextQuery,
   contextAdd,
+  contextSet,
   broadcastMessage,
   instanceHeartbeat,
   projectShow,
@@ -275,6 +276,38 @@ export function registerTools(
       );
       if (!res.ok) return toolErr(`Cannot add context: ${res.error}`);
       return toolOk(`Context added: ${id8(res.data.id)} [${res.data.type}]`);
+    },
+  );
+
+  // ── project_context_set ──────────────────────────────────────────────────
+  server.tool(
+    "project_context_set",
+    "Set this project's onboarding context (summary, architecture, conventions, current_focus).",
+    {
+      summary: z.string().optional(),
+      architecture: z.string().optional(),
+      conventions: z.string().optional(),
+      current_focus: z.string().optional(),
+    },
+    async ({ summary, architecture, conventions, current_focus }) => {
+      const fields: {
+        summary?: string;
+        architecture?: string;
+        conventions?: string;
+        current_focus?: string;
+      } = {};
+      if (summary !== undefined) fields.summary = summary;
+      if (architecture !== undefined) fields.architecture = architecture;
+      if (conventions !== undefined) fields.conventions = conventions;
+      if (current_focus !== undefined) fields.current_focus = current_focus;
+
+      if (Object.keys(fields).length === 0) {
+        return toolErr("project_context_set: provide at least one field");
+      }
+
+      const res = await contextSet(env, fields);
+      if (!res.ok) return toolErr(`Cannot set context: ${res.error}`);
+      return toolOk(`Project context updated: ${Object.keys(fields).join(", ")}`);
     },
   );
 

@@ -259,12 +259,12 @@ describe("Ability gating — planning tools", () => {
     }
   });
 
-  it("total registered tools = 13 without planning", () => {
-    expect(toolNames(new Set()).size).toBe(13);
+  it("total registered tools = 14 without planning", () => {
+    expect(toolNames(new Set()).size).toBe(14);
   });
 
-  it("total registered tools = 21 with planning", () => {
-    expect(toolNames(new Set(["planning"])).size).toBe(21);
+  it("total registered tools = 22 with planning", () => {
+    expect(toolNames(new Set(["planning"])).size).toBe(22);
   });
 });
 
