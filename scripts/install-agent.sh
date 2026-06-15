@@ -214,6 +214,43 @@ install_build_tools_macos() {
   fi
 }
 
+# Runtime dependencies the agent shells out to. tmux is REQUIRED: every Claude
+# session/worker is driven inside a tmux session (tmux-session.ts throws
+# "tmux is not installed" otherwise → no worker ever opens). git is needed for
+# the sprint-finalize auto-PR flow and the Git workspace panel. bubblewrap
+# (sandbox) is best-effort installed by the agent at runtime (ensureBwrap),
+# but seeding it here avoids the first-run install latency.
+install_runtime_deps_linux() {
+  step "Installing runtime dependencies (tmux, git, bubblewrap)..."
+
+  if command_exists apt-get; then
+    sudo apt-get install -y tmux git bubblewrap
+  elif command_exists dnf; then
+    sudo dnf install -y tmux git bubblewrap
+  elif command_exists pacman; then
+    sudo pacman -Sy --noconfirm tmux git bubblewrap
+  elif command_exists apk; then
+    sudo apk add --no-cache tmux git bubblewrap
+  else
+    warn "Could not install runtime deps automatically."
+    warn "Please install 'tmux' (required) and 'git' manually — workers cannot start without tmux."
+  fi
+
+  command_exists tmux && success "tmux installed" \
+    || warn "tmux is NOT installed — workers cannot start. Install it: sudo apt install tmux"
+}
+
+install_runtime_deps_macos() {
+  step "Installing runtime dependencies (tmux, git)..."
+
+  if command_exists brew; then
+    brew install tmux git 2>/dev/null || true
+  fi
+
+  command_exists tmux && success "tmux installed" \
+    || warn "tmux is NOT installed — workers cannot start. Install it: brew install tmux"
+}
+
 # ============================================
 # Main installation flow
 # ============================================
@@ -283,6 +320,14 @@ main() {
   case "$OS" in
     linux)  install_build_tools_linux ;;
     macos)  install_build_tools_macos ;;
+  esac
+
+  # ------------------------------------------
+  # Step 2b: Runtime deps (tmux REQUIRED, git, bubblewrap)
+  # ------------------------------------------
+  case "$OS" in
+    linux)  install_runtime_deps_linux ;;
+    macos)  install_runtime_deps_macos ;;
   esac
 
   # ------------------------------------------
