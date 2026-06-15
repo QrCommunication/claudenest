@@ -185,6 +185,7 @@ class SharedProject extends Model
         if ($this->max_tokens <= 0) {
             return 0;
         }
+
         return min(100, ($this->total_tokens / $this->max_tokens) * 100);
     }
 
@@ -238,7 +239,18 @@ class SharedProject extends Model
     public function updateContext(array $fields): void
     {
         $update = array_intersect_key($fields, array_flip(self::CONTEXT_FIELDS));
-        if (!empty($update)) {
+
+        // CONTEXT_FIELDS are `text DEFAULT ''` (NOT NULL). The global
+        // ConvertEmptyStringsToNull middleware turns an empty-string payload
+        // value into null (e.g. a context-generation session sending an empty
+        // field), which would raise a 23502 not-null violation — coalesce to ''.
+        foreach ($update as $field => $value) {
+            if ($value === null) {
+                $update[$field] = '';
+            }
+        }
+
+        if (! empty($update)) {
             $this->update($update);
         }
     }
@@ -250,7 +262,7 @@ class SharedProject extends Model
      * re-archiving an already-archived project keeps the original snapshot.
      *
      * @param  array<string, mixed>  $contextSnapshot  optional override snapshot;
-     *                                                  defaults to the current context fields.
+     *                                                 defaults to the current context fields.
      */
     public function archive(array $contextSnapshot = []): void
     {
