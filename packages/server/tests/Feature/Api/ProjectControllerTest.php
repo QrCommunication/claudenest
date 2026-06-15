@@ -163,4 +163,69 @@ class ProjectControllerTest extends TestCase
 
         $this->assertDatabaseHas('shared_projects', ['id' => $project->id]);
     }
+
+    /**
+     * The project wizard finalize PATCHes name + prd + master_plan with an
+     * empty `summary`. The global ConvertEmptyStringsToNull middleware turns
+     * "" into null; since summary is a NOT NULL text column this used to raise
+     * a 23502 violation surfaced as a generic 500. update() now coalesces the
+     * NOT NULL context columns back to '' and persists prd + master_plan.
+     */
+    #[Test]
+    public function update_persists_master_plan_with_empty_summary(): void
+    {
+        $user = User::factory()->create();
+        $machine = Machine::factory()->for($user)->create();
+        $project = SharedProject::factory()->for($user)->for($machine)->create();
+
+        $masterPlan = [
+            'version' => 1,
+            'prd_summary' => '',
+            'waves' => [
+                [
+                    'id' => 0,
+                    'name' => 'Foundation',
+                    'description' => '',
+                    'tasks' => [
+                        ['files' => [], 'title' => 'Define TS types', 'priority' => 'medium', 'depends_on' => [], 'description' => '', 'estimated_tokens' => null],
+                    ],
+                ],
+            ],
+        ];
+
+        $response = $this->actingAs($user)->patchJson("/api/projects/{$project->id}", [
+            'name' => 'games',
+            'prd' => "créer un jeu de tarot avec l'ia",
+            'summary' => '',
+            'master_plan' => $masterPlan,
+        ]);
+
+        $response->assertOk()->assertJsonPath('data.name', 'games');
+
+        $project->refresh();
+        $this->assertSame('', $project->summary);
+        $this->assertSame("créer un jeu de tarot avec l'ia", $project->prd);
+        // jsonb does not preserve key order, so assert structure not order.
+        $this->assertSame(1, $project->master_plan['version']);
+        $this->assertCount(1, $project->master_plan['waves']);
+        $this->assertSame('Foundation', $project->master_plan['waves'][0]['name']);
+        $this->assertSame('Define TS types', $project->master_plan['waves'][0]['tasks'][0]['title']);
+    }
+
+    /**
+     * A structurally invalid master_plan is a client error (422), never a 500.
+     */
+    #[Test]
+    public function update_rejects_malformed_master_plan_with_422(): void
+    {
+        $user = User::factory()->create();
+        $machine = Machine::factory()->for($user)->create();
+        $project = SharedProject::factory()->for($user)->for($machine)->create();
+
+        $this->actingAs($user)
+            ->patchJson("/api/projects/{$project->id}", [
+                'master_plan' => ['version' => 1, 'waves' => []],
+            ])
+            ->assertStatus(422);
+    }
 }

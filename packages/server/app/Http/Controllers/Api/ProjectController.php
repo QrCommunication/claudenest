@@ -328,11 +328,31 @@ class ProjectController extends Controller
             'conventions' => 'nullable|string',
             'current_focus' => 'nullable|string',
             'recent_changes' => 'nullable|string',
+            'prd' => 'nullable|string',
+            'master_plan' => 'nullable|array',
+            'master_plan.version' => 'required_with:master_plan|integer|in:1',
+            'master_plan.waves' => 'required_with:master_plan|array|min:1',
+            'master_plan.waves.*.name' => 'required|string',
+            'master_plan.waves.*.tasks' => 'required|array|min:1',
+            'master_plan.waves.*.tasks.*.title' => 'required|string',
             'max_tokens' => 'integer|min:1000|max:128000',
             'settings' => 'array',
         ]);
 
         $updateData = array_diff_key($validated, array_flip(['settings']));
+
+        // The global ConvertEmptyStringsToNull middleware turns empty-string
+        // payload values into null. These context columns are `text DEFAULT ''`
+        // (NOT NULL), so writing null would raise a 23502 not-null violation
+        // (surfaced to the client as a generic 500). Coalesce back to '' —
+        // mirrors store(), which already defaults these to ''. prd/master_plan
+        // are nullable columns and must keep their null/value as-is.
+        foreach (['summary', 'architecture', 'conventions', 'current_focus', 'recent_changes'] as $textField) {
+            if (array_key_exists($textField, $updateData) && $updateData[$textField] === null) {
+                $updateData[$textField] = '';
+            }
+        }
+
         if (! empty($updateData)) {
             $project->update($updateData);
         }
