@@ -378,10 +378,15 @@ main() {
       *)    PROFILE="$HOME/.profile" ;;
     esac
 
-    if ! grep -q "claudenest" "$PROFILE" 2>/dev/null; then
+    # Idempotent: only append if this exact PATH line is not already present.
+    # (Match the literal line, not a keyword — a case-sensitive "claudenest"
+    # grep never matched the "ClaudeNest" comment nor the nvm bin dir, so the
+    # block was re-appended on every run, duplicating PATH entries.)
+    PATH_LINE="export PATH=\"${AGENT_BIN_DIR}:\$PATH\""
+    if ! grep -qF "$PATH_LINE" "$PROFILE" 2>/dev/null; then
       echo '' >> "$PROFILE"
       echo '# ClaudeNest agent (added by installer)' >> "$PROFILE"
-      echo "export PATH=\"${AGENT_BIN_DIR}:\$PATH\"" >> "$PROFILE"
+      echo "$PATH_LINE" >> "$PROFILE"
       info "Added ${AGENT_BIN_DIR} to PATH in ${PROFILE}"
     fi
   fi
