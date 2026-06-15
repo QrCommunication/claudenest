@@ -110,6 +110,82 @@ export function ensureBwrap(logger: Logger): string | null {
   return null;
 }
 
+let tmuxInstallAttempted = false;
+
+/** True if `tmux` is on PATH. */
+function tmuxOnPath(): boolean {
+  try {
+    execSync('command -v tmux >/dev/null 2>&1');
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Best-effort install of tmux via the host package manager (passwordless sudo
+ * if available). tmux is REQUIRED — every Claude session/worker runs inside a
+ * tmux session, so a missing tmux means no worker can ever open. Unlike the
+ * sandbox (which fails open to unsandboxed), this only TRIES to self-heal;
+ * the caller's checkTmuxAvailable() still throws a clear, actionable error if
+ * tmux is genuinely unavailable. Never throws.
+ */
+export function ensureTmux(logger: Logger): void {
+  if (tmuxOnPath()) return;
+  if (tmuxInstallAttempted) return; // attempt the (slow) install once per process
+  tmuxInstallAttempted = true;
+
+  const managers: Array<{ probe: string; install: string[] }> = [
+    { probe: 'apt-get', install: ['apt-get', 'install', '-y', '--no-install-recommends', 'tmux'] },
+    { probe: 'dnf', install: ['dnf', 'install', '-y', 'tmux'] },
+    { probe: 'yum', install: ['yum', 'install', '-y', 'tmux'] },
+    { probe: 'pacman', install: ['pacman', '-S', '--noconfirm', 'tmux'] },
+    { probe: 'apk', install: ['apk', 'add', 'tmux'] },
+    { probe: 'zypper', install: ['zypper', '--non-interactive', 'install', 'tmux'] },
+    { probe: 'brew', install: ['brew', 'install', 'tmux'] },
+  ];
+
+  let sudo: string[] = [];
+  try {
+    execSync('sudo -n true 2>/dev/null');
+    sudo = ['sudo', '-n'];
+  } catch {
+    sudo = [];
+  }
+
+  for (const { probe, install } of managers) {
+    try {
+      execSync(`command -v ${probe} >/dev/null 2>&1`);
+    } catch {
+      continue;
+    }
+
+    // brew refuses to run under sudo; everything else needs root unless we are.
+    const useSudo = probe !== 'brew' && process.getuid?.() !== 0;
+    if (useSudo && sudo.length === 0) {
+      logger.warn(
+        { manager: probe },
+        'tmux is not installed and no passwordless sudo — workers cannot start. ' +
+          `Install it once with: sudo ${install.join(' ')}`,
+      );
+      return;
+    }
+
+    const argv = useSudo ? [...sudo, ...install] : install;
+    try {
+      logger.info({ argv }, 'Installing tmux (required for worker sessions)');
+      execFileSync(argv[0]!, argv.slice(1), { stdio: 'ignore', timeout: 120_000 });
+      if (tmuxOnPath()) {
+        logger.info('tmux installed');
+        return;
+      }
+    } catch (err) {
+      logger.warn({ err, manager: probe }, 'tmux install attempt failed');
+    }
+    break; // one matching manager is enough
+  }
+}
+
 export interface SandboxOptions {
   /** Project directory — made writable (the worker edits code here). */
   projectPath: string;

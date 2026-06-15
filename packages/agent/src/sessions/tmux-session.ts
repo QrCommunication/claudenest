@@ -16,7 +16,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { execFileSync, spawn, type ChildProcess } from 'child_process';
 import { TmuxOutputParser, type TmuxOutputEvent } from './tmux-parser.js';
-import { findBwrap, buildBwrapArgs } from './sandbox.js';
+import { findBwrap, buildBwrapArgs, ensureTmux } from './sandbox.js';
 import { getCacheDir } from '../utils/index.js';
 import type { Logger } from '../utils/logger.js';
 import type { SessionConfig, SessionStatus } from '../types/index.js';
@@ -104,6 +104,10 @@ export class TmuxSession extends EventEmitter {
     const cleanEnv = buildCleanProcessEnv();
 
     try {
+      // tmux is REQUIRED for every session. Try to self-heal a missing tmux
+      // (older installs predate the installer shipping it) before the hard
+      // check, so an existing agent doesn't need a reinstall to spawn workers.
+      ensureTmux(this.logger);
       checkTmuxAvailable();
 
       // 0. Prepare credential isolation (creates isolated CLAUDE_CONFIG_DIR)
