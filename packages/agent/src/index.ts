@@ -25,13 +25,12 @@ import {
   uninstallService,
   serviceStatus,
 } from './service/installer.js';
+import { storeMachineToken, readMachineToken } from './utils/token-store.js';
 import type { AgentConfig } from './types/index.js';
 import fs from 'fs/promises';
 import path from 'path';
-import keytar from 'keytar';
 import os from 'os';
 
-const SERVICE_NAME = 'ClaudeNestAgent';
 const DEFAULT_SERVER_URL = 'https://api.claudenest.io';
 
 interface CLIOptions {
@@ -160,12 +159,7 @@ async function handleInstallService(options: {
   const serverUrl = options.server || (await readConfigValue('serverUrl')) || DEFAULT_SERVER_URL;
 
   // Bake the paired token into the service env (keychain is unreliable headless).
-  let token: string | null = null;
-  try {
-    token = await keytar.getPassword(SERVICE_NAME, 'machine-token');
-  } catch {
-    token = process.env.CLAUDENEST_TOKEN || null;
-  }
+  const token = await readMachineToken();
 
   if (!token) {
     console.error('✗ No machine token found. Run "claudenest-agent pair" first.');
@@ -453,8 +447,8 @@ async function handlePair(options: { server: string }): Promise<void> {
   try {
     const { token, machineId } = await pollForPairing(options.server, pairingCode);
 
-    // Store the token securely
-    await keytar.setPassword(SERVICE_NAME, 'machine-token', token);
+    // Store the token (OS keychain, falling back to the config file headless).
+    await storeMachineToken(token);
 
     // Save machine ID
     if (machineId) {
@@ -615,14 +609,8 @@ async function loadConfig(options: CLIOptions): Promise<AgentConfig> {
     // File doesn't exist or is invalid
   }
 
-  // Get token from keychain
-  let token: string | null = null;
-  try {
-    token = await keytar.getPassword(SERVICE_NAME, 'machine-token');
-  } catch {
-    // Keytar not available, try env var
-    token = process.env.CLAUDENEST_TOKEN || null;
-  }
+  // Resolve token: OS keychain → CLAUDENEST_TOKEN env → config file fallback.
+  const token = await readMachineToken();
 
   // CLI options take precedence
   return {
@@ -644,7 +632,7 @@ async function saveConfigValue(key: string, value: unknown): Promise<void> {
   const configPath = path.join(configDir, 'config.json');
 
   let config: Record<string, unknown> = {};
-  
+
   try {
     const content = await fs.readFile(configPath, 'utf-8');
     config = JSON.parse(content);
