@@ -15,6 +15,7 @@
 
       <div class="footer-col">
         <h4 class="footer-heading">{{ t('landing.footer.product') }}</h4>
+        <router-link to="/register" class="footer-link">{{ t('landing.footer.get_started_hosted') }}</router-link>
         <router-link to="/" class="footer-link">{{ t('landing.nav.features') }}</router-link>
         <router-link to="/pricing" class="footer-link">{{ t('landing.nav.pricing') }}</router-link>
         <router-link to="/changelog" class="footer-link">{{ t('landing.footer.changelog') }}</router-link>
@@ -23,8 +24,8 @@
 
       <div class="footer-col">
         <h4 class="footer-heading">{{ t('landing.footer.resources') }}</h4>
+        <router-link to="/docs/installation" class="footer-link">{{ t('landing.footer.self_host') }}</router-link>
         <router-link to="/docs/quickstart" class="footer-link">{{ t('landing.how_it_works.step_2.title') }}</router-link>
-        <router-link to="/docs/installation" class="footer-link">{{ t('landing.how_it_works.step_1.title') }}</router-link>
         <router-link to="/docs/api/sessions" class="footer-link">{{ t('landing.footer.api_reference') }}</router-link>
         <a :href="githubUrl" rel="noreferrer" target="_blank" class="footer-link footer-link-ext">
           GitHub

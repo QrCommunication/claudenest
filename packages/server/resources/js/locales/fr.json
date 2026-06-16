@@ -1052,49 +1052,34 @@
       "cta": "Auto-hébergez en 15 minutes",
       "note": "La concurrence n'est bornée que par votre matériel et les limites de débit de votre plan Claude — jamais par ClaudeNest."
     },
-    "pricing": {
-      "badge": "Tarifs",
-      "title": "L'auto-hébergement est gratuit. ",
-      "title_highlight": "Les plans payants lèvent les plafonds.",
-      "subtitle": "Les plafonds sont appliqués côté serveur — pas sur l'honneur.",
-      "most_popular": "Le plus populaire",
-      "note": "La concurrence effective dépend aussi des limites de débit de votre plan Claude.",
-      "tiers": {
-        "community": {
-          "name": "Communaute",
-          "price": "Gratuit",
-          "target": "Pour les developpeurs solo et les petites equipes",
-          "features": {
-            "0": "3 workers simultanés",
-            "1": "1 projet partagé",
-            "2": "Toutes les fonctionnalités",
-            "3": "Support GitHub"
-          },
-          "cta": "Commencer"
+    "options": {
+      "badge": "Deux façons de démarrer",
+      "title": "Hébergé ou ",
+      "title_highlight": "auto-hébergé.",
+      "subtitle": "Le même ClaudeNest, gratuit et illimité. Démarrez en un clic sur notre serveur, ou déployez sur le vôtre.",
+      "hosted": {
+        "label": "Hébergé",
+        "price": "Gratuit · illimité",
+        "pitch": "Utilisez ClaudeNest sans rien déployer. Le serveur d'orchestration tourne sur claudenest.io — installez simplement l'agent sur votre machine et connectez-vous.",
+        "features": {
+          "0": "Inscription en moins d'une minute, aucune installation serveur.",
+          "1": "Workers et projets illimités.",
+          "2": "Aucun serveur à gérer ni à mettre à jour.",
+          "3": "Vos identifiants Claude restent sur votre machine — l'agent tourne en local."
         },
-        "pro": {
-          "name": "Pro",
-          "price": "29 $",
-          "period": "/mois",
-          "target": "Pour les equipes et utilisateurs avances",
-          "features": {
-            "0": "20 workers simultanés",
-            "1": "Projets illimités",
-            "2": "Support email prioritaire"
-          },
-          "cta": "Contactez-nous"
+        "cta": "Créer un compte gratuit"
+      },
+      "selfhosted": {
+        "label": "Auto-hébergé",
+        "price": "Gratuit · open-source",
+        "pitch": "Déployez tout sur votre propre infrastructure — contrôle total, vos données restent chez vous.",
+        "features": {
+          "0": "Déploiement Docker ou bare-metal.",
+          "1": "Contrôle total des données et de l'infrastructure.",
+          "2": "Open-source, licence PolyForm Noncommercial.",
+          "3": "Mise à jour de l'agent quand vous voulez."
         },
-        "enterprise": {
-          "name": "Entreprise",
-          "price": "Sur mesure",
-          "target": "Pour les organisations a grande echelle",
-          "features": {
-            "0": "Workers illimités",
-            "1": "Piste d'audit (journal d'activité)",
-            "2": "Support dédié"
-          },
-          "cta": "Parlons-en"
-        }
+        "cta": "Guide d'installation"
       }
     },
     "faq": {
@@ -1149,6 +1134,8 @@
       "description": "Plateforme d'orchestration Claude Code a distance. Open source et auto-hebergee.",
       "product": "Produit",
       "resources": "Ressources",
+      "get_started_hosted": "Commencer (hébergé)",
+      "self_host": "Auto-héberger",
       "legal": "Legal",
       "contact": "Contact",
       "changelog": "Changelog",
@@ -5622,7 +5609,42 @@
     "nextTaskCoordTitle": "Coordination des tâches",
     "nextTaskCoordDesc": "Répartissez le travail entre les instances Claude",
     "nextWebsocketTitle": "Protocole WebSocket",
-    "nextWebsocketDesc": "Référence de la communication en temps réel"
+    "nextWebsocketDesc": "Référence de la communication en temps réel",
+    "nextAgentUpdateTitle": "Mise à jour de l'agent",
+    "nextAgentUpdateDesc": "Mettez l'agent à jour et rechargez le service en toute sécurité"
+  },
+  "docDocsGuidesAgentupdate": {
+    "title": "Mise à jour de l'agent",
+    "lead": "Mettez l'agent ClaudeNest à jour vers la dernière version, puis redémarrez le service pour charger le nouveau code. Vérifiez d'abord qu'aucun worker n'est actif afin d'éviter d'interrompre des sessions en cours.",
+    "checkVersionHeading": "Vérifier la version installée",
+    "checkVersionIntro": "Commencez par afficher la version actuellement installée de l'agent :",
+    "terminalFilename": "Terminal",
+    "checkVersionGlobal": "Vous pouvez aussi confirmer le paquet installé globalement via npm :",
+    "updateHeading": "Mettre à jour vers la dernière version",
+    "updateIntro": "L'agent est distribué sous forme de paquet npm. Mettez-le à jour vers la dernière version stable :",
+    "updateVerify": "Vérifiez de nouveau la version (elle doit afficher la nouvelle version) :",
+    "updateRestartNote": "La commande remplace le binaire sur le disque, mais le processus en cours d'exécution conserve l'<strong>ancien code jusqu'au redémarrage</strong>. Un redémarrage du service est donc nécessaire pour que la mise à jour prenne effet.",
+    "precautionsHeading": "Précaution avant de redémarrer",
+    "precautionsWarning": "Un redémarrage de l'agent <strong>tue les sessions tmux en cours</strong> : les workers actifs deviennent orphelins et leurs tâches sont relâchées. Vérifiez qu'aucune session n'est active avant de redémarrer.",
+    "precautionsCheck": "Listez les sessions tmux gérées par l'agent :",
+    "precautionsSafe": "<code>no server running</code> signifie qu'aucun worker n'est actif : le redémarrage est sûr. Sinon, attendez que les workers terminent (ou planifiez la mise à jour lorsque la machine est au calme).",
+    "restartHeading": "Redémarrer le service",
+    "restartIntro": "Redémarrez le service pour charger la nouvelle version. Il s'agit du cas par défaut de l'installeur (service systemd système) :",
+    "restartVariants": "Variantes selon votre mode d'installation :",
+    "verifyHeading": "Vérifier que l'agent est reparti",
+    "verifyIntro": "Confirmez que l'agent est actif, qu'il ne boucle pas et qu'il s'est reconnecté au serveur :",
+    "verifyTip": "Les journaux doivent afficher <code>Connected to ClaudeNest server</code>. Une valeur <code>NRestarts</code> qui augmente indique un crash-loop à investiguer dans les journaux.",
+    "troubleshootHeading": "Dépannage",
+    "crashLoopHeading": "Crash-loop après mise à jour",
+    "crashLoopBody": "Si <code>NRestarts</code> augmente continuellement, l'agent redémarre en boucle. Consultez les journaux pour la cause. La plupart des crash-loops viennent d'une version de Node trop ancienne : l'agent nécessite <strong>Node.js 24 LTS</strong> ou ultérieure.",
+    "debugFilename": "Débogage",
+    "pairingLostHeading": "Appairage perdu",
+    "pairingLostBody": "Si l'agent ne parvient plus à s'authentifier auprès du serveur après la mise à jour, relancez l'appairage de la machine :",
+    "nextStepsHeading": "Étapes suivantes",
+    "nextAgentSetupTitle": "Configuration de l'agent",
+    "nextAgentSetupDesc": "Installation et configuration initiales de l'agent",
+    "nextBareMetalTitle": "Déploiement bare metal",
+    "nextBareMetalDesc": "Déploiement complet en production sur serveur dédié"
   },
   "docDocsGuidesCredentials": {
     "title": "Gestion des identifiants",

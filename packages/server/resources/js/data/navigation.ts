@@ -262,6 +262,12 @@ export const docsNavigation: NavSection[] = [
         description: 'Install and configure the local agent'
       },
       {
+        id: 'guide-agent-update',
+        title: 'Agent Update',
+        path: '/docs/guides/agent-update',
+        description: 'Update the agent and reload the service safely'
+      },
+      {
         id: 'guide-credentials',
         title: 'Credentials',
         path: '/docs/guides/credentials',

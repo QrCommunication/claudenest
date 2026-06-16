@@ -205,6 +205,10 @@ npm rebuild node-pty"
     <section id="next-steps">
       <h2>{{ t('docDocsGuidesAgentsetup.nextStepsHeading') }}</h2>
       <div class="next-steps">
+        <router-link to="/docs/guides/agent-update" class="next-step">
+          <strong>{{ t('docDocsGuidesAgentsetup.nextAgentUpdateTitle') }}</strong>
+          <span>{{ t('docDocsGuidesAgentsetup.nextAgentUpdateDesc') }} &#8594;</span>
+        </router-link>
         <router-link to="/docs/quickstart" class="next-step">
           <strong>{{ t('docDocsGuidesAgentsetup.nextQuickstartTitle') }}</strong>
           <span>{{ t('docDocsGuidesAgentsetup.nextQuickstartDesc') }} &#8594;</span>

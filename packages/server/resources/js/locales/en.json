@@ -1052,49 +1052,34 @@
       "cta": "Self-host in 15 minutes",
       "note": "Concurrency is bounded only by your hardware and your Claude plan's rate limits — never by ClaudeNest."
     },
-    "pricing": {
-      "badge": "Pricing",
-      "title": "Self-hosted is free. ",
-      "title_highlight": "Paid plans lift the caps.",
-      "subtitle": "Caps are enforced server-side — not honor-system.",
-      "most_popular": "Most popular",
-      "note": "Concurrency is also bounded by your Claude plan's rate limits.",
-      "tiers": {
-        "community": {
-          "name": "Community",
-          "price": "Free",
-          "target": "For solo developers and small teams",
-          "features": {
-            "0": "3 concurrent workers",
-            "1": "1 shared project",
-            "2": "Full feature set",
-            "3": "GitHub support"
-          },
-          "cta": "Get Started"
+    "options": {
+      "badge": "Two ways to start",
+      "title": "Hosted or ",
+      "title_highlight": "self-hosted.",
+      "subtitle": "The same ClaudeNest, free and unlimited. Start in one click on our server, or deploy on your own.",
+      "hosted": {
+        "label": "Hosted",
+        "price": "Free · unlimited",
+        "pitch": "Use ClaudeNest without deploying anything. The orchestration server runs on claudenest.io — just install the agent on your machine and connect.",
+        "features": {
+          "0": "Sign up in under a minute, no server setup.",
+          "1": "Unlimited workers and projects.",
+          "2": "No server to manage or keep up to date.",
+          "3": "Your Claude credentials stay on your machine — the agent runs locally."
         },
-        "pro": {
-          "name": "Pro",
-          "price": "$29",
-          "period": "/month",
-          "target": "For teams and power users",
-          "features": {
-            "0": "20 concurrent workers",
-            "1": "Unlimited projects",
-            "2": "Priority email support"
-          },
-          "cta": "Contact us"
+        "cta": "Create a free account"
+      },
+      "selfhosted": {
+        "label": "Self-hosted",
+        "price": "Free · open-source",
+        "pitch": "Deploy everything on your own infrastructure — full control, your data stays with you.",
+        "features": {
+          "0": "Docker or bare-metal deployment.",
+          "1": "Full control over your data and infrastructure.",
+          "2": "Open-source, PolyForm Noncommercial license.",
+          "3": "Update the agent whenever you want."
         },
-        "enterprise": {
-          "name": "Enterprise",
-          "price": "Custom",
-          "target": "For organizations at scale",
-          "features": {
-            "0": "Unlimited workers",
-            "1": "Audit trail (activity log)",
-            "2": "Dedicated support"
-          },
-          "cta": "Talk to us"
-        }
+        "cta": "Installation guide"
       }
     },
     "faq": {
@@ -1149,6 +1134,8 @@
       "description": "Remote Claude Code orchestration platform. Open source and self-hosted.",
       "product": "Product",
       "resources": "Resources",
+      "get_started_hosted": "Get started (hosted)",
+      "self_host": "Self-host",
       "legal": "Legal",
       "contact": "Contact",
       "changelog": "Changelog",
@@ -5622,7 +5609,42 @@
     "nextTaskCoordTitle": "Task Coordination",
     "nextTaskCoordDesc": "Distribute work between Claude instances",
     "nextWebsocketTitle": "WebSocket Protocol",
-    "nextWebsocketDesc": "Real-time communication reference"
+    "nextWebsocketDesc": "Real-time communication reference",
+    "nextAgentUpdateTitle": "Agent Update",
+    "nextAgentUpdateDesc": "Update the agent and reload the service safely"
+  },
+  "docDocsGuidesAgentupdate": {
+    "title": "Agent Update",
+    "lead": "Update the ClaudeNest agent to the latest version, then restart the service to load the new code. Check that no workers are active first to avoid interrupting in-progress sessions.",
+    "checkVersionHeading": "Check the installed version",
+    "checkVersionIntro": "Start by printing the version of the agent currently installed:",
+    "terminalFilename": "Terminal",
+    "checkVersionGlobal": "You can also confirm the globally installed package via npm:",
+    "updateHeading": "Update to the latest version",
+    "updateIntro": "The agent is distributed as an npm package. Update it to the latest stable release:",
+    "updateVerify": "Verify the version again (it should print the new version):",
+    "updateRestartNote": "The command replaces the binary on disk, but the running process keeps the <strong>old code until it is restarted</strong>. A service restart is therefore required for the update to take effect.",
+    "precautionsHeading": "Precaution before restarting",
+    "precautionsWarning": "Restarting the agent <strong>kills in-progress tmux sessions</strong>: active workers become orphaned and their tasks are released. Check that no session is active before restarting.",
+    "precautionsCheck": "List the tmux sessions managed by the agent:",
+    "precautionsSafe": "<code>no server running</code> means no worker is active, so the restart is safe. Otherwise, wait for the workers to finish (or schedule the update when the machine is idle).",
+    "restartHeading": "Restart the service",
+    "restartIntro": "Restart the service to load the new version. This is the installer's default case (system-level systemd service):",
+    "restartVariants": "Variants depending on your install mode:",
+    "verifyHeading": "Verify the agent is back up",
+    "verifyIntro": "Confirm the agent is active, not looping, and reconnected to the server:",
+    "verifyTip": "The logs should show <code>Connected to ClaudeNest server</code>. A rising <code>NRestarts</code> value indicates a crash-loop to investigate in the logs.",
+    "troubleshootHeading": "Troubleshooting",
+    "crashLoopHeading": "Crash-loop after update",
+    "crashLoopBody": "If <code>NRestarts</code> keeps rising, the agent is restarting in a loop. Check the logs for the cause. Most crash-loops come from an outdated Node version: the agent requires <strong>Node.js 24 LTS</strong> or later.",
+    "debugFilename": "Debug",
+    "pairingLostHeading": "Pairing lost",
+    "pairingLostBody": "If the agent can no longer authenticate with the server after the update, re-run the machine pairing:",
+    "nextStepsHeading": "Next Steps",
+    "nextAgentSetupTitle": "Agent Setup",
+    "nextAgentSetupDesc": "Initial agent installation and configuration",
+    "nextBareMetalTitle": "Bare Metal Deployment",
+    "nextBareMetalDesc": "Full production deployment on a dedicated server"
   },
   "docDocsGuidesCredentials": {
     "title": "Credential Management",

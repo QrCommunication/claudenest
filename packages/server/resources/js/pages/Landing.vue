@@ -42,13 +42,13 @@
             </div>
 
             <div class="hero-actions" v-motion :initial="mInitial()" :enter="mEnter(360)">
-              <router-link to="/docs/installation" class="btn-primary">
-                {{ t('landing.hero.cta_primary') }}
+              <router-link to="/register" class="btn-primary">
+                {{ t('landing.options.hosted.cta') }}
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
               </router-link>
-              <a href="#demo" class="btn-ghost">
-                {{ t('landing.hero.cta_secondary') }}
-              </a>
+              <router-link to="/docs/installation" class="btn-ghost">
+                {{ t('landing.options.selfhosted.label') }}
+              </router-link>
             </div>
 
             <p class="hero-micro" v-motion :initial="{ opacity: 0 }" :enter="{ opacity: 1, transition: { delay: 420 } }">
@@ -337,10 +337,15 @@
               {{ t(`landing.unlimited.points.${i - 1}`) }}
             </li>
           </ul>
-          <router-link to="/docs/installation" class="btn-primary unlimited-cta">
-            {{ t('landing.unlimited.cta') }}
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
-          </router-link>
+          <div class="unlimited-actions">
+            <router-link to="/register" class="btn-primary unlimited-cta">
+              {{ t('landing.options.hosted.cta') }}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
+            </router-link>
+            <router-link to="/docs/installation" class="btn-ghost unlimited-cta">
+              {{ t('landing.options.selfhosted.cta') }}
+            </router-link>
+          </div>
         </div>
         <p class="unlimited-note">{{ t('landing.unlimited.note') }}</p>
       </section>
@@ -374,11 +379,11 @@
             <p class="cta-sub">{{ t('landing.cta.subtitle') }}</p>
           </div>
           <div class="cta-actions">
-            <router-link to="/docs/installation" class="btn-primary">
-              {{ t('landing.cta.cta_primary') }}
+            <router-link to="/register" class="btn-primary">
+              {{ t('landing.options.hosted.cta') }}
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
             </router-link>
-            <a :href="GITHUB_URL" target="_blank" rel="noopener" class="btn-ghost">{{ t('landing.cta.cta_secondary') }}</a>
+            <router-link to="/docs/installation" class="btn-ghost">{{ t('landing.options.selfhosted.cta') }}</router-link>
           </div>
           <div class="cta-mesh" aria-hidden="true" />
         </div>
@@ -1655,6 +1660,12 @@ const Partial = () =>
   flex: none;
   margin-top: 0.18rem;
   color: var(--status-success);
+}
+
+.unlimited-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
 .unlimited-cta {

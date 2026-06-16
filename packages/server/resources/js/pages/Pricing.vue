@@ -6,39 +6,47 @@
     <main class="page-main">
       <section class="pricing-hero">
         <SectionHeader
-          :badge="t('landing.unlimited.badge')"
-          :subtitle="t('landing.unlimited.subtitle')"
+          :badge="t('landing.options.badge')"
+          :subtitle="t('landing.options.subtitle')"
           align="center"
         >
           <template #title>
-            {{ t('landing.unlimited.title') }}<GradientText>{{ t('landing.unlimited.title_highlight') }}</GradientText>
+            {{ t('landing.options.title') }}<GradientText>{{ t('landing.options.title_highlight') }}</GradientText>
           </template>
         </SectionHeader>
       </section>
 
       <section class="free-wrap">
-        <article
-          class="free-card"
-          v-motion
-          :initial="{ opacity: 0, y: 18 }"
-          :visible-once="{ opacity: 1, y: 0 }"
-        >
-          <div class="free-price">
-            <span class="free-amount">{{ t('docPricing.freeForever') }}</span>
-          </div>
+        <div class="options-grid">
+          <article
+            v-for="(option, idx) in OPTIONS"
+            :key="option.key"
+            class="free-card"
+            :class="{ 'is-secondary': !option.primary }"
+            v-motion
+            :initial="{ opacity: 0, y: 18 }"
+            :visible-once="{ opacity: 1, y: 0, transition: { delay: idx * 80 } }"
+          >
+            <header class="free-head">
+              <span class="free-label">{{ t(`landing.options.${option.key}.label`) }}</span>
+              <span class="free-amount">{{ t(`landing.options.${option.key}.price`) }}</span>
+            </header>
 
-          <ul class="free-features">
-            <li v-for="i in 5" :key="i" class="free-feat">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-              <span>{{ t(`landing.unlimited.points.${i - 1}`) }}</span>
-            </li>
-          </ul>
+            <p class="free-pitch">{{ t(`landing.options.${option.key}.pitch`) }}</p>
 
-          <router-link to="/register" class="free-cta">
-            {{ t('landing.cta.cta_primary') }}
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
-          </router-link>
-        </article>
+            <ul class="free-features">
+              <li v-for="i in 4" :key="i" class="free-feat">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                <span>{{ t(`landing.options.${option.key}.features.${i - 1}`) }}</span>
+              </li>
+            </ul>
+
+            <router-link :to="option.to" class="free-cta" :class="{ 'is-ghost': !option.primary }">
+              {{ t(`landing.options.${option.key}.cta`) }}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
+            </router-link>
+          </article>
+        </div>
 
         <p class="pricing-note">{{ t('landing.unlimited.note') }}</p>
       </section>
@@ -70,10 +78,10 @@
           </div>
           <div class="cta-actions">
             <router-link to="/register" class="btn-primary">
-              {{ t('landing.cta.cta_primary') }}
+              {{ t('landing.options.hosted.cta') }}
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7" /></svg>
             </router-link>
-            <router-link to="/docs/installation" class="btn-ghost">{{ $t('docPricing.installationGuide') }}</router-link>
+            <router-link to="/docs/installation" class="btn-ghost">{{ t('landing.options.selfhosted.cta') }}</router-link>
           </div>
         </div>
       </section>
@@ -92,6 +100,19 @@ import SectionHeader from '@/components/public/SectionHeader.vue';
 import GradientText from '@/components/public/GradientText.vue';
 
 const { t } = useI18n();
+
+// Two coherent ways to run ClaudeNest, both free & unlimited.
+// Labels resolved through t() in the template — only routing/flags here.
+interface PricingOption {
+  key: 'hosted' | 'selfhosted';
+  to: string;
+  primary: boolean;
+}
+
+const OPTIONS: readonly PricingOption[] = [
+  { key: 'hosted', to: '/register', primary: true },
+  { key: 'selfhosted', to: '/docs/installation', primary: false },
+];
 </script>
 
 <style scoped>
@@ -126,7 +147,7 @@ const { t } = useI18n();
   text-align: center;
 }
 
-/* ============ FREE CARD ============ */
+/* ============ OPTION CARDS ============ */
 .free-wrap {
   max-width: 1400px;
   margin: 0 auto;
@@ -136,14 +157,29 @@ const { t } = useI18n();
   align-items: center;
 }
 
+.options-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 60rem;
+  align-items: stretch;
+}
+
+@media (min-width: 840px) {
+  .options-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+}
+
 .free-card {
   position: relative;
   width: 100%;
-  max-width: 40rem;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  padding: clamp(2rem, 4vw, 2.75rem);
+  gap: 1.25rem;
+  padding: clamp(2rem, 4vw, 2.5rem);
   background: var(--bg-card);
   border: 1px solid color-mix(in srgb, var(--accent-purple) 44%, var(--border-color));
   border-radius: 1.2rem;
@@ -152,24 +188,52 @@ const { t } = useI18n();
     0 24px 60px -30px rgba(168, 85, 247, 0.5);
 }
 
-.free-price {
+/* Self-hosted card: same weight, calmer accent (no purple glow) */
+.free-card.is-secondary {
+  border-color: var(--border-color);
+  box-shadow: var(--shadow-md);
+}
+
+.free-head {
   display: flex;
-  align-items: baseline;
-  gap: 0.35rem;
+  flex-direction: column;
+  gap: 0.5rem;
   padding-bottom: 1.25rem;
   border-bottom: 1px solid var(--border-color);
 }
 
+.free-label {
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
 .free-amount {
-  font-size: clamp(2.2rem, 4vw, 2.8rem);
+  font-size: clamp(1.6rem, 3vw, 2rem);
   font-weight: 700;
-  letter-spacing: -0.035em;
-  line-height: 1;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
   background: linear-gradient(135deg, var(--accent-purple), var(--accent-indigo));
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: var(--accent-purple);
+}
+
+.free-card.is-secondary .free-amount {
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-indigo));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--accent-cyan);
+}
+
+.free-pitch {
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
 }
 
 .free-features {
@@ -233,6 +297,20 @@ const { t } = useI18n();
 
 .free-cta:hover svg { transform: translateX(3px); }
 .free-cta:active { transform: translateY(0); }
+
+/* Ghost CTA for the self-hosted card — equal footprint, calmer visual */
+.free-cta.is-ghost {
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+  box-shadow: none;
+}
+
+.free-cta.is-ghost:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-hover);
+  box-shadow: none;
+}
 
 .pricing-note {
   max-width: 38rem;
