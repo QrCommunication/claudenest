@@ -67,6 +67,26 @@ class WorkerLoopService
 
     public const RECYCLE_SESSION_MAX_HOURS = 2;
 
+    /**
+     * Grace window before a freshly-claimed in_progress task may be reclaimed as
+     * orphaned. Anti-churn: a worker that completes a task is recycled (its
+     * session terminated) the instant it reports idle; if it had re-claimed a
+     * long task in between, the orphan sweep would otherwise race the volunteer
+     * teardown and release that task back to pending — re-claim → re-recycle, up
+     * to dozens of times. A task claimed less than this many seconds ago is left
+     * alone so the legitimate handoff can settle. See SharedTask::reclaimOrphaned.
+     */
+    public const RECLAIM_GRACE_SECONDS = 90;
+
+    /**
+     * A task is only reclaimed once its worker's session has been terminal
+     * (completed/error/terminated) for at least this long — i.e. the worker is
+     * genuinely gone, not mid-handoff. A task held behind a session that just
+     * flipped terminated (volunteer recycle, replacement spawning) is preserved.
+     * Set above RECLAIM_GRACE_SECONDS so a dead session is the binding signal.
+     */
+    public const RECLAIM_DEAD_SESSION_SECONDS = 120;
+
     public function __construct(
         private WorkerPoolService $workerPool,
     ) {}
@@ -268,6 +288,21 @@ class WorkerLoopService
      */
     private function shouldRecycle(ClaudeInstance $instance, Session $session): bool
     {
+        // Defensive anti-churn guard: never recycle a worker that still owns an
+        // in-progress task. onIdle() only reaches the recycle branch once the
+        // worker's own task is no longer in_progress, but a task it re-claimed
+        // between completion and this tick (the orphan-sweep churn) would still
+        // be terminated mid-flight here. Terminating its session then makes the
+        // task an "orphan" → released → re-claimed → re-recycled. Bail out.
+        $holdsInProgressTask = SharedTask::forProject($instance->project_id)
+            ->where('assigned_to', $instance->id)
+            ->where('status', 'in_progress')
+            ->exists();
+
+        if ($holdsInProgressTask) {
+            return false;
+        }
+
         if ($instance->tasks_completed >= self::RECYCLE_TASKS_COMPLETED) {
             return true;
         }

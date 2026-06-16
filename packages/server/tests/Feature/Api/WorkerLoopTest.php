@@ -289,6 +289,69 @@ class WorkerLoopTest extends TestCase
     }
 
     #[Test]
+    public function worker_holding_an_in_progress_task_is_never_recycled(): void
+    {
+        // Anti-churn: a spent worker (tasks_completed past the budget) that still
+        // owns an in_progress task must be nudged to FINISH it, never recycled —
+        // terminating its session would orphan that task and trigger the
+        // recycle ⇄ orphan-sweep churn observed in prod (up to 42×).
+        $gateway = $this->spy(AgentGateway::class);
+
+        $this->makeWorker(instanceAttributes: ['tasks_completed' => WorkerLoopService::RECYCLE_TASKS_COMPLETED]);
+        $task = SharedTask::factory()->create([
+            'project_id' => $this->project->id,
+            'status' => 'in_progress',
+            'assigned_to' => "inst-{$this->session->id}",
+            'claimed_at' => now(),
+            'title' => 'Long running task',
+            'files' => [],
+        ]);
+        $this->instance->update(['current_task_id' => $task->id]);
+        // Claimable work also exists — without the guard the recycle branch would
+        // fire because tasks_completed >= budget.
+        SharedTask::factory()->create(['project_id' => $this->project->id, 'status' => 'pending', 'files' => []]);
+
+        $this->heartbeatIdle();
+
+        // Session NOT terminated, no terminate roundtrip — just a nudge to finish.
+        $this->assertSame('running', $this->session->fresh()->status);
+        $gateway->shouldNotHaveReceived(
+            'sendMessage',
+            [$this->machine->id, 'session:terminate', ['sessionId' => $this->session->id]],
+        );
+        $gateway->shouldHaveReceived('sendMessage')
+            ->withArgs(function (string $machineId, string $type, array $payload) {
+                return $type === 'session:input'
+                    && str_contains($payload['data'], 'Long running task')
+                    && str_contains($payload['data'], 'task_complete');
+            })
+            ->once();
+    }
+
+    #[Test]
+    public function should_recycle_guard_refuses_a_worker_owning_an_in_progress_task(): void
+    {
+        // Unit-level proof of the defensive guard at the top of shouldRecycle():
+        // even reached directly (e.g. a concurrent claim landing between onIdle's
+        // own-task check and this tick), a worker holding an in_progress task is
+        // not recyclable, regardless of its completed-task budget.
+        $this->makeWorker(instanceAttributes: ['tasks_completed' => WorkerLoopService::RECYCLE_TASKS_COMPLETED + 5]);
+        SharedTask::factory()->create([
+            'project_id' => $this->project->id,
+            'status' => 'in_progress',
+            'assigned_to' => $this->instance->id,
+            'claimed_at' => now(),
+            'files' => [],
+        ]);
+
+        $service = app(WorkerLoopService::class);
+        $method = new \ReflectionMethod($service, 'shouldRecycle');
+        $method->setAccessible(true);
+
+        $this->assertFalse($method->invoke($service, $this->instance->fresh(), $this->session->fresh()));
+    }
+
+    #[Test]
     public function worker_is_recycled_after_two_hours_of_session_lifetime(): void
     {
         $gateway = $this->spy(AgentGateway::class);

@@ -174,6 +174,7 @@ Collaboration rules:
 - Before coding, claim a task: use the claudenest MCP tool task_claim_next (or task_claim).
 - File locks are enforced automatically by hooks; if an edit is denied, the file is owned by another instance — pick different work.
 - When done, call task_complete with a 2-4 sentence summary and files_modified.
+- For UI/web changes, validate them in a headless browser (Playwright/Chromium) before calling task_complete.
 - Record important decisions with context_add. Use context_query to learn what other instances did.
 - Use broadcast_message for anything other instances must know immediately.
 PROMPT;

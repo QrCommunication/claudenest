@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Services\WorkerLoopService;
 use Illuminate\Database\Eloquent\Concerns\HasVersion4Uuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -539,11 +540,22 @@ class SharedTask extends Model
      * task as "already started" so prioritized() surfaces it before fresh work
      * — the work-in-progress on disk is then continued rather than abandoned.
      *
+     * Anti-churn (Phase 1): a task is reclaimed ONLY when BOTH guards hold, so
+     * the sweep never races a legitimate volunteer recycle/handoff:
+     *   1. it was claimed more than RECLAIM_GRACE_SECONDS ago, AND
+     *   2. its assigned session has been terminal for more than
+     *      RECLAIM_DEAD_SESSION_SECONDS, OR that session no longer exists.
+     * A task freshly claimed behind a session freshly terminated (the worker
+     * just completed a task and is being replaced) is therefore left alone.
+     *
      * @return int number of tasks reclaimed
      */
     public static function reclaimOrphaned(string $projectId): int
     {
         return DB::transaction(function () use ($projectId) {
+            $graceCutoff = now()->subSeconds(WorkerLoopService::RECLAIM_GRACE_SECONDS);
+            $deadSessionCutoff = now()->subSeconds(WorkerLoopService::RECLAIM_DEAD_SESSION_SECONDS);
+
             // Liveness is keyed off the SESSION status, NOT instance.disconnected_at:
             // a transient agent WebSocket drop spuriously flips disconnected_at
             // while the worker process (and its session=running) keep going —
@@ -553,9 +565,32 @@ class SharedTask extends Model
                 ->pluck('id')
                 ->all();
 
+            // Instances whose session is terminal but only RECENTLY so: the
+            // worker may be in the middle of a volunteer recycle (session just
+            // flipped terminated, replacement spawning, task handed off). Their
+            // tasks are NOT yet reclaimable — preserving them is what stops the
+            // recycle ⇄ orphan-sweep churn. A terminal session whose completed_at
+            // is dateable AND newer than the cutoff is "recently dead". A null
+            // completed_at means the death cannot be dated (legacy row); we then
+            // fall back to the claimed_at grace alone rather than pin it forever.
+            $recentlyDeadInstanceIds = ClaudeInstance::where('project_id', $projectId)
+                ->whereHas('session', fn ($query) => $query
+                    ->whereIn('status', ['completed', 'error', 'terminated'])
+                    ->whereNotNull('completed_at')
+                    ->where('completed_at', '>', $deadSessionCutoff))
+                ->pluck('id')
+                ->all();
+
+            // A task is reclaimable when its owner is neither live nor recently
+            // dead — i.e. genuinely gone (session terminal long enough, or no
+            // session row at all) — AND it has cleared the post-claim grace
+            // window (so a fresh re-claim during teardown is never yanked).
+            $skipInstanceIds = array_values(array_unique(array_merge($liveInstanceIds, $recentlyDeadInstanceIds)));
+
             $orphans = static::forProject($projectId)
                 ->where('status', 'in_progress')
-                ->when($liveInstanceIds !== [], fn ($query) => $query->whereNotIn('assigned_to', $liveInstanceIds))
+                ->where('claimed_at', '<', $graceCutoff)
+                ->when($skipInstanceIds !== [], fn ($query) => $query->whereNotIn('assigned_to', $skipInstanceIds))
                 ->lockForUpdate()
                 ->get();
 
