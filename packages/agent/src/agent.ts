@@ -23,6 +23,7 @@ import {
   createOAuthHandlers,
   createDiscoveryHandlers,
   createSprintHandlers,
+  createEpicHandlers,
   createGitHandlers,
 } from './handlers/index.js';
 import type {
@@ -449,6 +450,12 @@ export class ClaudeNestAgent extends EventEmitter {
       logger: this.logger,
     });
 
+    // Epic handlers (auto-PR on epic completion)
+    const epicHandlers = createEpicHandlers({
+      wsClient: this.wsClient,
+      logger: this.logger,
+    });
+
     const gitHandlers = createGitHandlers({
       wsClient: this.wsClient,
       logger: this.logger,
@@ -477,6 +484,9 @@ export class ClaudeNestAgent extends EventEmitter {
       this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
     }
     for (const [type, handler] of Object.entries(sprintHandlers)) {
+      this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
+    }
+    for (const [type, handler] of Object.entries(epicHandlers)) {
       this.handlers.set(type, handler as (payload: unknown) => Promise<void> | void);
     }
     for (const [type, handler] of Object.entries(gitHandlers)) {

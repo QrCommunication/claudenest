@@ -10,4 +10,5 @@ export { createScanHandlers } from './scan-handler.js';
 export { createOAuthHandlers } from './oauth-handler.js';
 export { createDiscoveryHandlers } from './discovery-handler.js';
 export { createSprintHandlers } from './sprint-handler.js';
+export { createEpicHandlers } from './epic-handler.js';
 export { createGitHandlers } from './git-handler.js';
