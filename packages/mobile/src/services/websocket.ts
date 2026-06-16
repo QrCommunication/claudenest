@@ -286,6 +286,9 @@ class WebSocketService {
       .listen(".epic.updated", (e: ReverbPayload) =>
         this.emit("epic:updated", e),
       )
+      .listen(".epic.decomposition", (e: ReverbPayload) =>
+        this.emit("epic:decomposition", e),
+      )
       .listen(".sprint.updated", (e: ReverbPayload) =>
         this.emit("sprint:updated", e),
       )

@@ -828,25 +828,38 @@ class AgentServe extends Command
         $branch = $data['branch'] ?? null;
         $error = $data['error'] ?? null;
 
+        // The agent merges the PR after opening it (merge intent carried by
+        // dispatchPullRequest). When it reports the merge, force the terminal
+        // state regardless of any stale prState the agent echoed back.
+        $merged = (bool) ($data['merged'] ?? false);
+
         // Normalize the PR state against the DB CHECK; default to "open" when a
         // PR url is present but the agent did not specify a state.
         $prState = $data['prState'] ?? null;
         if (! in_array($prState, Epic::PR_STATES, true)) {
             $prState = $prUrl ? Epic::PR_STATE_OPEN : null;
         }
+        if ($merged) {
+            $prState = Epic::PR_STATE_MERGED;
+        }
 
         if ($success && $prUrl) {
             // Persist the PR coordinates and close the epic — the PR is the
-            // deliverable that marks the epic's work as shipped.
+            // deliverable that marks the epic's work as shipped. `pr_done` is the
+            // durable terminal "this epic's PR is merged/shipped" flag (distinct
+            // from the live pr_state) — set it once the agent confirms the merge.
             $epic->update([
                 'pr_url' => $prUrl,
                 'pr_number' => is_numeric($prNumber) ? (int) $prNumber : null,
                 'pr_state' => $prState,
                 'pr_branch' => $branch ?? $epic->pr_branch,
+                'pr_done' => $merged ? true : $epic->pr_done,
             ]);
             $epic->markDone();
 
-            $message = "Epic pull request opened: {$prUrl}";
+            $message = $merged
+                ? "Epic pull request merged: {$prUrl}"
+                : "Epic pull request opened: {$prUrl}";
         } elseif ($success) {
             $message = "Epic branch '{$branch}' pushed.".($error ? " {$error}" : '');
         } else {

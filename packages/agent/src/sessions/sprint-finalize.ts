@@ -24,6 +24,12 @@ export interface FinalizeSprintInput {
   branch: string;
   title: string;
   body: string;
+  /**
+   * When true, merge the PR right after opening it (squash) so the work ships
+   * in one shot. Opt-in: sprints open the PR for review, epics merge it. The
+   * merge is best-effort — a failure leaves the PR open and is surfaced.
+   */
+  merge?: boolean;
 }
 
 export interface FinalizeSprintResult {
@@ -32,6 +38,8 @@ export interface FinalizeSprintResult {
   prUrl?: string;
   committed: boolean;
   sandboxed: boolean;
+  /** True once the PR has been merged (only attempted when input.merge). */
+  merged?: boolean;
   error?: string;
 }
 
@@ -53,7 +61,7 @@ function commandLine(
 }
 
 export function finalizeSprint(input: FinalizeSprintInput, logger: Logger): FinalizeSprintResult {
-  const { projectPath, branch, title, body } = input;
+  const { projectPath, branch, title, body, merge = false } = input;
 
   // Resolve the sandbox once. ensureBwrap() already ran at agent startup; here
   // we only look it up (no install) and fail open to unsandboxed if absent.
@@ -79,6 +87,29 @@ export function finalizeSprint(input: FinalizeSprintInput, logger: Logger): Fina
       const out = (e.stderr ? e.stderr.toString() : e.message ?? '').trim();
       return { ok: false, out };
     }
+  };
+
+  /**
+   * Merge the just-opened PR (squash) when the caller asked for it. Mirrors the
+   * resilient pr:merge handler: merge via the API only (no `--delete-branch`,
+   * which would `git checkout` the base and abort on a dirty tree), treat an
+   * already-merged PR as success, then clean the remote branch up best-effort.
+   * Returns merged=false + an error string on failure (PR stays open).
+   */
+  const mergePr = (): { merged: boolean; error?: string } => {
+    if (!merge) return { merged: false };
+
+    const res = exec('gh', ['pr', 'merge', branch, '--squash']);
+    const alreadyMerged = !res.ok && /already merged/i.test(res.out);
+    if (!res.ok && !alreadyMerged) {
+      return { merged: false, error: `gh pr merge failed: ${res.out}` };
+    }
+
+    // Best-effort branch cleanup — never affects the merge result. Remote ref
+    // delete over the network (no checkout); local ref restore happens below.
+    exec('git', ['push', 'origin', '--delete', branch]);
+    logger.info({ branch, alreadyMerged, sandboxed }, 'Epic pull request merged');
+    return { merged: true };
   };
 
   logger.info(
@@ -154,14 +185,16 @@ export function finalizeSprint(input: FinalizeSprintInput, logger: Logger): Fina
       // PR may already exist — try to read its URL.
       const existing = exec('gh', ['pr', 'view', branch, '--json', 'url', '-q', '.url']);
       if (existing.ok && existing.out.startsWith('http')) {
-        return { ...base, success: true, committed, prUrl: existing.out };
+        const m = mergePr();
+        return { ...base, success: true, committed, prUrl: existing.out, merged: m.merged, error: m.error };
       }
       return { ...base, success: true, committed, error: `gh pr create failed: ${pr.out}` };
     }
 
     const prUrl = pr.out.split('\n').find((l) => l.startsWith('http')) ?? pr.out;
     logger.info({ branch, prUrl, sandboxed }, 'Sprint pull request opened');
-    return { ...base, success: true, committed, prUrl };
+    const m = mergePr();
+    return { ...base, success: true, committed, prUrl, merged: m.merged, error: m.error };
   })();
 
   // Restore the original checkout (best-effort) so the working tree is never

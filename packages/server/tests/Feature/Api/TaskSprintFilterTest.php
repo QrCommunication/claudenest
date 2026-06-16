@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Api;
 
+use App\Models\Epic;
 use App\Models\Machine;
 use App\Models\SharedProject;
 use App\Models\SharedTask;
@@ -146,5 +147,65 @@ class TaskSprintFilterTest extends TestCase
             ->getJson("/api/projects/{$this->project->id}/tasks?sprint_id={$sprint->id}")
             ->assertOk()
             ->assertJsonCount(1, 'data');
+    }
+
+    #[Test]
+    public function epic_filter_returns_only_that_epics_tasks_and_bypasses_default_visibility(): void
+    {
+        $epicA = Epic::create([
+            'project_id' => $this->project->id,
+            'title' => 'Epic A',
+            'color' => Epic::DEFAULT_COLOR,
+            'status' => 'done',
+            'priority' => 'medium',
+        ]);
+        $epicB = Epic::create([
+            'project_id' => $this->project->id,
+            'title' => 'Epic B',
+            'color' => Epic::DEFAULT_COLOR,
+            'status' => 'in_progress',
+            'priority' => 'medium',
+        ]);
+
+        // Epic A's tasks are all done before today — hidden by the default
+        // visibility window but must surface when filtering by that epic.
+        SharedTask::factory()->count(2)->for($this->project, 'project')->create([
+            'epic_id' => $epicA->id,
+            'status' => 'done',
+            'completed_at' => now()->subDays(3),
+        ]);
+        SharedTask::factory()->for($this->project, 'project')->create([
+            'epic_id' => $epicB->id,
+            'status' => 'in_progress',
+        ]);
+
+        // Filtering by epic A returns its 2 stale-done tasks (default visibility
+        // bypassed), and never epic B's task.
+        $this->actingAs($this->user)
+            ->getJson("/api/projects/{$this->project->id}/tasks?epic_id={$epicA->id}")
+            ->assertOk()
+            ->assertJsonCount(2, 'data');
+    }
+
+    #[Test]
+    public function a_non_uuid_epic_id_is_rejected_with_422(): void
+    {
+        // Guards the strict PostgreSQL `uuid` column against 22P02 — a free-text
+        // epic_id must fail validation (uuid rule) rather than reach the query.
+        $this->actingAs($this->user)
+            ->getJson("/api/projects/{$this->project->id}/tasks?epic_id=not-a-uuid")
+            ->assertStatus(422)
+            ->assertJsonPath('error.code', 'VAL_001')
+            ->assertJsonStructure(['error' => ['details' => ['epic_id']]]);
+    }
+
+    #[Test]
+    public function a_well_formed_but_unknown_epic_uuid_is_rejected_with_422(): void
+    {
+        $this->actingAs($this->user)
+            ->getJson("/api/projects/{$this->project->id}/tasks?epic_id=".Str::uuid())
+            ->assertStatus(422)
+            ->assertJsonPath('error.code', 'VAL_001')
+            ->assertJsonStructure(['error' => ['details' => ['epic_id']]]);
     }
 }

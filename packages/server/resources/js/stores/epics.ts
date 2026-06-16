@@ -6,6 +6,7 @@ import { getEchoClient } from '@/services/echo';
 import type {
   Epic,
   EpicStatus,
+  EpicPrState,
   CreateEpicForm,
   UpdateEpicForm,
   DecomposeEpicForm,
@@ -29,6 +30,10 @@ interface EpicUpdatedPayload {
   title: string;
   status: EpicStatus;
   progress_percentage: number;
+  // PR lifecycle markers (added 2026-06-16) so the board reflects merged/shipped
+  // state in real time. Optional for backward compat with older agents/payloads.
+  pr_state?: EpicPrState | null;
+  pr_done?: boolean;
   timestamp: string;
 }
 
@@ -514,11 +519,17 @@ export const useEpicsStore = defineStore('epics', () => {
         title: payload.title,
         status: payload.status,
         progress_percentage: payload.progress_percentage,
+        // PR lifecycle markers now ride every broadcast — patch them in place so
+        // the board hides the Generate-PR button (pr_done) and reflects the live
+        // pr_state instantly, without waiting on the refetch below. Optional for
+        // backward compat: only patch when present.
+        ...(payload.pr_state !== undefined ? { pr_state: payload.pr_state } : {}),
+        ...(payload.pr_done !== undefined ? { pr_done: payload.pr_done } : {}),
       });
 
-      // The finalize broadcast carries no PR fields (pr_url/pr_state) — refetch
-      // so the board flips from "Generate PR" to the live PR link once the agent
-      // reports `epic:finalized` (see AgentServe::onEpicFinalized).
+      // The broadcast still omits pr_url/pr_number — refetch on finalize so the
+      // board flips from "Generate PR" to the live PR link once the agent reports
+      // `epic:finalized` (see AgentServe::onEpicFinalized).
       if (payload.action === 'finalized') {
         void fetchEpics(projectId);
       }

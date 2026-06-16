@@ -28,24 +28,29 @@ interface EpicFinalizePayload {
   branch: string;
   title: string;
   body: string;
+  /** Merge the PR after opening it so the epic ships in one shot (default true). */
+  merge?: boolean;
 }
 
 export function createEpicHandlers(context: HandlerContext) {
   const { wsClient, logger } = context;
 
   async function handleFinalize(payload: EpicFinalizePayload): Promise<void> {
-    const { epicId, projectId, projectPath, branch, title, body } = payload ?? ({} as EpicFinalizePayload);
+    const { epicId, projectId, projectPath, branch, title, body, merge = true } =
+      payload ?? ({} as EpicFinalizePayload);
 
     if (!epicId || !projectPath || !branch) {
       logger.warn({ payload }, 'epic:finalize ignored — missing fields');
       return;
     }
 
-    logger.info({ epicId, branch }, 'Finalizing epic — opening pull request');
+    logger.info({ epicId, branch, merge }, 'Finalizing epic — opening pull request');
 
     // The PR flow is branch-scoped and identical to a sprint's, so we reuse the
-    // sprint finalizer rather than duplicate the git/gh + sandbox logic.
-    const result = finalizeSprint({ projectPath, branch, title, body }, logger);
+    // sprint finalizer rather than duplicate the git/gh + sandbox logic. Epics
+    // merge the PR after opening it (merge intent), so the whole epic ships at
+    // once — the server marks pr_done on the reported `merged` flag.
+    const result = finalizeSprint({ projectPath, branch, title, body, merge }, logger);
 
     wsClient.send('epic:finalized', {
       epicId,
@@ -54,6 +59,7 @@ export function createEpicHandlers(context: HandlerContext) {
       branch: result.branch,
       committed: result.committed,
       sandboxed: result.sandboxed,
+      merged: result.merged ?? false,
       ...(result.prUrl ? { prUrl: result.prUrl } : {}),
       ...(result.error ? { error: result.error } : {}),
     });

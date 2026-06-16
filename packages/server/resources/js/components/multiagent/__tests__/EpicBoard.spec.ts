@@ -27,6 +27,8 @@ const epicboardMessages = {
   prStateOpen: 'open',
   prStateMerged: 'merged',
   prStateClosed: 'closed',
+  prShipped: 'Shipped',
+  prShippedTitle: "This epic's pull request has been merged and shipped",
 };
 
 function makeEpic(overrides: Partial<Epic> = {}): Epic {
@@ -55,6 +57,7 @@ function makeEpic(overrides: Partial<Epic> = {}): Epic {
     pr_branch: null,
     has_pull_request: false,
     finalized_at: null,
+    pr_done: false,
     started_at: null,
     completed_at: null,
     created_at: '2026-06-16T00:00:00Z',
@@ -150,6 +153,16 @@ describe('EpicBoard pull request action', () => {
     expect(wrapper.emitted('finalize')).toEqual([['e9']]);
   });
 
+  it('emits select with the full epic when a card is clicked (drives Tasks-tab navigation)', async () => {
+    // Show.vue's handleSelectEpic consumes the emitted epic to jump to the
+    // Tasks tab pre-filtered on epic.id, so the board must hand back the row.
+    const wrapper = mountBoard([makeEpic({ id: 'e3' })]);
+    await wrapper.find('.epic-card').trigger('click');
+    const events = wrapper.emitted('select');
+    expect(events).toHaveLength(1);
+    expect((events![0]![0] as { id: string }).id).toBe('e3');
+  });
+
   it('disables the button with a spinner while the PR is being generated', () => {
     const wrapper = mountBoard([
       makeEpic({ ...complete, finalized_at: '2026-06-16T00:00:00Z', has_pull_request: false }),
@@ -178,5 +191,15 @@ describe('EpicBoard pull request action', () => {
     expect(link.text()).toContain('PR #42');
     expect(link.find('.pr-state').text()).toBe('open');
     expect(wrapper.find('.epic-pr-btn').exists()).toBe(false);
+  });
+
+  it('hides the Generate-PR button and shows a Shipped marker once pr_done', () => {
+    const wrapper = mountBoard([
+      makeEpic({ ...complete, has_pull_request: false, pr_done: true }),
+    ]);
+    expect(wrapper.find('.epic-pr-btn').exists()).toBe(false);
+    const shipped = wrapper.find('.epic-pr-shipped');
+    expect(shipped.exists()).toBe(true);
+    expect(shipped.text()).toBe('Shipped');
   });
 });

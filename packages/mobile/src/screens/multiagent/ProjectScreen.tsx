@@ -36,7 +36,7 @@ import {
   CardContent,
   LoadingSpinner,
 } from "@/components/common";
-import { InstanceCard } from "@/components/multiagent";
+import { InstanceCard, TokenBudgetPanel } from "@/components/multiagent";
 import type {
   NativeStackNavigationProp,
   NativeStackScreenProps,
@@ -59,6 +59,7 @@ type TabKey =
   | "git"
   | "audit"
   | "health"
+  | "tokens"
   | "orchestration"
   | "assistant";
 
@@ -78,6 +79,7 @@ const TABS: TabConfig[] = [
   { key: "git", label: "Git", icon: "merge-type" },
   { key: "audit", label: "Audit", icon: "history" },
   { key: "health", label: "Health", icon: "monitor-heart" },
+  { key: "tokens", label: "Tokens", icon: "toll" },
   { key: "orchestration", label: "Orchestration", icon: "account-tree" },
   { key: "assistant", label: "Assistant", icon: "chat" },
 ];
@@ -612,13 +614,24 @@ export const ProjectDetailContent: React.FC<ProjectDetailContentProps> = ({
     getProjectLocks,
     subscribeToProject,
     broadcast,
+    tokenBudget,
+    isLoadingTokenBudget,
+    fetchTokenBudget,
   } = useProjectsStore();
 
-  const { getEpicsByProject, fetchEpics } = useEpicsStore();
+  const {
+    getEpicsByProject,
+    fetchEpics,
+    subscribeRealtime: subscribeEpicsRealtime,
+  } = useEpicsStore();
   const { getSprintsByProject, fetchSprints } = useSprintsStore();
 
   const [activeTab, setActiveTab] = useState<TabKey>("overview");
   const [isBroadcasting, setIsBroadcasting] = useState(false);
+  // Local error flag for the token-budget panel — kept separate from the
+  // store's shared `error` so a failed budget fetch doesn't bleed into other
+  // tabs' error surfaces.
+  const [tokenBudgetError, setTokenBudgetError] = useState(false);
 
   // Lazy-load tab data tracking
   const loadedTabs = useRef<Set<TabKey>>(new Set(["overview"]));
@@ -643,8 +656,20 @@ export const ProjectDetailContent: React.FC<ProjectDetailContentProps> = ({
     fetchSprints(projectId);
 
     const unsubscribe = subscribeToProject(projectId);
-    return unsubscribe;
+    // Live AI decomposition lifecycle (pending → running → completed | failed)
+    // on the same project channel — patches the epic board in place.
+    const unsubscribeEpics = subscribeEpicsRealtime(projectId);
+    return () => {
+      unsubscribeEpics();
+      unsubscribe();
+    };
   }, [projectId]);
+
+  // Refresh the token budget (also used as the panel's onRefresh affordance).
+  const handleRefreshTokenBudget = useCallback(() => {
+    setTokenBudgetError(false);
+    fetchTokenBudget(projectId).catch(() => setTokenBudgetError(true));
+  }, [projectId, fetchTokenBudget]);
 
   // Lazy-load additional data when a tab is selected for the first time
   const handleTabSelect = useCallback(
@@ -665,6 +690,9 @@ export const ProjectDetailContent: React.FC<ProjectDetailContentProps> = ({
         case "locks":
           fetchLocks(projectId);
           break;
+        case "tokens":
+          handleRefreshTokenBudget();
+          break;
         case "context":
           // Context tab navigates to ContextScreen — no inline load needed
           break;
@@ -672,7 +700,14 @@ export const ProjectDetailContent: React.FC<ProjectDetailContentProps> = ({
           break;
       }
     },
-    [projectId, fetchTasks, fetchEpics, fetchSprints, fetchLocks],
+    [
+      projectId,
+      fetchTasks,
+      fetchEpics,
+      fetchSprints,
+      fetchLocks,
+      handleRefreshTokenBudget,
+    ],
   );
 
   // ---------------------------------------------------------------------------
@@ -815,6 +850,18 @@ export const ProjectDetailContent: React.FC<ProjectDetailContentProps> = ({
           />
         );
 
+      case "tokens":
+        return (
+          <ScrollView contentContainerStyle={styles.tokenScroll}>
+            <TokenBudgetPanel
+              budget={tokenBudget}
+              isLoading={isLoadingTokenBudget}
+              error={tokenBudgetError}
+              onRefresh={handleRefreshTokenBudget}
+            />
+          </ScrollView>
+        );
+
       case "orchestration":
         return (
           <PlaceholderTab
@@ -897,5 +944,9 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  tokenScroll: {
+    padding: spacing.md,
+    paddingBottom: spacing.xl,
   },
 });

@@ -93,6 +93,7 @@ function makeEpic(id: string, overrides: Partial<Epic> = {}): Epic {
     pr_branch: null,
     has_pull_request: false,
     finalized_at: null,
+    pr_done: false,
     started_at: null,
     completed_at: null,
     created_at: '2026-06-16T00:00:00+00:00',
@@ -244,6 +245,78 @@ describe('Epics store — realtime .epic.decomposition', () => {
     });
 
     expect(store.epics[0].decomposition_status).toBe('running');
+    expect(mockApi.get).not.toHaveBeenCalled();
+  });
+});
+
+describe('Epics store — realtime .epic.updated PR lifecycle', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+    vi.clearAllMocks();
+    channels.clear();
+  });
+
+  it('patches pr_done and pr_state in place from the broadcast', () => {
+    const store = useEpicsStore();
+    store.epics = [makeEpic('e1', { status: 'in_progress', pr_done: false, pr_state: null })];
+    store.subscribeRealtime('proj-1');
+    // finalized triggers a backstop refetch — mock it so its promise resolves.
+    mockApi.get.mockResolvedValueOnce(envelope([makeEpic('e1', { pr_done: true, pr_state: 'merged' })]));
+
+    emit('projects.proj-1', '.epic.updated', {
+      epic_id: 'e1',
+      action: 'finalized',
+      title: 'Epic e1',
+      status: 'done',
+      progress_percentage: 100,
+      pr_state: 'merged',
+      pr_done: true,
+      timestamp: '2026-06-16T02:00:00+00:00',
+    });
+
+    // The merged/shipped markers are reflected instantly (button hide).
+    expect(store.epics[0].pr_done).toBe(true);
+    expect(store.epics[0].pr_state).toBe('merged');
+    expect(store.epics[0].status).toBe('done');
+  });
+
+  it('refetches on the finalized action to pick up pr_url/pr_number', () => {
+    const store = useEpicsStore();
+    store.epics = [makeEpic('e1', { status: 'in_progress' })];
+    store.subscribeRealtime('proj-1');
+    mockApi.get.mockResolvedValueOnce(envelope([makeEpic('e1')]));
+
+    emit('projects.proj-1', '.epic.updated', {
+      epic_id: 'e1',
+      action: 'finalized',
+      title: 'Epic e1',
+      status: 'done',
+      progress_percentage: 100,
+      pr_state: 'open',
+      pr_done: false,
+      timestamp: '2026-06-16T02:00:00+00:00',
+    });
+
+    expect(mockApi.get).toHaveBeenCalledWith('/projects/proj-1/epics');
+  });
+
+  it('does not refetch on a plain update but still patches pr markers', () => {
+    const store = useEpicsStore();
+    store.epics = [makeEpic('e1', { pr_done: false })];
+    store.subscribeRealtime('proj-1');
+
+    emit('projects.proj-1', '.epic.updated', {
+      epic_id: 'e1',
+      action: 'updated',
+      title: 'Epic e1',
+      status: 'in_progress',
+      progress_percentage: 50,
+      pr_state: 'open',
+      pr_done: false,
+      timestamp: '2026-06-16T02:00:00+00:00',
+    });
+
+    expect(store.epics[0].pr_state).toBe('open');
     expect(mockApi.get).not.toHaveBeenCalled();
   });
 });
