@@ -51,6 +51,7 @@ class Epic extends Model
         'pr_state',
         'pr_branch',
         'finalized_at',
+        'pr_done',
     ];
 
     /**
@@ -69,6 +70,10 @@ class Epic extends Model
         'archived_at' => 'datetime',
         // Epic-level pull request tracking (see add_pr_fields_to_epics migration).
         'pr_number' => 'integer',
+        // Terminal "this epic's PR is merged/shipped" marker (see
+        // add_pr_done_to_epics migration). Drives the board's Generate-PR
+        // visibility and the merge-intent backfill via scopePreviousSiblings().
+        'pr_done' => 'boolean',
         'finalized_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
@@ -212,6 +217,30 @@ class Epic extends Model
     public function scopeArchived($query)
     {
         return $query->whereNotNull('archived_at');
+    }
+
+    /**
+     * Epics of the same project ordered strictly BEFORE the given epic. The
+     * ordering mirrors {@see scopeOrdered} — the (sort_order, created_at) tuple —
+     * so "previous" matches the board's visual order. The reference epic itself
+     * is excluded.
+     *
+     * Used by the epic-merge intent (EpicFinalizeService) to reconcile earlier
+     * siblings when a later epic's PR is merged; callers filter on `pr_done` to
+     * skip already-shipped epics.
+     */
+    public function scopePreviousSiblings($query, Epic $epic)
+    {
+        return $query
+            ->where('project_id', $epic->project_id)
+            ->whereKeyNot($epic->getKey())
+            ->where(function ($q) use ($epic) {
+                $q->where('sort_order', '<', $epic->sort_order)
+                    ->orWhere(function ($q2) use ($epic) {
+                        $q2->where('sort_order', $epic->sort_order)
+                            ->where('created_at', '<', $epic->created_at);
+                    });
+            });
     }
 
     // ==================== ACCESSORS ====================

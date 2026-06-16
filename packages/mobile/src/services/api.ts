@@ -318,6 +318,10 @@ export const projectsApi = {
   get: (id: string) =>
     api.get<import("@/types").SharedProject>(`/projects/${id}`),
 
+  // Aggregated token usage + cost estimate for the project (raw snake_case).
+  tokenBudget: (id: string) =>
+    api.get<import("@/types").TokenBudget>(`/projects/${id}/token-budget`),
+
   create: (machineId: string, data: { name: string; projectPath: string }) =>
     api.post<import("@/types").SharedProject>(
       `/machines/${machineId}/projects`,
@@ -492,6 +496,20 @@ export const orchestratorApi = {
     api.get<import("@/types").OrchestratorStatus>(
       `/projects/${projectId}/orchestrator/status`,
     ),
+
+  /** Spawn a single orchestrated worker (HTTP 201, returns the worker Session). */
+  spawnWorker: (
+    projectId: string,
+    data?: import("@/types").SpawnWorkerRequest,
+  ) =>
+    api.post<import("@/types").Session>(
+      `/projects/${projectId}/workers`,
+      data ?? {},
+    ),
+
+  /** Terminate a single orchestrated worker by its session id. */
+  terminateWorker: (projectId: string, sessionId: string) =>
+    api.delete(`/projects/${projectId}/workers/${sessionId}`),
 };
 
 export const epicsApi = {
@@ -510,6 +528,17 @@ export const epicsApi = {
 
   reorder: (id: string, sortOrder: number) =>
     api.post(`/epics/${id}/reorder`, { sort_order: sortOrder }),
+
+  /**
+   * Decompose an epic from a PRD (AI flow). Creates the epic up-front in the
+   * `running` decomposition state and spawns an async session — the plan is
+   * NOT awaited; sprints/tasks land later over the `.epic.decomposition` signal.
+   */
+  decompose: (projectId: string, data: import("@/types").DecomposeEpicForm) =>
+    api.post<import("@/types").DecomposeEpicResponse>(
+      `/projects/${projectId}/epics/decompose`,
+      data,
+    ),
 };
 
 export const sprintsApi = {

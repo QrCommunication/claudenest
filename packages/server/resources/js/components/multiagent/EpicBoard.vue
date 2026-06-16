@@ -146,9 +146,11 @@
               <span class="pr-state">{{ t(`multiagentEpicboard.${PR_STATE_LABEL_KEYS[epic.pr_state ?? 'open']}`) }}</span>
             </a>
 
-            <!-- Sinon : bouton de génération (désactivé pendant le dispatch) -->
+            <!-- Sinon : bouton de génération (désactivé pendant le dispatch).
+                 Masqué une fois l'epic shippé (pr_done) — sa PR est mergée,
+                 plus rien à (re)générer. -->
             <button
-              v-else
+              v-else-if="!epic.pr_done"
               type="button"
               class="epic-pr-btn"
               :disabled="isFinalizing(epic)"
@@ -159,6 +161,17 @@
               <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><circle cx="18" cy="18" r="3" /><circle cx="6" cy="6" r="3" /><path d="M6 21V9a9 9 0 0 0 9 9" /></svg>
               {{ isFinalizing(epic) ? t('multiagentEpicboard.generatingPr') : t('multiagentEpicboard.generatePr') }}
             </button>
+
+            <!-- Shipped: pr_done but no live PR link to render — show the
+                 merged/shipped marker so the state is never blank. -->
+            <span
+              v-else
+              class="epic-pr-shipped"
+              :title="t('multiagentEpicboard.prShippedTitle')"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M20 6 9 17l-5-5" /></svg>
+              {{ t('multiagentEpicboard.prShipped') }}
+            </span>
           </div>
         </div>
       </div>
@@ -627,6 +640,18 @@ const decompositionTitle = (epic: Epic): string => {
   border: 1.5px solid currentColor;
   border-top-color: transparent;
   animation: deco-spin 0.7s linear infinite;
+}
+
+.epic-pr-shipped {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--accent-purple);
+  background: color-mix(in srgb, var(--accent-purple) 12%, transparent);
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.375rem;
 }
 
 /* ----- Empty state ----- */

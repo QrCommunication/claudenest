@@ -9,7 +9,11 @@
 
 import { create } from "zustand";
 import { getApiErrorCode, orchestratorApi } from "@/services/api";
-import type { OrchestratorStartRequest, OrchestratorStatus } from "@/types";
+import type {
+  OrchestratorStartRequest,
+  OrchestratorStatus,
+  SpawnWorkerRequest,
+} from "@/types";
 
 /**
  * Payload of an orchestrator instance update pushed over WebSocket.
@@ -36,6 +40,14 @@ interface OrchestratorState {
   start: (projectId: string, opts: OrchestratorStartRequest) => Promise<void>;
   stop: (projectId: string) => Promise<void>;
   fetchStatus: (projectId: string) => Promise<void>;
+  /**
+   * Spawn one extra orchestrated worker on demand. Refreshes the status so the
+   * new worker appears (the POST returns the worker Session, not the pool
+   * status). Errors surface 'MACHINE_OFFLINE' (422) via errorCode.
+   */
+  spawnWorker: (projectId: string, opts?: SpawnWorkerRequest) => Promise<void>;
+  /** Terminate a single worker by its session id, then refresh the status. */
+  terminateWorker: (projectId: string, sessionId: string) => Promise<void>;
   applyInstanceUpdate: (payload: OrchestratorInstanceUpdate) => void;
   clearError: () => void;
 }
@@ -115,6 +127,40 @@ export const useOrchestratorStore = create<OrchestratorState>()((set, get) => ({
       set({
         isLoading: false,
         ...toErrorState(err, "Failed to fetch orchestrator status"),
+      });
+      throw err;
+    }
+  },
+
+  spawnWorker: async (projectId, opts) => {
+    set({ isLoading: true, error: null, errorCode: null });
+
+    try {
+      // The POST returns the new worker Session (not the pool status); refresh
+      // the orchestrator status so the worker shows up in the list.
+      await orchestratorApi.spawnWorker(projectId, opts);
+      await get().fetchStatus(projectId);
+    } catch (err) {
+      set({
+        isLoading: false,
+        ...toErrorState(err, "Failed to spawn worker"),
+      });
+      throw err;
+    }
+  },
+
+  terminateWorker: async (projectId, sessionId) => {
+    set({ isLoading: true, error: null, errorCode: null });
+
+    try {
+      await orchestratorApi.terminateWorker(projectId, sessionId);
+      // Re-sync with server truth (the worker leaves the pool); a `.session.*`
+      // / `.instance.updated` push may also arrive and patch in place.
+      await get().fetchStatus(projectId);
+    } catch (err) {
+      set({
+        isLoading: false,
+        ...toErrorState(err, "Failed to terminate worker"),
       });
       throw err;
     }

@@ -160,6 +160,10 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::post('projects/{project}/orchestrator/stop', [Api\ProjectController::class, 'stopOrchestrator']);
     Route::get('projects/{project}/orchestrator/status', [Api\ProjectController::class, 'orchestratorStatus']);
 
+    // Individual worker controls (spawn/terminate one orchestrated worker)
+    Route::post('projects/{project}/workers', [Api\ProjectController::class, 'spawnWorker']);
+    Route::delete('projects/{project}/workers/{session}', [Api\ProjectController::class, 'terminateWorker']);
+
     // Git worktree + pull requests (dispatched to the agent, sandboxed git/gh)
     Route::get('projects/{project}/git/status', [Api\GitController::class, 'status']);
     Route::get('projects/{project}/pulls', [Api\GitController::class, 'pulls']);

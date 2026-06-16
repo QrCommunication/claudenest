@@ -11,6 +11,7 @@
 
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   RefreshControl,
   SafeAreaView,
@@ -292,15 +293,26 @@ const StartOrchestratorModal = memo(function StartOrchestratorModal({
 interface WorkerRowProps {
   worker: OrchestratorWorker;
   onPress: (worker: OrchestratorWorker) => void;
+  onTerminate: (worker: OrchestratorWorker) => void;
+  isTerminating: boolean;
 }
 
-const WorkerRow = memo(function WorkerRow({ worker, onPress }: WorkerRowProps) {
+const WorkerRow = memo(function WorkerRow({
+  worker,
+  onPress,
+  onTerminate,
+  isTerminating,
+}: WorkerRowProps) {
   const statusColor = workerStatusColor(worker.status);
   const hasSession = worker.sessionId !== null;
 
   const handlePress = useCallback(() => {
     onPress(worker);
   }, [onPress, worker]);
+
+  const handleTerminate = useCallback(() => {
+    onTerminate(worker);
+  }, [onTerminate, worker]);
 
   return (
     <TouchableOpacity
@@ -368,7 +380,27 @@ const WorkerRow = memo(function WorkerRow({ worker, onPress }: WorkerRowProps) {
       </View>
 
       {hasSession ? (
-        <Icon name="chevron-right" size={20} color={colors.text.muted} />
+        <View style={rowStyles.trailing}>
+          <TouchableOpacity
+            style={[rowStyles.terminateBtn, isTerminating && rowStyles.btnBusy]}
+            onPress={handleTerminate}
+            disabled={isTerminating}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={`Terminate worker ${worker.id}`}
+          >
+            {isTerminating ? (
+              <ActivityIndicator size="small" color={colors.semantic.error} />
+            ) : (
+              <Icon
+                name="stop-circle"
+                size={20}
+                color={colors.semantic.error}
+              />
+            )}
+          </TouchableOpacity>
+          <Icon name="chevron-right" size={20} color={colors.text.muted} />
+        </View>
       ) : null}
     </TouchableOpacity>
   );
@@ -409,11 +441,16 @@ export const OrchestrationScreen: React.FC<Props> = ({ route }) => {
   const errorCode = useOrchestratorStore((s) => s.errorCode);
   const start = useOrchestratorStore((s) => s.start);
   const stop = useOrchestratorStore((s) => s.stop);
+  const spawnWorker = useOrchestratorStore((s) => s.spawnWorker);
+  const terminateWorker = useOrchestratorStore((s) => s.terminateWorker);
   const fetchStatus = useOrchestratorStore((s) => s.fetchStatus);
   const clearError = useOrchestratorStore((s) => s.clearError);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isActing, setIsActing] = useState(false);
+  const [isSpawning, setIsSpawning] = useState(false);
+  // Session id of the worker currently being terminated (per-row busy state).
+  const [terminatingId, setTerminatingId] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -498,11 +535,57 @@ export const OrchestrationScreen: React.FC<Props> = ({ route }) => {
     }
   }, []);
 
+  // Spawn one extra worker on demand (individual control, no config needed —
+  // it runs under the default permission mode + the owner's default credential).
+  const handleSpawnWorker = useCallback(async () => {
+    setIsSpawning(true);
+    try {
+      await spawnWorker(projectId);
+    } catch {
+      // error state handled by the store (banner)
+    } finally {
+      setIsSpawning(false);
+    }
+  }, [projectId, spawnWorker]);
+
+  // Terminate one worker (individual control, destructive → confirm first).
+  const handleTerminateWorker = useCallback(
+    (worker: OrchestratorWorker) => {
+      if (!worker.sessionId) return;
+      const sessionId = worker.sessionId;
+      showAlert("Terminate worker", "Stop this worker session?", [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Terminate",
+          style: "destructive",
+          onPress: async () => {
+            setTerminatingId(sessionId);
+            try {
+              await terminateWorker(projectId, sessionId);
+            } catch {
+              // error state handled by the store (banner)
+            } finally {
+              setTerminatingId(null);
+            }
+          },
+        },
+      ]);
+    },
+    [projectId, terminateWorker],
+  );
+
   const renderWorker = useCallback(
     ({ item }: ListRenderItemInfo<OrchestratorWorker>) => (
-      <WorkerRow worker={item} onPress={handleWorkerPress} />
+      <WorkerRow
+        worker={item}
+        onPress={handleWorkerPress}
+        onTerminate={handleTerminateWorker}
+        isTerminating={
+          item.sessionId !== null && item.sessionId === terminatingId
+        }
+      />
     ),
-    [handleWorkerPress],
+    [handleWorkerPress, handleTerminateWorker, terminatingId],
   );
   const keyExtractor = useCallback((item: OrchestratorWorker) => item.id, []);
 
@@ -606,10 +689,27 @@ export const OrchestrationScreen: React.FC<Props> = ({ route }) => {
         )}
       </View>
 
-      {/* Workers section title */}
+      {/* Workers section title + spawn-one control */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Workers</Text>
-        <Text style={styles.sectionCount}>{workers.length}</Text>
+        <View style={styles.sectionHeaderRight}>
+          <Text style={styles.sectionCount}>{workers.length}</Text>
+          <TouchableOpacity
+            style={[styles.spawnBtn, isSpawning && styles.btnDisabled]}
+            onPress={handleSpawnWorker}
+            disabled={isSpawning}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="Spawn one worker"
+          >
+            {isSpawning ? (
+              <ActivityIndicator size="small" color={colors.primary.cyan} />
+            ) : (
+              <Icon name="add" size={16} color={colors.primary.cyan} />
+            )}
+            <Text style={styles.spawnBtnText}>Worker</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -769,6 +869,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
   },
+  sectionHeaderRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  spawnBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: `${colors.primary.cyan}1f`,
+    borderWidth: 1,
+    borderColor: `${colors.primary.cyan}55`,
+    borderRadius: borderRadius.base,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  spawnBtnText: {
+    fontSize: typography.size.xs,
+    fontWeight: "700",
+    color: colors.primary.cyan,
+  },
   emptyState: {
     alignItems: "center",
     paddingVertical: spacing.xl,
@@ -887,6 +1008,23 @@ const rowStyles = StyleSheet.create({
     fontSize: typography.size.xs,
     color: colors.primary.cyan,
     marginLeft: "auto",
+  },
+  trailing: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    flexShrink: 0,
+  },
+  terminateBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: `${colors.semantic.error}14`,
+  },
+  btnBusy: {
+    opacity: 0.6,
   },
 });
 

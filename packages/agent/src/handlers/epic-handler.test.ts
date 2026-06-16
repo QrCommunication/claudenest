@@ -8,11 +8,19 @@ let finalizeImpl: () => {
   committed: boolean;
   sandboxed: boolean;
   prUrl?: string;
+  merged?: boolean;
   error?: string;
 };
 
+// Capture the input the handler hands to finalizeSprint so we can assert the
+// merge intent is forwarded.
+let lastInput: Record<string, unknown> | undefined;
+
 vi.mock('../sessions/sprint-finalize.js', () => ({
-  finalizeSprint: () => finalizeImpl(),
+  finalizeSprint: (input: Record<string, unknown>) => {
+    lastInput = input;
+    return finalizeImpl();
+  },
 }));
 
 const sent: Array<{ type: string; payload: Record<string, unknown> }> = [];
@@ -34,6 +42,7 @@ const payload = {
 describe('epic-handler', () => {
   beforeEach(() => {
     sent.length = 0;
+    lastInput = undefined;
   });
 
   it('reports epic:finalized with the PR url on success', async () => {
@@ -55,6 +64,41 @@ describe('epic-handler', () => {
     expect(out.success).toBe(true);
     expect(out.prUrl).toBe('https://github.com/org/repo/pull/42');
     expect(out.branch).toBe(payload.branch);
+    // merge intent defaults to true and is forwarded to the finalizer.
+    expect(lastInput?.merge).toBe(true);
+  });
+
+  it('merges the PR and reports merged:true back to the server', async () => {
+    finalizeImpl = () => ({
+      success: true,
+      branch: payload.branch,
+      committed: true,
+      sandboxed: true,
+      prUrl: 'https://github.com/org/repo/pull/9',
+      merged: true,
+    });
+
+    await handlers['epic:finalize']({ ...payload, merge: true });
+
+    expect(lastInput?.merge).toBe(true);
+    expect(sent[0]!.payload.merged).toBe(true);
+    expect(sent[0]!.payload.prUrl).toBe('https://github.com/org/repo/pull/9');
+  });
+
+  it('forwards merge:false and reports merged:false', async () => {
+    finalizeImpl = () => ({
+      success: true,
+      branch: payload.branch,
+      committed: true,
+      sandboxed: true,
+      prUrl: 'https://github.com/org/repo/pull/3',
+    });
+
+    await handlers['epic:finalize']({ ...payload, merge: false });
+
+    expect(lastInput?.merge).toBe(false);
+    // A finalizer that did not merge → the handler reports merged:false.
+    expect(sent[0]!.payload.merged).toBe(false);
   });
 
   it('still reports epic:finalized (with the error) on failure', async () => {

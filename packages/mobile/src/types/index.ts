@@ -207,6 +207,31 @@ export interface ProjectSettings {
   broadcastLevel: "all" | "team" | "none";
 }
 
+/**
+ * Token cost + budget for a project.
+ * Mirrors GET /projects/{id}/token-budget (ProjectController::tokenBudget).
+ * `tokens.used/max/percent` are the canonical project-level budget counter;
+ * `input/output/session_total` are the session-derived split backing the cost.
+ * The server returns RAW snake_case (not a camelCase Resource) — typed verbatim.
+ */
+export interface TokenBudget {
+  tokens: {
+    used: number;
+    max: number | null;
+    percent: number;
+    limit_reached: boolean;
+    input: number;
+    output: number;
+    session_total: number;
+  };
+  cost: {
+    estimated_usd: number;
+    currency: string;
+    pricing_model: string;
+  };
+  sessions_count: number;
+}
+
 // ==================== TASK TYPES ====================
 
 export type TaskPriority = "low" | "medium" | "high" | "critical";
@@ -252,6 +277,24 @@ export interface SharedTask {
 // ==================== EPIC TYPES ====================
 export type EpicStatus = "open" | "in_progress" | "done";
 
+/**
+ * AI decomposition lifecycle of an epic built from a PRD. `null` = never
+ * decomposed (manual epic). Mirrors the backend Epic enum + the
+ * `epics.decomposition_status` CHECK (idle|pending|running|completed|failed).
+ */
+export type DecompositionStatus =
+  | "idle"
+  | "pending"
+  | "running"
+  | "completed"
+  | "failed";
+
+/**
+ * Epic-level pull request state (finalize flow). `null` = no PR opened yet.
+ * Mirrors the backend Epic `PR_STATES` constant + the `epics.pr_state` CHECK.
+ */
+export type EpicPrState = "open" | "merged" | "closed";
+
 export interface Epic {
   id: string;
   project_id: string;
@@ -265,10 +308,70 @@ export interface Epic {
   tasks_count: number;
   completed_tasks_count: number;
   progress_percentage: number;
+  // AI decomposition state (null = never decomposed).
+  decomposition_status: DecompositionStatus | null;
+  decomposition_session_id: string | null;
+  decomposition_error: string | null;
+  decomposed_at: string | null;
+  // Archive state (NULL archived_at = active).
+  archived_at: string | null;
+  is_archived: boolean;
+  // Epic-level pull request (finalize flow). `pr_state` null = no PR opened yet.
+  pr_url: string | null;
+  pr_number: number | null;
+  pr_state: EpicPrState | null;
+  pr_branch: string | null;
+  has_pull_request: boolean;
+  finalized_at: string | null;
   started_at: string | null;
   completed_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface CreateEpicForm {
+  title: string;
+  description?: string;
+  color?: string;
+  icon?: string;
+  priority?: TaskPriority;
+}
+
+export interface UpdateEpicForm {
+  title?: string;
+  description?: string;
+  color?: string;
+  icon?: string;
+  status?: EpicStatus;
+  priority?: TaskPriority;
+}
+
+/**
+ * Payload of `POST /projects/{id}/epics/decompose`
+ * (DecompositionController::decomposeEpic): creates the epic up-front in the
+ * `running` decomposition state and spawns an async Claude session that builds
+ * its sprints/tasks from the PRD. Mirrors the controller validation rules.
+ */
+export interface DecomposeEpicForm {
+  title: string;
+  prd: string;
+  credential_id: string;
+  description?: string;
+  color?: string;
+  icon?: string;
+  priority?: TaskPriority;
+}
+
+/**
+ * Response data of the epic-decompose endpoint. The plan is NOT awaited:
+ * the epic is returned in its `running` state and its sprints/tasks land later
+ * over the realtime `.epic.decomposition` signal.
+ */
+export interface DecomposeEpicResponse {
+  epic: Epic;
+  session_id: string;
+  status: "decomposing";
+  message: string;
 }
 
 // ==================== SPRINT TYPES ====================
@@ -467,6 +570,12 @@ export interface OrchestratorStartRequest {
   permission_mode?: PermissionMode;
   /** Also spawn a coordinator session supervising the workers. */
   coordinator?: boolean;
+  /**
+   * Credential the workers run under (web parity: StartOrchestratorConfig).
+   * Omit / empty → the user's default credential. A provided id MUST belong to
+   * the requesting user (server-side IDOR guard, `Rule::exists`).
+   */
+  credential_id?: string;
 }
 
 /**
@@ -476,6 +585,18 @@ export interface OrchestratorStartRequest {
 export interface PlanningSessionRequest {
   /** Project brief — server caps at 4000 characters. */
   brief: string;
+  credential_id?: string;
+}
+
+/**
+ * Body of POST /projects/{id}/workers — spawns a single orchestrated worker
+ * session (HTTP 201, returns the worker Session). Mirrors SpawnWorkerRequest.
+ * Both fields are optional; when omitted the worker runs under the default
+ * permission mode and the user's default credential. A provided `credential_id`
+ * MUST belong to the requesting user (server-side IDOR guard).
+ */
+export interface SpawnWorkerRequest {
+  permission_mode?: PermissionMode;
   credential_id?: string;
 }
 

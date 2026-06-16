@@ -57,6 +57,12 @@ class EpicUpdated implements ShouldBroadcast
             'title' => $this->epic->title,
             'status' => $this->epic->status,
             'progress_percentage' => $this->epic->progress_percentage,
+            // PR lifecycle markers so the board reflects the merged/shipped state
+            // in real time (e.g. hides the Generate-PR button on pr_done) without
+            // waiting on the finalized refetch. pr_url/pr_number still arrive via
+            // that refetch.
+            'pr_state' => $this->epic->pr_state,
+            'pr_done' => (bool) $this->epic->pr_done,
             'timestamp' => now()->toIso8601String(),
         ];
     }

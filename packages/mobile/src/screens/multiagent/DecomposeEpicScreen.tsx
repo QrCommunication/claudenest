@@ -36,14 +36,13 @@ const MIN_PRD = 20;
 
 export const DecomposeEpicScreen: React.FC<Props> = ({ route, navigation }) => {
   const { projectId } = route.params;
-  const getDefaultCredential = useCredentialsStore(
-    (s) => s.getDefaultCredential,
-  );
+  const credentials = useCredentialsStore((s) => s.credentials);
   const fetchCredentials = useCredentialsStore((s) => s.fetchCredentials);
   const fetchEpics = useEpicsStore((s) => s.fetchEpics);
 
   const [title, setTitle] = useState("");
   const [prd, setPrd] = useState("");
+  const [credentialId, setCredentialId] = useState<string | null>(null);
   const [phase, setPhase] = useState<Phase>("input");
   const phaseRef = useRef<Phase>("input");
   phaseRef.current = phase;
@@ -51,6 +50,14 @@ export const DecomposeEpicScreen: React.FC<Props> = ({ route, navigation }) => {
   useEffect(() => {
     void fetchCredentials();
   }, [fetchCredentials]);
+
+  // Auto-select the default credential once the list loads (web parity), while
+  // still letting the user pick a different one.
+  useEffect(() => {
+    if (credentialId || credentials.length === 0) return;
+    const preferred = credentials.find((c) => c.is_default) ?? credentials[0];
+    setCredentialId(preferred.id);
+  }, [credentials, credentialId]);
 
   // Wait for the slim `decompose:result` broadcast (the full plan is persisted
   // server-side in project.master_plan; we only need the "done" signal).
@@ -70,22 +77,21 @@ export const DecomposeEpicScreen: React.FC<Props> = ({ route, navigation }) => {
       showAlert("PRD too short", `Write at least ${MIN_PRD} characters.`);
       return;
     }
-    const credential = getDefaultCredential();
-    if (!credential) {
+    if (!credentialId) {
       showAlert(
         "No credential",
-        "Add a default Claude credential in Settings before decomposing.",
+        "Select a Claude credential (or add one in Settings) before decomposing.",
       );
       return;
     }
     setPhase("decomposing");
     try {
-      await decomposeApi.decompose(projectId, prd.trim(), credential.id);
+      await decomposeApi.decompose(projectId, prd.trim(), credentialId);
     } catch {
       setPhase("input");
       showAlert("Error", "Failed to start decomposition (machine offline?).");
     }
-  }, [prd, projectId, getDefaultCredential]);
+  }, [prd, projectId, credentialId]);
 
   const handleCreateEpic = useCallback(async () => {
     if (title.trim().length === 0) {
@@ -154,6 +160,53 @@ export const DecomposeEpicScreen: React.FC<Props> = ({ route, navigation }) => {
             textAlignVertical="top"
             editable={phase === "input"}
           />
+        </WindowFrame>
+
+        <WindowFrame title="credential" accent="purple" style={styles.window}>
+          {credentials.length === 0 ? (
+            <Text style={styles.credEmpty}>
+              No Claude credential yet — add one in Settings.
+            </Text>
+          ) : (
+            <View style={styles.credList}>
+              {credentials.map((cred) => {
+                const selected = cred.id === credentialId;
+                return (
+                  <TouchableOpacity
+                    key={cred.id}
+                    style={[styles.credRow, selected && styles.credRowSelected]}
+                    onPress={() => setCredentialId(cred.id)}
+                    disabled={phase !== "input"}
+                    activeOpacity={0.8}
+                    accessibilityRole="radio"
+                    accessibilityState={{
+                      selected,
+                      disabled: phase !== "input",
+                    }}
+                    accessibilityLabel={cred.name}
+                  >
+                    <Icon
+                      name={
+                        selected
+                          ? "radio-button-checked"
+                          : "radio-button-unchecked"
+                      }
+                      size={18}
+                      color={
+                        selected ? colors.accent.purple : colors.text.muted
+                      }
+                    />
+                    <Text style={styles.credName} numberOfLines={1}>
+                      {cred.name}
+                    </Text>
+                    {cred.is_default ? (
+                      <Text style={styles.credDefault}>default</Text>
+                    ) : null}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          )}
         </WindowFrame>
 
         {decomposing ? (
@@ -231,6 +284,39 @@ const styles = StyleSheet.create({
     fontSize: 13,
     minHeight: 180,
     lineHeight: 19,
+  },
+  credEmpty: {
+    color: colors.text.muted,
+    fontSize: 12,
+    paddingVertical: spacing.xs,
+  },
+  credList: {
+    gap: spacing.xs,
+  },
+  credRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.sm,
+    borderWidth: 1,
+    borderColor: colors.border.subtle,
+  },
+  credRowSelected: {
+    borderColor: colors.accent.purple,
+    backgroundColor: `${colors.accent.purple}14`,
+  },
+  credName: {
+    flex: 1,
+    color: colors.text.primary,
+    fontSize: 14,
+  },
+  credDefault: {
+    color: colors.accent.purple,
+    fontSize: 11,
+    fontWeight: "700",
+    textTransform: "uppercase",
   },
   statusBox: {
     flexDirection: "row",

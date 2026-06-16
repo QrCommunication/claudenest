@@ -40,9 +40,13 @@ export const MainNavigator: React.FC = () => {
         backgroundColor: colors.bg.secondary,
         borderTopColor: colors.border.strong,
         borderTopWidth: 1,
-        paddingBottom: 10,
+        // Add the bottom safe-area inset so the bar clears the Android
+        // gesture/navigation bar (and the iPhone home indicator). An explicit
+        // `height` overrides react-navigation's built-in inset handling, so we
+        // must extend both the height and the bottom padding ourselves.
+        paddingBottom: 10 + insets.bottom,
         paddingTop: 10,
-        height: 66,
+        height: 66 + insets.bottom,
         elevation: 0 as const,
       };
 

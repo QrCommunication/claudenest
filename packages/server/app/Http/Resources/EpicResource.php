@@ -41,6 +41,11 @@ class EpicResource extends JsonResource
             'pr_branch' => $this->pr_branch,
             'has_pull_request' => $this->has_pull_request,
             'finalized_at' => $this->finalized_at?->toIso8601String(),
+            // Terminal "this epic's PR is merged/shipped" marker (default false).
+            // Distinct from pr_state (live GitHub lifecycle): pr_done drives the
+            // board hiding the Generate-PR button and the epic-merge backfill.
+            // Canonical contract mirrored by the migration, Epic cast and TS type.
+            'pr_done' => $this->pr_done,
             'started_at' => $this->started_at?->toIso8601String(),
             'completed_at' => $this->completed_at?->toIso8601String(),
             'created_at' => $this->created_at->toIso8601String(),
