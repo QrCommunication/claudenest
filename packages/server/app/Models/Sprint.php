@@ -223,6 +223,83 @@ class Sprint extends Model
     }
 
     /**
+     * Recompute the sprint status from the live state of its tasks, then persist
+     * it if it changed. Mirrors {@see Epic::recomputeStatus()} so the whole
+     * task → sprint → epic chain is self-healing and idempotent.
+     *
+     * Rules:
+     *  - `completed` : there is at least one task and ALL of them are `done`.
+     *                  Stamps `start_date`/`end_date` if missing.
+     *  - `active`    : work has started (any task beyond `backlog`/`pending`)
+     *                  but not every task is done yet. Stamps `start_date`,
+     *                  clears `end_date`.
+     *  - `planning`  : tasks exist but none has started.
+     *
+     * `cancelled` is a terminal, operator-owned decision and is never revived.
+     * A sprint with no tasks is left untouched — there is nothing to infer, and
+     * its status stays whatever the operator set.
+     *
+     * @return bool true when the persisted status (or its dates) changed, so
+     *              callers can conditionally broadcast a SprintUpdated event.
+     */
+    public function recomputeStatus(): bool
+    {
+        // Cancelled is terminal — never auto-revive a deliberately killed sprint.
+        if ($this->status === 'cancelled') {
+            return false;
+        }
+
+        $totalTasks = $this->tasks()->count();
+
+        // No tasks attached → nothing to infer; leave the operator-set status.
+        if ($totalTasks === 0) {
+            return false;
+        }
+
+        $doneTasks = $this->tasks()->where('status', 'done')->count();
+
+        if ($doneTasks === $totalTasks) {
+            return $this->applyStatus('completed');
+        }
+
+        // Any task past the not-started states means the sprint is underway.
+        $hasStartedWork = $this->tasks()
+            ->whereNotIn('status', ['backlog', 'pending'])
+            ->exists();
+
+        return $this->applyStatus($hasStartedWork ? 'active' : 'planning');
+    }
+
+    /**
+     * Apply a recomputed status with its associated date side effects,
+     * persisting (and returning true) only when something actually changes so
+     * no spurious update/event is emitted on a no-op recompute.
+     */
+    private function applyStatus(string $status): bool
+    {
+        $attributes = ['status' => $status];
+
+        if ($status === 'completed') {
+            $attributes['start_date'] = $this->start_date ?? now()->toDateString();
+            $attributes['end_date'] = $this->end_date ?? now()->toDateString();
+        } elseif ($status === 'active') {
+            $attributes['start_date'] = $this->start_date ?? now()->toDateString();
+            $attributes['end_date'] = null;
+        }
+        // `planning` is the resting state: leave dates as the operator left them.
+
+        $this->fill($attributes);
+
+        if (! $this->isDirty()) {
+            return false;
+        }
+
+        $this->save();
+
+        return true;
+    }
+
+    /**
      * Generate burndown chart data for this sprint.
      *
      * Returns daily snapshots of remaining vs completed story points

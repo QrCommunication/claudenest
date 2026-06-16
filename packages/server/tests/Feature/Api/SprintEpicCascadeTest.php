@@ -31,6 +31,7 @@ class SprintEpicCascadeTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private SharedProject $project;
 
     protected function setUp(): void
@@ -182,6 +183,145 @@ class SprintEpicCascadeTest extends TestCase
 
         $this->assertSame('done', $epic->fresh()->status);
         Event::assertDispatchedTimes(EpicUpdated::class, 1);
+    }
+
+    #[Test]
+    public function manually_completing_the_last_task_via_update_cascades_sprint_and_epic(): void
+    {
+        // The exact production scenario: an epic whose sprint was never started
+        // (still `planning`), with a single unfinished task. Ticking that task
+        // `done` by hand via PATCH /tasks/{id} must heal the whole chain.
+        $epic = $this->epic('in_progress');
+        $sprint = $this->sprint('planning');
+
+        $task = SharedTask::factory()->for($this->project, 'project')->create([
+            'epic_id' => $epic->id,
+            'sprint_id' => $sprint->id,
+            'status' => 'pending',
+        ]);
+
+        Event::fake([EpicUpdated::class, SprintUpdated::class]);
+
+        $this->actingAs($this->user)
+            ->patchJson("/api/tasks/{$task->id}", ['status' => 'done'])
+            ->assertOk();
+
+        $this->assertSame('completed', $sprint->fresh()->status, 'The sprint must auto-complete.');
+        $this->assertSame('done', $epic->fresh()->status, 'The epic must cascade to done.');
+        $this->assertNotNull($epic->fresh()->completed_at);
+
+        Event::assertDispatched(
+            SprintUpdated::class,
+            fn (SprintUpdated $event) => $event->sprint->id === $sprint->id,
+        );
+        Event::assertDispatched(
+            EpicUpdated::class,
+            fn (EpicUpdated $event) => $event->epic->id === $epic->id,
+        );
+    }
+
+    #[Test]
+    public function manually_moving_the_last_task_to_done_cascades_sprint_and_epic(): void
+    {
+        $epic = $this->epic('in_progress');
+        $sprint = $this->sprint('active');
+
+        $task = SharedTask::factory()->for($this->project, 'project')->create([
+            'epic_id' => $epic->id,
+            'sprint_id' => $sprint->id,
+            'status' => 'in_progress',
+        ]);
+
+        Event::fake([EpicUpdated::class, SprintUpdated::class]);
+
+        $this->actingAs($this->user)
+            ->postJson("/api/tasks/{$task->id}/move", ['status' => 'done'])
+            ->assertOk();
+
+        $this->assertSame('completed', $sprint->fresh()->status);
+        $this->assertSame('done', $epic->fresh()->status);
+    }
+
+    #[Test]
+    public function editing_a_task_without_touching_its_status_leaves_the_hierarchy_alone(): void
+    {
+        $epic = $this->epic('in_progress');
+        $sprint = $this->sprint('active');
+        SharedTask::factory()->for($this->project, 'project')->create([
+            'epic_id' => $epic->id,
+            'sprint_id' => $sprint->id,
+            'status' => 'done',
+            'completed_at' => now(),
+        ]);
+        // A second, unfinished task keeps the sprint legitimately open.
+        $task = SharedTask::factory()->for($this->project, 'project')->create([
+            'epic_id' => $epic->id,
+            'sprint_id' => $sprint->id,
+            'status' => 'in_progress',
+        ]);
+
+        Event::fake([EpicUpdated::class, SprintUpdated::class]);
+
+        // Title-only edit: must not trigger any reconciliation.
+        $this->actingAs($this->user)
+            ->patchJson("/api/tasks/{$task->id}", ['title' => 'Renamed'])
+            ->assertOk();
+
+        Event::assertNotDispatched(SprintUpdated::class);
+        Event::assertNotDispatched(EpicUpdated::class);
+        $this->assertSame('active', $sprint->fresh()->status);
+    }
+
+    #[Test]
+    public function reconcile_completes_a_planning_sprint_then_the_epic_and_is_idempotent(): void
+    {
+        // Historical drift, exactly as seen in production: every task is done but
+        // the sprint was never closed (stuck `planning`), so the epic is stuck
+        // `in_progress`. A single reconcile must fix the sprint THEN the epic.
+        $epic = $this->epic('in_progress');
+        $sprint = $this->sprint('planning');
+
+        SharedTask::factory()->count(3)->for($this->project, 'project')->create([
+            'epic_id' => $epic->id,
+            'sprint_id' => $sprint->id,
+            'status' => 'done',
+            'completed_at' => now(),
+        ]);
+
+        Event::fake([EpicUpdated::class, SprintUpdated::class]);
+
+        $this->artisan('epics:reconcile-status', ['--project' => $this->project->id])
+            ->expectsOutputToContain('1/1 sprint(s) and 1/1 epic(s) corrected')
+            ->assertExitCode(0);
+
+        $this->assertSame('completed', $sprint->fresh()->status);
+        $this->assertSame('done', $epic->fresh()->status);
+        Event::assertDispatchedTimes(SprintUpdated::class, 1);
+        Event::assertDispatchedTimes(EpicUpdated::class, 1);
+
+        // Second run is a pure no-op.
+        $this->artisan('epics:reconcile-status', ['--project' => $this->project->id])
+            ->expectsOutputToContain('0/1 sprint(s) and 0/1 epic(s) corrected')
+            ->assertExitCode(0);
+
+        Event::assertDispatchedTimes(SprintUpdated::class, 1);
+        Event::assertDispatchedTimes(EpicUpdated::class, 1);
+    }
+
+    #[Test]
+    public function reconcile_never_revives_a_cancelled_sprint(): void
+    {
+        $sprint = $this->sprint('cancelled');
+        SharedTask::factory()->count(2)->for($this->project, 'project')->create([
+            'sprint_id' => $sprint->id,
+            'status' => 'done',
+            'completed_at' => now(),
+        ]);
+
+        $this->artisan('epics:reconcile-status', ['--project' => $this->project->id])
+            ->assertExitCode(0);
+
+        $this->assertSame('cancelled', $sprint->fresh()->status, 'A cancelled sprint is terminal.');
     }
 
     #[Test]

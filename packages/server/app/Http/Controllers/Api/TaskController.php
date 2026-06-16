@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Events\EpicUpdated;
+use App\Events\SprintUpdated;
 use App\Events\TaskClaimed;
 use App\Events\TaskCompleted;
 use App\Events\TaskCreated;
@@ -399,11 +400,26 @@ class TaskController extends Controller
             'labels.*' => 'string|max:50',
         ]);
 
+        // Remember the prior links so a task moved out of an epic/sprint also
+        // reconciles the one it left, not just the one it joins.
+        $previousEpicId = $task->epic_id;
+        $previousSprintId = $task->sprint_id;
+
         $task->update($validated);
+
+        // Manually editing a task's status/epic/sprint must heal the hierarchy
+        // exactly like the worker `complete()` path — otherwise a task ticked
+        // `done` here leaves its sprint and epic frozen.
+        if (array_intersect_key($validated, array_flip(['status', 'epic_id', 'sprint_id']))) {
+            $this->cascadeTaskHierarchy(
+                array_filter([$task->sprint_id, $previousSprintId]),
+                array_filter([$task->epic_id, $previousEpicId]),
+            );
+        }
 
         return response()->json([
             'success' => true,
-            'data' => new TaskResource($task),
+            'data' => new TaskResource($task->fresh()),
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
@@ -662,27 +678,14 @@ class TaskController extends Controller
         // Broadcast task completion (scalar payload, see TaskCompleted::broadcastWith).
         broadcast(new TaskCompleted($task))->toOthers();
 
-        // Cascade epic status: completing a task may have been the last one
-        // needed for its epic to reach `done` (or move it from `open` to
-        // `in_progress`). The epic↔task link is direct via epic_id. Only
-        // broadcast EpicUpdated when recomputeStatus() actually mutated the epic
-        // (isDirty → true). Best-effort: the completion is already persisted and
-        // must never be broken by a recompute failure.
-        if ($task->epic_id) {
-            try {
-                $epic = Epic::find($task->epic_id);
-
-                if ($epic && $epic->recomputeStatus()) {
-                    broadcast(new EpicUpdated($epic->fresh(), 'updated'))->toOthers();
-                }
-            } catch (Throwable $e) {
-                Log::warning('Epic recompute failed on task completion', [
-                    'task_id' => $task->id,
-                    'epic_id' => $task->epic_id,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
+        // Cascade the task → sprint → epic status chain. Completing a task may
+        // have been the last one needed for its sprint to reach `completed`,
+        // which in turn may be the last open sprint blocking its epic from
+        // `done` (see Sprint/Epic::recomputeStatus). Self-healing & idempotent.
+        $this->cascadeTaskHierarchy(
+            array_filter([$task->sprint_id]),
+            array_filter([$task->epic_id]),
+        );
 
         return response()->json([
             'success' => true,
@@ -801,15 +804,69 @@ class TaskController extends Controller
             'sort_order' => 'nullable|integer|min:0',
         ]);
 
+        $previousEpicId = $task->epic_id;
+        $previousSprintId = $task->sprint_id;
+
         $task->update($validated);
+
+        // Moving a task across epics/sprints or flipping its status reconciles
+        // both the source and destination hierarchy.
+        if (array_intersect_key($validated, array_flip(['status', 'epic_id', 'sprint_id']))) {
+            $this->cascadeTaskHierarchy(
+                array_filter([$task->sprint_id, $previousSprintId]),
+                array_filter([$task->epic_id, $previousEpicId]),
+            );
+        }
 
         return response()->json([
             'success' => true,
-            'data' => new TaskResource($task),
+            'data' => new TaskResource($task->fresh()),
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
             ],
         ]);
+    }
+
+    /**
+     * Self-heal the task → sprint → epic status chain after a task mutation.
+     *
+     * Sprints are recomputed BEFORE epics because {@see Epic::recomputeStatus()}
+     * reads the live status of the sprints its tasks belong to — an epic only
+     * reaches `done` once every referenced sprint is completed/cancelled. Each
+     * id set carries the union of the task's previous and current links so a
+     * task moved out of an epic/sprint also reconciles the one it left.
+     *
+     * Best-effort: the triggering mutation is already persisted and must never
+     * be broken by a reconciliation failure.
+     *
+     * @param  array<int, string>  $sprintIds  Non-null sprint ids to reconcile.
+     * @param  array<int, string>  $epicIds  Non-null epic ids to reconcile.
+     */
+    private function cascadeTaskHierarchy(array $sprintIds, array $epicIds): void
+    {
+        try {
+            Sprint::whereIn('id', array_values(array_unique($sprintIds)))
+                ->get()
+                ->each(function (Sprint $sprint): void {
+                    if ($sprint->recomputeStatus()) {
+                        broadcast(new SprintUpdated($sprint->fresh(), 'updated'))->toOthers();
+                    }
+                });
+
+            Epic::whereIn('id', array_values(array_unique($epicIds)))
+                ->get()
+                ->each(function (Epic $epic): void {
+                    if ($epic->recomputeStatus()) {
+                        broadcast(new EpicUpdated($epic->fresh(), 'updated'))->toOthers();
+                    }
+                });
+        } catch (Throwable $e) {
+            Log::warning('Task hierarchy cascade failed', [
+                'sprint_ids' => $sprintIds,
+                'epic_ids' => $epicIds,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }
