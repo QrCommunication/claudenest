@@ -127,12 +127,15 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::post('sessions/{session}/input', [Api\SessionController::class, 'input']);
     Route::post('sessions/{session}/resize', [Api\SessionController::class, 'resize']);
     Route::post('sessions/{session}/notification', [Api\SessionController::class, 'notification']);
+    Route::post('sessions/{session}/token-usage', [Api\SessionController::class, 'tokenUsage']);
 
     // ==================== SHARED PROJECTS (MULTI-AGENT) ====================
     Route::get('machines/{machine}/projects', [Api\ProjectController::class, 'index']);
     Route::post('machines/{machine}/projects', [Api\ProjectController::class, 'store']);
     Route::post('machines/{machine}/projects/scan', [Api\ProjectScanController::class, 'scan']);
     Route::post('machines/{machine}/projects/generate-context', [Api\ProjectContextGeneratorController::class, 'generate']);
+    // Cross-machine "all projects" view for the authenticated user.
+    Route::get('projects', [Api\ProjectController::class, 'allProjects']);
     Route::get('projects/{project}', [Api\ProjectController::class, 'show']);
     Route::patch('projects/{project}', [Api\ProjectController::class, 'update']);
     Route::delete('projects/{project}', [Api\ProjectController::class, 'destroy']);
@@ -140,6 +143,7 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::post('projects/{project}/unarchive', [Api\ProjectController::class, 'unarchive']);
     Route::post('projects/{project}/recover', [Api\ProjectController::class, 'recover']);
     Route::get('projects/{project}/stats', [Api\ProjectController::class, 'stats']);
+    Route::get('projects/{project}/token-budget', [Api\ProjectController::class, 'tokenBudget']);
     Route::get('projects/{project}/sessions', [Api\ProjectController::class, 'sessions']);
 
     // ==================== DECOMPOSITION (PRD → Master Plan) ====================
@@ -177,6 +181,9 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::post('context/batch', [Api\ContextController::class, 'batch']);
 
     // ==================== TASKS ====================
+    // Cross-project listing (all-projects task panel): tasks across every active
+    // project the user owns. Declared before `tasks/{task}` (distinct path).
+    Route::get('tasks', [Api\TaskController::class, 'allForUser']);
     Route::get('projects/{project}/tasks', [Api\TaskController::class, 'index']);
     Route::post('projects/{project}/tasks', [Api\TaskController::class, 'store']);
     Route::get('projects/{project}/tasks/next-available', [Api\TaskController::class, 'nextAvailable']);
@@ -195,10 +202,17 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::post('projects/{project}/epics', [Api\EpicController::class, 'store']);
     // Epic generated from the current master plan (PRD decomposition) → sprints + tasks
     Route::post('projects/{project}/epics/from-plan', [Api\DecompositionController::class, 'createEpicFromPlan']);
+    // Epic from a fresh PRD: create the epic immediately (decomposition_status
+    // pending) then launch an async decomposition session that auto-applies its
+    // plan to the epic (running → completed / failed).
+    Route::post('projects/{project}/epics/decompose', [Api\DecompositionController::class, 'decomposeEpic']);
     Route::get('epics/{epic}', [Api\EpicController::class, 'show']);
     Route::patch('epics/{epic}', [Api\EpicController::class, 'update']);
     Route::delete('epics/{epic}', [Api\EpicController::class, 'destroy']);
     Route::post('epics/{epic}/reorder', [Api\EpicController::class, 'reorder']);
+    Route::post('epics/{epic}/archive', [Api\EpicController::class, 'archive']);
+    Route::post('epics/{epic}/unarchive', [Api\EpicController::class, 'unarchive']);
+    Route::post('epics/{epic}/finalize', [Api\EpicController::class, 'finalize']);
 
     // ==================== SPRINTS ====================
     Route::get('projects/{project}/sprints', [Api\SprintController::class, 'index']);

@@ -212,11 +212,16 @@
           <!-- Epics segment -->
           <div v-if="planningSegment === 'epics'">
             <EpicBoard
-              :epics="epicsStore.epics"
+              :epics="epicsStore.showArchived ? epicsStore.archivedEpics : epicsStore.epics"
               :selected-epic-id="epicsStore.selectedEpic?.id || ''"
+              :show-archived="epicsStore.showArchived"
               @select="epicsStore.selectEpic($event)"
               @create="showCreateEpicModal = true"
               @delete="handleDeleteEpic"
+              @finalize="handleFinalizeEpic"
+              @archive="handleArchiveEpic"
+              @unarchive="handleUnarchiveEpic"
+              @toggle-archived="handleToggleArchivedEpics"
             />
           </div>
 
@@ -224,7 +229,6 @@
           <div v-else>
             <SprintBoard
               :sprint="sprintsStore.currentSprint || null"
-              @complete-sprint="handleCompleteSprint"
               @create-sprint="showCreateEpicModal = true"
             >
               <TasksBoard :project-id="projectId" />
@@ -302,6 +306,11 @@
           </div>
         </div>
 
+        <!-- Tokens Tab (cost + budget) -->
+        <div v-else-if="activeTab === 'tokens'" class="tab-panel">
+          <TokenBudgetPanel :project-id="projectId" />
+        </div>
+
         <!-- Activity Tab -->
         <div v-else-if="activeTab === 'activity'" class="tab-panel">
           <Card :title="t('projectsShow.activityLog')">
@@ -357,13 +366,13 @@
     <EpicDecompositionModal
       v-model="showCreateEpicModal"
       :project-id="projectId"
-      @created="handleEpicCreated"
+      @started="handleDecomposeStarted"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useProjectsStore } from '@/stores/projects';
@@ -372,6 +381,7 @@ import { useEpicsStore } from '@/stores/epics';
 import { useSprintsStore } from '@/stores/sprints';
 import { useTasksStore } from '@/stores/tasks';
 import { useToast } from '@/composables/useToast';
+import { getEchoClient } from '@/services/echo';
 import { api } from '@/composables/useApi';
 import Card from '@/components/common/Card.vue';
 import InstanceBadge from '@/components/projects/InstanceBadge.vue';
@@ -384,6 +394,7 @@ import SprintBoard from '@/components/multiagent/SprintBoard.vue';
 import EpicDecompositionModal from '@/components/multiagent/EpicDecompositionModal.vue';
 import BurndownChart from '@/components/multiagent/BurndownChart.vue';
 import PlanningChat from '@/components/multiagent/PlanningChat.vue';
+import TokenBudgetPanel from '@/components/multiagent/TokenBudgetPanel.vue';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -408,23 +419,6 @@ const sprintFilter = ref('');
 const showCreateEpicModal = ref(false);
 const planningChatRef = ref<InstanceType<typeof PlanningChat> | null>(null);
 
-// Complete the active sprint → triggers PR generation (SprintFinalizeService).
-// Toast wording is aligned on the "Générer la PR" button label.
-async function handleCompleteSprint(): Promise<void> {
-  const sprint = sprintsStore.currentSprint;
-  if (!sprint) return;
-  const pendingId = toast.info(t('projectsShow.prGenerating'));
-  try {
-    await sprintsStore.completeSprint(sprint.id);
-    toast.removeToast(pendingId);
-    toast.success(t('projectsShow.prGenerated'));
-    await sprintsStore.fetchSprints(projectId.value);
-  } catch {
-    toast.removeToast(pendingId);
-    toast.error(t('projectsShow.prGenerationFailed'));
-  }
-}
-
 // Delete an epic and its generated sprints + tasks (cascade server-side).
 async function handleDeleteEpic(epicId: string): Promise<void> {
   const epic = epicsStore.epics.find((e) => e.id === epicId);
@@ -441,17 +435,164 @@ async function handleDeleteEpic(epicId: string): Promise<void> {
   }
 }
 
-// An epic (+ its sprints + tasks) was generated from a PRD — refresh planning.
-async function handleEpicCreated(): Promise<void> {
-  await Promise.all([
-    epicsStore.fetchEpics(projectId.value),
-    sprintsStore.fetchSprints(projectId.value),
-    tasksStore.fetchTasks(projectId.value),
-  ]);
+// Finalize a 100%-complete epic — request its pull request (moved here from the
+// SprintBoard "create PR" button). The dispatch is best-effort: `dispatched`
+// is false when the machine is offline. The real PR (pr_url/pr_state) lands
+// later over the `.epic.updated` `finalized` broadcast, which refetches the
+// board and fires `prGenerated` below.
+async function handleFinalizeEpic(epicId: string): Promise<void> {
+  try {
+    const { dispatched } = await epicsStore.finalizeEpic(epicId);
+    if (dispatched) {
+      toast.info(t('projectsShow.prGenerating'));
+    } else {
+      toast.error(t('projectsShow.prGenerationFailed'));
+    }
+  } catch {
+    toast.error(t('projectsShow.prGenerationFailed'));
+  }
+}
+
+// Toggle the EpicBoard between the active and archived views. Lazily fetches
+// the archived set the first time it is shown (the store keeps the two flows
+// separate so the active board is never polluted by archived epics).
+async function handleToggleArchivedEpics(archived: boolean): Promise<void> {
+  epicsStore.setShowArchived(archived);
+  if (archived) {
+    try {
+      await epicsStore.fetchArchivedEpics(projectId.value);
+    } catch {
+      toast.error(t('projectsShow.epicArchiveFailed'));
+    }
+  }
+}
+
+// Archive an epic (reversible — the backend stamps archived_at, deletes nothing).
+// The store moves it from the active board to the archived flow on success.
+async function handleArchiveEpic(epicId: string): Promise<void> {
+  try {
+    await epicsStore.archiveEpic(epicId);
+    toast.success(t('projectsShow.epicArchived'));
+  } catch {
+    toast.error(t('projectsShow.epicArchiveFailed'));
+  }
+}
+
+// Restore an archived epic back to the active board.
+async function handleUnarchiveEpic(epicId: string): Promise<void> {
+  try {
+    await epicsStore.unarchiveEpic(epicId);
+    toast.success(t('projectsShow.epicUnarchived'));
+  } catch {
+    toast.error(t('projectsShow.epicUnarchiveFailed'));
+  }
+}
+
+// The async "Decompose with AI" flow launched: the epic exists (pending) but
+// its sprints/tasks arrive later, on the realtime `completed` signal below.
+// Show a transient toast and surface the new pending epic immediately.
+async function handleDecomposeStarted(): Promise<void> {
+  toast.info(t('projectsShow.decompositionStarted'));
+  await epicsStore.fetchEpics(projectId.value);
+}
+
+// ── Decomposition realtime ───────────────────────────────────────────────────
+// The async epic decomposition reports its lifecycle through the dedicated
+// `.epic.decomposition` broadcast (see app/Events/EpicDecompositionUpdated).
+// `action`/`decomposition_status` carry the canonical Epic status values
+// (pending|running|completed|failed). On `completed` we pull the freshly
+// generated sprints + tasks; on `failed` we surface the reason. Only OUR
+// handler is detached on teardown (never leave(), since the epics/sprints
+// stores share this channel).
+interface EpicDecompositionPayload {
+  epic_id: string;
+  action: string;
+  decomposition_status?: string | null;
+  decomposition_error?: string | null;
+}
+
+const lastDecompositionStatus = new Map<string, string | null>();
+let detachDecompositionRealtime: (() => void) | null = null;
+
+function onEpicDecomposition(payload: EpicDecompositionPayload): void {
+  const status = payload.decomposition_status ?? payload.action ?? null;
+  const previous = lastDecompositionStatus.get(payload.epic_id) ?? null;
+  lastDecompositionStatus.set(payload.epic_id, status);
+
+  // Only act on a genuine transition into a terminal decomposition state.
+  if (status === previous) return;
+
+  if (status === 'completed') {
+    toast.success(t('projectsShow.decompositionReady'));
+    void Promise.all([
+      epicsStore.fetchEpics(projectId.value),
+      sprintsStore.fetchSprints(projectId.value),
+      tasksStore.fetchTasks(projectId.value),
+    ]);
+  } else if (status === 'failed') {
+    const base = t('projectsShow.decompositionFailed');
+    toast.error(payload.decomposition_error ? `${base} — ${payload.decomposition_error}` : base);
+  }
+}
+
+// `.epic.updated` carries no PR fields (pr_url/pr_state). On the `finalized`
+// action — emitted once the agent has opened the epic's PR (see
+// AgentServe::onEpicFinalized) — refetch so the board flips the "Generate PR"
+// button to the live PR link, and confirm with the success toast.
+interface EpicUpdatedPayload {
+  epic_id: string;
+  action: string;
+}
+
+function onEpicUpdated(payload: EpicUpdatedPayload): void {
+  if (payload.action === 'finalized') {
+    toast.success(t('projectsShow.prGenerated'));
+    void epicsStore.fetchEpics(projectId.value);
+  }
+}
+
+function subscribeDecompositionRealtime(id: string): void {
+  detachDecompositionRealtime?.();
+  detachDecompositionRealtime = null;
+  lastDecompositionStatus.clear();
+  if (!id) return;
+
+  // Seed from current epics so only genuine transitions toast (a later cascade
+  // re-broadcasting a still-failed/ready epic must not re-fire a toast).
+  for (const epic of epicsStore.epics) {
+    const s = (epic as { decomposition_status?: string | null }).decomposition_status ?? null;
+    lastDecompositionStatus.set(epic.id, s);
+  }
+
+  let client: ReturnType<typeof getEchoClient>;
+  try {
+    client = getEchoClient();
+  } catch {
+    return; // Reverb config missing (tests / degraded boot) — realtime disabled.
+  }
+
+  const channel = `projects.${id}`;
+  const handler = onEpicDecomposition as (p: unknown) => void;
+  const updatedHandler = onEpicUpdated as (p: unknown) => void;
+  client
+    .private(channel)
+    .listen('.epic.decomposition', handler)
+    .listen('.epic.updated', updatedHandler);
+
+  detachDecompositionRealtime = () => {
+    try {
+      client
+        .private(channel)
+        .stopListening('.epic.decomposition', handler)
+        .stopListening('.epic.updated', updatedHandler);
+    } catch {
+      // Channel already gone.
+    }
+  };
 }
 
 // Standardized project tab order: Overview · Workspace · Tasks · Planning ·
-// Context · Locks · Orchestration · Instances · Activity.
+// Context · Locks · Orchestration · Instances · Tokens · Activity.
 // "workspace" is a navigating tab (dedicated multi-terminal route).
 // "planning" merges the former Epics and Sprints tabs (internal segmented control).
 const tabs = computed(() => [
@@ -463,6 +604,8 @@ const tabs = computed(() => [
   { id: 'locks', label: t('projectsShow.tabLocks'), icon: 'M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z', count: projectStats.value?.active_locks },
   { id: 'orchestration', label: t('projectsShow.tabOrchestration'), icon: 'M22 11V3h-7v3H9V3H2v8h7V8h2v10h4v3h7v-8h-7v3h-2V8h2v3h7zM7 9H4V5h3v4zm10 6h3v4h-3v-4zm0-10h3v4h-3V5z' },
   { id: 'instances', label: t('projectsShow.tabInstances'), icon: 'M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z' },
+  // Reuses the shared projectsTokenbudget.title label (FR/EN symmetric), like WorkspaceRail.
+  { id: 'tokens', label: t('projectsTokenbudget.title'), icon: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm.31 13.75v1.5h-.62v-1.46c-1.06-.11-2.07-.56-2.5-1.65l1.04-.42c.27.7.86 1.08 1.79 1.08.78 0 1.39-.36 1.39-1.01 0-.59-.41-.89-1.5-1.21-1.27-.36-2.5-.78-2.5-2.18 0-1.06.81-1.74 1.78-1.91V7.25h.62v1.45c.93.14 1.62.66 1.95 1.46l-1 .43c-.23-.57-.69-.91-1.34-.91-.74 0-1.27.36-1.27.93 0 .56.45.82 1.5 1.12 1.36.38 2.5.83 2.5 2.27 0 1.13-.85 1.79-1.84 1.95z' },
   { id: 'activity', label: t('projectsShow.tabActivity'), icon: 'M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z' },
 ]);
 
@@ -491,10 +634,17 @@ const machineName = computed(() => {
 
 onMounted(async () => {
   await loadProject();
+  subscribeDecompositionRealtime(projectId.value);
 });
 
 watch(projectId, async () => {
   await loadProject();
+  subscribeDecompositionRealtime(projectId.value);
+});
+
+onUnmounted(() => {
+  detachDecompositionRealtime?.();
+  detachDecompositionRealtime = null;
 });
 
 async function loadProject() {

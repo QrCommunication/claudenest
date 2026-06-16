@@ -192,6 +192,21 @@ class SharedTask extends Model
         });
     }
 
+    /**
+     * Hide tasks that belong to an archived epic.
+     *
+     * Mirrors {@see scopeRemaining}: `whereDoesntHave` only excludes a task
+     * whose epic actually matches the archived filter, so a task with no epic
+     * (NULL epic_id) has no matching relation and is therefore retained — only
+     * tasks under an archived epic are dropped, not the whole backlog.
+     */
+    public function scopeExcludingArchivedEpics($query)
+    {
+        return $query->whereDoesntHave('epic', function ($epicQuery) {
+            $epicQuery->whereNotNull('archived_at');
+        });
+    }
+
     public function scopeByStatus($query, string $status)
     {
         return $query->where('status', $status);

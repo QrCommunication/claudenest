@@ -211,6 +211,35 @@ export const useTasksStore = defineStore('tasks', () => {
   }
 
   /**
+   * Fetch tasks across EVERY active project the user owns — the all-projects
+   * task panel (backend `GET /tasks` → TaskController::allForUser).
+   *
+   * Mirrors {@see fetchTasks}'s filtering (status / priority / assigned_to) but
+   * spans all the user's active (non-archived) projects. Each task carries its
+   * `project_id` (TaskResource) so the caller can group by project. Pass
+   * `project_id` to narrow back to a single owned project, or `include_all` to
+   * override the default visibility window (include tasks completed before today).
+   * @throws {Error} If the fetch operation fails
+   */
+  async function fetchAllTasks(
+    filters?: {
+      status?: TaskStatus;
+      priority?: TaskPriority;
+      assigned_to?: string;
+      project_id?: string;
+      include_all?: boolean;
+    }
+  ): Promise<SharedTask[]> {
+    return run('loading', async () => {
+      const response = await api.get<PaginatedResponse<SharedTask>>('/tasks', {
+        params: filters,
+      });
+      tasks.value = response.data.data;
+      return response.data.data;
+    }, 'Failed to fetch tasks');
+  }
+
+  /**
    * Fetch a single task by ID
    * @throws {Error} If the fetch fails
    */
@@ -582,6 +611,7 @@ export const useTasksStore = defineStore('tasks', () => {
 
     // Actions
     fetchTasks,
+    fetchAllTasks,
     fetchTask,
     createTask,
     updateTask,

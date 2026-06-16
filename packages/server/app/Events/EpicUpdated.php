@@ -16,6 +16,7 @@ class EpicUpdated implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public Epic $epic;
+
     public string $action;
 
     /**
@@ -33,7 +34,7 @@ class EpicUpdated implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('projects.' . $this->epic->project_id),
+            new PrivateChannel('projects.'.$this->epic->project_id),
         ];
     }
 

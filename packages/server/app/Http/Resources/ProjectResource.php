@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Resources;
 
 use App\Models\SharedProject;
+use App\Services\TokenPricingService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -50,6 +51,19 @@ class ProjectResource extends JsonResource
             $data['recent_changes'] = $project->recent_changes;
             $data['total_tokens'] = $project->total_tokens;
             $data['max_tokens'] = $project->max_tokens;
+
+            // USD cost estimate derived from the project-level token counter. We
+            // use estimateFromTotalTokens (input/output split via the configured
+            // ratio) rather than a per-session aggregate so the resource stays
+            // query-free — the precise per-session breakdown lives in the
+            // dedicated GET /projects/{id}/token-budget endpoint.
+            $pricing = app(TokenPricingService::class);
+            $data['estimated_cost_usd'] = round(
+                $pricing->estimateFromTotalTokens(null, (int) $project->total_tokens),
+                4,
+            );
+            $data['cost_currency'] = 'USD';
+            $data['pricing_model'] = $pricing->resolveModel(null);
         }
 
         return $data;

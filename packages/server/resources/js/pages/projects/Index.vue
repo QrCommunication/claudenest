@@ -50,7 +50,7 @@
         {{ t('projectsIndex.emptyForMachine') }}
       </p>
       <p v-else>
-        {{ t('projectsIndex.emptySelectMachine') }}
+        {{ t('projectsIndex.emptyAllMachines') }}
       </p>
       <Button
         variant="primary"
@@ -307,11 +307,14 @@ onMounted(async () => {
   if (machinesStore.machines.length === 0) {
     await machinesStore.fetchMachines();
   }
-  
-  // If there's only one machine, select it automatically
+
+  // If there's only one machine, select it automatically; otherwise stay on the
+  // "All Machines" view and load every project the user owns across machines.
   if (machinesStore.machines.length === 1) {
     selectedMachineId.value = machinesStore.machines[0].id;
     await loadProjects();
+  } else {
+    await loadAllProjects();
   }
 });
 
@@ -319,15 +322,28 @@ async function onMachineChange() {
   if (selectedMachineId.value) {
     await loadProjects();
   } else {
-    projectsStore.projects = [];
+    // "All Machines" selected — fetch the cross-machine list instead of clearing.
+    await loadAllProjects();
   }
 }
 
 async function loadProjects() {
   if (!selectedMachineId.value) return;
-  
+
   try {
     await projectsStore.fetchProjects(selectedMachineId.value);
+  } catch (err) {
+    toast.error(t('projectsIndex.toastLoadFailed'));
+  }
+}
+
+/**
+ * Load every project owned by the user across ALL their machines — backs the
+ * default "All Machines" view (GET /projects → ProjectController::allProjects).
+ */
+async function loadAllProjects() {
+  try {
+    await projectsStore.fetchAllProjects();
   } catch (err) {
     toast.error(t('projectsIndex.toastLoadFailed'));
   }

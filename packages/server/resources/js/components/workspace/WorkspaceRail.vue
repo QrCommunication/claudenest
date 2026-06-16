@@ -94,6 +94,11 @@
       <div v-else-if="modelValue === 'git'" class="rail-panel">
         <GitPanel :project-id="projectId" />
       </div>
+
+      <!-- TOKENS (cost + budget) -->
+      <div v-else-if="modelValue === 'tokens'" class="rail-panel">
+        <TokenBudgetPanel :project-id="projectId" />
+      </div>
     </div>
 
     <!-- Condensed activity feed footer -->
@@ -112,11 +117,12 @@ import { useI18n } from 'vue-i18n';
 import ActivityFeed from '@/components/multiagent/ActivityFeed.vue';
 import InstanceCard from '@/components/multiagent/InstanceCard.vue';
 import GitPanel from '@/components/multiagent/GitPanel.vue';
+import TokenBudgetPanel from '@/components/multiagent/TokenBudgetPanel.vue';
 import { useGitStore } from '@/stores/git';
 import { workerColor } from '@/utils/workerColor';
 import type { ActivityLog, ClaudeInstance, FileLock, SharedTask, TaskStatus } from '@/types';
 
-export type RailTab = 'tasks' | 'locks' | 'workers' | 'git';
+export type RailTab = 'tasks' | 'locks' | 'workers' | 'git' | 'tokens';
 
 interface Props {
   projectId: string;
@@ -171,6 +177,12 @@ const railTabs = computed(() => [
     id: 'git' as const,
     label: t('projectsWorkspace.rail.git'),
     count: gitStore.pulls.length,
+  },
+  {
+    // Reuses the shared token-budget namespace label (FR/EN symmetric).
+    id: 'tokens' as const,
+    label: t('projectsTokenbudget.title'),
+    count: 0,
   },
 ]);
 

@@ -52,15 +52,6 @@
 
         <div class="nav-actions">
           <button
-            v-if="selectedSprintSummary?.status === 'active'"
-            class="complete-sprint-btn"
-            :title="t('multiagentSprintboard.generatePrTitle')"
-            :aria-label="t('multiagentSprintboard.generatePrTitle')"
-            @click="$emit('complete-sprint')"
-          >
-            {{ t('multiagentSprintboard.generatePr') }}
-          </button>
-          <button
             class="create-sprint-btn"
             :title="t('multiagentSprintboard.startNewSprint')"
             :aria-label="t('multiagentSprintboard.startNewSprint')"
@@ -140,7 +131,6 @@ defineProps<Props>();
 
 defineEmits<{
   'create-sprint': [];
-  'complete-sprint': [];
 }>();
 
 /** Full sprint list, workflow order (active sprint surfaced first via sort_order). */
@@ -326,24 +316,6 @@ watch(
   align-items: center;
   gap: 0.375rem;
   flex-shrink: 0;
-}
-
-.complete-sprint-btn {
-  padding: 0.3rem 0.625rem;
-  font-size: 0.7rem;
-  font-weight: 500;
-  color: var(--text-muted);
-  background: var(--bg-hover);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: color 0.15s, background 0.15s, border-color 0.15s;
-}
-.complete-sprint-btn:hover {
-  color: var(--accent-purple);
-  background: color-mix(in srgb, var(--accent-purple) 8%, transparent);
-  border-color: color-mix(in srgb, var(--accent-purple) 30%, var(--border-color));
 }
 
 .create-sprint-btn {

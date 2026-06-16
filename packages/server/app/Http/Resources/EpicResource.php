@@ -23,6 +23,24 @@ class EpicResource extends JsonResource
             'tasks_count' => $this->tasks_count,
             'completed_tasks_count' => $this->completed_tasks_count,
             'progress_percentage' => $this->progress_percentage,
+            // AI decomposition state (idle|pending|running|ready|failed; null = never decomposed).
+            // Canonical contract mirrored by the migration, Epic casts/helpers and the TS Epic type.
+            'decomposition_status' => $this->decomposition_status,
+            'decomposition_session_id' => $this->decomposition_session_id,
+            'decomposition_error' => $this->decomposition_error,
+            'decomposed_at' => $this->decomposed_at?->toIso8601String(),
+            // Archive state (NULL archived_at = active).
+            'archived_at' => $this->archived_at?->toIso8601String(),
+            'is_archived' => $this->is_archived,
+            // Epic-level pull request (finalize flow). pr_state: open|merged|closed;
+            // null = no PR opened yet. Canonical contract mirrored by the Epic model
+            // CHECK, EpicFinalizeService and the TS Epic type.
+            'pr_url' => $this->pr_url,
+            'pr_number' => $this->pr_number,
+            'pr_state' => $this->pr_state,
+            'pr_branch' => $this->pr_branch,
+            'has_pull_request' => $this->has_pull_request,
+            'finalized_at' => $this->finalized_at?->toIso8601String(),
             'started_at' => $this->started_at?->toIso8601String(),
             'completed_at' => $this->completed_at?->toIso8601String(),
             'created_at' => $this->created_at->toIso8601String(),

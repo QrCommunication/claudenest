@@ -1,13 +1,44 @@
 <template>
   <div class="epic-board">
-    <!-- Header avec bouton d'ajout -->
+    <!-- Header : titre + bascule Actifs/Archivés + bouton d'ajout -->
     <div class="epic-board-header">
       <h3 class="epic-board-title">{{ t('multiagentEpicboard.epics') }}</h3>
-      <button class="add-epic-btn" :title="t('multiagentEpicboard.createFirstEpic')" @click="$emit('create')">
-        <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
-          <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-        </svg>
-      </button>
+      <div class="epic-header-actions">
+        <!-- Bascule Actifs / Archivés (l'archivage est réversible côté backend) -->
+        <div class="archive-toggle" role="tablist" :aria-label="t('multiagentEpicboard.archived')">
+          <button
+            type="button"
+            class="archive-toggle-btn"
+            :class="{ active: !showArchived }"
+            role="tab"
+            :aria-selected="!showArchived"
+            @click="$emit('toggle-archived', false)"
+          >
+            {{ t('multiagentEpicboard.active') }}
+          </button>
+          <button
+            type="button"
+            class="archive-toggle-btn"
+            :class="{ active: showArchived }"
+            role="tab"
+            :aria-selected="showArchived"
+            @click="$emit('toggle-archived', true)"
+          >
+            {{ t('multiagentEpicboard.archived') }}
+          </button>
+        </div>
+        <!-- Création réservée à la vue active (on ne crée pas un épic archivé) -->
+        <button
+          v-if="!showArchived"
+          class="add-epic-btn"
+          :title="t('multiagentEpicboard.createFirstEpic')"
+          @click="$emit('create')"
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
+            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+          </svg>
+        </button>
+      </div>
     </div>
 
     <!-- Liste des épics -->
@@ -31,8 +62,43 @@
               <svg v-else viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h12v2H3v-2z" /></svg>
             </span>
             <span class="epic-title">{{ epic.title }}</span>
+            <!-- Badge d'état de décomposition IA (caché pour idle/null) -->
+            <span
+              v-if="showDecomposition(epic.decomposition_status)"
+              class="deco-badge"
+              :class="`deco-${epic.decomposition_status}`"
+              :title="decompositionTitle(epic)"
+              role="status"
+            >
+              <span
+                v-if="epic.decomposition_status === 'pending' || epic.decomposition_status === 'running'"
+                class="deco-spinner"
+                aria-hidden="true"
+              />
+              {{ t(`multiagentEpicboard.${DECO_LABEL_KEYS[epic.decomposition_status!]}`) }}
+            </span>
             <StatusBadge type="status" :value="epic.status" />
+            <!-- Archiver (vue active) / Restaurer (vue archivée) — réversible -->
             <button
+              v-if="!showArchived"
+              class="epic-archive"
+              :title="t('multiagentEpicboard.archiveEpic')"
+              :aria-label="t('multiagentEpicboard.archiveEpic')"
+              @click.stop="$emit('archive', epic.id)"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><rect x="3" y="4" width="18" height="4" rx="1" /><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8" /><line x1="10" y1="12" x2="14" y2="12" /></svg>
+            </button>
+            <button
+              v-else
+              class="epic-archive"
+              :title="t('multiagentEpicboard.unarchiveEpic')"
+              :aria-label="t('multiagentEpicboard.unarchiveEpic')"
+              @click.stop="$emit('unarchive', epic.id)"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><rect x="3" y="4" width="18" height="4" rx="1" /><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8" /><path d="M12 18v-6m0 0-2.5 2.5M12 12l2.5 2.5" /></svg>
+            </button>
+            <button
+              v-if="!showArchived"
               class="epic-delete"
               :title="t('multiagentEpicboard.deleteEpic')"
               :aria-label="t('multiagentEpicboard.deleteEpic')"
@@ -61,13 +127,48 @@
             </span>
             <StatusBadge type="priority" :value="epic.priority" />
           </div>
+
+          <!-- Action pull request — surface à 100 % (moved from SprintBoard) -->
+          <div v-if="epic.has_pull_request || isComplete(epic)" class="epic-pr">
+            <!-- PR ouverte : lien direct + état -->
+            <a
+              v-if="epic.has_pull_request && epic.pr_url"
+              :href="epic.pr_url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="epic-pr-link"
+              :class="`pr-${epic.pr_state ?? 'open'}`"
+              :title="t('multiagentEpicboard.viewPrTitle')"
+              @click.stop
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><circle cx="18" cy="18" r="3" /><circle cx="6" cy="6" r="3" /><path d="M6 21V9a9 9 0 0 0 9 9" /></svg>
+              {{ epic.pr_number ? t('multiagentEpicboard.viewPrNumbered', { number: epic.pr_number }) : t('multiagentEpicboard.viewPr') }}
+              <span class="pr-state">{{ t(`multiagentEpicboard.${PR_STATE_LABEL_KEYS[epic.pr_state ?? 'open']}`) }}</span>
+            </a>
+
+            <!-- Sinon : bouton de génération (désactivé pendant le dispatch) -->
+            <button
+              v-else
+              type="button"
+              class="epic-pr-btn"
+              :disabled="isFinalizing(epic)"
+              :title="t('multiagentEpicboard.generatePrTitle')"
+              @click.stop="$emit('finalize', epic.id)"
+            >
+              <span v-if="isFinalizing(epic)" class="epic-pr-spinner" aria-hidden="true" />
+              <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><circle cx="18" cy="18" r="3" /><circle cx="6" cy="6" r="3" /><path d="M6 21V9a9 9 0 0 0 9 9" /></svg>
+              {{ isFinalizing(epic) ? t('multiagentEpicboard.generatingPr') : t('multiagentEpicboard.generatePr') }}
+            </button>
+          </div>
         </div>
       </div>
 
       <!-- Empty state -->
       <div v-if="epics.length === 0" class="epic-empty">
-        <p class="epic-empty-text">{{ t('multiagentEpicboard.noEpicsYet') }}</p>
-        <button class="epic-empty-btn" @click="$emit('create')">
+        <p class="epic-empty-text">
+          {{ showArchived ? t('multiagentEpicboard.noArchivedEpics') : t('multiagentEpicboard.noEpicsYet') }}
+        </p>
+        <button v-if="!showArchived" class="epic-empty-btn" @click="$emit('create')">
           {{ t('multiagentEpicboard.createFirstEpic') }}
         </button>
       </div>
@@ -79,17 +180,20 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import StatusBadge from '@/components/common/StatusBadge.vue';
-import type { Epic } from '@/types/multiagent';
+import type { DecompositionStatus, Epic, EpicPrState } from '@/types/multiagent';
 
 const { t } = useI18n();
 
 interface Props {
   epics: Epic[];
   selectedEpicId?: string;
+  /** Archived view: swaps the create/delete affordances for an unarchive one. */
+  showArchived?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   selectedEpicId: '',
+  showArchived: false,
 });
 
 defineEmits<{
@@ -97,6 +201,10 @@ defineEmits<{
   create: [];
   update: [epicId: string, data: Partial<Epic>];
   delete: [epicId: string];
+  finalize: [epicId: string];
+  archive: [epicId: string];
+  unarchive: [epicId: string];
+  'toggle-archived': [archived: boolean];
 }>();
 
 const sortedEpics = computed(() =>
@@ -111,6 +219,49 @@ const clampPercent = (value: number): number =>
 // actual symbol/emoji (non-identifier); otherwise fall back to the SVG.
 const isGlyph = (icon?: string | null): boolean =>
   !!icon && !/^[a-z0-9_-]+$/i.test(icon);
+
+// Decomposition states that warrant a visible badge. `idle`/null (manual epic,
+// never decomposed) stays badge-less to keep the card clean.
+const DECO_VISIBLE: DecompositionStatus[] = ['pending', 'running', 'completed', 'failed'];
+
+const DECO_LABEL_KEYS: Record<DecompositionStatus, string> = {
+  idle: 'decompositionReady', // unused (idle is never shown) — keeps the map total
+  pending: 'decompositionPending',
+  running: 'decompositionRunning',
+  completed: 'decompositionReady',
+  failed: 'decompositionFailed',
+};
+
+const showDecomposition = (status: DecompositionStatus | null): boolean =>
+  !!status && DECO_VISIBLE.includes(status);
+
+// ── Pull request (finalize flow) ────────────────────────────────────────────
+// Label key per PR state — mirrors the backend Epic::PR_STATES.
+const PR_STATE_LABEL_KEYS: Record<EpicPrState, string> = {
+  open: 'prStateOpen',
+  merged: 'prStateMerged',
+  closed: 'prStateClosed',
+};
+
+// A 100%-complete epic (every task done) can open its PR — mirrors the backend
+// finalize guard (tasks_count > 0 && progress_percentage >= 100).
+const isComplete = (epic: Epic): boolean =>
+  epic.tasks_count > 0 && clampPercent(epic.progress_percentage) >= 100;
+
+// Finalize was requested (finalized_at stamped) but the agent hasn't reported
+// the opened PR yet (no pr_url) — keep the button busy/disabled in the meantime.
+const isFinalizing = (epic: Epic): boolean =>
+  !!epic.finalized_at && !epic.has_pull_request;
+
+// `failed` surfaces the backend reason as a tooltip; the other states reuse the
+// badge label as its own title.
+const decompositionTitle = (epic: Epic): string => {
+  if (epic.decomposition_status === 'failed' && epic.decomposition_error) {
+    return t('multiagentEpicboard.decompositionFailedTitle', { error: epic.decomposition_error });
+  }
+  const status = epic.decomposition_status;
+  return status ? t(`multiagentEpicboard.${DECO_LABEL_KEYS[status]}`) : '';
+};
 </script>
 
 <style scoped>
@@ -133,6 +284,40 @@ const isGlyph = (icon?: string | null): boolean =>
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+.epic-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Bascule Actifs / Archivés */
+.archive-toggle {
+  display: inline-flex;
+  border: 1px solid color-mix(in srgb, var(--accent-purple) 25%, transparent);
+  border-radius: 0.375rem;
+  overflow: hidden;
+}
+
+.archive-toggle-btn {
+  padding: 0.18rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: transparent;
+  transition: color 0.15s, background-color 0.15s;
+}
+.archive-toggle-btn:hover {
+  color: var(--text-secondary);
+}
+.archive-toggle-btn.active {
+  color: var(--accent-purple);
+  background: color-mix(in srgb, var(--accent-purple) 14%, transparent);
+}
+.archive-toggle-btn:focus-visible {
+  outline: 2px solid var(--accent-purple);
+  outline-offset: -2px;
 }
 
 .add-epic-btn {
@@ -202,8 +387,29 @@ const isGlyph = (icon?: string | null): boolean =>
   gap: 0.5rem;
 }
 
-.epic-delete {
+.epic-archive {
   margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted, #8b8ca0);
+  cursor: pointer;
+  opacity: 0.55;
+  transition: opacity 0.15s, color 0.15s, background 0.15s;
+}
+.epic-card:hover .epic-archive {
+  opacity: 1;
+}
+.epic-archive:hover {
+  color: var(--accent-cyan, #22d3ee);
+  background: color-mix(in srgb, var(--accent-cyan, #22d3ee) 12%, transparent);
+}
+
+.epic-delete {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -251,6 +457,56 @@ const isGlyph = (icon?: string | null): boolean =>
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ----- Badge de décomposition IA ----- */
+.deco-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  padding: 0.0625rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.deco-pending {
+  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--text-muted) 18%, transparent);
+}
+.deco-running {
+  color: var(--accent-purple);
+  background: color-mix(in srgb, var(--accent-purple) 14%, transparent);
+}
+.deco-completed {
+  color: var(--status-success);
+  background: color-mix(in srgb, var(--status-success) 14%, transparent);
+}
+.deco-failed {
+  color: var(--color-error, #ef4444);
+  background: color-mix(in srgb, var(--color-error, #ef4444) 14%, transparent);
+}
+
+.deco-spinner {
+  width: 0.5rem;
+  height: 0.5rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: 1.5px solid currentColor;
+  border-top-color: transparent;
+  animation: deco-spin 0.7s linear infinite;
+}
+@keyframes deco-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .deco-spinner {
+    animation: none;
+  }
 }
 
 /* ----- Barre de progression ----- */
@@ -305,6 +561,72 @@ const isGlyph = (icon?: string | null): boolean =>
   width: 0.75rem;
   height: 0.75rem;
   color: var(--status-success);
+}
+
+/* ----- Action pull request ----- */
+.epic-pr {
+  display: flex;
+  align-items: center;
+}
+
+.epic-pr-btn,
+.epic-pr-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: 6px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.4;
+  cursor: pointer;
+  border: 1px solid color-mix(in srgb, var(--epic-color) 40%, var(--border-color));
+  background: color-mix(in srgb, var(--epic-color) 10%, transparent);
+  color: var(--epic-color);
+  transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+}
+.epic-pr-btn:hover:not(:disabled),
+.epic-pr-link:hover {
+  background: color-mix(in srgb, var(--epic-color) 18%, transparent);
+  border-color: var(--epic-color);
+}
+.epic-pr-btn:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+.epic-pr-link {
+  text-decoration: none;
+}
+
+.pr-state {
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.epic-pr-link.pr-open .pr-state {
+  color: var(--status-success);
+  background: color-mix(in srgb, var(--status-success) 16%, transparent);
+}
+.epic-pr-link.pr-merged .pr-state {
+  color: var(--accent-purple);
+  background: color-mix(in srgb, var(--accent-purple) 16%, transparent);
+}
+.epic-pr-link.pr-closed .pr-state {
+  color: var(--color-error, #ef4444);
+  background: color-mix(in srgb, var(--color-error, #ef4444) 16%, transparent);
+}
+
+.epic-pr-spinner {
+  width: 0.6875rem;
+  height: 0.6875rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: 1.5px solid currentColor;
+  border-top-color: transparent;
+  animation: deco-spin 0.7s linear infinite;
 }
 
 /* ----- Empty state ----- */

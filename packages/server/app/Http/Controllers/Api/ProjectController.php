@@ -16,6 +16,7 @@ use App\Models\Machine;
 use App\Models\Session;
 use App\Models\SharedProject;
 use App\Services\ContextRAGService;
+use App\Services\TokenPricingService;
 use App\Services\WorkerPoolService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -80,6 +81,46 @@ class ProjectController extends Controller
         $showArchived = $request->boolean('archived');
 
         $projects = $machine->sharedProjects()
+            ->when($showArchived, fn ($q) => $q->archived(), fn ($q) => $q->active())
+            ->withCount([
+                'claudeInstances as active_instances_count' => fn ($q) => $q->where('status', 'active'),
+                'tasks as pending_tasks_count' => fn ($q) => $q->where('status', 'pending'),
+            ])
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => ProjectResource::collection($projects),
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
+    }
+
+    /**
+     * List every shared project owned by the authenticated user across all of
+     * their machines (the cross-machine "all projects" view). Defaults to the
+     * active set; ?archived=true returns the archived projects only.
+     */
+    #[OA\Get(
+        path: '/api/projects',
+        summary: 'List all of the user\'s projects across machines',
+        security: [['bearerAuth' => []]],
+        tags: ['Projects'],
+        parameters: [
+            new OA\Parameter(name: 'archived', in: 'query', required: false, description: 'true = archived projects only; default = active', schema: new OA\Schema(type: 'boolean', default: false)),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Project list', content: new OA\JsonContent(ref: '#/components/schemas/SuccessResponse')),
+        ],
+    )]
+    public function allProjects(Request $request): JsonResponse
+    {
+        $showArchived = $request->boolean('archived');
+
+        $projects = $request->user()->sharedProjects()
             ->when($showArchived, fn ($q) => $q->archived(), fn ($q) => $q->active())
             ->withCount([
                 'claudeInstances as active_instances_count' => fn ($q) => $q->where('status', 'active'),
@@ -1009,6 +1050,124 @@ class ProjectController extends Controller
         return response()->json([
             'success' => true,
             'data' => $stats,
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
+    }
+
+    /**
+     * Token budget + cost for a project.
+     *
+     * Aggregates the token usage of the project's sessions (input/output split)
+     * and prices it through TokenPricingService, alongside the project-level
+     * budget counters (total_tokens vs max_tokens). Sessions carry no model id
+     * yet, so the cost is estimated with the configured default pricing model.
+     *
+     * GET /api/projects/{project}/token-budget
+     */
+    #[OA\Get(
+        path: '/api/projects/{id}/token-budget',
+        summary: 'Get a project token budget and estimated cost',
+        security: [['bearerAuth' => []]],
+        tags: ['Projects'],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                in: 'path',
+                required: true,
+                description: 'Project UUID',
+                schema: new OA\Schema(type: 'string', format: 'uuid'),
+            ),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Project token budget and cost',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(
+                            property: 'data',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(
+                                    property: 'tokens',
+                                    type: 'object',
+                                    properties: [
+                                        new OA\Property(property: 'used', type: 'integer', description: 'Project-level token counter (total_tokens)'),
+                                        new OA\Property(property: 'max', type: 'integer', description: 'Project token budget cap (max_tokens)'),
+                                        new OA\Property(property: 'percent', type: 'number', format: 'float'),
+                                        new OA\Property(property: 'limit_reached', type: 'boolean'),
+                                        new OA\Property(property: 'input', type: 'integer', description: 'Sum of session input tokens'),
+                                        new OA\Property(property: 'output', type: 'integer', description: 'Sum of session output tokens'),
+                                        new OA\Property(property: 'session_total', type: 'integer', description: 'Sum of session total tokens'),
+                                    ],
+                                ),
+                                new OA\Property(
+                                    property: 'cost',
+                                    type: 'object',
+                                    properties: [
+                                        new OA\Property(property: 'estimated_usd', type: 'number', format: 'float'),
+                                        new OA\Property(property: 'currency', type: 'string', example: 'USD'),
+                                        new OA\Property(property: 'pricing_model', type: 'string', description: 'Canonical model used to price the usage'),
+                                    ],
+                                ),
+                                new OA\Property(property: 'sessions_count', type: 'integer'),
+                            ],
+                        ),
+                    ],
+                ),
+            ),
+            new OA\Response(response: 403, description: 'Not allowed for this project'),
+            new OA\Response(response: 404, description: 'Project not found'),
+        ],
+    )]
+    public function tokenBudget(Request $request, TokenPricingService $pricing, string $id): JsonResponse
+    {
+        $project = SharedProject::findOrFail($id);
+        $this->authorize('view', $project);
+
+        // Single aggregate query (toBase → scalar stdClass, no model hydration).
+        $agg = Session::where('shared_project_id', $project->id)
+            ->toBase()
+            ->selectRaw(
+                'COALESCE(SUM(input_tokens), 0) AS input_sum, '
+                .'COALESCE(SUM(output_tokens), 0) AS output_sum, '
+                .'COALESCE(SUM(total_tokens), 0) AS total_sum, '
+                .'COUNT(*) AS session_count'
+            )
+            ->first();
+
+        $inputTokens = (int) ($agg->input_sum ?? 0);
+        $outputTokens = (int) ($agg->output_sum ?? 0);
+        $sessionTotalTokens = (int) ($agg->total_sum ?? 0);
+        $sessionCount = (int) ($agg->session_count ?? 0);
+
+        $estimatedCost = $pricing->costFor(null, $inputTokens, $outputTokens);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'tokens' => [
+                    // Project-level budget counter (canonical consumption).
+                    'used' => $project->total_tokens,
+                    'max' => $project->max_tokens,
+                    'percent' => $project->token_usage_percent,
+                    'limit_reached' => $project->is_token_limit_reached,
+                    // Session-derived split (input/output) used for the cost.
+                    'input' => $inputTokens,
+                    'output' => $outputTokens,
+                    'session_total' => $sessionTotalTokens,
+                ],
+                'cost' => [
+                    'estimated_usd' => round($estimatedCost, 4),
+                    'currency' => 'USD',
+                    'pricing_model' => $pricing->resolveModel(null),
+                ],
+                'sessions_count' => $sessionCount,
+            ],
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),

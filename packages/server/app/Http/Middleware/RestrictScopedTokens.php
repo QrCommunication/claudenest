@@ -10,7 +10,9 @@ use App\Models\Session;
 use App\Models\SharedTask;
 use App\Models\Sprint;
 use Closure;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Route;
 use Laravel\Sanctum\TransientToken;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -100,11 +102,11 @@ class RestrictScopedTokens
      * Resolve a route parameter to its scalar key, whether the router gave us a
      * raw value or a bound Eloquent model (implicit route-model binding).
      */
-    private function routeParamId(\Illuminate\Routing\Route $route, string $name): ?string
+    private function routeParamId(Route $route, string $name): ?string
     {
         $param = $route->parameter($name);
 
-        if ($param instanceof \Illuminate\Database\Eloquent\Model) {
+        if ($param instanceof Model) {
             return (string) $param->getKey();
         }
 
@@ -207,8 +209,9 @@ class RestrictScopedTokens
             return $instance !== null && $instance->project_id === $scopedProjectId;
         }
 
-        // ---- sessions/{session}/notification (session bound to the scoped project) ----
-        if ($uri === 'api/sessions/{session}/notification') {
+        // ---- sessions/{session}/notification + token-usage (session bound to scope) ----
+        if ($uri === 'api/sessions/{session}/notification'
+            || $uri === 'api/sessions/{session}/token-usage') {
             $session = Session::find((string) $route->parameter('session'));
 
             return $session !== null && $session->shared_project_id === $scopedProjectId;

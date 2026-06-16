@@ -4,9 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\SessionCreated;
+use App\Events\SessionInput;
+use App\Events\SessionNotification;
+use App\Events\SessionResize;
+use App\Events\SessionTerminated;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\SessionResource;
 use App\Models\Machine;
+use App\Models\PersonalAccessToken;
 use App\Models\Session;
 use App\Models\SharedProject;
 use App\Services\AgentGateway;
@@ -138,10 +144,10 @@ class SessionController extends Controller
 
         // Multi-agent: resolve the shared project (must belong to this user AND this machine)
         $project = null;
-        if (!empty($validated['shared_project_id'])) {
+        if (! empty($validated['shared_project_id'])) {
             $project = SharedProject::find($validated['shared_project_id']);
 
-            if (!$project
+            if (! $project
                 || $project->user_id !== $request->user()->id
                 || $project->machine_id !== $machine->id
             ) {
@@ -174,7 +180,7 @@ class SessionController extends Controller
         AgentGateway::send($machine->id, 'session:create', $payload);
 
         // Broadcast to dashboard via Reverb (credentials excluded — agent-only via AgentGateway)
-        broadcast(new \App\Events\SessionCreated($session))->toOthers();
+        broadcast(new SessionCreated($session))->toOthers();
 
         return response()->json([
             'success' => true,
@@ -273,7 +279,7 @@ class SessionController extends Controller
         ]);
 
         // Broadcast to dashboard via Reverb
-        broadcast(new \App\Events\SessionTerminated($session))->toOthers();
+        broadcast(new SessionTerminated($session))->toOthers();
 
         return response()->json([
             'success' => true,
@@ -393,8 +399,8 @@ class SessionController extends Controller
             'data' => [
                 'ws_token' => $wsToken,
                 'session_id' => $session->id,
-                'ws_url' => config('reverb.apps.apps.0.options.scheme') . '://' .
-                    config('reverb.apps.apps.0.options.host') . ':' .
+                'ws_url' => config('reverb.apps.apps.0.options.scheme').'://'.
+                    config('reverb.apps.apps.0.options.host').':'.
                     config('reverb.apps.apps.0.options.port'),
             ],
             'meta' => [
@@ -448,7 +454,7 @@ class SessionController extends Controller
         $body = json_decode($request->getContent(), true);
         $data = $body['data'] ?? null;
 
-        if (!is_string($data) || $data === '') {
+        if (! is_string($data) || $data === '') {
             return $this->errorResponse('VAL_001', 'The data field is required', 422);
         }
 
@@ -462,7 +468,7 @@ class SessionController extends Controller
         ]);
 
         // Broadcast to dashboard via Reverb
-        broadcast(new \App\Events\SessionInput($session, $data))->toOthers();
+        broadcast(new SessionInput($session, $data))->toOthers();
 
         // Log input
         $session->addLog('input', $data);
@@ -546,7 +552,7 @@ class SessionController extends Controller
         ]);
 
         // Broadcast to dashboard via Reverb
-        broadcast(new \App\Events\SessionResize($session, $validated['cols'], $validated['rows']))->toOthers();
+        broadcast(new SessionResize($session, $validated['cols'], $validated['rows']))->toOthers();
 
         return response()->json([
             'success' => true,
@@ -597,10 +603,10 @@ class SessionController extends Controller
         // session (name mcp:{sessionId} — the RestrictScopedTokens middleware
         // already pins scoped tokens to the session's project).
         $token = $request->user()->currentAccessToken();
-        $isScopedSessionToken = $token instanceof \App\Models\PersonalAccessToken
+        $isScopedSessionToken = $token instanceof PersonalAccessToken
             && $token->name === MultiAgentSessionService::tokenNameFor($session);
 
-        if ($session->user_id !== $request->user()->id && !$isScopedSessionToken) {
+        if ($session->user_id !== $request->user()->id && ! $isScopedSessionToken) {
             return $this->errorResponse('AUTH_002', 'You do not have permission to access this resource', 403);
         }
 
@@ -612,7 +618,7 @@ class SessionController extends Controller
 
         // event() (not broadcast()) so registered listeners fire too — the
         // event is ShouldBroadcast, so it is still broadcast identically.
-        event(new \App\Events\SessionNotification(
+        event(new SessionNotification(
             $session,
             $validated['message'],
             $validated['title'] ?? null,
@@ -632,4 +638,75 @@ class SessionController extends Controller
         ]);
     }
 
+    /**
+     * Record a session's token usage (input/output) reported by the agent's
+     * token parser. The reported figures are CUMULATIVE per session, so they are
+     * stored absolutely (idempotent — re-reporting the same totals is a no-op).
+     * `total_tokens` defaults to input + output when omitted.
+     */
+    #[OA\Post(
+        path: '/api/sessions/{id}/token-usage',
+        summary: 'Record a session\'s token usage',
+        security: [['bearerAuth' => []]],
+        tags: ['Sessions'],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Session UUID', schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['input_tokens', 'output_tokens'],
+                properties: [
+                    new OA\Property(property: 'input_tokens', type: 'integer', minimum: 0),
+                    new OA\Property(property: 'output_tokens', type: 'integer', minimum: 0),
+                    new OA\Property(property: 'total_tokens', type: 'integer', nullable: true, minimum: 0),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Token usage recorded'),
+            new OA\Response(response: 403, description: 'Not allowed for this session'),
+            new OA\Response(response: 404, description: 'Session not found'),
+        ],
+    )]
+    public function tokenUsage(Request $request, string $id): JsonResponse
+    {
+        $session = Session::findOrFail($id);
+
+        // Allowed: the session owner, or the scoped token minted for this session
+        // (name mcp:{sessionId}) — same pin as notification().
+        $token = $request->user()->currentAccessToken();
+        $isScopedSessionToken = $token instanceof PersonalAccessToken
+            && $token->name === MultiAgentSessionService::tokenNameFor($session);
+
+        if ($session->user_id !== $request->user()->id && ! $isScopedSessionToken) {
+            return $this->errorResponse('AUTH_002', 'You do not have permission to access this resource', 403);
+        }
+
+        $validated = $request->validate([
+            'input_tokens' => 'required|integer|min:0',
+            'output_tokens' => 'required|integer|min:0',
+            'total_tokens' => 'nullable|integer|min:0',
+        ]);
+
+        $session->update([
+            'input_tokens' => $validated['input_tokens'],
+            'output_tokens' => $validated['output_tokens'],
+            'total_tokens' => $validated['total_tokens'] ?? ($validated['input_tokens'] + $validated['output_tokens']),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'session_id' => $session->id,
+                'input_tokens' => $session->input_tokens,
+                'output_tokens' => $session->output_tokens,
+                'total_tokens' => $session->total_tokens,
+            ],
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
+    }
 }

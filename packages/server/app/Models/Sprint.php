@@ -113,6 +113,37 @@ class Sprint extends Model
         return $query->orderBy('sort_order')->orderBy('created_at');
     }
 
+    /**
+     * Hide sprints that belong to an archived epic.
+     *
+     * There is no direct sprint→epic FK: a sprint "belongs" to an epic through
+     * its tasks (decomposition creates one sprint per wave, all its tasks sharing
+     * the wave's epic_id). A sprint is therefore considered archived-epic-only
+     * when it has tasks AND every task sits under an archived epic — i.e. it has
+     * NO "keeping" task: a backlog task (NULL epic_id) or a task under a
+     * non-archived epic. Empty sprints, project-bootstrap sprints (epic-less
+     * tasks) and mixed sprints all stay visible — only fully-archived-epic
+     * sprints are dropped.
+     */
+    public function scopeExcludingArchivedEpics($query)
+    {
+        return $query->where(function ($outer) {
+            $outer
+                // No tasks at all → nothing ties it to an archived epic.
+                ->whereDoesntHave('tasks')
+                // ...or at least one task that keeps the sprint visible.
+                ->orWhereHas('tasks', function ($task) {
+                    $task->where(function ($keeping) {
+                        $keeping
+                            ->whereNull('epic_id')
+                            ->orWhereHas('epic', function ($epic) {
+                                $epic->whereNull('archived_at');
+                            });
+                    });
+                });
+        });
+    }
+
     // ==================== ACCESSORS ====================
 
     public function getTasksCountAttribute(): int
@@ -148,7 +179,7 @@ class Sprint extends Model
 
     public function getRemainingDaysAttribute(): ?int
     {
-        if (!$this->end_date) {
+        if (! $this->end_date) {
             return null;
         }
 
@@ -159,7 +190,7 @@ class Sprint extends Model
 
     public function getIsOverdueAttribute(): bool
     {
-        if (!$this->end_date) {
+        if (! $this->end_date) {
             return false;
         }
 
@@ -201,7 +232,7 @@ class Sprint extends Model
      */
     public function getBurndownData(): array
     {
-        if (!$this->start_date) {
+        if (! $this->start_date) {
             return [];
         }
 
@@ -225,7 +256,7 @@ class Sprint extends Model
         $current = $startDate->copy();
         $day = 0;
 
-        while (!$current->greaterThan($endDate)) {
+        while (! $current->greaterThan($endDate)) {
             $completedPoints = $tasks
                 ->filter(fn ($t) => $t->completed_at && $t->completed_at->lte($current))
                 ->sum('estimated_tokens');

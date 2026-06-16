@@ -5,11 +5,10 @@ import type { Sprint } from '@/types';
 
 /**
  * SprintBoard is self-contained: it reads the full sprint list from the sprints
- * store and fetches a sprint's detail on selection. These specs pin the two
- * pieces of UX added by the sprint-board polish:
- *   - the active-sprint action button relabeled "Generate PR" (emits
- *     `complete-sprint`, which triggers PR generation server-side);
- *   - the clickable numbered selector (.sprint-pager) that jumps between sprints.
+ * store and fetches a sprint's detail on selection. These specs pin the
+ * navigation UX: the clickable numbered selector (.sprint-pager) that jumps
+ * between sprints, plus the create-sprint affordance. PR generation no longer
+ * lives here — it moved to the epic finalize flow.
  * The store composable is mocked so the spec stays focused on the component.
  */
 const mocked = vi.hoisted(() => ({
@@ -26,8 +25,6 @@ import SprintBoard from '@/components/multiagent/SprintBoard.vue';
 // Real i18n messages for the keys the specs assert on; unlisted keys fall back
 // to their path (fine, we don't assert on them).
 const sprintboardMessages = {
-  generatePr: 'Generate PR',
-  generatePrTitle: 'Complete the sprint and open a pull request',
   goToSprint: 'Go to sprint {number}',
   startNewSprint: 'Start a new sprint',
 };
@@ -61,7 +58,7 @@ async function mountBoard(): Promise<VueWrapper> {
   return wrapper;
 }
 
-describe('SprintBoard — generate PR + numbered selector', () => {
+describe('SprintBoard — numbered selector + navigation', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocked.sprintsStore.sprints = [];
@@ -140,27 +137,13 @@ describe('SprintBoard — generate PR + numbered selector', () => {
     expect(mocked.sprintsStore.fetchSprint).toHaveBeenLastCalledWith('c');
   });
 
-  it('shows the "Generate PR" action only for an active selected sprint and emits complete-sprint', async () => {
+  it('no longer renders a Generate PR / complete-sprint action (moved to epic finalize)', async () => {
     mocked.sprintsStore.sprints = [makeSprint('s1', { status: 'active' })];
 
     const wrapper = await mountBoard();
 
-    const btn = wrapper.find('.complete-sprint-btn');
-    expect(btn.exists()).toBe(true);
-    expect(btn.text()).toBe('Generate PR');
-    expect(btn.attributes('title')).toBe('Complete the sprint and open a pull request');
-    expect(btn.attributes('aria-label')).toBe('Complete the sprint and open a pull request');
-
-    await btn.trigger('click');
-    expect(wrapper.emitted('complete-sprint')).toHaveLength(1);
-  });
-
-  it('hides the Generate PR action when the selected sprint is not active', async () => {
-    mocked.sprintsStore.sprints = [makeSprint('s1', { status: 'completed' })];
-
-    const wrapper = await mountBoard();
-
     expect(wrapper.find('.complete-sprint-btn').exists()).toBe(false);
+    expect(wrapper.emitted('complete-sprint')).toBeUndefined();
   });
 
   it('disables the prev arrow on the first sprint and navigates with next', async () => {

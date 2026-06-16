@@ -46,6 +46,8 @@ class Session extends Model
         'exit_code',
         'pty_size',
         'total_tokens',
+        'input_tokens',
+        'output_tokens',
         'total_cost',
         'started_at',
         'completed_at',
@@ -62,6 +64,10 @@ class Session extends Model
         'pid' => 'integer',
         'exit_code' => 'integer',
         'total_tokens' => 'integer',
+        // Per-session input/output token split (see add_token_usage migration).
+        // Drives the input/output-aware cost via TokenPricingService.
+        'input_tokens' => 'integer',
+        'output_tokens' => 'integer',
         'total_cost' => 'decimal:4',
         'started_at' => 'datetime',
         'completed_at' => 'datetime',
@@ -179,7 +185,7 @@ class Session extends Model
 
     public function getDurationAttribute(): ?int
     {
-        if (!$this->started_at) {
+        if (! $this->started_at) {
             return null;
         }
         $end = $this->completed_at ?? now();
@@ -196,12 +202,13 @@ class Session extends Model
             return 'N/A';
         }
         if ($seconds < 60) {
-            return $seconds . 's';
+            return $seconds.'s';
         }
         if ($seconds < 3600) {
-            return floor($seconds / 60) . 'm ' . ($seconds % 60) . 's';
+            return floor($seconds / 60).'m '.($seconds % 60).'s';
         }
-        return floor($seconds / 3600) . 'h ' . floor(($seconds % 3600) / 60) . 'm';
+
+        return floor($seconds / 3600).'h '.floor(($seconds % 3600) / 60).'m';
     }
 
     // ==================== HELPERS ====================

@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Events\EpicDecompositionUpdated;
 use App\Events\SessionCreated;
 use App\Events\SessionNotification;
 use App\Events\SessionTerminated;
 use App\Models\ClaudeCredential;
+use App\Models\Epic;
 use App\Models\PersonalAccessToken;
 use App\Models\Session;
 use App\Models\SharedProject;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -55,9 +58,14 @@ class DecompositionSessionService
      * Releases the one-result-per-run lock first so this run can emit its
      * `decompose:result` (see {@see DecompositionStreamService}).
      *
+     * When `$epic` is provided the run is an epic (re)build: the epic is linked
+     * to the freshly spawned session and flipped to `running`, so the agent's
+     * submission ({@see submitFromAgent}) can resolve its target epic via
+     * `decomposition_session_id` and the dashboard can show a live badge.
+     *
      * @throws \RuntimeException if the credential is unusable (caller maps 422)
      */
-    public function launch(SharedProject $project, ClaudeCredential $credential): Session
+    public function launch(SharedProject $project, ClaudeCredential $credential, ?Epic $epic = null): Session
     {
         // Surface an unusable credential before creating a session row that
         // would only 401 on boot.
@@ -95,7 +103,53 @@ class DecompositionSessionService
         AgentGateway::send($project->machine_id, 'session:create', $payload);
         broadcast(new SessionCreated($session))->toOthers();
 
+        if ($epic) {
+            $this->linkEpicToSession($epic, $session);
+        }
+
         return $session;
+    }
+
+    /**
+     * Bind an epic to its just-spawned decomposition session, mark it `running`
+     * via the canonical model helper, and broadcast the transition.
+     */
+    private function linkEpicToSession(Epic $epic, Session $session): void
+    {
+        $epic->markDecompositionRunning($session->id);
+        broadcast(new EpicDecompositionUpdated($epic, Epic::DECOMPOSITION_RUNNING));
+    }
+
+    /**
+     * Mark the epic linked to a decomposition session as `failed` (with a
+     * human-readable reason) and broadcast it, so the dashboard reflects the
+     * failure (toast + board badge) in realtime.
+     *
+     * Guarded on the in-flight statuses only, so it is idempotent and never
+     * clobbers an epic whose decomposition already succeeded (`completed`) — a
+     * session that exits *after* a successful submit must stay completed. No-op
+     * for a project-level (non-epic) decomposition or a null session.
+     *
+     * @return Epic|null the epic that was failed, or null when nothing applied.
+     */
+    public function failEpicForSession(?Session $session, string $reason): ?Epic
+    {
+        if (! $session) {
+            return null;
+        }
+
+        $epic = Epic::where('decomposition_session_id', $session->id)
+            ->whereIn('decomposition_status', Epic::DECOMPOSITION_ACTIVE_STATUSES)
+            ->first();
+
+        if (! $epic) {
+            return null;
+        }
+
+        $epic->markDecompositionFailed(Str::limit($reason, 1000));
+        broadcast(new EpicDecompositionUpdated($epic, Epic::DECOMPOSITION_FAILED));
+
+        return $epic;
     }
 
     /**
@@ -141,6 +195,10 @@ class DecompositionSessionService
             return $result;
         }
 
+        // Preserve the epic↔session link across the relaunch (if this was an
+        // epic decomposition): the new session re-binds the same epic.
+        $epic = Epic::where('decomposition_session_id', $session->id)->first();
+
         // Cooldown: at most one decompose auth-error relaunch per project / 2 min.
         $cooldownKey = "claudenest:decompose:authrelaunch:{$project->id}";
         if (! Cache::add($cooldownKey, 1, 120)) {
@@ -169,6 +227,7 @@ class DecompositionSessionService
 
         if (! $credential || $result['needs_login']) {
             $result['needs_login'] = true;
+            $this->failEpicForSession($session, 'Decomposition authentication expired — re-capture your Claude credentials, then retry.');
             event(new SessionNotification(
                 $session,
                 'Decomposition authentication expired — please re-capture your Claude credentials.',
@@ -184,6 +243,7 @@ class DecompositionSessionService
         // Machine must be online to relaunch; otherwise surface a notification.
         $machine = $project->machine;
         if (! $machine || $machine->status !== 'online') {
+            $this->failEpicForSession($session, 'Decomposition could not resume — the machine is offline.');
             event(new SessionNotification(
                 $session,
                 'Decomposition could not resume — the machine is offline.',
@@ -195,7 +255,7 @@ class DecompositionSessionService
         }
 
         try {
-            $new = $this->launch($project, $credential);
+            $new = $this->launch($project, $credential, $epic);
             $result['relaunched'] = true;
             $result['new_session'] = $new->id;
 
@@ -205,6 +265,7 @@ class DecompositionSessionService
                 'refreshed' => $result['refreshed'],
             ]);
         } catch (Throwable $e) {
+            $this->failEpicForSession($session, 'Decomposition relaunch failed: '.$e->getMessage());
             Log::error('Decompose relaunch failed after auth 401', [
                 'old_session' => $session->id,
                 'error' => $e->getMessage(),

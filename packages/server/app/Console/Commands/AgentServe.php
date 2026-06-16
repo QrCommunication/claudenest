@@ -4,18 +4,22 @@ namespace App\Console\Commands;
 
 use App\Events\ClaudeSessionsDiscovered;
 use App\Events\ClaudeSessionTranscript;
+use App\Events\EpicUpdated;
 use App\Events\ProjectBroadcast;
 use App\Events\SessionOutput;
 use App\Events\SessionTerminated;
 use App\Models\ClaudeCredential;
 use App\Models\DiscoveredSession;
+use App\Models\Epic;
 use App\Models\Machine;
 use App\Models\Session;
 use App\Models\SharedProject;
 use App\Services\AgentGateway;
+use App\Services\DecompositionSessionService;
 use App\Services\MultiAgentSessionService;
 use App\Services\Redis\AgentWakeSubscriber;
 use App\Services\WorkerLoopService;
+use App\Services\WorkerPoolService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
@@ -458,6 +462,7 @@ class AgentServe extends Command
                 'oauth:tokens' => $this->onOAuthTokens($data),
                 'oauth:error' => $this->onOAuthError($data),
                 'sprint:finalized' => $this->onSprintFinalized($data),
+                'epic:finalized' => $this->onEpicFinalized($data),
                 'session:auth_error' => $this->onSessionAuthError($data),
                 'ping' => $this->onAgentPing($machineId),
                 'error' => $this->onAgentError($machineId, $data),
@@ -663,6 +668,21 @@ class AgentServe extends Command
                     'error' => $e->getMessage(),
                 ]);
             }
+
+            // Safety net: a decompose session that exits while its linked epic
+            // is still pending/running never applied its plan — mark the epic
+            // failed so it doesn't stay stuck. No-op once the epic is `ready`
+            // (the submit path flips it before tearing the session down) or for
+            // non-decompose sessions.
+            try {
+                app(DecompositionSessionService::class)
+                    ->failEpicForSession($session, 'Decomposition session ended before a plan was applied.');
+            } catch (\Throwable $e) {
+                Log::warning('Decompose epic fail-on-exit failed', [
+                    'session_id' => $session->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
 
         broadcast(new SessionTerminated($session));
@@ -708,12 +728,12 @@ class AgentServe extends Command
             return;
         }
 
-        $decompositionSession = app(\App\Services\DecompositionSessionService::class);
+        $decompositionSession = app(DecompositionSessionService::class);
 
         try {
             if ($session->orchestrated) {
                 $this->warn('['.date('H:i:s')."] Worker auth 401 ({$sessionId}) — renewing credential + relaunching");
-                $result = app(\App\Services\WorkerPoolService::class)->relaunchOnAuthError($session);
+                $result = app(WorkerPoolService::class)->relaunchOnAuthError($session);
             } elseif ($decompositionSession->isDecomposeSession($session)) {
                 $this->warn('['.date('H:i:s')."] Decompose auth 401 ({$sessionId}) — renewing credential + relaunching");
                 $result = $decompositionSession->relaunchOnAuthError($session);
@@ -774,6 +794,89 @@ class AgentServe extends Command
 
         Log::info('Sprint finalized', [
             'sprint_id' => $data['sprintId'] ?? null,
+            'pr_url' => $prUrl,
+            'success' => $success,
+        ]);
+    }
+
+    /**
+     * The agent reported back the outcome of an `epic:finalize` dispatch (PR
+     * opened on the agent host). On success, record the PR coordinates on the
+     * epic and close it (status → done) — this is the "close on PR" step that
+     * EpicFinalizeService::dispatchPullRequest only stamps the intent for.
+     *
+     * Mirror of {@see onSprintFinalized()} at the epic granularity, plus the
+     * epic-specific pr_number/pr_state columns and the markDone() close.
+     * Best-effort: an unknown epic/project never breaks the agent loop.
+     */
+    private function onEpicFinalized(array $data): void
+    {
+        $epicId = $data['epicId'] ?? null;
+        if (! $epicId) {
+            return;
+        }
+
+        $epic = Epic::with('project')->find($epicId);
+        if (! $epic) {
+            return;
+        }
+
+        $project = $epic->project;
+        $success = (bool) ($data['success'] ?? false);
+        $prUrl = $data['prUrl'] ?? null;
+        $prNumber = $data['prNumber'] ?? null;
+        $branch = $data['branch'] ?? null;
+        $error = $data['error'] ?? null;
+
+        // Normalize the PR state against the DB CHECK; default to "open" when a
+        // PR url is present but the agent did not specify a state.
+        $prState = $data['prState'] ?? null;
+        if (! in_array($prState, Epic::PR_STATES, true)) {
+            $prState = $prUrl ? Epic::PR_STATE_OPEN : null;
+        }
+
+        if ($success && $prUrl) {
+            // Persist the PR coordinates and close the epic — the PR is the
+            // deliverable that marks the epic's work as shipped.
+            $epic->update([
+                'pr_url' => $prUrl,
+                'pr_number' => is_numeric($prNumber) ? (int) $prNumber : null,
+                'pr_state' => $prState,
+                'pr_branch' => $branch ?? $epic->pr_branch,
+            ]);
+            $epic->markDone();
+
+            $message = "Epic pull request opened: {$prUrl}";
+        } elseif ($success) {
+            $message = "Epic branch '{$branch}' pushed.".($error ? " {$error}" : '');
+        } else {
+            $message = 'Epic PR failed: '.($error ?? 'unknown error');
+        }
+
+        if ($project) {
+            broadcast(new ProjectBroadcast($project, [
+                'type' => 'epic:pr',
+                'success' => $success,
+                'epic_id' => $epic->id,
+                'pr_url' => $prUrl,
+                'branch' => $branch,
+                'message' => $message,
+            ]));
+
+            $project->logActivity('broadcast', null, [
+                'kind' => 'epic_pr',
+                'epic_id' => $epic->id,
+                'pr_url' => $prUrl,
+                'success' => $success,
+                'message' => $message,
+            ]);
+        }
+
+        // Reflect the closed/PR state on the board in real time.
+        broadcast(new EpicUpdated($epic->fresh(), $success && $prUrl ? 'finalized' : 'updated'))->toOthers();
+
+        Log::info('Epic finalized', [
+            'epic_id' => $epic->id,
             'pr_url' => $prUrl,
             'success' => $success,
         ]);

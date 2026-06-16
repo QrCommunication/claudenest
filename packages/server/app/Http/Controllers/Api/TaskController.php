@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Events\EpicUpdated;
+use App\Events\TaskClaimed;
+use App\Events\TaskCompleted;
+use App\Events\TaskCreated;
+use App\Events\TaskReleased;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\TaskResource;
 use App\Models\Epic;
@@ -106,6 +110,16 @@ class TaskController extends Controller
             $query->byEpic($validated['epic_id']);
         }
 
+        // Board hygiene: tasks under an archived epic drop off the panel, like
+        // the epic itself disappears from the board (EpicController::index) and
+        // its sprints (Sprint::scopeExcludingArchivedEpics). An explicit epic_id
+        // filter bypasses this — targeting an epic directly lets you still
+        // inspect its tasks even once it is archived. Tasks with no epic (NULL
+        // epic_id) are always retained (whereDoesntHave is null-safe).
+        if (! isset($validated['epic_id'])) {
+            $query->excludingArchivedEpics();
+        }
+
         if (isset($validated['parent_id'])) {
             $query->subtasksOf($validated['parent_id']);
         }
@@ -126,6 +140,100 @@ class TaskController extends Controller
         }
 
         $tasks = $query->paginate($request->input('per_page', 20));
+
+        return response()->json([
+            'success' => true,
+            'data' => TaskResource::collection($tasks),
+            'meta' => [
+                'pagination' => [
+                    'current_page' => $tasks->currentPage(),
+                    'per_page' => $tasks->perPage(),
+                    'total' => $tasks->total(),
+                    'last_page' => $tasks->lastPage(),
+                ],
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
+    }
+
+    /**
+     * List tasks across every active (non-archived) project the user owns —
+     * the backing endpoint for the all-projects task panel.
+     *
+     * Mirrors {@see index}'s filtering (status / priority / assigned_to + the
+     * default visibility window, overridable with include_all), but spans all
+     * the user's projects instead of one. Each task carries its `project_id`
+     * (TaskResource) so the client can group by project. An optional `project_id`
+     * filter narrows back to a single owned project.
+     *
+     * GET /api/tasks
+     */
+    #[OA\Get(
+        path: '/api/tasks',
+        summary: 'List the user\'s tasks across all active projects',
+        security: [['bearerAuth' => []]],
+        tags: ['Tasks'],
+        parameters: [
+            new OA\Parameter(name: 'status', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['backlog', 'pending', 'in_progress', 'blocked', 'review', 'done'])),
+            new OA\Parameter(name: 'assigned_to', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'priority', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['low', 'medium', 'high', 'critical'])),
+            new OA\Parameter(name: 'project_id', in: 'query', required: false, description: 'Narrow to a single owned project.', schema: new OA\Schema(type: 'string', format: 'uuid')),
+            new OA\Parameter(name: 'include_all', in: 'query', required: false, description: 'Override the default visibility filter to return every task (including tasks completed before today).', schema: new OA\Schema(type: 'boolean')),
+            new OA\Parameter(name: 'per_page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 30)),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Paginated cross-project task list', content: new OA\JsonContent(ref: '#/components/schemas/PaginatedResponse')),
+        ],
+    )]
+    public function allForUser(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'status' => 'string|in:backlog,pending,in_progress,blocked,review,done',
+            'assigned_to' => 'string',
+            'priority' => 'string|in:low,medium,high,critical',
+            'project_id' => 'uuid',
+            'include_all' => 'boolean',
+        ]);
+
+        // Scope to the user's ACTIVE (non-archived) projects only — archived
+        // projects drop out of the cross-project board like they do the sidebar.
+        $projectIds = $request->user()->sharedProjects()->active()->pluck('id');
+
+        if (isset($validated['project_id'])) {
+            // Honour the filter only when the project is actually one of the
+            // user's active projects (prevents cross-tenant peeking via an id).
+            $projectIds = $projectIds->contains($validated['project_id'])
+                ? collect([$validated['project_id']])
+                : collect();
+        }
+
+        $query = SharedTask::whereIn('project_id', $projectIds)
+            ->orderBy('created_at', 'desc');
+
+        if (isset($validated['status'])) {
+            $query->byStatus($validated['status']);
+        }
+
+        if (isset($validated['assigned_to'])) {
+            $query->assignedTo($validated['assigned_to']);
+        }
+
+        if (isset($validated['priority'])) {
+            $query->byPriority($validated['priority']);
+        }
+
+        // Tasks under an archived epic are hidden from the cross-project board
+        // too — there is no epic_id filter here, so it is unconditional.
+        $query->excludingArchivedEpics();
+
+        // Same default visibility as the per-project index: focus on in-progress
+        // tasks + those completed today, unless narrowed by status or overridden.
+        if (! isset($validated['status']) && ! $request->boolean('include_all')) {
+            $query->defaultVisible();
+        }
+
+        $tasks = $query->paginate($request->input('per_page', 30));
 
         return response()->json([
             'success' => true,
@@ -201,7 +309,7 @@ class TaskController extends Controller
         ]);
 
         // Broadcast task creation
-        broadcast(new \App\Events\TaskCreated($task))->toOthers();
+        broadcast(new TaskCreated($task))->toOthers();
 
         return response()->json([
             'success' => true,
@@ -374,16 +482,16 @@ class TaskController extends Controller
         ]);
 
         if ($task->is_claimed) {
-            return $this->errorResponse('TSK_002', 'Task already claimed by ' . $task->assigned_to, 409);
+            return $this->errorResponse('TSK_002', 'Task already claimed by '.$task->assigned_to, 409);
         }
 
-        if (!$task->hasDependenciesCompleted()) {
+        if (! $task->hasDependenciesCompleted()) {
             return $this->errorResponse('TSK_003', 'Task dependencies not completed', 400);
         }
 
         $success = $task->claim($validated['instance_id']);
 
-        if (!$success) {
+        if (! $success) {
             return $this->errorResponse('TSK_002', 'Failed to claim task', 409);
         }
 
@@ -391,7 +499,7 @@ class TaskController extends Controller
         WorkerLoopService::resetNoProgress($validated['instance_id']);
 
         // Broadcast task claim
-        broadcast(new \App\Events\TaskClaimed($task))->toOthers();
+        broadcast(new TaskClaimed($task))->toOthers();
 
         return response()->json([
             'success' => true,
@@ -434,14 +542,14 @@ class TaskController extends Controller
             'reason' => 'nullable|string',
         ]);
 
-        if (!$task->is_claimed) {
+        if (! $task->is_claimed) {
             return $this->errorResponse('TSK_003', 'Task is not claimed', 400);
         }
 
         $task->release($validated['reason'] ?? null);
 
         // Broadcast task release
-        broadcast(new \App\Events\TaskReleased($task))->toOthers();
+        broadcast(new TaskReleased($task))->toOthers();
 
         // Coordinator trigger: a task released 2+ times signals thrashing.
         // Best-effort — coordination must never break the release itself.
@@ -510,7 +618,7 @@ class TaskController extends Controller
             'instance_id' => 'required|string',
         ]);
 
-        if (!$task->is_claimed) {
+        if (! $task->is_claimed) {
             return $this->errorResponse('TSK_003', 'Task must be claimed before completion', 400);
         }
 
@@ -543,7 +651,7 @@ class TaskController extends Controller
                 $validated['files_modified'] ?? [],
                 $validated['instance_id'],
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::warning('Task completion living-context ingestion failed', [
                 'task_id' => $task->id,
                 'project_id' => $task->project_id,
@@ -552,7 +660,7 @@ class TaskController extends Controller
         }
 
         // Broadcast task completion (scalar payload, see TaskCompleted::broadcastWith).
-        broadcast(new \App\Events\TaskCompleted($task))->toOthers();
+        broadcast(new TaskCompleted($task))->toOthers();
 
         // Cascade epic status: completing a task may have been the last one
         // needed for its epic to reach `done` (or move it from `open` to
@@ -596,7 +704,7 @@ class TaskController extends Controller
 
         $task = SharedTask::getNextAvailable($projectId);
 
-        if (!$task) {
+        if (! $task) {
             return response()->json([
                 'success' => true,
                 'data' => null,
@@ -624,7 +732,7 @@ class TaskController extends Controller
     {
         $project = $this->getUserProject($request, $projectId);
 
-        if (!$project) {
+        if (! $project) {
             return $this->errorResponse('CTX_001', 'Project not found', 404);
         }
 
@@ -634,7 +742,7 @@ class TaskController extends Controller
 
         $task = SharedTask::claimNextAvailable($projectId, $validated['instance_id']);
 
-        if (!$task) {
+        if (! $task) {
             return response()->json([
                 'success' => true,
                 'data' => null,
@@ -646,7 +754,7 @@ class TaskController extends Controller
             ]);
         }
 
-        broadcast(new \App\Events\TaskClaimed($task))->toOthers();
+        broadcast(new TaskClaimed($task))->toOthers();
 
         return response()->json([
             'success' => true,
@@ -704,5 +812,4 @@ class TaskController extends Controller
             ],
         ]);
     }
-
 }

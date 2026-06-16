@@ -33,7 +33,9 @@ class SprintController extends Controller
             'per_page' => 'integer|min:1|max:100',
         ]);
 
-        $query = $project->sprints()->ordered();
+        // Sprints under an archived epic are hidden from the board (the epic was
+        // archived, so its waves' sprints follow it out of the active listing).
+        $query = $project->sprints()->excludingArchivedEpics()->ordered();
 
         if (isset($validated['status'])) {
             $query->byStatus($validated['status']);

@@ -9,6 +9,7 @@ import type {
   UpdateProjectForm,
   ClaudeInstance,
   ActivityLog,
+  TokenBudget,
   ApiResponse,
 } from '@/types';
 
@@ -20,9 +21,11 @@ export const useProjectsStore = defineStore('projects', () => {
   const archivedProjects = ref<SharedProject[]>([]);
   const selectedProject = ref<SharedProject | null>(null);
   const projectStats = ref<ProjectStats | null>(null);
+  const tokenBudget = ref<TokenBudget | null>(null);
   const instances = ref<ClaudeInstance[]>([]);
   const activityLogs = ref<ActivityLog[]>([]);
   const isLoading = ref(false);
+  const isLoadingTokenBudget = ref(false);
   const isCreating = ref(false);
   const isUpdating = ref(false);
   const isDeleting = ref(false);
@@ -62,6 +65,45 @@ export const useProjectsStore = defineStore('projects', () => {
     try {
       const response = await api.get<ApiResponse<SharedProject[]>>(`/machines/${machineId}/projects`);
       projects.value = response.data.data;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch projects';
+      error.value = message;
+      throw err;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  /**
+   * Fetch every project owned by the authenticated user across ALL their
+   * machines — the cross-machine "all projects" view (backend
+   * `GET /projects` → ProjectController::allProjects).
+   *
+   * Mirrors the backend `?archived` switch: the active set (default) lands in
+   * `projects`, the archived set in `archivedProjects` — keeping the same
+   * active/archived separation as the per-machine `fetchProjects`/`fetchArchived`
+   * so the sidebar flow is never polluted by archived entries.
+   *
+   * @param archived When true, fetch the archived projects only.
+   * @returns The fetched project list.
+   * @throws {Error} If the fetch operation fails
+   */
+  async function fetchAllProjects(archived = false): Promise<SharedProject[]> {
+    isLoading.value = true;
+    error.value = null;
+
+    try {
+      const response = await api.get<ApiResponse<SharedProject[]>>(
+        '/projects',
+        archived ? { params: { archived: true } } : undefined,
+      );
+      const data = response.data.data;
+      if (archived) {
+        archivedProjects.value = data;
+      } else {
+        projects.value = data;
+      }
+      return data;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to fetch projects';
       error.value = message;
@@ -359,6 +401,27 @@ export const useProjectsStore = defineStore('projects', () => {
   }
 
   /**
+   * Fetch the token cost + budget for a project.
+   * GET /projects/{id}/token-budget — project-level usage counter + the
+   * session-derived input/output split and its estimated USD cost.
+   * @throws {Error} If the fetch fails
+   */
+  async function fetchTokenBudget(projectId: string): Promise<TokenBudget> {
+    isLoadingTokenBudget.value = true;
+    try {
+      const response = await api.get<ApiResponse<TokenBudget>>(`/projects/${projectId}/token-budget`);
+      tokenBudget.value = response.data.data;
+      return response.data.data;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch token budget';
+      error.value = message;
+      throw err;
+    } finally {
+      isLoadingTokenBudget.value = false;
+    }
+  }
+
+  /**
    * Fetch project instances (active Claude Code instances)
    * @throws {Error} If the fetch fails
    */
@@ -422,6 +485,7 @@ export const useProjectsStore = defineStore('projects', () => {
   function clearSelectedProject(): void {
     selectedProject.value = null;
     projectStats.value = null;
+    tokenBudget.value = null;
     instances.value = [];
     activityLogs.value = [];
   }
@@ -452,9 +516,11 @@ export const useProjectsStore = defineStore('projects', () => {
     archivedProjects,
     selectedProject,
     projectStats,
+    tokenBudget,
     instances,
     activityLogs,
     isLoading,
+    isLoadingTokenBudget,
     isCreating,
     isUpdating,
     isDeleting,
@@ -468,6 +534,7 @@ export const useProjectsStore = defineStore('projects', () => {
 
     // Actions
     fetchProjects,
+    fetchAllProjects,
     fetchProject,
     createProject,
     updateProject,
@@ -480,6 +547,7 @@ export const useProjectsStore = defineStore('projects', () => {
     archiveProjectLocal,
     unarchiveProjectLocal,
     fetchProjectStats,
+    fetchTokenBudget,
     fetchInstances,
     fetchActivity,
     broadcast,
