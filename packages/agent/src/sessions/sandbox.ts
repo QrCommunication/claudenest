@@ -21,6 +21,7 @@ import { execFileSync, execSync } from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
 import fs from 'node:fs';
+import { getCacheDir } from '../utils/index.js';
 import type { Logger } from '../utils/logger.js';
 
 let cachedBwrapPath: string | null | undefined;
@@ -186,6 +187,110 @@ export function ensureTmux(logger: Logger): void {
   }
 }
 
+/**
+ * Cache dir where Playwright stores its browser binaries. Shared by the agent
+ * (provisioning) and the workers (PLAYWRIGHT_BROWSERS_PATH at runtime). It lives
+ * under ~/.cache/claudenest, which the sandbox already binds writable — so a
+ * worker can run `npx playwright test` against the pre-provisioned Chromium.
+ */
+export function playwrightBrowsersPath(): string {
+  return path.join(getCacheDir(), 'ms-playwright');
+}
+
+let playwrightInstallAttempted = false;
+
+/**
+ * True when a Chromium build already exists under the given browsers path
+ * (Playwright lays them out as `chromium-<rev>/`). Cheap sentinel so we never
+ * re-run the slow install when the binary is already present.
+ */
+function hasChromiumInstalled(browsersPath: string): boolean {
+  try {
+    return fs
+      .readdirSync(browsersPath)
+      .some((entry) => entry.startsWith('chromium-'));
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Best-effort provisioning of Playwright's Chromium so orchestrated workers can
+ * run browser E2E via plain Bash (`npx playwright test`). Modeled on
+ * ensureBwrap: attempts the (slow) install at most once per process and NEVER
+ * throws — a failed provision just means E2E may not work, it must not block a
+ * worker from launching.
+ *
+ * Returns true when Chromium is available afterwards, false otherwise.
+ *
+ * The binaries go to ~/.cache/claudenest/ms-playwright (already a writable
+ * sandbox carve-out). System deps (`playwright install-deps`) are only attempted
+ * when running as root or with passwordless sudo; otherwise we warn and continue
+ * (headless may still fail at runtime, which is acceptable fail-open behaviour).
+ */
+export function ensurePlaywrightChromium(logger: Logger): boolean {
+  const browsersPath = playwrightBrowsersPath();
+
+  // Sentinel: a non-empty chromium-* build → already provisioned.
+  if (hasChromiumInstalled(browsersPath)) return true;
+  if (playwrightInstallAttempted) return false; // try the slow install once
+  playwrightInstallAttempted = true;
+
+  try {
+    fs.mkdirSync(browsersPath, { recursive: true });
+  } catch (err) {
+    logger.warn({ err, browsersPath }, 'Could not create Playwright browsers dir');
+    return false;
+  }
+
+  const env = { ...process.env, PLAYWRIGHT_BROWSERS_PATH: browsersPath };
+
+  // 1. Download the Chromium browser build (~180s budget).
+  try {
+    logger.info({ browsersPath }, 'Provisioning Playwright Chromium for worker E2E');
+    execFileSync('npx', ['--yes', 'playwright', 'install', 'chromium'], {
+      env,
+      stdio: 'ignore',
+      timeout: 180_000,
+    });
+  } catch (err) {
+    logger.warn(
+      { err },
+      'Playwright Chromium install failed — browser E2E may be unavailable',
+    );
+    return hasChromiumInstalled(browsersPath);
+  }
+
+  // 2. System libraries (libnss3, libatk, …). Needs root/sudo; skip otherwise.
+  let sudo: string[] = [];
+  try {
+    execSync('sudo -n true 2>/dev/null');
+    sudo = ['sudo', '-n'];
+  } catch {
+    sudo = [];
+  }
+  const isRoot = process.getuid?.() === 0;
+  if (isRoot || sudo.length > 0) {
+    const argv = [...sudo, 'npx', '--yes', 'playwright', 'install-deps', 'chromium'];
+    try {
+      execFileSync(argv[0]!, argv.slice(1), { stdio: 'ignore', timeout: 180_000 });
+    } catch (err) {
+      logger.warn(
+        { err },
+        'Playwright install-deps failed — headless Chromium may be missing system libraries',
+      );
+    }
+  } else {
+    logger.warn(
+      'Playwright system deps not installed (no root/passwordless sudo) — ' +
+        'headless Chromium may fail. Install once with: ' +
+        'sudo npx playwright install-deps chromium',
+    );
+  }
+
+  return hasChromiumInstalled(browsersPath);
+}
+
 export interface SandboxOptions {
   /** Project directory — made writable (the worker edits code here). */
   projectPath: string;
@@ -212,6 +317,9 @@ export function buildBwrapArgs(opts: SandboxOptions): string[] {
     '--proc', '/proc',
     // Fresh private /tmp.
     '--tmpfs', '/tmp',
+    // Headless Chromium (Playwright E2E) needs a writable /dev/shm for its
+    // shared-memory transport; the read-only base would otherwise crash it.
+    '--tmpfs', '/dev/shm',
     // Isolate process + IPC + UTS namespaces (network is intentionally kept).
     '--unshare-pid',
     '--unshare-ipc',

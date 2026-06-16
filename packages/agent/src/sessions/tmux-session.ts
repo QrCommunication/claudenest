@@ -16,7 +16,14 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { execFileSync, spawn, type ChildProcess } from 'child_process';
 import { TmuxOutputParser, type TmuxOutputEvent } from './tmux-parser.js';
-import { findBwrap, buildBwrapArgs, ensureTmux } from './sandbox.js';
+import {
+  findBwrap,
+  buildBwrapArgs,
+  ensureTmux,
+  ensurePlaywrightChromium,
+  playwrightBrowsersPath,
+} from './sandbox.js';
+import { HeartbeatMonitor } from './heartbeat-monitor.js';
 import { getCacheDir } from '../utils/index.js';
 import type { Logger } from '../utils/logger.js';
 import type { SessionConfig, SessionStatus } from '../types/index.js';
@@ -76,6 +83,13 @@ export class TmuxSession extends EventEmitter {
    */
   private runtimeDir: string | null = null;
 
+  /**
+   * Process-liveness heartbeat for orchestrated workers. Started after the
+   * control client attaches (only when this is a multi-agent worker), stopped
+   * first thing in cleanup(). Null for non-orchestrated sessions.
+   */
+  private heartbeatMonitor: HeartbeatMonitor | null = null;
+
   pid?: number;
 
   constructor(options: TmuxSessionOptions) {
@@ -116,6 +130,16 @@ export class TmuxSession extends EventEmitter {
       // 0b. Prepare per-session runtime dir (MCP config + hooks + env injection)
       //     Only runs when both mcpEnv and sharedProjectId are present (multi-agent).
       this.prepareRuntimeDir();
+
+      // 0c. Provision Playwright Chromium for orchestrated workers so they can
+      //     run browser E2E via plain Bash. Best-effort, non-blocking: a failed
+      //     provision logs a warning and the session still launches.
+      if (this.mcpConfigPath) {
+        const ready = ensurePlaywrightChromium(this.logger);
+        if (!ready) {
+          this.logger.warn('Playwright Chromium unavailable — browser E2E may fail in this worker');
+        }
+      }
 
       // 1. Create detached tmux session
       //    If the tmux server for this socket isn't running yet,
@@ -159,6 +183,11 @@ export class TmuxSession extends EventEmitter {
 
       // 5. Attach in control mode for structured I/O
       this.attachControlMode();
+
+      // 5b. Start the process-liveness heartbeat for orchestrated workers, so a
+      //     long Bash command (tests/build) doesn't make the worker look dead
+      //     while no Claude hook fires.
+      this.startHeartbeatMonitor();
 
       this.setStatus('running');
     } catch (error) {
@@ -682,6 +711,57 @@ export class TmuxSession extends EventEmitter {
     });
   }
 
+  /**
+   * Start the process-liveness HeartbeatMonitor for an orchestrated worker.
+   *
+   * Only multi-agent workers carry a runtime/mcp config; non-orchestrated and
+   * bash sessions are skipped. The instance id, API URL and token come from the
+   * mcpEnv the server injected at spawn (mirrors what the hooks read). Missing
+   * any of them → no monitor (fail-open: the hooks' own heartbeat still works).
+   */
+  private startHeartbeatMonitor(): void {
+    if (!this.mcpConfigPath || !this.runtimeDir) return;
+
+    const mcpEnv = this.options.mcpEnv ?? {};
+    const instanceId =
+      this.options.instanceId ?? mcpEnv['CLAUDENEST_INSTANCE_ID'] ?? '';
+    const apiUrl = mcpEnv['CLAUDENEST_API_URL'] ?? '';
+    const token = mcpEnv['CLAUDENEST_TOKEN'] ?? '';
+
+    if (!instanceId || !apiUrl || !token) {
+      this.logger.debug(
+        { hasInstanceId: !!instanceId, hasApiUrl: !!apiUrl, hasToken: !!token },
+        'Heartbeat monitor not started — missing instanceId/apiUrl/token',
+      );
+      return;
+    }
+
+    this.heartbeatMonitor = new HeartbeatMonitor({
+      tmuxName: this.tmuxName,
+      // Re-read the pane PID live so the monitor follows tmux respawns.
+      getPanePid: () => this.readPanePid() ?? this.pid,
+      instanceId,
+      apiUrl,
+      token,
+      runtimeDir: this.runtimeDir,
+      logger: this.logger,
+    });
+    this.heartbeatMonitor.start();
+  }
+
+  /** Current pane PID from tmux, or undefined when it can't be read. */
+  private readPanePid(): number | undefined {
+    try {
+      const out = this.tmuxExec(
+        ['display-message', '-t', this.tmuxName, '-p', '#{pane_pid}'],
+      ).trim();
+      const pid = parseInt(out, 10);
+      return Number.isFinite(pid) && pid > 0 ? pid : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
   private setupParserEvents(): void {
     this.parser.on('output', (event: TmuxOutputEvent) => {
       this.outputBuffer.push(event.data);
@@ -718,6 +798,12 @@ export class TmuxSession extends EventEmitter {
       ...(this.options.mcpEnv || {}),
       // Inject runtime dir so hooks can locate the lock cache and heartbeat file.
       ...(this.runtimeDir ? { CLAUDENEST_RUNTIME_DIR: this.runtimeDir } : {}),
+      // Point orchestrated workers at the pre-provisioned Chromium so their Bash
+      // `npx playwright test` finds the browser without re-downloading it.
+      // Only set for multi-agent workers (mcpConfigPath present).
+      ...(this.mcpConfigPath
+        ? { PLAYWRIGHT_BROWSERS_PATH: playwrightBrowsersPath() }
+        : {}),
     };
 
     for (const [key, value] of Object.entries(sessionVars)) {
@@ -851,6 +937,11 @@ export class TmuxSession extends EventEmitter {
   }
 
   private cleanup(): void {
+    // Stop the liveness heartbeat first so no beat fires for a pane we're about
+    // to kill.
+    this.heartbeatMonitor?.stop();
+    this.heartbeatMonitor = null;
+
     try {
       execFileSync('tmux', ['-L', TMUX_SOCKET, 'kill-session', '-t', this.tmuxName]);
     } catch {

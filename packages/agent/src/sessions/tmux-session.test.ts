@@ -408,6 +408,59 @@ describe('TmuxSession — prepareRuntimeDir()', () => {
     expect(keys).not.toContain('CLAUDENEST_RUNTIME_DIR');
   });
 
+  // ── PLAYWRIGHT_BROWSERS_PATH env injection ─────────────────────────────────
+
+  it('injects PLAYWRIGHT_BROWSERS_PATH for orchestrated workers (mcpConfigPath set)', () => {
+    const session = makeMultiAgentSession();
+    const priv = asPrivate(session) as SessionPrivate & { mcpConfigPath: string | null };
+    priv.prepareRuntimeDir();
+
+    // mcpConfigPath is only set when dist/mcp/index.js is built; skip otherwise.
+    if (priv.mcpConfigPath === null) return;
+
+    const setCalls: string[][] = [];
+    priv.tmuxExec = (args: string[]) => {
+      setCalls.push(args);
+      return '';
+    };
+
+    priv.setupSessionEnv();
+
+    const setEnvCalls = setCalls.filter(a => a[0] === 'set-environment');
+    const values = setEnvCalls.reduce<Record<string, string>>((acc, a) => {
+      acc[a[3]] = a[4];
+      return acc;
+    }, {});
+
+    expect(values).toHaveProperty('PLAYWRIGHT_BROWSERS_PATH');
+    // Points at the shared ms-playwright cache dir.
+    expect(values['PLAYWRIGHT_BROWSERS_PATH']).toMatch(/ms-playwright$/);
+  });
+
+  it('does NOT inject PLAYWRIGHT_BROWSERS_PATH for a plain session (no mcpConfigPath)', () => {
+    const session = new TmuxSession({
+      sessionId: 'plain-session-pw',
+      claudePath: '/usr/bin/false',
+      mode: 'interactive',
+      logger,
+    });
+    const priv = asPrivate(session);
+
+    const setCalls: string[][] = [];
+    priv.tmuxExec = (args: string[]) => {
+      setCalls.push(args);
+      return '';
+    };
+
+    priv.setupSessionEnv();
+
+    const keys = setCalls
+      .filter(a => a[0] === 'set-environment')
+      .map(a => a[3]);
+
+    expect(keys).not.toContain('PLAYWRIGHT_BROWSERS_PATH');
+  });
+
   // ── Cleanup ───────────────────────────────────────────────────────────────
 
   it('cleanup removes runtimeDir (standalone — no isolatedConfigDir)', () => {
