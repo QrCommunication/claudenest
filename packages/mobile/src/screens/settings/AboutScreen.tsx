@@ -17,8 +17,13 @@ type IconName = React.ComponentProps<typeof MaterialIcons>["name"];
 // Alias to preserve usage pattern
 const Icon = MaterialIcons;
 import { LinearGradient } from "expo-linear-gradient";
+import Constants from "expo-constants";
 import { colors, spacing, borderRadius, typography } from "@/theme";
 import { Card } from "@/components/common";
+
+// Single source of truth: app.json's expo.version (synced with package.json).
+// Mirrors SettingsScreen so the version shown is never hardcoded/stale.
+const APP_VERSION = Constants.expoConfig?.version ?? "1.0.0";
 
 const LINKS: Array<{ icon: IconName; label: string; url: string }> = [
   { icon: "public", label: "Website", url: "https://claudenest.app" },
@@ -68,7 +73,7 @@ export const AboutScreen: React.FC = () => {
           />
         </LinearGradient>
         <Text style={styles.appName}>ClaudeNest</Text>
-        <Text style={styles.version}>Version 1.0.0</Text>
+        <Text style={styles.version}>Version {APP_VERSION}</Text>
         <Text style={styles.tagline}>Remote Control for Claude Code</Text>
       </View>
 

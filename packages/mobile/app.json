@@ -2,7 +2,7 @@
   "expo": {
     "name": "ClaudeNest",
     "slug": "claudenest",
-    "version": "0.8.1",
+    "version": "1.0.0",
     "orientation": "default",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
@@ -14,6 +14,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "app.qrcommunication.claudenest",
+      "buildNumber": "100",
       "icon": "./assets/icon.png"
     },
     "android": {
@@ -22,7 +23,7 @@
         "backgroundColor": "#0f0f1a"
       },
       "package": "app.qrcommunication.claudenest",
-      "versionCode": 70,
+      "versionCode": 100,
       "softwareKeyboardLayoutMode": "resize"
     },
     "web": {
