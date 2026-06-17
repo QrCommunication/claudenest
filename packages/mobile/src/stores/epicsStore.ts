@@ -384,6 +384,10 @@ export const useEpicsStore = create<EpicsState>()(
           (raw: unknown) => {
             const payload = raw as EpicDecompositionPayload;
             if (!payload?.epic_id) return;
+            // Ignore decomposition events addressed to another project — the
+            // realtime channel can carry cross-project payloads; reconcile only
+            // the subscribed project (consistent with the `*ByProject` getters).
+            if (payload.project_id !== projectId) return;
 
             // Translate `decomposition_completed_at` → Epic alias `decomposed_at`.
             get().applyEpicUpdate(payload.epic_id, {
