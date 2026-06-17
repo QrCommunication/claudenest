@@ -4,4 +4,5 @@ export { InstanceCard } from "./InstanceCard";
 export { EpicCard } from "./EpicCard";
 export { SprintCard } from "./SprintCard";
 export { KanbanBoard } from "./KanbanBoard";
+export { EpicDecompositionModal } from "./EpicDecompositionModal";
 export { TokenBudgetPanel } from "./TokenBudgetPanel";

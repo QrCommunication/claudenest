@@ -1026,15 +1026,22 @@ class ProjectController extends Controller
         $this->authorize('view', $project);
 
         $stats = [
-            'total_tasks' => $project->tasks()->count(),
-            'pending_tasks' => $project->tasks()->where('status', 'pending')->count(),
-            'completed_tasks' => $project->tasks()->where('status', 'done')->count(),
+            // Task counters exclude tasks belonging to an archived epic via
+            // SharedTask::scopeExcludingArchivedEpics() — the single source of
+            // truth already used by SharedProject, Sprint and Epic. A task with
+            // no epic (NULL epic_id) is retained; only tasks under an archived
+            // epic are dropped, keeping these counters consistent with the
+            // visible task panel and the project/epic/sprint counters.
+            'total_tasks' => $project->tasks()->excludingArchivedEpics()->count(),
+            'pending_tasks' => $project->tasks()->excludingArchivedEpics()->where('status', 'pending')->count(),
+            'completed_tasks' => $project->tasks()->excludingArchivedEpics()->where('status', 'done')->count(),
             // "Remaining work" reuses SharedTask::scopeRemaining as the single
             // source of truth (not done AND not stranded in a completed/cancelled
             // sprint) so this counter stays consistent with SprintResource and the
             // task panel. Completing a sprint drops its tasks from this count while
-            // backlog tasks (no sprint_id) are retained.
-            'remaining_tasks' => $project->tasks()->remaining()->count(),
+            // backlog tasks (no sprint_id) are retained. Archived-epic tasks are
+            // dropped too.
+            'remaining_tasks' => $project->tasks()->remaining()->excludingArchivedEpics()->count(),
             'active_instances' => $project->claudeInstances()->whereNull('disconnected_at')->count(),
             'context_chunks' => $project->contextChunks()->count(),
             'active_locks' => $project->fileLocks()->where('expires_at', '>', now())->count(),

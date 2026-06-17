@@ -624,7 +624,11 @@ export const ProjectDetailContent: React.FC<ProjectDetailContentProps> = ({
     fetchEpics,
     subscribeRealtime: subscribeEpicsRealtime,
   } = useEpicsStore();
-  const { getSprintsByProject, fetchSprints } = useSprintsStore();
+  const {
+    getSprintsByProject,
+    fetchSprints,
+    subscribeRealtime: subscribeSprintsRealtime,
+  } = useSprintsStore();
 
   const [activeTab, setActiveTab] = useState<TabKey>("overview");
   const [isBroadcasting, setIsBroadcasting] = useState(false);
@@ -655,13 +659,18 @@ export const ProjectDetailContent: React.FC<ProjectDetailContentProps> = ({
     fetchEpics(projectId);
     fetchSprints(projectId);
 
-    const unsubscribe = subscribeToProject(projectId);
+    // projectsStore owns the Reverb `projects.{id}` channel (binds the
+    // `.epic.*` listeners that re-emit onto the event bus); epicsStore only
+    // registers the bus consumers that reconcile epic state in place.
     // Live AI decomposition lifecycle (pending → running → completed | failed)
     // on the same project channel — patches the epic board in place.
+    const unsubscribeProject = subscribeToProject(projectId);
     const unsubscribeEpics = subscribeEpicsRealtime(projectId);
+    const unsubscribeSprints = subscribeSprintsRealtime(projectId);
     return () => {
+      unsubscribeSprints();
       unsubscribeEpics();
-      unsubscribe();
+      unsubscribeProject();
     };
   }, [projectId]);
 

@@ -286,6 +286,8 @@ class WebSocketService {
       .listen(".epic.updated", (e: ReverbPayload) =>
         this.emit("epic:updated", e),
       )
+      // Async AI decomposition lifecycle (pending → running → completed | failed).
+      // Carries `project_id` + `decomposition_completed_at` (Epic alias `decomposed_at`).
       .listen(".epic.decomposition", (e: ReverbPayload) =>
         this.emit("epic:decomposition", e),
       )

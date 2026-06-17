@@ -68,6 +68,37 @@ export const colors = {
     background: ["#06060e", "#0b0b16", "#121121"] as string[],
   },
 
+  // "Claude OS" shell chrome — semantic tokens for the taskbar/dock, window
+  // frames and selectable shell items. Co-located with the dimensional `os`
+  // group in `layout.ts` so the whole shell stays coherent from one source.
+  // The selected state is an ACCENT-TINTED translucent fill (clearly lighter
+  // than the rest surface) plus an accent border + accent foreground, so a
+  // picked item is unmistakable and READABLE against the near-black chrome —
+  // unlike the old opaque `bg.hover` that was nearly invisible on `bg.card`.
+  os: {
+    // Bottom taskbar / dock.
+    dock: {
+      surface: "#121121", // = bg.card
+      border: "rgba(176,115,255,0.40)", // = border.strong
+      divider: "rgba(255,255,255,0.10)", // = border.default
+    },
+    // Window-frame chrome (header bar + body).
+    window: {
+      surface: "#0b0b16", // = bg.secondary (body)
+      header: "#121121", // = bg.card
+      border: "rgba(255,255,255,0.10)", // = border.default
+    },
+    // Selectable shell items (dock tiles, tabs, segments). `selected*` are the
+    // readable picked-state tokens.
+    item: {
+      rest: "#0e0d1a", // = bg.input (idle tile)
+      restText: "rgba(232,230,255,0.60)", // = text.secondary
+      selected: "rgba(176,115,255,0.16)", // legible accent-tinted fill
+      selectedBorder: "#b073ff", // = accent.purple
+      selectedText: "#b073ff", // = accent.purple
+    },
+  },
+
   // Terminal-specific colors (Tokyo-night-ish, kept for the PTY view)
   terminal: {
     background: "#0b0b16",

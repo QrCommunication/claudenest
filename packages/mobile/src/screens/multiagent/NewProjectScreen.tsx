@@ -25,6 +25,7 @@ import { useProjectsStore } from "@/stores/projectsStore";
 import { projectsApi } from "@/services/api";
 import { FolderPickerModal } from "@/components/sessions/FolderPickerModal";
 import { useFadeIn } from "@/utils/animations";
+import { t } from "@/i18n";
 import type { Machine, ProjectScanResult } from "@/types";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { ProjectsStackParamList } from "@/navigation/types";
@@ -81,7 +82,7 @@ const MachineSelector = memo(function MachineSelector({
               <Text style={styles.dropdownSelected}>{selected.name}</Text>
             </>
           ) : (
-            <Text style={styles.dropdownPlaceholder}>Select a machine…</Text>
+            <Text style={styles.dropdownPlaceholder}>{t("project.machinePlaceholder")}</Text>
           )}
         </View>
         <Icon
@@ -175,20 +176,36 @@ const Field = memo(function Field({
 
 export const NewProjectScreen = memo(function NewProjectScreen({
   navigation,
+  route,
 }: Props) {
   const fadeStyle = useFadeIn();
+
+  // `projectId` present → edit mode (full context fields); absent → create.
+  const editId = route.params?.projectId;
+  const isEditing = !!editId;
 
   const {
     machines,
     fetchMachines,
     isLoading: machinesLoading,
   } = useMachinesStore();
-  const { createProject, isLoading: projectLoading } = useProjectsStore();
+  const {
+    createProject,
+    updateProject,
+    updateContext,
+    fetchContext,
+    getProjectById,
+    isLoading: projectLoading,
+  } = useProjectsStore();
 
   const [machineId, setMachineId] = useState<string | null>(null);
   const [projectPath, setProjectPath] = useState("");
   const [projectName, setProjectName] = useState("");
   const [summary, setSummary] = useState("");
+  const [architecture, setArchitecture] = useState("");
+  const [conventions, setConventions] = useState("");
+  const [currentFocus, setCurrentFocus] = useState("");
+  const [recentChanges, setRecentChanges] = useState("");
   const [nameManuallyEdited, setNameManuallyEdited] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isScanning, setIsScanning] = useState(false);
@@ -198,10 +215,28 @@ export const NewProjectScreen = memo(function NewProjectScreen({
   const nameRef = useRef<TextInput>(null);
   const summaryRef = useRef<TextInput>(null);
 
-  // Load machines on mount
+  // Load machines on mount (create mode only — path/machine are immutable once
+  // the project exists).
   useEffect(() => {
-    fetchMachines();
-  }, [fetchMachines]);
+    if (!isEditing) fetchMachines();
+  }, [isEditing, fetchMachines]);
+
+  // Edit mode: prefill name + the full context (fetchContext loads the detailed
+  // architecture/conventions/currentFocus/recentChanges into the store project).
+  useEffect(() => {
+    if (!editId) return;
+    void fetchContext(editId);
+    const project = getProjectById(editId);
+    if (project) {
+      setProjectName(project.name);
+      setNameManuallyEdited(true);
+      setSummary(project.summary || "");
+      setArchitecture(project.architecture || "");
+      setConventions(project.conventions || "");
+      setCurrentFocus(project.currentFocus || "");
+      setRecentChanges(project.recentChanges || "");
+    }
+  }, [editId, fetchContext, getProjectById]);
 
   // Auto-select first online machine
   useEffect(() => {
@@ -228,23 +263,38 @@ export const NewProjectScreen = memo(function NewProjectScreen({
   const validate = useCallback((): boolean => {
     const next: Record<string, string> = {};
 
-    if (!machineId) next.machine = "Please select a machine";
-    if (!projectPath.trim()) next.projectPath = "Project path is required";
-    if (!projectName.trim()) next.projectName = "Project name is required";
+    // Machine + path are required only when creating (immutable afterwards).
+    if (!isEditing) {
+      if (!machineId) next.machine = t("project.machineRequired");
+      if (!projectPath.trim()) next.projectPath = t("project.pathRequired");
+    }
+    if (!projectName.trim()) next.projectName = t("project.nameRequired");
 
     setErrors(next);
     return Object.keys(next).length === 0;
-  }, [machineId, projectPath, projectName]);
+  }, [isEditing, machineId, projectPath, projectName]);
+
+  // The full context payload shared by create (follow-up PATCH) and edit.
+  const contextPayload = useCallback(
+    () => ({
+      summary: summary.trim(),
+      architecture: architecture.trim(),
+      conventions: conventions.trim(),
+      currentFocus: currentFocus.trim(),
+      recentChanges: recentChanges.trim(),
+    }),
+    [summary, architecture, conventions, currentFocus, recentChanges],
+  );
 
   // Preview the project on disk: confirms the path exists and auto-detects the
   // real name + tech stack before creating (wires the ProjectScan endpoint).
   const handleScan = useCallback(async () => {
     if (!machineId) {
-      setErrors((e) => ({ ...e, machine: "Please select a machine" }));
+      setErrors((e) => ({ ...e, machine: t("project.machineRequired") }));
       return;
     }
     if (!projectPath.trim()) {
-      setErrors((e) => ({ ...e, projectPath: "Project path is required" }));
+      setErrors((e) => ({ ...e, projectPath: t("project.pathRequired") }));
       return;
     }
     setIsScanning(true);
@@ -258,34 +308,65 @@ export const NewProjectScreen = memo(function NewProjectScreen({
       }
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : "Could not scan that path";
-      showAlert("Scan failed", message);
+        err instanceof Error ? err.message : t("project.scanFailed");
+      showAlert(t("project.scanFailed"), message);
     } finally {
       setIsScanning(false);
     }
   }, [machineId, projectPath, nameManuallyEdited]);
 
-  const handleCreate = useCallback(async () => {
-    if (!validate()) return;
+  const [isSaving, setIsSaving] = useState(false);
 
+  const handleSubmit = useCallback(async () => {
+    if (!validate()) return;
+    setIsSaving(true);
     try {
+      const ctx = contextPayload();
+      if (isEditing && editId) {
+        // Name lives on the project; the context fields go through the
+        // dedicated context endpoint (camelCase — distinct from the bare
+        // project PATCH which is snake_case and name-only here).
+        await updateProject(editId, { name: projectName.trim() });
+        await updateContext(editId, ctx);
+        navigation.goBack();
+        return;
+      }
+
       const project = await createProject(machineId!, {
         name: projectName.trim(),
         projectPath: projectPath.trim(),
       });
 
-      // If summary was provided, update context (best-effort)
-      // The API create endpoint does not accept summary directly
-      // It would require a follow-up PATCH — skipped for MVP
+      // Persist any context provided at creation as a follow-up PATCH (the
+      // create endpoint only accepts name + path).
+      const hasContext = Object.values(ctx).some((v) => v.length > 0);
+      if (hasContext) {
+        try {
+          await updateContext(project.id, ctx);
+        } catch {
+          // Non-fatal: the project exists; context can be edited later.
+        }
+      }
 
       navigation.replace("ProjectDetail", { projectId: project.id });
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : "Failed to create project";
-      showAlert("Error", message);
+        err instanceof Error
+          ? err.message
+          : isEditing
+            ? t("project.editFailed")
+            : t("project.createFailed");
+      showAlert(t("common.error"), message);
+    } finally {
+      setIsSaving(false);
     }
   }, [
     validate,
+    contextPayload,
+    isEditing,
+    editId,
+    updateProject,
+    updateContext,
     createProject,
     machineId,
     projectName,
@@ -293,7 +374,7 @@ export const NewProjectScreen = memo(function NewProjectScreen({
     navigation,
   ]);
 
-  const isSubmitting = projectLoading;
+  const isSubmitting = projectLoading || isSaving;
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
@@ -312,160 +393,178 @@ export const NewProjectScreen = memo(function NewProjectScreen({
             {/* Section header */}
             <View style={styles.sectionHeader}>
               <Icon
-                name="folder-shared"
+                name={isEditing ? "edit-note" : "folder-shared"}
                 size={32}
                 color={colors.primary.purple}
               />
-              <Text style={styles.sectionTitle}>New Multi-Agent Project</Text>
+              <Text style={styles.sectionTitle}>
+                {isEditing ? t("project.editTitle") : t("project.newTitle")}
+              </Text>
               <Text style={styles.sectionSubtitle}>
-                Create a shared project to coordinate multiple Claude instances
+                {isEditing
+                  ? t("project.editSubtitle")
+                  : t("project.newSubtitle")}
               </Text>
             </View>
 
-            {/* Machine selector */}
-            <Field
-              label="Machine"
-              required
-              error={errors.machine}
-              hint="Only online machines can host a new project"
-            >
-              {machinesLoading ? (
-                <View style={styles.loadingRow}>
-                  <ActivityIndicator
-                    size="small"
-                    color={colors.primary.purple}
-                  />
-                  <Text style={styles.loadingText}>Loading machines…</Text>
-                </View>
-              ) : (
-                <MachineSelector
-                  machines={machines}
-                  selectedId={machineId}
-                  onSelect={setMachineId}
-                />
-              )}
-            </Field>
-
-            {/* Project path */}
-            <Field
-              label="Project Path"
-              required
-              error={errors.projectPath}
-              hint="Absolute path on the host machine, e.g. /home/user/my-project"
-            >
-              <TextInput
-                style={[
-                  styles.input,
-                  errors.projectPath ? styles.inputError : null,
-                ]}
-                value={projectPath}
-                onChangeText={setProjectPath}
-                placeholder="/home/user/my-project"
-                placeholderTextColor={colors.text.muted}
-                autoCapitalize="none"
-                autoCorrect={false}
-                returnKeyType="next"
-                onSubmitEditing={() => nameRef.current?.focus()}
-              />
-              <View style={styles.pathActions}>
-                <TouchableOpacity
-                  style={styles.browseBtn}
-                  onPress={() => {
-                    if (!machineId) {
-                      setErrors((e) => ({
-                        ...e,
-                        machine: "Please select a machine",
-                      }));
-                      return;
-                    }
-                    setPickerVisible(true);
-                  }}
-                  activeOpacity={0.8}
-                  accessibilityRole="button"
-                  accessibilityLabel="Browse folders on the machine"
+            {/* Machine + path are creation-only (immutable once the project
+                exists). In edit mode we jump straight to name + context. */}
+            {!isEditing && (
+              <>
+                {/* Machine selector */}
+                <Field
+                  label={t("project.machineLabel")}
+                  required
+                  error={errors.machine}
+                  hint={t("project.machineHint")}
                 >
-                  <Icon
-                    name="folder-open"
-                    size={16}
-                    color={colors.primary.purple}
-                  />
-                  <Text style={styles.browseBtnText}>Browse</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.scanBtn, isScanning && styles.scanBtnBusy]}
-                  onPress={handleScan}
-                  disabled={isScanning || !projectPath.trim()}
-                  activeOpacity={0.8}
-                  accessibilityRole="button"
-                  accessibilityLabel="Scan path to detect the project"
-                  accessibilityState={{
-                    disabled: isScanning,
-                    busy: isScanning,
-                  }}
-                >
-                  {isScanning ? (
-                    <ActivityIndicator
-                      size="small"
-                      color={colors.accent.cyan}
-                    />
-                  ) : (
-                    <Icon name="radar" size={16} color={colors.accent.cyan} />
-                  )}
-                  <Text style={styles.scanBtnText}>
-                    {isScanning ? "Scanning…" : "Scan path"}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              {scanResult ? (
-                <View
-                  style={styles.scanResult}
-                  accessible
-                  accessibilityLabel={`Detected ${scanResult.project_name}${scanResult.has_git ? ", git repository" : ""}, tech: ${scanResult.tech_stack.join(", ") || "unknown"}`}
-                >
-                  <View style={styles.scanResultHead}>
-                    <Icon
-                      name="check-circle"
-                      size={14}
-                      color={colors.semantic.success}
-                    />
-                    <Text style={styles.scanResultName} numberOfLines={1}>
-                      {scanResult.project_name || "Project"}
-                    </Text>
-                    {scanResult.has_git ? (
-                      <View style={styles.gitPill}>
-                        <Icon
-                          name="merge-type"
-                          size={10}
-                          color={colors.accent.purple}
-                        />
-                        <Text style={styles.gitPillText}>git</Text>
-                      </View>
-                    ) : null}
-                  </View>
-                  {scanResult.tech_stack.length > 0 ? (
-                    <View style={styles.techRow}>
-                      {scanResult.tech_stack.slice(0, 6).map((t) => (
-                        <View key={t} style={styles.techChip}>
-                          <Text style={styles.techChipText}>{t}</Text>
-                        </View>
-                      ))}
+                  {machinesLoading ? (
+                    <View style={styles.loadingRow}>
+                      <ActivityIndicator
+                        size="small"
+                        color={colors.primary.purple}
+                      />
+                      <Text style={styles.loadingText}>{t("project.machineLoading")}</Text>
                     </View>
                   ) : (
-                    <Text style={styles.scanResultMuted}>
-                      No tech stack detected
-                    </Text>
+                    <MachineSelector
+                      machines={machines}
+                      selectedId={machineId}
+                      onSelect={setMachineId}
+                    />
                   )}
-                </View>
-              ) : null}
-            </Field>
+                </Field>
+
+                {/* Project path */}
+                <Field
+                  label={t("project.pathLabel")}
+                  required
+                  error={errors.projectPath}
+                  hint={t("project.pathHint")}
+                >
+                  <TextInput
+                    style={[
+                      styles.input,
+                      errors.projectPath ? styles.inputError : null,
+                    ]}
+                    value={projectPath}
+                    onChangeText={setProjectPath}
+                    placeholder="/home/user/my-project"
+                    placeholderTextColor={colors.text.muted}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    returnKeyType="next"
+                    onSubmitEditing={() => nameRef.current?.focus()}
+                  />
+                  <View style={styles.pathActions}>
+                    <TouchableOpacity
+                      style={styles.browseBtn}
+                      onPress={() => {
+                        if (!machineId) {
+                          setErrors((e) => ({
+                            ...e,
+                            machine: "Please select a machine",
+                          }));
+                          return;
+                        }
+                        setPickerVisible(true);
+                      }}
+                      activeOpacity={0.8}
+                      accessibilityRole="button"
+                      accessibilityLabel="Browse folders on the machine"
+                    >
+                      <Icon
+                        name="folder-open"
+                        size={16}
+                        color={colors.primary.purple}
+                      />
+                      <Text style={styles.browseBtnText}>{t("project.browse")}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.scanBtn, isScanning && styles.scanBtnBusy]}
+                      onPress={handleScan}
+                      disabled={isScanning || !projectPath.trim()}
+                      activeOpacity={0.8}
+                      accessibilityRole="button"
+                      accessibilityLabel="Scan path to detect the project"
+                      accessibilityState={{
+                        disabled: isScanning,
+                        busy: isScanning,
+                      }}
+                    >
+                      {isScanning ? (
+                        <ActivityIndicator
+                          size="small"
+                          color={colors.accent.cyan}
+                        />
+                      ) : (
+                        <Icon
+                          name="radar"
+                          size={16}
+                          color={colors.accent.cyan}
+                        />
+                      )}
+                      <Text style={styles.scanBtnText}>
+                        {isScanning ? t("project.scanning") : t("project.scan")}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {scanResult ? (
+                    <View
+                      style={styles.scanResult}
+                      accessible
+                      accessibilityLabel={`Detected ${scanResult.project_name}${scanResult.has_git ? ", git repository" : ""}, tech: ${scanResult.tech_stack.join(", ") || "unknown"}`}
+                    >
+                      <View style={styles.scanResultHead}>
+                        <Icon
+                          name="check-circle"
+                          size={14}
+                          color={colors.semantic.success}
+                        />
+                        <Text style={styles.scanResultName} numberOfLines={1}>
+                          {scanResult.project_name || "Project"}
+                        </Text>
+                        {scanResult.has_git ? (
+                          <View style={styles.gitPill}>
+                            <Icon
+                              name="merge-type"
+                              size={10}
+                              color={colors.accent.purple}
+                            />
+                            <Text style={styles.gitPillText}>git</Text>
+                          </View>
+                        ) : null}
+                      </View>
+                      {scanResult.tech_stack.length > 0 ? (
+                        <View style={styles.techRow}>
+                          {scanResult.tech_stack.slice(0, 6).map((t) => (
+                            <View key={t} style={styles.techChip}>
+                              <Text style={styles.techChipText}>{t}</Text>
+                            </View>
+                          ))}
+                        </View>
+                      ) : (
+                        <Text style={styles.scanResultMuted}>
+                          No tech stack detected
+                        </Text>
+                      )}
+                    </View>
+                  ) : null}
+                </Field>
+              </>
+            )}
 
             {/* Project name */}
             <Field
-              label="Project Name"
+              label={t("project.nameLabel")}
               required
               error={errors.projectName}
-              hint="Auto-generated from path — you can customize it"
+              hint={
+                isEditing
+                  ? t("project.nameHintEdit")
+                  : t("project.nameHintCreate")
+              }
             >
               <TextInput
                 ref={nameRef}
@@ -489,20 +588,84 @@ export const NewProjectScreen = memo(function NewProjectScreen({
 
             {/* Summary (optional) */}
             <Field
-              label="Summary"
-              hint="Optional — brief description of the project"
+              label={t("project.summaryLabel")}
+              hint={t("project.summaryHint")}
             >
               <TextInput
                 ref={summaryRef}
                 style={[styles.input, styles.inputMultiline]}
                 value={summary}
                 onChangeText={setSummary}
-                placeholder="What does this project do?"
+                placeholder={t("project.summaryPlaceholder")}
                 placeholderTextColor={colors.text.muted}
                 multiline
                 numberOfLines={4}
                 textAlignVertical="top"
                 returnKeyType="default"
+              />
+            </Field>
+
+            {/* Architecture (optional) */}
+            <Field
+              label={t("project.architectureLabel")}
+              hint={t("project.architectureHint")}
+            >
+              <TextInput
+                style={[styles.input, styles.inputMultiline]}
+                value={architecture}
+                onChangeText={setArchitecture}
+                placeholder={t("project.architecturePlaceholder")}
+                placeholderTextColor={colors.text.muted}
+                multiline
+                textAlignVertical="top"
+              />
+            </Field>
+
+            {/* Conventions (optional) */}
+            <Field
+              label={t("project.conventionsLabel")}
+              hint={t("project.conventionsHint")}
+            >
+              <TextInput
+                style={[styles.input, styles.inputMultiline]}
+                value={conventions}
+                onChangeText={setConventions}
+                placeholder={t("project.conventionsPlaceholder")}
+                placeholderTextColor={colors.text.muted}
+                multiline
+                textAlignVertical="top"
+              />
+            </Field>
+
+            {/* Current focus (optional) */}
+            <Field
+              label={t("project.currentFocusLabel")}
+              hint={t("project.currentFocusHint")}
+            >
+              <TextInput
+                style={[styles.input, styles.inputMultiline]}
+                value={currentFocus}
+                onChangeText={setCurrentFocus}
+                placeholder={t("project.currentFocusPlaceholder")}
+                placeholderTextColor={colors.text.muted}
+                multiline
+                textAlignVertical="top"
+              />
+            </Field>
+
+            {/* Recent changes (optional) */}
+            <Field
+              label={t("project.recentChangesLabel")}
+              hint={t("project.recentChangesHint")}
+            >
+              <TextInput
+                style={[styles.input, styles.inputMultiline]}
+                value={recentChanges}
+                onChangeText={setRecentChanges}
+                placeholder={t("project.recentChangesPlaceholder")}
+                placeholderTextColor={colors.text.muted}
+                multiline
+                textAlignVertical="top"
               />
             </Field>
 
@@ -517,7 +680,7 @@ export const NewProjectScreen = memo(function NewProjectScreen({
                 styles.submitButton,
                 isSubmitting && styles.submitButtonDisabled,
               ]}
-              onPress={handleCreate}
+              onPress={handleSubmit}
               disabled={isSubmitting}
               activeOpacity={0.8}
             >
@@ -526,11 +689,13 @@ export const NewProjectScreen = memo(function NewProjectScreen({
               ) : (
                 <>
                   <Icon
-                    name="add-circle-outline"
+                    name={isEditing ? "save" : "add-circle-outline"}
                     size={20}
                     color={colors.text.primary}
                   />
-                  <Text style={styles.submitText}>Create Project</Text>
+                  <Text style={styles.submitText}>
+                    {isEditing ? t("project.saveBtn") : t("project.createBtn")}
+                  </Text>
                 </>
               )}
             </TouchableOpacity>

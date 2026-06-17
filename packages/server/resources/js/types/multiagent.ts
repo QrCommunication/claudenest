@@ -198,6 +198,12 @@ export interface Epic {
   sort_order: number;
   tasks_count: number;
   completed_tasks_count: number;
+  /**
+   * Remaining tasks (SharedTask::scopeRemaining): not done AND not stranded in
+   * a closed sprint, computed on the archive-aware visible set (0 once the epic
+   * is archived). Single source of truth shared with the sprint/project stats.
+   */
+  remaining_tasks_count: number;
   progress_percentage: number;
   // AI decomposition state (null = never decomposed).
   decomposition_status: DecompositionStatus | null;

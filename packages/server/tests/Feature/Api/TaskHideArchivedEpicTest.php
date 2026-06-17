@@ -149,4 +149,58 @@ class TaskHideArchivedEpicTest extends TestCase
         $this->assertContains($visibleEpic->id, $ids);
         $this->assertContains($backlog->id, $ids);
     }
+
+    #[Test]
+    public function the_per_project_index_archived_flag_includes_archived_epic_tasks(): void
+    {
+        $archived = $this->epic(archived: true);
+        $task = $this->task($archived, 'Archived-epic task');
+
+        $response = $this->actingAs($this->user)
+            ->getJson("/api/projects/{$this->project->id}/tasks?include_all=1&archived=true")
+            ->assertOk();
+
+        $ids = collect($response->json('data'))->pluck('id')->all();
+
+        // ?archived=true opts back in to archived-epic tasks; the paginated
+        // total follows the same query so it stays consistent with the list.
+        $this->assertContains($task->id, $ids);
+        $this->assertSame(1, $response->json('meta.pagination.total'));
+    }
+
+    #[Test]
+    public function the_cross_project_listing_archived_flag_includes_archived_epic_tasks(): void
+    {
+        $archived = $this->epic(archived: true);
+        $task = $this->task($archived, 'Archived-epic task');
+
+        $ids = collect(
+            $this->actingAs($this->user)
+                ->getJson('/api/tasks?include_all=1&archived=true')
+                ->assertOk()
+                ->json('data')
+        )->pluck('id')->all();
+
+        $this->assertContains($task->id, $ids);
+    }
+
+    #[Test]
+    public function claiming_the_next_available_task_skips_archived_epic_tasks(): void
+    {
+        $archived = $this->epic(archived: true);
+        // The only ready-to-start task lives under an archived epic.
+        $this->task($archived, 'Archived-epic task');
+
+        // The availability counter that drives workers must not hand out a task
+        // from an archived epic — consistent with the hidden listing.
+        $this->assertNull(SharedTask::getNextAvailable($this->project->id));
+        $this->assertNull(SharedTask::claimNextAvailable($this->project->id, 'worker-1'));
+
+        // A backlog task (no epic) is still claimable, proving the exclusion is
+        // null-safe and not a blanket block.
+        $backlog = $this->task(null, 'Backlog task');
+        $claimed = SharedTask::claimNextAvailable($this->project->id, 'worker-1');
+        $this->assertNotNull($claimed);
+        $this->assertSame($backlog->id, $claimed->id);
+    }
 }

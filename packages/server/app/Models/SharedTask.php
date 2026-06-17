@@ -628,6 +628,7 @@ class SharedTask extends Model
     {
         return static::forProject($projectId)
             ->readyToStart()
+            ->excludingArchivedEpics()
             ->prioritized()
             ->first();
     }
@@ -637,6 +638,7 @@ class SharedTask extends Model
         return DB::transaction(function () use ($projectId, $instanceId) {
             $task = static::forProject($projectId)
                 ->readyToStart()
+                ->excludingArchivedEpics()
                 ->prioritized()
                 ->lockForUpdate()
                 ->first();

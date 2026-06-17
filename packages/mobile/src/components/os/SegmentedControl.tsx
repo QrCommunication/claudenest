@@ -43,7 +43,17 @@ export function SegmentedControl<T extends string>({
         return (
           <TouchableOpacity
             key={opt.value}
-            style={[styles.segment, isActive && styles.segmentActive]}
+            style={[
+              styles.segment,
+              isActive && {
+                // Accent-tinted translucent fill + accent border so the picked
+                // segment is legible (the old opaque bg.hover was nearly
+                // invisible on the bar surface). `28` ≈ 16% alpha — mirrors the
+                // dock's selected fill and the count-badge tint below.
+                backgroundColor: `${accentColor}28`,
+                borderColor: accentColor,
+              },
+            ]}
             onPress={() => onChange(opt.value)}
             activeOpacity={0.7}
             accessibilityRole="tab"
@@ -108,9 +118,9 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.base,
-  },
-  segmentActive: {
-    backgroundColor: colors.bg.hover,
+    // Transparent border reserved so the active border does not shift layout.
+    borderWidth: 1,
+    borderColor: "transparent",
   },
   label: {
     fontSize: typography.size.sm,

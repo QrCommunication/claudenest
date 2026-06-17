@@ -22,6 +22,7 @@ import { GitScreen } from "@/screens/multiagent/GitScreen";
 import { AuditScreen } from "@/screens/multiagent/AuditScreen";
 import { RunnerHealthScreen } from "@/screens/multiagent/RunnerHealthScreen";
 import { SprintDetailScreen } from "@/screens/multiagent/SprintDetailScreen";
+import { EpicDetailScreen } from "@/screens/multiagent/EpicDetailScreen";
 import { DecomposeEpicScreen } from "@/screens/multiagent/DecomposeEpicScreen";
 
 const Stack = createNativeStackNavigator<ProjectsStackParamList>();
@@ -50,7 +51,9 @@ export const ProjectsNavigator: React.FC = () => {
       <Stack.Screen
         name="NewProject"
         component={NewProjectScreen}
-        options={{ title: "New Project" }}
+        options={({ route }) => ({
+          title: route.params?.projectId ? "Edit Project" : "New Project",
+        })}
       />
       <Stack.Screen
         name="ProjectDetail"
@@ -106,6 +109,11 @@ export const ProjectsNavigator: React.FC = () => {
         name="SprintDetail"
         component={SprintDetailScreen}
         options={{ title: "Sprint" }}
+      />
+      <Stack.Screen
+        name="EpicDetail"
+        component={EpicDetailScreen}
+        options={{ title: "Epic" }}
       />
       <Stack.Screen
         name="DecomposeEpic"

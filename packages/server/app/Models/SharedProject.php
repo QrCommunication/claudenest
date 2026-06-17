@@ -209,14 +209,25 @@ class SharedProject extends Model
         return $this->sprints()->active()->first();
     }
 
+    /**
+     * Count of active (non-archived) epics. Mirrors the default-visible set
+     * surfaced everywhere else via {@see Epic::scopeActive()} so an archived
+     * epic disappears from the sidebar badge the moment it is archived.
+     */
     public function getEpicsCountAttribute(): int
     {
-        return $this->epics()->count();
+        return $this->epics()->active()->count();
     }
 
+    /**
+     * Count of sprints that do not belong exclusively to an archived epic.
+     * Sprints have no direct archived_at — their archive state is derived from
+     * their tasks' epics — so we reuse {@see Sprint::scopeExcludingArchivedEpics()}
+     * (the single source of truth for that rule) rather than re-deriving it.
+     */
     public function getSprintsCountAttribute(): int
     {
-        return $this->sprints()->count();
+        return $this->sprints()->excludingArchivedEpics()->count();
     }
 
     public function getIsArchivedAttribute(): bool

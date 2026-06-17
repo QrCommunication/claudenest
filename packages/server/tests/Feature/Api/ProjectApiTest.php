@@ -2,8 +2,7 @@
 
 namespace Tests\Feature\Api;
 
-use PHPUnit\Framework\Attributes\Test;
-
+use App\Models\Epic;
 use App\Models\Machine;
 use App\Models\SharedProject;
 use App\Models\SharedTask;
@@ -12,6 +11,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class ProjectApiTest extends TestCase
@@ -296,6 +296,55 @@ class ProjectApiTest extends TestCase
             // Only the backlog (1) and the active-sprint (4) tasks remain;
             // the done task (2) and the closed-sprint task (3) are excluded.
             ->assertJsonPath('data.remaining_tasks', 2);
+    }
+
+    #[Test]
+    public function project_stats_excludes_tasks_from_archived_epics(): void
+    {
+        $user = User::factory()->create();
+        $machine = Machine::factory()->for($user)->create();
+        $project = SharedProject::factory()->for($user)->for($machine)->create();
+
+        $activeEpic = Epic::create([
+            'project_id' => $project->id,
+            'title' => 'Active epic',
+            'color' => Epic::DEFAULT_COLOR,
+            'status' => 'open',
+            'priority' => 'medium',
+        ]);
+        $archivedEpic = Epic::create([
+            'project_id' => $project->id,
+            'title' => 'Archived epic',
+            'color' => Epic::DEFAULT_COLOR,
+            'status' => 'open',
+            'priority' => 'medium',
+        ]);
+        $archivedEpic->forceFill(['archived_at' => now()])->save();
+
+        // Visible: backlog task (no epic), counts everywhere.
+        SharedTask::factory()->for($project, 'project')->create(['status' => 'pending']);
+        // Visible: active-epic task, done.
+        SharedTask::factory()->for($project, 'project')->completed()->create(['epic_id' => $activeEpic->id]);
+        // Hidden: archived-epic tasks must NOT count (pending + done).
+        SharedTask::factory()->for($project, 'project')->create([
+            'status' => 'pending',
+            'epic_id' => $archivedEpic->id,
+        ]);
+        SharedTask::factory()->for($project, 'project')->completed()->create([
+            'epic_id' => $archivedEpic->id,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->getJson("/api/projects/{$project->id}/stats");
+
+        $response->assertOk()
+            // 2 visible tasks (backlog + active epic); 2 archived-epic tasks dropped.
+            ->assertJsonPath('data.total_tasks', 2)
+            ->assertJsonPath('data.pending_tasks', 1)
+            ->assertJsonPath('data.completed_tasks', 1)
+            // Only the backlog pending task is remaining (done excluded by status,
+            // archived-epic tasks excluded by scope).
+            ->assertJsonPath('data.remaining_tasks', 1);
     }
 
     #[Test]

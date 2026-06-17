@@ -307,6 +307,9 @@ export interface Epic {
   sort_order: number;
   tasks_count: number;
   completed_tasks_count: number;
+  // Remaining tasks (SharedTask::scopeRemaining): not done AND not stranded in
+  // a closed sprint, on the archive-aware visible set (0 once archived).
+  remaining_tasks_count: number;
   progress_percentage: number;
   // AI decomposition state (null = never decomposed).
   decomposition_status: DecompositionStatus | null;
@@ -807,4 +810,61 @@ export interface ProjectScanResult {
   has_git: boolean;
   readme: string | null;
   structure: string[];
+}
+
+// ==================== WINDOW MANAGER (OS SHELL) TYPES ====================
+// Local UI state for the "Claude OS" shell (WindowFrame chrome + Dock taskbar).
+// Not a server contract — purely client-side window bookkeeping.
+
+/** What a managed window represents in the OS shell. */
+export type WindowKind = "session" | "panel";
+
+/**
+ * Floating geometry of a window in the desktop host's coordinate space
+ * (logical pixels, origin top-left). Persists even while a window is
+ * maximized, so restoring brings back the prior floating size/position.
+ */
+export interface WindowBounds {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * A window tracked by the OS-shell window manager. The windowed entity is keyed
+ * by `id` (e.g. a session id). `openSeq`/`focusSeq` are monotonic sequence
+ * numbers (NOT timestamps) so ordering is deterministic and test-friendly:
+ *  - openSeq  → stable taskbar/dock order (icons don't jump on focus)
+ *  - focusSeq → most-recently-focused order (drives stacking + next-focus pick)
+ */
+export interface ManagedWindow {
+  id: string;
+  kind: WindowKind;
+  title: string;
+  /** MaterialIcons name for the dock/taskbar icon (optional). */
+  icon?: string;
+  /** Minimized = present in the taskbar but not the foreground window. */
+  minimized: boolean;
+  /**
+   * Maximized = rendered full-bleed by the host. `bounds` is preserved so
+   * un-maximizing restores the prior floating geometry.
+   */
+  maximized: boolean;
+  /** Floating geometry used when the window is neither minimized nor maximized. */
+  bounds: WindowBounds;
+  /** Stable creation order — drives the taskbar display order. */
+  openSeq: number;
+  /** Last-focused order — higher = more recently focused. */
+  focusSeq: number;
+}
+
+/** Input accepted when opening/registering a window. */
+export interface OpenWindowInput {
+  id: string;
+  kind: WindowKind;
+  title: string;
+  icon?: string;
+  /** Optional initial geometry; missing fields fall back to a cascade default. */
+  bounds?: Partial<WindowBounds>;
 }

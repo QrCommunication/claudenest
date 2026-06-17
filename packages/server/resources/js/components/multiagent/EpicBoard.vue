@@ -5,28 +5,12 @@
       <h3 class="epic-board-title">{{ t('multiagentEpicboard.epics') }}</h3>
       <div class="epic-header-actions">
         <!-- Bascule Actifs / Archivés (l'archivage est réversible côté backend) -->
-        <div class="archive-toggle" role="tablist" :aria-label="t('multiagentEpicboard.archived')">
-          <button
-            type="button"
-            class="archive-toggle-btn"
-            :class="{ active: !showArchived }"
-            role="tab"
-            :aria-selected="!showArchived"
-            @click="$emit('toggle-archived', false)"
-          >
-            {{ t('multiagentEpicboard.active') }}
-          </button>
-          <button
-            type="button"
-            class="archive-toggle-btn"
-            :class="{ active: showArchived }"
-            role="tab"
-            :aria-selected="showArchived"
-            @click="$emit('toggle-archived', true)"
-          >
-            {{ t('multiagentEpicboard.archived') }}
-          </button>
-        </div>
+        <ShowArchivedToggle
+          :model-value="showArchived"
+          :active-label="t('multiagentEpicboard.active')"
+          :archived-label="t('multiagentEpicboard.archived')"
+          @update:model-value="$emit('toggle-archived', $event)"
+        />
         <!-- Création réservée à la vue active (on ne crée pas un épic archivé) -->
         <button
           v-if="!showArchived"
@@ -193,6 +177,7 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import StatusBadge from '@/components/common/StatusBadge.vue';
+import ShowArchivedToggle from '@/components/common/ShowArchivedToggle.vue';
 import type { DecompositionStatus, Epic, EpicPrState } from '@/types/multiagent';
 
 const { t } = useI18n();
@@ -303,34 +288,6 @@ const decompositionTitle = (epic: Epic): string => {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-}
-
-/* Bascule Actifs / Archivés */
-.archive-toggle {
-  display: inline-flex;
-  border: 1px solid color-mix(in srgb, var(--accent-purple) 25%, transparent);
-  border-radius: 0.375rem;
-  overflow: hidden;
-}
-
-.archive-toggle-btn {
-  padding: 0.18rem 0.5rem;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  background: transparent;
-  transition: color 0.15s, background-color 0.15s;
-}
-.archive-toggle-btn:hover {
-  color: var(--text-secondary);
-}
-.archive-toggle-btn.active {
-  color: var(--accent-purple);
-  background: color-mix(in srgb, var(--accent-purple) 14%, transparent);
-}
-.archive-toggle-btn:focus-visible {
-  outline: 2px solid var(--accent-purple);
-  outline-offset: -2px;
 }
 
 .add-epic-btn {

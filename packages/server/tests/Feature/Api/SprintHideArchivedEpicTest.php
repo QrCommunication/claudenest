@@ -110,6 +110,52 @@ class SprintHideArchivedEpicTest extends TestCase
     }
 
     #[Test]
+    public function archived_query_param_reveals_archived_epic_sprints(): void
+    {
+        $archived = $this->epic(archived: true);
+        $active = $this->epic(archived: false);
+
+        $hidden = $this->sprint('Archived-epic sprint');
+        $this->task($hidden, $archived);
+
+        $activeSprint = $this->sprint('Active-epic sprint');
+        $this->task($activeSprint, $active);
+
+        // ?archived=true stops hiding archived-epic sprints — the full set
+        // (active + archived) is returned.
+        $returnedIds = collect(
+            $this->actingAs($this->user)
+                ->getJson("/api/projects/{$this->project->id}/sprints?archived=true")
+                ->assertOk()
+                ->json('data')
+        )->pluck('id')->all();
+
+        $this->assertContains($hidden->id, $returnedIds);
+        $this->assertContains($activeSprint->id, $returnedIds);
+    }
+
+    #[Test]
+    public function archived_param_accepts_truthy_strings_without_422(): void
+    {
+        $archived = $this->epic(archived: true);
+        $hidden = $this->sprint('Archived-epic sprint');
+        $this->task($hidden, $archived);
+
+        // The literal string "true" must be honoured (boolean() leniency),
+        // never rejected by validation.
+        foreach (['true', '1', 'on'] as $truthy) {
+            $returnedIds = collect(
+                $this->actingAs($this->user)
+                    ->getJson("/api/projects/{$this->project->id}/sprints?archived={$truthy}")
+                    ->assertOk()
+                    ->json('data')
+            )->pluck('id')->all();
+
+            $this->assertContains($hidden->id, $returnedIds, "archived={$truthy} should reveal archived-epic sprints");
+        }
+    }
+
+    #[Test]
     public function unarchiving_the_epic_brings_its_sprint_back(): void
     {
         $epic = $this->epic(archived: true);
