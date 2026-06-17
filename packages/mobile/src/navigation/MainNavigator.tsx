@@ -19,12 +19,20 @@ import { MachinesNavigator } from "./MachinesNavigator";
 import { SessionsNavigator } from "./SessionsNavigator";
 import { ProjectsNavigator } from "./ProjectsNavigator";
 import { SettingsNavigator } from "./SettingsNavigator";
+import { TabletDesktop } from "@/components/os/TabletDesktop";
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 export const MainNavigator: React.FC = () => {
-  const { isExpanded } = useResponsiveLayout();
+  const { isExpanded, isWide } = useResponsiveLayout();
   const insets = useSafeAreaInsets();
+
+  // Tablet / large screens (>= 1024dp) get the full Claude OS desktop shell:
+  // a GNOME top bar, floating resizable windows, a dock launcher and
+  // workspaces. Narrower tablets keep the rail, phones keep the bottom tabs.
+  if (isWide) {
+    return <TabletDesktop />;
+  }
 
   const tabBarStyle = isExpanded
     ? {
