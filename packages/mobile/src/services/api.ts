@@ -562,17 +562,6 @@ export const epicsApi = {
   // Restore an archived epic to the active board (clears `archived_at`).
   unarchive: (id: string) =>
     api.post<import("@/types").Epic>(`/epics/${id}/unarchive`),
-
-  /**
-   * Decompose an epic from a PRD (AI flow). Creates the epic up-front in the
-   * `running` decomposition state and spawns an async session — the plan is
-   * NOT awaited; sprints/tasks land later over the `.epic.decomposition` signal.
-   */
-  decompose: (projectId: string, data: import("@/types").DecomposeEpicForm) =>
-    api.post<import("@/types").DecomposeEpicResponse>(
-      `/projects/${projectId}/epics/decompose`,
-      data,
-    ),
 };
 
 export const sprintsApi = {
