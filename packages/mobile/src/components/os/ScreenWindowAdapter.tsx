@@ -1,13 +1,15 @@
 /**
  * ScreenWindowAdapter — renders a legacy (navigation-prop) screen inside a
- * Claude OS window. It builds a fake `navigation` + `route` that map to the
+ * Claude OS window. It builds a fake `navigation` + `route` mapped to the
  * windowApi bus, so screens that call navigation.navigate / goBack / setOptions
- * work unchanged. A NavigationContext.Provider also covers the rare screens that
- * read navigation through useNavigation() (EpicsBoard / SprintsBoard).
+ * work unchanged (30/31 screens take navigation as a prop). A WindowErrorBoundary
+ * isolates a screen crash to its own window (and surfaces the message) instead of
+ * blanking the whole desktop.
  */
 
-import React, { useMemo } from "react";
-import { NavigationContext } from "@react-navigation/native";
+import React, { Component, type ReactNode, useMemo } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { colors, spacing, typography } from "@/theme";
 import { useWindowApi } from "./windowApi";
 import { resolveRoute, type ScreenComponent } from "./appRegistry";
 
@@ -29,8 +31,8 @@ export function ScreenWindowAdapter({
       const input = resolveRoute(name, navParams);
       if (input) windowApi.openApp(input);
     };
-    // Typed as any: a windowApi-backed shim never matches the full
-    // NavigationProp surface, and screens only use a small, stable subset.
+    // Typed as any at the call sites: a windowApi-backed shim never matches the
+    // full NavigationProp surface, and screens only use a small, stable subset.
     const nav: Record<string, unknown> = {
       navigate: open,
       push: open,
@@ -65,8 +67,54 @@ export function ScreenWindowAdapter({
   );
 
   return (
-    <NavigationContext.Provider value={navigation as never}>
+    <WindowErrorBoundary>
       <Screen navigation={navigation as never} route={route as never} />
-    </NavigationContext.Provider>
+    </WindowErrorBoundary>
   );
 }
+
+class WindowErrorBoundary extends Component<
+  { children: ReactNode },
+  { error: Error | null }
+> {
+  state: { error: Error | null } = { error: null };
+
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <View style={styles.error}>
+          <Text style={styles.errorTitle}>This panel hit an error</Text>
+          <Text style={styles.errorMessage}>
+            {this.state.error.message || String(this.state.error)}
+          </Text>
+        </View>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+const styles = StyleSheet.create({
+  error: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: spacing.lg,
+    gap: spacing.sm,
+  },
+  errorTitle: {
+    ...typography.mono,
+    fontSize: 13,
+    color: colors.status.error,
+  },
+  errorMessage: {
+    ...typography.mono,
+    fontSize: 11,
+    color: colors.text.muted,
+    textAlign: "center",
+  },
+});

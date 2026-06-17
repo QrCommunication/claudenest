@@ -33,6 +33,7 @@ import { type SnapZone, WINDOW_MIN } from "@/utils/windowGeometry";
 import { WindowIdProvider } from "./windowApi";
 import { getApp } from "./appRegistry";
 import { ScreenWindowAdapter } from "./ScreenWindowAdapter";
+import { NATIVE_PANELS } from "./panels/registry";
 
 const SYNC = { duration: 160 } as const;
 
@@ -344,6 +345,9 @@ function AppHost({
   appId: string;
   params: Record<string, unknown>;
 }) {
+  const native = NATIVE_PANELS[appId];
+  if (native) return <>{native(params)}</>;
+
   const def = getApp(appId);
   if (!def) {
     return (
