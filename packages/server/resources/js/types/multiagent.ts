@@ -220,6 +220,9 @@ export interface Epic {
   pr_branch: string | null;
   has_pull_request: boolean;
   finalized_at: string | null;
+  // Durable terminal "this epic's PR is merged/shipped" flag (distinct from the
+  // live pr_state). Hides the Generate-PR button once true.
+  pr_done: boolean;
   started_at: string | null;
   completed_at: string | null;
   created_at: string;

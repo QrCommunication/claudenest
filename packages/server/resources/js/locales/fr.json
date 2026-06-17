@@ -1253,6 +1253,8 @@
     "prStateOpen": "ouverte",
     "prStateMerged": "fusionnée",
     "prStateClosed": "fermée",
+    "prShipped": "Livré",
+    "prShippedTitle": "La pull request de cet epic a été fusionnée et livrée",
     "active": "Actifs",
     "archived": "Archivés",
     "archiveEpic": "Archiver l'épic",

@@ -13,6 +13,7 @@ import type {
   FileLock,
   ClaudeInstance,
   ActivityLog,
+  TokenBudget,
 } from "@/types";
 import { projectsApi, tasksApi, locksApi } from "@/services/api";
 import { websocket } from "@/services/websocket";
@@ -52,6 +53,8 @@ interface ProjectsState {
   instances: ClaudeInstance[];
   activityLogs: ActivityLog[];
   contextChunks: ContextChunk[];
+  tokenBudget: TokenBudget | null;
+  isLoadingTokenBudget: boolean;
   isLoading: boolean;
   error: string | null;
   selectedProjectId: string | null;
@@ -80,6 +83,8 @@ interface ProjectsState {
   fetchArchivedProjects: (machineId: string) => Promise<void>;
   archiveProject: (id: string) => Promise<void>;
   unarchiveProject: (id: string) => Promise<void>;
+  /** Fetch aggregated token usage + cost estimate for a project. */
+  fetchTokenBudget: (id: string) => Promise<TokenBudget>;
   /** Realtime: drop an externally-archived project from the active list. */
   applyProjectArchived: (projectId: string) => void;
   /** Realtime: an externally-restored project re-enters the active list. */
@@ -145,6 +150,8 @@ export const useProjectsStore = create<ProjectsState>()(
       instances: [],
       activityLogs: [],
       contextChunks: [],
+      tokenBudget: null,
+      isLoadingTokenBudget: false,
       isLoading: false,
       error: null,
       selectedProjectId: null,
@@ -292,6 +299,21 @@ export const useProjectsStore = create<ProjectsState>()(
           archivedProjects: state.archivedProjects.filter((p) => p.id !== id),
           projects: [project, ...state.projects.filter((p) => p.id !== id)],
         }));
+      },
+
+      fetchTokenBudget: async (id: string) => {
+        set({ isLoadingTokenBudget: true });
+        try {
+          const response = await projectsApi.tokenBudget(id);
+          const budget = response.data!;
+          set({ tokenBudget: budget, isLoadingTokenBudget: false });
+          return budget;
+        } catch (err) {
+          const message =
+            err instanceof Error ? err.message : "Failed to fetch token budget";
+          set({ isLoadingTokenBudget: false, error: message });
+          throw err;
+        }
       },
 
       applyProjectArchived: (projectId: string) => {

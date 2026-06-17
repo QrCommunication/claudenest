@@ -120,3 +120,40 @@ describe('finalizeSprint sandboxing', () => {
     }
   });
 });
+
+describe('finalizeSprint merge intent (epic flow)', () => {
+  beforeEach(() => {
+    calls.length = 0;
+    bwrapAvailable = false; // bare argv for straightforward assertions
+  });
+
+  it('merges the PR (squash) after creating it and reports merged when requested', () => {
+    const result = finalizeSprint(
+      { projectPath: '/home/dev/app', branch: 'claudenest/epic-x', title: 'Epic X', body: 'body', merge: true },
+      logger,
+    );
+
+    expect(result.success).toBe(true);
+    expect(result.prUrl).toBe('https://github.com/org/repo/pull/99');
+    expect(result.merged).toBe(true);
+
+    // The PR was merged via the API (squash), targeting the branch, without
+    // gh's --delete-branch (which would checkout the base and abort on a dirty
+    // tree). The remote branch is cleaned up afterwards.
+    const merge = calls.find((c) => c.args.includes('merge') && c.args.includes('--squash'));
+    expect(merge?.args).toEqual(['pr', 'merge', 'claudenest/epic-x', '--squash']);
+    expect(merge?.args).not.toContain('--delete-branch');
+    expect(calls.some((c) => c.args.join(' ') === 'push origin --delete claudenest/epic-x')).toBe(true);
+  });
+
+  it('does not merge the PR when merge is not requested (sprint flow)', () => {
+    const result = finalizeSprint(
+      { projectPath: '/home/dev/app', branch: 'claudenest/sprint-x', title: 'Sprint X', body: 'body' },
+      logger,
+    );
+
+    expect(result.success).toBe(true);
+    expect(result.merged).toBeFalsy();
+    expect(calls.some((c) => c.args.includes('merge'))).toBe(false);
+  });
+});

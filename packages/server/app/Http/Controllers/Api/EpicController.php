@@ -442,6 +442,11 @@ class EpicController extends Controller
         // the agent is online), surfacing the outcome via `dispatched`.
         $dispatched = $finalizer->dispatchPullRequest($epic);
 
+        // Reconcile earlier siblings that are done but never shipped, so the
+        // whole sequence merges together. Best-effort and idempotent — already
+        // shipped epics (pr_done = true) are skipped so re-finalizing converges.
+        $backfilled = $finalizer->backfillPreviousEpics($epic);
+
         broadcast(new EpicUpdated($epic->fresh(), 'finalizing'))->toOthers();
 
         return response()->json([
@@ -449,6 +454,7 @@ class EpicController extends Controller
             'data' => [
                 'epic' => new EpicResource($epic->fresh()),
                 'dispatched' => $dispatched,
+                'backfilled' => $backfilled,
             ],
             'meta' => [
                 'timestamp' => now()->toIso8601String(),

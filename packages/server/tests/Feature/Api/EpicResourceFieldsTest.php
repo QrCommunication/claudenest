@@ -59,6 +59,7 @@ class EpicResourceFieldsTest extends TestCase
             'pr_state' => Epic::PR_STATE_OPEN,
             'pr_branch' => 'claudenest/epic-realtime-1234',
             'finalized_at' => now(),
+            'pr_done' => true,
         ]);
 
         $this->show($epic)
@@ -69,6 +70,7 @@ class EpicResourceFieldsTest extends TestCase
             ->assertJsonPath('data.pr_state', 'open')
             ->assertJsonPath('data.pr_branch', 'claudenest/epic-realtime-1234')
             ->assertJsonPath('data.has_pull_request', true)
+            ->assertJsonPath('data.pr_done', true)
             ->assertJsonStructure(['data' => ['archived_at', 'finalized_at']]);
     }
 
@@ -91,6 +93,7 @@ class EpicResourceFieldsTest extends TestCase
             ->assertJsonPath('data.pr_state', null)
             ->assertJsonPath('data.pr_branch', null)
             ->assertJsonPath('data.has_pull_request', false)
+            ->assertJsonPath('data.pr_done', false)
             ->assertJsonPath('data.finalized_at', null);
     }
 

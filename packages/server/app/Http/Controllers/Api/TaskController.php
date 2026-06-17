@@ -135,10 +135,12 @@ class TaskController extends Controller
 
         // Default visibility (in-progress tasks + tasks completed today) keeps
         // the task panel focused on the current day. It is skipped when the
-        // caller already narrows the result set explicitly — by sprint, by an
-        // exact status, or via the include_all override — since combining it
-        // with those filters would surprisingly hide matching tasks.
+        // caller already narrows the result set explicitly — by sprint, by epic,
+        // by an exact status, or via the include_all override — since combining
+        // it with those filters would surprisingly hide matching tasks (e.g. a
+        // done epic's tasks, all completed before today, would otherwise vanish).
         if (! $sprintFilterApplied
+            && ! isset($validated['epic_id'])
             && ! isset($validated['status'])
             && ! $request->boolean('include_all')) {
             $query->defaultVisible();

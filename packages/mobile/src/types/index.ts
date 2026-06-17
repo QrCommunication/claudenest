@@ -207,6 +207,31 @@ export interface ProjectSettings {
   broadcastLevel: "all" | "team" | "none";
 }
 
+/**
+ * Token cost + budget for a project.
+ * Mirrors GET /projects/{id}/token-budget (ProjectController::tokenBudget).
+ * `tokens.used/max/percent` are the canonical project-level budget counter;
+ * `input/output/session_total` are the session-derived split backing the cost.
+ * The server returns RAW snake_case (not a camelCase Resource) — typed verbatim.
+ */
+export interface TokenBudget {
+  tokens: {
+    used: number;
+    max: number | null;
+    percent: number;
+    limit_reached: boolean;
+    input: number;
+    output: number;
+    session_total: number;
+  };
+  cost: {
+    estimated_usd: number;
+    currency: string;
+    pricing_model: string;
+  };
+  sessions_count: number;
+}
+
 // ==================== TASK TYPES ====================
 
 export type TaskPriority = "low" | "medium" | "high" | "critical";
@@ -307,11 +332,28 @@ export interface Epic {
   updated_at: string;
 }
 
+export interface CreateEpicForm {
+  title: string;
+  description?: string;
+  color?: string;
+  icon?: string;
+  priority?: TaskPriority;
+}
+
+export interface UpdateEpicForm {
+  title?: string;
+  description?: string;
+  color?: string;
+  icon?: string;
+  status?: EpicStatus;
+  priority?: TaskPriority;
+}
+
 /**
- * Payload of the epic-decompose endpoint (`POST /projects/{id}/epics/decompose`).
- * The backend creates the epic up-front in the `running` decomposition state
- * and spawns an async Claude session that builds its sprints/tasks. Mirrors the
- * backend validation rules and the web SPA `DecomposeEpicForm`.
+ * Payload of `POST /projects/{id}/epics/decompose`
+ * (DecompositionController::decomposeEpic): creates the epic up-front in the
+ * `running` decomposition state and spawns an async Claude session that builds
+ * its sprints/tasks from the PRD. Mirrors the controller validation rules.
  */
 export interface DecomposeEpicForm {
   title: string;
@@ -324,9 +366,9 @@ export interface DecomposeEpicForm {
 }
 
 /**
- * Response data of the epic-decompose endpoint (HTTP 201). The plan is NOT
- * awaited: the epic is returned in its `running` state and its sprints/tasks
- * land later over the realtime `.epic.decomposition` signal.
+ * Response data of the epic-decompose endpoint. The plan is NOT awaited:
+ * the epic is returned in its `running` state and its sprints/tasks land later
+ * over the realtime `.epic.decomposition` signal.
  */
 export interface DecomposeEpicResponse {
   epic: Epic;
@@ -531,6 +573,12 @@ export interface OrchestratorStartRequest {
   permission_mode?: PermissionMode;
   /** Also spawn a coordinator session supervising the workers. */
   coordinator?: boolean;
+  /**
+   * Credential the workers run under (web parity: StartOrchestratorConfig).
+   * Omit / empty → the user's default credential. A provided id MUST belong to
+   * the requesting user (server-side IDOR guard, `Rule::exists`).
+   */
+  credential_id?: string;
 }
 
 /**
@@ -540,6 +588,18 @@ export interface OrchestratorStartRequest {
 export interface PlanningSessionRequest {
   /** Project brief — server caps at 4000 characters. */
   brief: string;
+  credential_id?: string;
+}
+
+/**
+ * Body of POST /projects/{id}/workers — spawns a single orchestrated worker
+ * session (HTTP 201, returns the worker Session). Mirrors SpawnWorkerRequest.
+ * Both fields are optional; when omitted the worker runs under the default
+ * permission mode and the user's default credential. A provided `credential_id`
+ * MUST belong to the requesting user (server-side IDOR guard).
+ */
+export interface SpawnWorkerRequest {
+  permission_mode?: PermissionMode;
   credential_id?: string;
 }
 

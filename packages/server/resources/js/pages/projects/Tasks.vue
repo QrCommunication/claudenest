@@ -236,6 +236,11 @@ import { KANBAN_COLUMNS, type TaskStatus, type SharedTask } from '@/types';
 
 const props = defineProps<{
   projectId?: string;
+  // Server-side scope filters (driven by the parent's epic/sprint dropdowns).
+  // Empty string = no filter. `sprintId` also accepts the sentinel "none"
+  // (backlog) honoured by TaskController::index.
+  epicId?: string;
+  sprintId?: string;
 }>();
 
 const { t } = useI18n();
@@ -351,15 +356,22 @@ onMounted(async () => {
   }
 });
 
-watch(projectId, async () => {
+// Reload whenever the project OR the server-side scope filters change so the
+// kanban reflects the selected epic/sprint without a manual refresh.
+watch([projectId, () => props.epicId, () => props.sprintId], async () => {
   await loadTasks();
 });
 
 async function loadTasks() {
   if (!projectId.value) return;
-  
+
+  // Only forward non-empty scope filters; '' means "all" (no param).
+  const filters: { epic_id?: string; sprint_id?: string } = {};
+  if (props.epicId) filters.epic_id = props.epicId;
+  if (props.sprintId) filters.sprint_id = props.sprintId;
+
   try {
-    await tasksStore.fetchTasks(projectId.value);
+    await tasksStore.fetchTasks(projectId.value, filters);
   } catch (err) {
     toast.error(t('projectsTasks.toastLoadFailed'));
   }

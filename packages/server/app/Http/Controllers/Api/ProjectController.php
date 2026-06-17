@@ -10,6 +10,7 @@ use App\Events\ProjectDeleted;
 use App\Events\ProjectUnarchived;
 use App\Exceptions\WorkerPoolException;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\SpawnWorkerRequest;
 use App\Http\Resources\ProjectResource;
 use App\Http\Resources\SessionResource;
 use App\Models\Machine;
@@ -1274,6 +1275,129 @@ class ProjectController extends Controller
         return response()->json([
             'success' => true,
             'data' => $workerPool->status($project),
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ]);
+    }
+
+    /**
+     * Spawn a single orchestrated worker on demand (individual control).
+     *
+     * Independent of the orchestration on/off state: it boots one extra
+     * interactive worker session through the same path as the pool (scoped
+     * token + MCP env + bootstrap prompt). The new worker is picked up by the
+     * idle-heartbeat loop like any other. Requires the host machine to be
+     * online; the credential (when provided) is validated against the user
+     * by SpawnWorkerRequest (IDOR guard).
+     */
+    #[OA\Post(
+        path: '/api/projects/{id}/workers',
+        summary: 'Spawn a single orchestrated worker',
+        security: [['bearerAuth' => []]],
+        tags: ['Projects'],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                in: 'path',
+                required: true,
+                description: 'Project UUID',
+                schema: new OA\Schema(type: 'string', format: 'uuid'),
+            ),
+        ],
+        requestBody: new OA\RequestBody(
+            required: false,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'permission_mode', type: 'string', enum: ['default', 'plan', 'acceptEdits', 'bypassPermissions'], nullable: true),
+                    new OA\Property(property: 'credential_id', type: 'string', format: 'uuid', nullable: true, description: 'Credential the worker runs under; must belong to the requesting user'),
+                ],
+            ),
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'Worker spawned',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'success', type: 'boolean', example: true),
+                        new OA\Property(property: 'data', ref: '#/components/schemas/Session'),
+                    ],
+                ),
+            ),
+            new OA\Response(response: 404, description: 'Project not found'),
+            new OA\Response(response: 422, description: 'Machine offline or invalid credential'),
+        ],
+    )]
+    public function spawnWorker(SpawnWorkerRequest $request, WorkerPoolService $workerPool, string $id): JsonResponse
+    {
+        $project = $this->getUserProject($request, $id);
+        if (! $project) {
+            return $this->errorResponse('CTX_001', 'Project not found', 404);
+        }
+
+        // Mirror the orchestrator-start guard: an offline machine can't spawn a
+        // session (the agent queue would just expire the message).
+        $machine = $project->machine;
+        if (! $machine || $machine->status !== 'online') {
+            return $this->errorResponse('MACHINE_OFFLINE', 'Machine is not online', 422);
+        }
+
+        $validated = $request->validated();
+
+        $session = $workerPool->spawnWorker(
+            $project,
+            $request->user(),
+            $validated['permission_mode'] ?? WorkerPoolService::DEFAULT_PERMISSION_MODE,
+            $validated['credential_id'] ?? null,
+        );
+
+        return response()->json([
+            'success' => true,
+            'data' => new SessionResource($session),
+            'meta' => [
+                'timestamp' => now()->toIso8601String(),
+                'request_id' => $request->header('X-Request-ID', uniqid()),
+            ],
+        ], 201);
+    }
+
+    /**
+     * Terminate a single orchestrated worker on demand (individual control).
+     *
+     * Counterpart of spawnWorker: kills one worker session without stopping the
+     * whole orchestration. The session is resolved within the project scope
+     * (getUserProject already filters by user → IDOR-safe) and must be an
+     * orchestrated worker — plain interactive sessions are managed through
+     * SessionController::destroy, not this worker control surface. Teardown
+     * itself (terminate flag, multi-agent cleanup, agent message, broadcast)
+     * is delegated to WorkerPoolService and works even if the machine is
+     * offline.
+     */
+    public function terminateWorker(Request $request, WorkerPoolService $workerPool, string $id, string $sessionId): JsonResponse
+    {
+        $project = $this->getUserProject($request, $id);
+        if (! $project) {
+            return $this->errorResponse('CTX_001', 'Project not found', 404);
+        }
+
+        $session = Session::where('shared_project_id', $project->id)
+            ->orchestrated()
+            ->find($sessionId);
+        if (! $session) {
+            return $this->errorResponse('SES_005', 'Worker session not found for this project', 404);
+        }
+
+        if ($session->is_completed) {
+            return $this->errorResponse('SES_003', 'Session already terminated', 400);
+        }
+
+        $workerPool->terminateWorker($session);
+
+        return response()->json([
+            'success' => true,
+            'data' => ['message' => 'Worker terminated', 'session_id' => $session->id, 'status' => 'terminated'],
             'meta' => [
                 'timestamp' => now()->toIso8601String(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),

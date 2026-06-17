@@ -179,7 +179,7 @@
               </option>
             </select>
           </div>
-          <TasksBoard :project-id="projectId" />
+          <TasksBoard :project-id="projectId" :epic-id="epicFilter" :sprint-id="sprintFilter" />
         </div>
 
         <!-- Planning Tab (merged Epics + Sprints) -->
@@ -215,7 +215,7 @@
               :epics="epicsStore.showArchived ? epicsStore.archivedEpics : epicsStore.epics"
               :selected-epic-id="epicsStore.selectedEpic?.id || ''"
               :show-archived="epicsStore.showArchived"
-              @select="epicsStore.selectEpic($event)"
+              @select="handleSelectEpic($event)"
               @create="showCreateEpicModal = true"
               @delete="handleDeleteEpic"
               @finalize="handleFinalizeEpic"
@@ -389,6 +389,7 @@ import TasksBoard from './Tasks.vue';
 import ContextViewer from './Context.vue';
 import OrchestrationPanel from './Orchestration.vue';
 import LocksPanel from './Locks.vue';
+import type { Epic } from '@/types/multiagent';
 import EpicBoard from '@/components/multiagent/EpicBoard.vue';
 import SprintBoard from '@/components/multiagent/SprintBoard.vue';
 import EpicDecompositionModal from '@/components/multiagent/EpicDecompositionModal.vue';
@@ -486,6 +487,17 @@ async function handleUnarchiveEpic(epicId: string): Promise<void> {
   } catch {
     toast.error(t('projectsShow.epicUnarchiveFailed'));
   }
+}
+
+// Selecting an epic on the board jumps to the Tasks tab pre-filtered on that
+// epic, so the user lands directly on the epic's tasks (the filter is consumed
+// by TasksBoard's fetch). Re-selecting the active epic clears the filter back
+// to "all" — a convenient toggle.
+function handleSelectEpic(epic: Epic): void {
+  const alreadySelected = epicsStore.selectedEpic?.id === epic.id;
+  epicsStore.selectEpic(alreadySelected ? null : epic);
+  epicFilter.value = alreadySelected ? '' : epic.id;
+  activeTab.value = 'tasks';
 }
 
 // The async "Decompose with AI" flow launched: the epic exists (pending) but

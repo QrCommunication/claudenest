@@ -23,8 +23,13 @@ class EpicFinalizeService
     /**
      * Dispatch the epic's pull request to the agent and stamp the finalize
      * intent. Returns true when the dispatch was actually sent.
+     *
+     * The `merge` intent (default true) tells the agent to merge the PR after
+     * creating it, so the epic's work is shipped — the agent then reports back
+     * `prState: merged`, and {@see AgentServe::onEpicFinalized} records the
+     * merged state + flips `pr_done`. Pass false to only open the PR.
      */
-    public function dispatchPullRequest(Epic $epic): bool
+    public function dispatchPullRequest(Epic $epic, bool $merge = true): bool
     {
         $project = $epic->project;
         if (! $project || ! $project->machine_id || ! $project->project_path) {
@@ -68,6 +73,9 @@ class EpicFinalizeService
             'branch' => $branch,
             'title' => "Epic: {$epic->title}",
             'body' => implode("\n", $bodyLines),
+            // Merge intent: the agent merges the PR after opening it so the
+            // epic ships in one shot (consumed by createEpicHandlers).
+            'merge' => $merge,
         ]);
 
         // Record the finalize intent so the board reflects "finalizing"; the PR
@@ -83,5 +91,48 @@ class EpicFinalizeService
         ]);
 
         return true;
+    }
+
+    /**
+     * Reconcile earlier sibling epics when a later epic is finalized.
+     *
+     * Finalizing epic N can leave earlier (board-order) epics completed but
+     * never shipped — they were `done` yet nobody clicked "Generate PR". This
+     * walks the previous siblings (via {@see Epic::scopePreviousSiblings}) that
+     * are `done`, still active (not archived) and NOT yet shipped
+     * (`pr_done = false`) and dispatches their PR with the same merge intent,
+     * so the whole sequence merges together.
+     *
+     * Convergence: already-shipped siblings (`pr_done = true`) are skipped, so
+     * re-finalizing never re-spams merged work. Best-effort — each dispatch is
+     * independent (offline machine / missing path just returns false for that
+     * sibling). Returns the number of previous-epic PRs actually dispatched.
+     */
+    public function backfillPreviousEpics(Epic $epic, bool $merge = true): int
+    {
+        $dispatched = 0;
+
+        $previous = Epic::previousSiblings($epic)
+            ->active()
+            ->where('status', 'done')
+            ->where('pr_done', false)
+            ->ordered()
+            ->get();
+
+        foreach ($previous as $sibling) {
+            if ($this->dispatchPullRequest($sibling, $merge)) {
+                $dispatched++;
+            }
+        }
+
+        if ($dispatched > 0) {
+            Log::info('Epic finalize backfilled previous epics', [
+                'epic_id' => $epic->id,
+                'project_id' => $epic->project_id,
+                'count' => $dispatched,
+            ]);
+        }
+
+        return $dispatched;
     }
 }

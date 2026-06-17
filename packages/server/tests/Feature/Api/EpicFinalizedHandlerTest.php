@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Api;
 
 use App\Console\Commands\AgentServe;
+use App\Events\EpicUpdated;
 use App\Events\ProjectBroadcast;
 use App\Models\Epic;
 use App\Models\Machine;
@@ -81,6 +82,8 @@ class EpicFinalizedHandlerTest extends TestCase
         $this->assertSame('https://github.com/acme/app/pull/42', $epic->pr_url);
         $this->assertSame(42, $epic->pr_number);
         $this->assertSame(Epic::PR_STATE_OPEN, $epic->pr_state);
+        // No merge reported → the terminal shipped flag stays false.
+        $this->assertFalse($epic->pr_done);
 
         Event::assertDispatched(
             ProjectBroadcast::class,
@@ -104,6 +107,38 @@ class EpicFinalizedHandlerTest extends TestCase
         ]);
 
         $this->assertSame(Epic::PR_STATE_MERGED, $epic->refresh()->pr_state);
+    }
+
+    #[Test]
+    public function it_sets_merged_state_and_pr_done_when_the_agent_reports_a_merge(): void
+    {
+        Event::fake([EpicUpdated::class]);
+        $epic = $this->epic();
+
+        $this->dispatch([
+            'epicId' => $epic->id,
+            'success' => true,
+            'prUrl' => 'https://github.com/acme/app/pull/9',
+            'prNumber' => 9,
+            'merged' => true,
+            // The agent may echo a stale "open" state — merged wins.
+            'prState' => Epic::PR_STATE_OPEN,
+        ]);
+
+        $epic->refresh();
+        $this->assertSame(Epic::PR_STATE_MERGED, $epic->pr_state);
+        $this->assertTrue($epic->pr_done);
+        $this->assertSame('done', $epic->status);
+
+        // The board gets the merged markers in real time via EpicUpdated, whose
+        // payload now carries pr_done/pr_state (see EpicUpdated::broadcastWith).
+        Event::assertDispatched(
+            EpicUpdated::class,
+            fn (EpicUpdated $e) => $e->epic->id === $epic->id
+                && $e->action === 'finalized'
+                && $e->epic->pr_done === true
+                && $e->epic->pr_state === Epic::PR_STATE_MERGED,
+        );
     }
 
     #[Test]

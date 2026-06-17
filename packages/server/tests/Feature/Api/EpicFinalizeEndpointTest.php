@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Services\AgentGateway;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -77,16 +78,50 @@ class EpicFinalizeEndpointTest extends TestCase
             ->postJson("/api/epics/{$epic->id}/finalize")
             ->assertOk()
             ->assertJsonPath('data.dispatched', true)
-            ->assertJsonPath('data.epic.id', $epic->id);
+            ->assertJsonPath('data.epic.id', $epic->id)
+            // The endpoint only stamps the dispatch intent — the epic is not
+            // shipped yet, so pr_done stays false until the agent reports a merge.
+            ->assertJsonPath('data.epic.pr_done', false);
 
         $epic->refresh();
         $this->assertStringStartsWith('claudenest/epic-realtime-notifications-', (string) $epic->pr_branch);
         $this->assertNotNull($epic->finalized_at);
+        $this->assertFalse($epic->pr_done);
 
         Event::assertDispatched(
             EpicUpdated::class,
             fn (EpicUpdated $e) => $e->epic->id === $epic->id && $e->action === 'finalizing',
         );
+    }
+
+    #[Test]
+    public function it_backfills_previous_done_unshipped_siblings_on_finalize(): void
+    {
+        $this->spy(AgentGateway::class);
+
+        // Earlier (board-order) epic: done but never shipped (pr_done = false).
+        $previous = Epic::create([
+            'project_id' => $this->project->id,
+            'title' => 'Auth Hardening',
+            'color' => Epic::DEFAULT_COLOR,
+            'status' => 'done',
+            'priority' => 'medium',
+            'sort_order' => 0,
+            'pr_done' => false,
+        ]);
+
+        // Later epic, 100% complete, finalized now (higher sort_order).
+        $epic = $this->epicWithTasks(['done', 'done']);
+        $epic->update(['sort_order' => 1]);
+
+        $this->actingAs($this->user)
+            ->postJson("/api/epics/{$epic->id}/finalize")
+            ->assertOk()
+            ->assertJsonPath('data.dispatched', true)
+            ->assertJsonPath('data.backfilled', 1);
+
+        // The previous sibling got its finalize intent stamped too.
+        $this->assertNotNull($previous->refresh()->finalized_at);
     }
 
     #[Test]
@@ -146,7 +181,7 @@ class EpicFinalizeEndpointTest extends TestCase
     public function it_returns_404_when_finalizing_an_unknown_epic(): void
     {
         $this->actingAs($this->user)
-            ->postJson('/api/epics/'.\Illuminate\Support\Str::uuid().'/finalize')
+            ->postJson('/api/epics/'.Str::uuid().'/finalize')
             ->assertNotFound();
     }
 }
