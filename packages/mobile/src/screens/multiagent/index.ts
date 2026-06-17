@@ -5,6 +5,7 @@ export { TasksScreen } from "./TasksScreen";
 export { ContextScreen } from "./ContextScreen";
 export { LocksScreen } from "./LocksScreen";
 export { EpicsBoard } from "./EpicsBoard";
+export { EpicDetailScreen } from "./EpicDetailScreen";
 export { SprintsBoard } from "./SprintsBoard";
 export { PlanningScreen } from "./PlanningScreen";
 export { PlanningChatScreen } from "./PlanningChatScreen";

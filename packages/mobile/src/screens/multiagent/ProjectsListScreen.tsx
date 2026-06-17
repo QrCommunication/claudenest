@@ -17,6 +17,7 @@ import {
 } from "react-native";
 import { MaterialIcons as Icon } from "@expo/vector-icons";
 import { colors, spacing, borderRadius, typography } from "@/theme";
+import { t } from "@/i18n";
 import { useProjectsStore } from "@/stores/projectsStore";
 import { useMachinesStore } from "@/stores/machinesStore";
 import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
@@ -182,6 +183,33 @@ export const ProjectsListScreen: React.FC<Props> = ({ navigation }) => {
     }
   }, [machines, fetchProjects, fetchArchivedProjects, archivedExpanded]);
 
+  const handleNewProject = useCallback(() => {
+    navigation.navigate("NewProject");
+  }, [navigation]);
+
+  // Header "+" → create a new project.
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={handleNewProject}
+          style={styles.headerButton}
+          accessibilityRole="button"
+          accessibilityLabel="New project"
+        >
+          <Icon name="add" size={26} color={colors.primary.purple} />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, handleNewProject]);
+
+  const handleEditProject = useCallback(
+    (project: SharedProject) => {
+      navigation.navigate("NewProject", { projectId: project.id });
+    },
+    [navigation],
+  );
+
   const handlePressProject = useCallback(
     (project: SharedProject) => {
       if (useSplit) {
@@ -196,8 +224,8 @@ export const ProjectsListScreen: React.FC<Props> = ({ navigation }) => {
   const handleArchive = useCallback(
     (project: SharedProject) => {
       showAlert(
-        "Archive project",
-        `Archive "${project.name}"? It's reversible — nothing is deleted and you can restore it from the Archived section.`,
+        t("project.archiveTitle"),
+        t("project.archiveConfirm", { name: project.name }),
         [
           { text: "Cancel", style: "cancel" },
           {
@@ -207,7 +235,7 @@ export const ProjectsListScreen: React.FC<Props> = ({ navigation }) => {
               try {
                 await archiveProject(project.id);
               } catch {
-                showAlert("Error", "Failed to archive project");
+                showAlert(t("common.error"), t("project.archiveFailed"));
               }
             },
           },
@@ -215,6 +243,22 @@ export const ProjectsListScreen: React.FC<Props> = ({ navigation }) => {
       );
     },
     [archiveProject],
+  );
+
+  // Long-press → quick actions (edit the full project / archive it).
+  const handleProjectMenu = useCallback(
+    (project: SharedProject) => {
+      showAlert(project.name, t("project.actions"), [
+        { text: t("common.edit"), onPress: () => handleEditProject(project) },
+        {
+          text: t("common.archive"),
+          style: "destructive",
+          onPress: () => handleArchive(project),
+        },
+        { text: t("common.cancel"), style: "cancel" },
+      ]);
+    },
+    [handleEditProject, handleArchive],
   );
 
   const handleToggleArchived = useCallback(() => {
@@ -280,14 +324,14 @@ export const ProjectsListScreen: React.FC<Props> = ({ navigation }) => {
         <ProjectCard
           project={item}
           onPress={() => handlePressProject(item)}
-          onLongPress={() => handleArchive(item)}
+          onLongPress={() => handleProjectMenu(item)}
           selected={useSplit && item.id === selectedProjectId}
         />
       </View>
     ),
     [
       handlePressProject,
-      handleArchive,
+      handleProjectMenu,
       numColumns,
       useSplit,
       selectedProjectId,
@@ -415,6 +459,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background.dark2,
+  },
+  headerButton: {
+    marginRight: spacing.sm,
+    padding: spacing.xs,
   },
   // Tablet master-detail split.
   split: {

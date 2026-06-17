@@ -45,7 +45,8 @@ export type PlanningSegment = "epics" | "sprints";
 export type ProjectsStackParamList = {
   ProjectsList: undefined;
   ProjectDetail: { projectId: string };
-  NewProject: undefined;
+  // No params → create. `projectId` → edit an existing project (full fields).
+  NewProject: { projectId?: string } | undefined;
   Tasks: { projectId: string };
   Context: { projectId: string };
   Locks: { projectId: string };
@@ -57,6 +58,7 @@ export type ProjectsStackParamList = {
   Audit: { projectId: string };
   RunnerHealth: { projectId: string };
   SprintDetail: { sprintId: string };
+  EpicDetail: { epicId: string };
   DecomposeEpic: { projectId: string };
 };
 

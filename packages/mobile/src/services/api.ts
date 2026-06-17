@@ -385,8 +385,13 @@ export const projectsApi = {
 };
 
 export const tasksApi = {
-  list: (projectId: string) =>
-    api.get<import("@/types").SharedTask[]>(`/projects/${projectId}/tasks`),
+  // `archived: true` reveals tasks belonging to archived epics (the backend
+  // hides them by default — `?archived` is a reveal filter, parsed leniently
+  // via $request->boolean() server-side).
+  list: (projectId: string, params?: { archived?: boolean }) =>
+    api.get<import("@/types").SharedTask[]>(`/projects/${projectId}/tasks`, {
+      params: { ...(params?.archived ? { archived: true } : {}) },
+    }),
 
   get: (id: string) => api.get<import("@/types").SharedTask>(`/tasks/${id}`),
 
@@ -498,23 +503,57 @@ export const epicsApi = {
   list: (projectId: string) =>
     api.get<import("@/types").Epic[]>(`/projects/${projectId}/epics`),
 
+  // Archived epics for a project (backend `?archived=true`). Kept separate from
+  // the active board so the active flow is never polluted by archived epics.
+  listArchived: (projectId: string) =>
+    api.get<import("@/types").Epic[]>(`/projects/${projectId}/epics`, {
+      params: { archived: true },
+    }),
+
   get: (id: string) => api.get<import("@/types").Epic>(`/epics/${id}`),
 
   create: (projectId: string, data: Partial<import("@/types").Epic>) =>
     api.post<import("@/types").Epic>(`/projects/${projectId}/epics`, data),
+
+  // Decompose an epic from a PRD (AI flow). The backend creates the epic in its
+  // `running` decomposition state and spawns an async session; sprints/tasks
+  // arrive later over the realtime `.epic.decomposition` signal. HTTP 201.
+  // Errors: 422 MACHINE_OFFLINE / CREDENTIAL_ERROR, 404 CREDENTIAL_NOT_FOUND,
+  // 403 FORBIDDEN — read them with getApiErrorCode().
+  decompose: (projectId: string, data: import("@/types").DecomposeEpicForm) =>
+    api.post<import("@/types").DecomposeEpicResponse>(
+      `/projects/${projectId}/epics/decompose`,
+      data,
+    ),
 
   update: (id: string, data: Partial<import("@/types").Epic>) =>
     api.patch<import("@/types").Epic>(`/epics/${id}`, data),
 
   delete: (id: string) => api.delete(`/epics/${id}`),
 
-  reorder: (id: string, sortOrder: number) =>
-    api.post(`/epics/${id}/reorder`, { sort_order: sortOrder }),
+  // Reorder an epic. The backend (EpicController::reorder) validates `position`
+  // (required integer ≥ 0) — NOT `sort_order` — and returns the updated EpicResource.
+  reorder: (id: string, position: number) =>
+    api.post<import("@/types").Epic>(`/epics/${id}/reorder`, { position }),
+
+  // Archive an epic (reversible — the backend stamps `archived_at`, deletes
+  // nothing). The returned epic carries `is_archived: true`.
+  archive: (id: string) =>
+    api.post<import("@/types").Epic>(`/epics/${id}/archive`),
+
+  // Restore an archived epic to the active board (clears `archived_at`).
+  unarchive: (id: string) =>
+    api.post<import("@/types").Epic>(`/epics/${id}/unarchive`),
 };
 
 export const sprintsApi = {
-  list: (projectId: string) =>
-    api.get<import("@/types").Sprint[]>(`/projects/${projectId}/sprints`),
+  // `archived: true` reveals sprints belonging to archived epics (the backend
+  // hides them from the board by default — `?archived` is a reveal filter, not a
+  // separate list; sprints have no native archive flag of their own).
+  list: (projectId: string, params?: { archived?: boolean }) =>
+    api.get<import("@/types").Sprint[]>(`/projects/${projectId}/sprints`, {
+      params: { ...(params?.archived ? { archived: true } : {}) },
+    }),
 
   get: (id: string) => api.get<import("@/types").Sprint>(`/sprints/${id}`),
 

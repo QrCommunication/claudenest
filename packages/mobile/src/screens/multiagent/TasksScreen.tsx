@@ -41,6 +41,8 @@ import type { ProjectsStackParamList } from "@/navigation/types";
 
 import { LoadingSpinner, EmptyState, ErrorMessage } from "@/components/common";
 import { TaskCard, KanbanBoard } from "@/components/multiagent";
+import { ShowArchivedToggle } from "@/components/os";
+import { t } from "@/i18n";
 
 type Props = NativeStackScreenProps<ProjectsStackParamList, "Tasks">;
 
@@ -397,6 +399,8 @@ export const TasksScreen: React.FC<Props> = ({ route, navigation }) => {
     clearError,
     error,
     isLoading,
+    showArchived,
+    setShowArchived,
   } = useProjectsStore();
 
   const { getEpicsByProject, fetchEpics } = useEpicsStore();
@@ -418,10 +422,15 @@ export const TasksScreen: React.FC<Props> = ({ route, navigation }) => {
   // ---------------------------------------------------------------------------
 
   useEffect(() => {
-    fetchTasks(projectId);
     fetchEpics(projectId);
     fetchSprints(projectId);
   }, [projectId]);
+
+  // Tasks honor the archive slider (the backend `?archived` filter reveals tasks
+  // under archived epics) — refetch on mount and whenever the slider flips.
+  useEffect(() => {
+    fetchTasks(projectId);
+  }, [projectId, showArchived]);
 
   // ---------------------------------------------------------------------------
   // Header
@@ -446,14 +455,21 @@ export const TasksScreen: React.FC<Props> = ({ route, navigation }) => {
   // Derived data
   // ---------------------------------------------------------------------------
 
-  const filteredTasks = useMemo(() => {
+  // Tasks within the current epic/sprint scope (NOT status) — the basis for the
+  // filtered counts so the status chip badges reflect the active scope.
+  const scopedTasks = useMemo(() => {
     return tasks.filter((t) => {
-      if (statusFilter !== "all" && t.status !== statusFilter) return false;
       if (epicFilter && t.epic_id !== epicFilter) return false;
       if (sprintFilter && t.sprint_id !== sprintFilter) return false;
       return true;
     });
-  }, [tasks, statusFilter, epicFilter, sprintFilter]);
+  }, [tasks, epicFilter, sprintFilter]);
+
+  const filteredTasks = useMemo(() => {
+    return scopedTasks.filter(
+      (t) => statusFilter === "all" || t.status === statusFilter,
+    );
+  }, [scopedTasks, statusFilter]);
 
   const sortedTasks = useMemo(() => {
     const statusOrder: Record<string, number> = {
@@ -480,20 +496,23 @@ export const TasksScreen: React.FC<Props> = ({ route, navigation }) => {
   }, [filteredTasks]);
 
   const storyPoints = useMemo(() => {
-    const total = tasks.reduce((sum, t) => sum + (t.story_points ?? 0), 0);
-    const completed = tasks
+    const total = scopedTasks.reduce(
+      (sum, t) => sum + (t.story_points ?? 0),
+      0,
+    );
+    const completed = scopedTasks
       .filter((t) => t.status === "done")
       .reduce((sum, t) => sum + (t.story_points ?? 0), 0);
     return { total, completed };
-  }, [tasks]);
+  }, [scopedTasks]);
 
   const statusCounts = useMemo(() => {
     const map: Record<string, number> = {};
-    for (const t of tasks) {
+    for (const t of scopedTasks) {
       map[t.status] = (map[t.status] ?? 0) + 1;
     }
     return map;
-  }, [tasks]);
+  }, [scopedTasks]);
 
   // ---------------------------------------------------------------------------
   // Handlers
@@ -646,12 +665,25 @@ export const TasksScreen: React.FC<Props> = ({ route, navigation }) => {
               label={f.label}
               isActive={statusFilter === f.key}
               accentColor={f.color}
-              count={f.key === "all" ? tasks.length : statusCounts[f.key] ?? 0}
+              count={
+                f.key === "all" ? scopedTasks.length : statusCounts[f.key] ?? 0
+              }
               onPress={() => setStatusFilter(f.key)}
             />
           ))}
         </ScrollView>
         <ViewModeToggle mode={viewMode} onChange={setViewMode} />
+      </View>
+
+      {/* Archive slider — reveals tasks under archived epics (filtered counts
+          above update accordingly). */}
+      <View style={styles.archiveRow}>
+        <ShowArchivedToggle
+          value={showArchived}
+          onChange={setShowArchived}
+          activeLabel={t("common.active")}
+          archivedLabel={t("common.archived")}
+        />
       </View>
 
       {/* Epic filter chips */}
@@ -694,7 +726,7 @@ export const TasksScreen: React.FC<Props> = ({ route, navigation }) => {
             label="All Sprints"
             isActive={sprintFilter === undefined}
             accentColor={colors.primary.cyan}
-            count={tasks.length}
+            count={scopedTasks.length}
             onPress={() => setSprintFilter(undefined)}
           />
           {sprints.map((sprint) => (
@@ -801,6 +833,17 @@ const styles = StyleSheet.create({
   },
   filtersScroll: {
     flex: 1,
+  },
+
+  // Archive slider row
+  archiveRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    backgroundColor: colors.background.dark3,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.subtle,
   },
   filtersContent: {
     paddingHorizontal: spacing.md,

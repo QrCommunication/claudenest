@@ -83,7 +83,7 @@ const DockItem = memo(function DockItem({
         <Icon
           name={session.orchestrated ? "smart-toy" : "terminal"}
           size={20}
-          color={active ? colors.accent.purple : colors.text.secondary}
+          color={active ? colors.os.item.selectedText : colors.os.item.restText}
         />
         <View
           style={[
@@ -213,10 +213,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     maxWidth: "94%",
-    backgroundColor: colors.bg.card,
+    backgroundColor: colors.os.dock.surface,
     borderRadius: borderRadius.xl,
     borderWidth: 1,
-    borderColor: colors.border.strong,
+    borderColor: colors.os.dock.border,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.sm,
     gap: spacing.sm,
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
   divider: {
     width: 1,
     height: TILE,
-    backgroundColor: colors.border.default,
+    backgroundColor: colors.os.dock.divider,
   },
   scroll: {
     gap: spacing.sm,
@@ -265,15 +265,15 @@ const styles = StyleSheet.create({
     width: TILE,
     height: TILE,
     borderRadius: borderRadius.md,
-    backgroundColor: colors.bg.input,
+    backgroundColor: colors.os.item.rest,
     borderWidth: 1,
     borderColor: colors.border.default,
     alignItems: "center",
     justifyContent: "center",
   },
   tileActive: {
-    borderColor: colors.accent.purple,
-    backgroundColor: colors.bg.hover,
+    borderColor: colors.os.item.selectedBorder,
+    backgroundColor: colors.os.item.selected,
   },
   statusDot: {
     position: "absolute",
@@ -304,6 +304,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   labelActive: {
-    color: colors.accent.purple,
+    color: colors.os.item.selectedText,
   },
 });

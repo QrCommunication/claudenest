@@ -55,6 +55,10 @@ interface ProjectsState {
   isLoading: boolean;
   error: string | null;
   selectedProjectId: string | null;
+  // UI toggle for "show tasks under archived epics" (ephemeral — not persisted;
+  // drives the `?archived=true` filter on fetchTasks, so both the task lists and
+  // the counts derived from them honor it).
+  showArchived: boolean;
 
   // Getters
   selectedProject: () => SharedProject | undefined;
@@ -82,6 +86,8 @@ interface ProjectsState {
   applyProjectUnarchived: (projectId: string, machineId?: string) => void;
 
   // Actions - Tasks
+  setShowArchived: (value: boolean) => void;
+  toggleShowArchived: () => void;
   fetchTasks: (projectId: string) => Promise<void>;
   createTask: (
     projectId: string,
@@ -142,6 +148,7 @@ export const useProjectsStore = create<ProjectsState>()(
       isLoading: false,
       error: null,
       selectedProjectId: null,
+      showArchived: false,
 
       // Getters
       selectedProject: () =>
@@ -311,9 +318,20 @@ export const useProjectsStore = create<ProjectsState>()(
       },
 
       // Tasks
+      setShowArchived: (value: boolean) => set({ showArchived: value }),
+
+      toggleShowArchived: () =>
+        set((state) => ({ showArchived: !state.showArchived })),
+
       fetchTasks: async (projectId: string) => {
         try {
-          const response = await tasksApi.list(projectId);
+          // Honor the showArchived toggle: when on, the backend stops hiding
+          // tasks that belong to archived epics. The whole task panel (lists AND
+          // the counts derived from the `tasks` array — pending/done badges,
+          // story-point totals) follows this single flag.
+          const response = await tasksApi.list(projectId, {
+            archived: get().showArchived,
+          });
           set((state) => ({
             tasks: [
               ...state.tasks.filter((t) => t.projectId !== projectId),

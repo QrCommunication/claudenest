@@ -80,6 +80,7 @@ function makeEpic(id: string, overrides: Partial<Epic> = {}): Epic {
     sort_order: 0,
     tasks_count: 0,
     completed_tasks_count: 0,
+    remaining_tasks_count: 0,
     progress_percentage: 0,
     decomposition_status: null,
     decomposition_session_id: null,

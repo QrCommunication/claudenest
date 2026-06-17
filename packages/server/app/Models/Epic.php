@@ -216,9 +216,18 @@ class Epic extends Model
 
     // ==================== ACCESSORS ====================
 
+    /**
+     * Number of *visible* tasks for this epic — tasks under an archived epic are
+     * excluded so the counter (and the progress derived from it) matches the
+     * default-visible set surfaced everywhere else. Reuses the single source of
+     * truth {@see SharedTask::scopeExcludingArchivedEpics()} rather than
+     * re-deriving the rule: it is a no-op while this epic is active (its tasks
+     * stay) and collapses to 0 once the epic is archived (archived content
+     * contributes nothing to visible metrics).
+     */
     public function getTasksCountAttribute(): int
     {
-        return $this->tasks()->count();
+        return $this->tasks()->excludingArchivedEpics()->count();
     }
 
     public function getIsArchivedAttribute(): bool
@@ -232,9 +241,29 @@ class Epic extends Model
         return ! empty($this->pr_url);
     }
 
+    /**
+     * Completed *visible* tasks — same archived-epic exclusion as
+     * {@see getTasksCountAttribute()} so the completed count and the total stay
+     * on the same set and {@see getProgressPercentageAttribute()} cannot exceed
+     * 100% on an archived epic.
+     */
     public function getCompletedTasksCountAttribute(): int
     {
-        return $this->tasks()->where('status', 'done')->count();
+        return $this->tasks()->excludingArchivedEpics()->where('status', 'done')->count();
+    }
+
+    /**
+     * Remaining *visible* tasks for this epic. Reuses
+     * {@see SharedTask::scopeRemaining()} (not done AND not stranded in a closed
+     * sprint) — the single source of truth shared with the project/sprint stats
+     * counters and SprintResource — chained after
+     * {@see SharedTask::scopeExcludingArchivedEpics()} so it follows the same
+     * archive-aware visibility as {@see getTasksCountAttribute()}: a no-op while
+     * this epic is active, collapsing to 0 once it is archived.
+     */
+    public function getRemainingTasksCountAttribute(): int
+    {
+        return $this->tasks()->excludingArchivedEpics()->remaining()->count();
     }
 
     public function getProgressPercentageAttribute(): float

@@ -1,8 +1,10 @@
 /**
  * EpicsBoard
- * List of epics for a given project, with progress indicators and creation FAB.
- * Rendered inside PlanningScreen (Epics | Sprints segmented control) — not a
- * navigation route on its own anymore.
+ * List of epics for a given project, with an Actifs/Archivés toggle, progress
+ * indicators, and a single PRD-decomposition entry point. Epics are created
+ * exclusively from a PRD (the AI wizard) — there is no manual "+" anymore; the
+ * card overflow menu drives archive/restore/delete. Rendered inside
+ * PlanningScreen (Epics | Sprints segmented control), not a route on its own.
  */
 
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
@@ -13,7 +15,6 @@ import {
   StyleSheet,
   RefreshControl,
   TouchableOpacity,
-  TextInput,
   Animated,
 } from "react-native";
 import { showAlert } from "@/services/dialog";
@@ -24,8 +25,10 @@ import { useEpicsStore } from "@/stores/epicsStore";
 import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 import { useFadeIn } from "@/utils/animations";
 import { EpicCard } from "@/components/multiagent/EpicCard";
+import { EpicDecompositionModal } from "@/components/multiagent/EpicDecompositionModal";
 import { EmptyState } from "@/components/common/EmptyState";
-import { Modal } from "@/components/common";
+import { ShowArchivedToggle } from "@/components/os";
+import { t } from "@/i18n";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { ProjectsStackParamList } from "@/navigation/types";
@@ -37,161 +40,24 @@ interface EpicsBoardProps {
   projectId: string;
 }
 
-// ==================== CREATE EPIC MODAL ====================
-
-interface CreateEpicModalProps {
-  visible: boolean;
-  onClose: () => void;
-  onSubmit: (title: string, description: string) => Promise<void>;
-}
-
-const CreateEpicModal = memo(function CreateEpicModal({
-  visible,
-  onClose,
-  onSubmit,
-}: CreateEpicModalProps) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [fieldError, setFieldError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (visible) {
-      setTitle("");
-      setDescription("");
-      setFieldError(null);
-    }
-  }, [visible]);
-
-  const handleSubmit = useCallback(async () => {
-    if (!title.trim()) {
-      setFieldError("Title is required");
-      return;
-    }
-    setIsSubmitting(true);
-    setFieldError(null);
-    try {
-      await onSubmit(title.trim(), description.trim());
-      onClose();
-    } catch (err: unknown) {
-      const e = err as { message?: string };
-      setFieldError(e.message ?? "Failed to create epic");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [title, description, onSubmit, onClose]);
-
-  return (
-    <Modal
-      visible={visible}
-      onClose={onClose}
-      title="New Epic"
-      footer={
-        <View style={modalStyles.actions}>
-          <TouchableOpacity
-            style={modalStyles.cancelBtn}
-            onPress={onClose}
-            activeOpacity={0.7}
-          >
-            <Text style={modalStyles.cancelText}>Cancel</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              modalStyles.submitBtn,
-              isSubmitting && modalStyles.btnDisabled,
-            ]}
-            onPress={handleSubmit}
-            disabled={isSubmitting}
-            activeOpacity={0.8}
-          >
-            {isSubmitting ? (
-              <View style={modalStyles.submitContent}>
-                <Icon
-                  name="hourglass-empty"
-                  size={16}
-                  color={colors.text.primary}
-                />
-                <Text style={modalStyles.submitText}>Creating…</Text>
-              </View>
-            ) : (
-              <Text style={modalStyles.submitText}>Create Epic</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      }
-    >
-      <Text style={modalStyles.subtitle}>
-        Group related tasks under an epic to track broader goals.
-      </Text>
-
-      {fieldError ? (
-        <View style={modalStyles.errorRow}>
-          <Icon name="error-outline" size={14} color={colors.semantic.error} />
-          <Text style={modalStyles.errorText}>{fieldError}</Text>
-        </View>
-      ) : null}
-
-      <View style={modalStyles.inputGroup}>
-        <Text style={modalStyles.inputLabel}>Title *</Text>
-        <TextInput
-          style={modalStyles.textInput}
-          placeholder="e.g. Authentication system"
-          placeholderTextColor={colors.text.muted}
-          value={title}
-          onChangeText={setTitle}
-          autoFocus
-          returnKeyType="next"
-          maxLength={120}
-        />
-      </View>
-
-      <View style={modalStyles.inputGroup}>
-        <Text style={modalStyles.inputLabel}>Description</Text>
-        <TextInput
-          style={[modalStyles.textInput, modalStyles.textInputMulti]}
-          placeholder="What does this epic cover?"
-          placeholderTextColor={colors.text.muted}
-          value={description}
-          onChangeText={setDescription}
-          multiline
-          numberOfLines={3}
-          textAlignVertical="top"
-          maxLength={500}
-        />
-      </View>
-    </Modal>
-  );
-});
-
 // ==================== FAB ====================
 
 interface FABProps {
-  onPress: () => void;
   onDecompose: () => void;
 }
 
-const FAB = memo(function FAB({ onPress, onDecompose }: FABProps) {
+const FAB = memo(function FAB({ onDecompose }: FABProps) {
   const fadeStyle = useFadeIn();
   return (
     <Animated.View style={[styles.fabWrap, fadeStyle]}>
       <TouchableOpacity
-        style={styles.fabSecondary}
+        style={styles.fab}
         onPress={onDecompose}
         activeOpacity={0.85}
         accessibilityRole="button"
         accessibilityLabel="Decompose a PRD into an epic"
       >
-        <Icon name="auto-awesome" size={20} color={colors.accent.cyan} />
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={onPress}
-        activeOpacity={0.85}
-        accessibilityRole="button"
-        accessibilityLabel="New epic"
-      >
-        <Icon name="add" size={26} color={colors.text.primary} />
+        <Icon name="auto-awesome" size={24} color={colors.text.inverse} />
       </TouchableOpacity>
     </Animated.View>
   );
@@ -242,7 +108,7 @@ const ListHeaderComponent = memo(function ListHeaderComponent({
     <View style={styles.listHeader}>
       <View style={styles.listHeaderStat}>
         <Text style={styles.listHeaderValue}>{total}</Text>
-        <Text style={styles.listHeaderLabel}>total</Text>
+        <Text style={styles.listHeaderLabel}>{t("epicsBoard.statTotal")}</Text>
       </View>
       <View style={styles.listHeaderDivider} />
       <View style={styles.listHeaderStat}>
@@ -251,7 +117,9 @@ const ListHeaderComponent = memo(function ListHeaderComponent({
         >
           {inProgress}
         </Text>
-        <Text style={styles.listHeaderLabel}>in progress</Text>
+        <Text style={styles.listHeaderLabel}>
+          {t("epicsBoard.statInProgress")}
+        </Text>
       </View>
       <View style={styles.listHeaderDivider} />
       <View style={styles.listHeaderStat}>
@@ -260,7 +128,7 @@ const ListHeaderComponent = memo(function ListHeaderComponent({
         >
           {done}
         </Text>
-        <Text style={styles.listHeaderLabel}>done</Text>
+        <Text style={styles.listHeaderLabel}>{t("epicsBoard.statDone")}</Text>
       </View>
     </View>
   );
@@ -277,58 +145,100 @@ export const EpicsBoard = memo(function EpicsBoard({
   const numColumns = isExpanded ? 2 : 1;
   const {
     getEpicsByProject,
+    getArchivedEpicsByProject,
     fetchEpics,
-    createEpic,
+    fetchArchivedEpics,
+    archiveEpic,
+    unarchiveEpic,
     deleteEpic,
+    subscribeRealtime,
+    showArchived,
+    setShowArchived,
     isLoading,
     error,
     clearError,
   } = useEpicsStore();
 
-  const epics = getEpicsByProject(projectId);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const activeEpics = getEpicsByProject(projectId);
+  const archivedEpics = getArchivedEpicsByProject(projectId);
+  const epics = showArchived ? archivedEpics : activeEpics;
 
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isWizardVisible, setIsWizardVisible] = useState(false);
+
+  // Fetch the relevant list whenever the project or the archived view changes.
   const load = useCallback(async () => {
     try {
-      await fetchEpics(projectId);
+      if (showArchived) {
+        await fetchArchivedEpics(projectId);
+      } else {
+        await fetchEpics(projectId);
+      }
     } catch {
       // error state managed in store
     }
-  }, [projectId, fetchEpics]);
+  }, [projectId, showArchived, fetchEpics, fetchArchivedEpics]);
 
   useEffect(() => {
     load();
   }, [load]);
 
+  // Live archive/decompose/PR updates while the board is mounted.
+  useEffect(() => subscribeRealtime(projectId), [projectId, subscribeRealtime]);
+
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
-      await fetchEpics(projectId);
+      await load();
     } finally {
       setIsRefreshing(false);
     }
-  }, [projectId, fetchEpics]);
+  }, [load]);
 
-  const handleEpicPress = useCallback((_epic: Epic) => {
-    // Navigate to epic detail when screen is created
-  }, []);
+  const handleEpicPress = useCallback(
+    (epic: Epic) => {
+      navigation.navigate("EpicDetail", { epicId: epic.id });
+    },
+    [navigation],
+  );
 
-  const handleDeleteEpic = useCallback(
+  const handleArchive = useCallback(
+    async (epic: Epic) => {
+      try {
+        await archiveEpic(epic.id);
+      } catch {
+        showAlert(t("common.error"), t("epicsBoard.archiveFailed"));
+      }
+    },
+    [archiveEpic],
+  );
+
+  const handleUnarchive = useCallback(
+    async (epic: Epic) => {
+      try {
+        await unarchiveEpic(epic.id);
+      } catch {
+        showAlert(t("common.error"), t("epicsBoard.restoreFailed"));
+      }
+    },
+    [unarchiveEpic],
+  );
+
+  const handleDelete = useCallback(
     (epic: Epic) => {
       showAlert(
-        "Delete Epic",
-        `Delete "${epic.title}"? This cannot be undone.`,
+        t("epicsBoard.deleteTitle"),
+        t("epicsBoard.deleteConfirm", { name: epic.title }),
         [
-          { text: "Cancel", style: "cancel" },
+          { text: t("common.cancel"), style: "cancel" },
           {
-            text: "Delete",
+            text: t("common.delete"),
             style: "destructive",
             onPress: async () => {
               try {
                 await deleteEpic(epic.id);
               } catch {
-                showAlert("Error", "Failed to delete epic");
+                showAlert(t("common.error"), t("epicsBoard.deleteFailed"));
               }
             },
           },
@@ -338,17 +248,12 @@ export const EpicsBoard = memo(function EpicsBoard({
     [deleteEpic],
   );
 
-  const handleCreateEpic = useCallback(
-    async (title: string, description: string) => {
-      await createEpic(projectId, {
-        title,
-        description: description || undefined,
-        color: "#a855f7",
-        priority: "medium",
-      });
-    },
-    [projectId, createEpic],
-  );
+  // A launched decomposition lands a pending epic in the active list — surface
+  // it by leaving the archived view if the user was browsing it.
+  const handleDecomposeStarted = useCallback(() => {
+    setShowArchived(false);
+    void fetchEpics(projectId);
+  }, [setShowArchived, fetchEpics, projectId]);
 
   const renderItem = useCallback(
     ({ item }: { item: Epic }) => (
@@ -356,11 +261,13 @@ export const EpicsBoard = memo(function EpicsBoard({
         <EpicCard
           epic={item}
           onPress={handleEpicPress}
-          onLongPress={handleDeleteEpic}
+          onArchive={item.is_archived ? undefined : handleArchive}
+          onUnarchive={item.is_archived ? handleUnarchive : undefined}
+          onDelete={handleDelete}
         />
       </View>
     ),
-    [handleEpicPress, handleDeleteEpic, numColumns],
+    [handleEpicPress, handleArchive, handleUnarchive, handleDelete, numColumns],
   );
 
   const keyExtractor = useCallback((item: Epic) => item.id, []);
@@ -384,6 +291,18 @@ export const EpicsBoard = memo(function EpicsBoard({
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
+      {/* Actifs / Archivés toggle */}
+      <View style={styles.toolbar}>
+        <ShowArchivedToggle
+          value={showArchived}
+          onChange={setShowArchived}
+          activeLabel={t("common.active")}
+          archivedLabel={t("common.archived")}
+          activeCount={activeEpics.length}
+          archivedCount={archivedEpics.length}
+        />
+      </View>
+
       {/* Error banner */}
       {error ? (
         <TouchableOpacity
@@ -424,27 +343,35 @@ export const EpicsBoard = memo(function EpicsBoard({
           />
         }
         ListEmptyComponent={
-          <EmptyState
-            icon="rocket-launch"
-            title="No epics yet"
-            description="Create one to organize your tasks into meaningful groups."
-            actionLabel="Create Epic"
-            onAction={() => setIsModalVisible(true)}
-          />
+          showArchived ? (
+            <EmptyState
+              icon="archive"
+              title={t("epicsBoard.noArchivedTitle")}
+              description={t("epicsBoard.noArchivedDesc")}
+            />
+          ) : (
+            <EmptyState
+              icon="auto-awesome"
+              title={t("epicsBoard.noEpicsTitle")}
+              description={t("epicsBoard.noEpicsDesc")}
+              actionLabel={t("epicsBoard.noEpicsAction")}
+              onAction={() => setIsWizardVisible(true)}
+            />
+          )
         }
       />
 
-      {/* FAB — always visible so "decompose a PRD" is reachable even with an
-          empty board (the create CTA in the EmptyState only covers manual epics). */}
-      <FAB
-        onPress={() => setIsModalVisible(true)}
-        onDecompose={() => navigation.navigate("DecomposeEpic", { projectId })}
-      />
+      {/* Single entry point: PRD decomposition wizard. Hidden in the archived
+          view (you don't create epics there). */}
+      {!showArchived ? (
+        <FAB onDecompose={() => setIsWizardVisible(true)} />
+      ) : null}
 
-      <CreateEpicModal
-        visible={isModalVisible}
-        onClose={() => setIsModalVisible(false)}
-        onSubmit={handleCreateEpic}
+      <EpicDecompositionModal
+        visible={isWizardVisible}
+        projectId={projectId}
+        onClose={() => setIsWizardVisible(false)}
+        onStarted={handleDecomposeStarted}
       />
     </SafeAreaView>
   );
@@ -456,6 +383,12 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: colors.background.dark2,
+  },
+  toolbar: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
   },
   listContent: {
     padding: spacing.md,
@@ -532,17 +465,6 @@ const styles = StyleSheet.create({
     bottom: spacing.xl,
     right: spacing.md,
     alignItems: "center",
-    gap: spacing.sm,
-  },
-  fabSecondary: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.bg.card,
-    borderWidth: 1,
-    borderColor: colors.accent.cyan,
-    justifyContent: "center",
-    alignItems: "center",
   },
   fab: {
     width: 56,
@@ -556,122 +478,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.45,
     shadowRadius: 8,
     elevation: 8,
-  },
-});
-
-// Modal styles kept separate to avoid name collisions
-const modalStyles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
-    justifyContent: "flex-end",
-  },
-  sheet: {
-    backgroundColor: colors.background.dark3,
-    borderTopLeftRadius: borderRadius.xl,
-    borderTopRightRadius: borderRadius.xl,
-    padding: spacing.lg,
-    paddingBottom: spacing["2xl"],
-    borderTopWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
-  },
-  handle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.border.strong,
-    alignSelf: "center",
-    marginBottom: spacing.md,
-  },
-  title: {
-    fontSize: typography.size.xl,
-    fontWeight: "700",
-    color: colors.text.primary,
-    marginBottom: spacing.xs,
-  },
-  subtitle: {
-    fontSize: typography.size.sm,
-    color: colors.text.secondary,
-    marginBottom: spacing.md,
-    lineHeight: 20,
-  },
-  errorRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
-    backgroundColor: colors.semantic.error + "18",
-    borderRadius: borderRadius.base,
-    padding: spacing.sm,
-    marginBottom: spacing.sm,
-    borderWidth: 1,
-    borderColor: colors.semantic.error + "40",
-  },
-  errorText: {
-    fontSize: typography.size.sm,
-    color: colors.semantic.error,
-    flex: 1,
-  },
-  inputGroup: {
-    marginBottom: spacing.md,
-  },
-  inputLabel: {
-    fontSize: typography.size.sm,
-    fontWeight: "600",
-    color: colors.text.secondary,
-    marginBottom: spacing.xs,
-  },
-  textInput: {
-    backgroundColor: colors.background.dark2,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border.default,
-    color: colors.text.primary,
-    fontSize: typography.size.base,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  textInputMulti: {
-    minHeight: 80,
-    paddingTop: spacing.sm,
-  },
-  actions: {
-    flexDirection: "row",
-    gap: spacing.sm,
-    marginTop: spacing.sm,
-  },
-  cancelBtn: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: borderRadius.md,
-    backgroundColor: colors.background.dark2,
-    borderWidth: 1,
-    borderColor: colors.border.default,
-    alignItems: "center",
-  },
-  cancelText: {
-    fontSize: typography.size.base,
-    fontWeight: "600",
-    color: colors.text.secondary,
-  },
-  submitBtn: {
-    flex: 2,
-    paddingVertical: 12,
-    borderRadius: borderRadius.md,
-    backgroundColor: colors.primary.purple,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  btnDisabled: {
-    opacity: 0.6,
-  },
-  submitContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
-  },
-  submitText: {
-    fontSize: typography.size.base,
-    fontWeight: "700",
-    color: colors.text.primary,
   },
 });

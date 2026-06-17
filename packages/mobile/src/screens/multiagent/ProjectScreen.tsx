@@ -614,8 +614,12 @@ export const ProjectDetailContent: React.FC<ProjectDetailContentProps> = ({
     broadcast,
   } = useProjectsStore();
 
-  const { getEpicsByProject, fetchEpics } = useEpicsStore();
-  const { getSprintsByProject, fetchSprints } = useSprintsStore();
+  const { getEpicsByProject, fetchEpics, subscribeRealtime } = useEpicsStore();
+  const {
+    getSprintsByProject,
+    fetchSprints,
+    subscribeRealtime: subscribeSprintsRealtime,
+  } = useSprintsStore();
 
   const [activeTab, setActiveTab] = useState<TabKey>("overview");
   const [isBroadcasting, setIsBroadcasting] = useState(false);
@@ -642,8 +646,17 @@ export const ProjectDetailContent: React.FC<ProjectDetailContentProps> = ({
     fetchEpics(projectId);
     fetchSprints(projectId);
 
-    const unsubscribe = subscribeToProject(projectId);
-    return unsubscribe;
+    // projectsStore owns the Reverb `projects.{id}` channel (binds the
+    // `.epic.*` listeners that re-emit onto the event bus); epicsStore only
+    // registers the bus consumers that reconcile epic state in place.
+    const unsubscribeProject = subscribeToProject(projectId);
+    const unsubscribeEpics = subscribeRealtime(projectId);
+    const unsubscribeSprints = subscribeSprintsRealtime(projectId);
+    return () => {
+      unsubscribeSprints();
+      unsubscribeEpics();
+      unsubscribeProject();
+    };
   }, [projectId]);
 
   // Lazy-load additional data when a tab is selected for the first time

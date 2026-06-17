@@ -113,11 +113,15 @@ class TaskController extends Controller
 
         // Board hygiene: tasks under an archived epic drop off the panel, like
         // the epic itself disappears from the board (EpicController::index) and
-        // its sprints (Sprint::scopeExcludingArchivedEpics). An explicit epic_id
-        // filter bypasses this — targeting an epic directly lets you still
-        // inspect its tasks even once it is archived. Tasks with no epic (NULL
-        // epic_id) are always retained (whereDoesntHave is null-safe).
-        if (! isset($validated['epic_id'])) {
+        // its sprints (Sprint::scopeExcludingArchivedEpics). Two opt-outs leave
+        // them visible: an explicit epic_id filter (targeting an epic directly
+        // lets you inspect its tasks even once archived), and ?archived=true
+        // (mirrors SprintController::index / ProjectController::index — parsed
+        // via $request->boolean(), lenient: accepts "true"/"1"/"on", NOT a
+        // `boolean` validation rule which would 422 the string "true"). Tasks
+        // with no epic (NULL epic_id) are always retained (whereDoesntHave is
+        // null-safe), so the paginated total stays consistent with the list.
+        if (! isset($validated['epic_id']) && ! $request->boolean('archived')) {
             $query->excludingArchivedEpics();
         }
 
@@ -225,8 +229,12 @@ class TaskController extends Controller
         }
 
         // Tasks under an archived epic are hidden from the cross-project board
-        // too — there is no epic_id filter here, so it is unconditional.
-        $query->excludingArchivedEpics();
+        // too. ?archived=true opts back in (mirrors the per-project index and
+        // SprintController), parsed leniently via $request->boolean(). The
+        // paginated total follows the same query, so it stays consistent.
+        if (! $request->boolean('archived')) {
+            $query->excludingArchivedEpics();
+        }
 
         // Same default visibility as the per-project index: focus on in-progress
         // tasks + those completed today, unless narrowed by status or overridden.

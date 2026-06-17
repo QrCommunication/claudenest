@@ -7,16 +7,21 @@ namespace Tests\Feature\Api;
 use App\Models\Epic;
 use App\Models\Machine;
 use App\Models\SharedProject;
+use App\Models\SharedTask;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Testing\TestResponse;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
- * EpicResource (GET /api/epics/{epic}) must expose the archive state and the
- * epic-level pull request fields so the board can render the archive toggle and
- * the finalize/PR flow.
+ * EpicResource (GET /api/epics/{epic}) must expose the archive state, the
+ * epic-level pull request fields, AND the visible task counters
+ * (tasks_count / completed_tasks_count / remaining_tasks_count /
+ * progress_percentage) so the board can render the archive toggle, the
+ * finalize/PR flow, and progress. The counters are computed on the visible set
+ * (archived-epic tasks excluded) — an archived epic reports 0 through the API.
  */
 class EpicResourceFieldsTest extends TestCase
 {
@@ -87,5 +92,65 @@ class EpicResourceFieldsTest extends TestCase
             ->assertJsonPath('data.pr_branch', null)
             ->assertJsonPath('data.has_pull_request', false)
             ->assertJsonPath('data.finalized_at', null);
+    }
+
+    #[Test]
+    public function it_exposes_visible_task_counters_for_an_active_epic(): void
+    {
+        $epic = Epic::create([
+            'project_id' => $this->project->id,
+            'title' => 'Active epic',
+            'status' => 'open',
+            'priority' => 'medium',
+        ]);
+
+        // 2 done + 1 pending → 3 total, 2 completed, 1 remaining (not done), 66.7%.
+        SharedTask::factory()->for($this->project, 'project')->create([
+            'epic_id' => $epic->id, 'title' => 'A', 'status' => 'done',
+        ]);
+        SharedTask::factory()->for($this->project, 'project')->create([
+            'epic_id' => $epic->id, 'title' => 'B', 'status' => 'done',
+        ]);
+        SharedTask::factory()->for($this->project, 'project')->create([
+            'epic_id' => $epic->id, 'title' => 'C', 'status' => 'pending',
+        ]);
+
+        $this->show($epic)
+            ->assertOk()
+            ->assertJsonPath('data.tasks_count', 3)
+            ->assertJsonPath('data.completed_tasks_count', 2)
+            ->assertJsonPath('data.remaining_tasks_count', 1)
+            ->assertJsonPath('data.progress_percentage', 66.7);
+    }
+
+    #[Test]
+    public function an_archived_epic_reports_zero_counters_through_the_resource(): void
+    {
+        $epic = Epic::create([
+            'project_id' => $this->project->id,
+            'title' => 'Archived epic',
+            'status' => 'done',
+            'priority' => 'medium',
+        ]);
+
+        SharedTask::factory()->for($this->project, 'project')->create([
+            'epic_id' => $epic->id, 'title' => 'A', 'status' => 'done',
+        ]);
+        SharedTask::factory()->for($this->project, 'project')->create([
+            'epic_id' => $epic->id, 'title' => 'B', 'status' => 'pending',
+        ]);
+
+        // Archive after the tasks exist (direct DB write — no fillable dependency).
+        DB::table('epics')->where('id', $epic->id)->update(['archived_at' => now()]);
+
+        // The archive-aware counters drop every task under the archived epic.
+        $this->show($epic)
+            ->assertOk()
+            ->assertJsonPath('data.is_archived', true)
+            ->assertJsonPath('data.tasks_count', 0)
+            ->assertJsonPath('data.completed_tasks_count', 0)
+            ->assertJsonPath('data.remaining_tasks_count', 0)
+            // 0.0 serializes to JSON `0` (int) — assertJsonPath compares strictly.
+            ->assertJsonPath('data.progress_percentage', 0);
     }
 }

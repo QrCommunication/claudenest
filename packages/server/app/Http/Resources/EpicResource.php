@@ -22,6 +22,11 @@ class EpicResource extends JsonResource
             'sort_order' => $this->sort_order,
             'tasks_count' => $this->tasks_count,
             'completed_tasks_count' => $this->completed_tasks_count,
+            // "Remaining" reuses SharedTask::scopeRemaining (not done AND not
+            // stranded in a closed sprint) chained after the archived-epic
+            // exclusion, mirroring SprintResource and keeping the three counters
+            // (total/completed/remaining) on the same archive-aware visible set.
+            'remaining_tasks_count' => $this->remaining_tasks_count,
             'progress_percentage' => $this->progress_percentage,
             // AI decomposition state (idle|pending|running|ready|failed; null = never decomposed).
             // Canonical contract mirrored by the migration, Epic casts/helpers and the TS Epic type.

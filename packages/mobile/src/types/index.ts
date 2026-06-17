@@ -252,6 +252,24 @@ export interface SharedTask {
 // ==================== EPIC TYPES ====================
 export type EpicStatus = "open" | "in_progress" | "done";
 
+/**
+ * AI decomposition lifecycle of an epic built from a PRD. `null` = never
+ * decomposed (manual epic). Mirrors the backend Epic enum + the
+ * `epics.decomposition_status` CHECK (idle|pending|running|completed|failed).
+ */
+export type DecompositionStatus =
+  | "idle"
+  | "pending"
+  | "running"
+  | "completed"
+  | "failed";
+
+/**
+ * Epic-level pull request state (finalize flow). `null` = no PR opened yet.
+ * Mirrors the backend Epic `PR_STATES` constant + the `epics.pr_state` CHECK.
+ */
+export type EpicPrState = "open" | "merged" | "closed";
+
 export interface Epic {
   id: string;
   project_id: string;
@@ -264,11 +282,57 @@ export interface Epic {
   sort_order: number;
   tasks_count: number;
   completed_tasks_count: number;
+  // Remaining tasks (SharedTask::scopeRemaining): not done AND not stranded in
+  // a closed sprint, on the archive-aware visible set (0 once archived).
+  remaining_tasks_count: number;
   progress_percentage: number;
+  // AI decomposition state (null = never decomposed).
+  decomposition_status: DecompositionStatus | null;
+  decomposition_session_id: string | null;
+  decomposition_error: string | null;
+  decomposed_at: string | null;
+  // Archive state (NULL archived_at = active).
+  archived_at: string | null;
+  is_archived: boolean;
+  // Epic-level pull request (finalize flow). `pr_state` null = no PR opened yet.
+  pr_url: string | null;
+  pr_number: number | null;
+  pr_state: EpicPrState | null;
+  pr_branch: string | null;
+  has_pull_request: boolean;
+  finalized_at: string | null;
   started_at: string | null;
   completed_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+/**
+ * Payload of the epic-decompose endpoint (`POST /projects/{id}/epics/decompose`).
+ * The backend creates the epic up-front in the `running` decomposition state
+ * and spawns an async Claude session that builds its sprints/tasks. Mirrors the
+ * backend validation rules and the web SPA `DecomposeEpicForm`.
+ */
+export interface DecomposeEpicForm {
+  title: string;
+  prd: string;
+  credential_id: string;
+  description?: string;
+  color?: string;
+  icon?: string;
+  priority?: TaskPriority;
+}
+
+/**
+ * Response data of the epic-decompose endpoint (HTTP 201). The plan is NOT
+ * awaited: the epic is returned in its `running` state and its sprints/tasks
+ * land later over the realtime `.epic.decomposition` signal.
+ */
+export interface DecomposeEpicResponse {
+  epic: Epic;
+  session_id: string;
+  status: "decomposing";
+  message: string;
 }
 
 // ==================== SPRINT TYPES ====================
@@ -686,4 +750,61 @@ export interface ProjectScanResult {
   has_git: boolean;
   readme: string | null;
   structure: string[];
+}
+
+// ==================== WINDOW MANAGER (OS SHELL) TYPES ====================
+// Local UI state for the "Claude OS" shell (WindowFrame chrome + Dock taskbar).
+// Not a server contract — purely client-side window bookkeeping.
+
+/** What a managed window represents in the OS shell. */
+export type WindowKind = "session" | "panel";
+
+/**
+ * Floating geometry of a window in the desktop host's coordinate space
+ * (logical pixels, origin top-left). Persists even while a window is
+ * maximized, so restoring brings back the prior floating size/position.
+ */
+export interface WindowBounds {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * A window tracked by the OS-shell window manager. The windowed entity is keyed
+ * by `id` (e.g. a session id). `openSeq`/`focusSeq` are monotonic sequence
+ * numbers (NOT timestamps) so ordering is deterministic and test-friendly:
+ *  - openSeq  → stable taskbar/dock order (icons don't jump on focus)
+ *  - focusSeq → most-recently-focused order (drives stacking + next-focus pick)
+ */
+export interface ManagedWindow {
+  id: string;
+  kind: WindowKind;
+  title: string;
+  /** MaterialIcons name for the dock/taskbar icon (optional). */
+  icon?: string;
+  /** Minimized = present in the taskbar but not the foreground window. */
+  minimized: boolean;
+  /**
+   * Maximized = rendered full-bleed by the host. `bounds` is preserved so
+   * un-maximizing restores the prior floating geometry.
+   */
+  maximized: boolean;
+  /** Floating geometry used when the window is neither minimized nor maximized. */
+  bounds: WindowBounds;
+  /** Stable creation order — drives the taskbar display order. */
+  openSeq: number;
+  /** Last-focused order — higher = more recently focused. */
+  focusSeq: number;
+}
+
+/** Input accepted when opening/registering a window. */
+export interface OpenWindowInput {
+  id: string;
+  kind: WindowKind;
+  title: string;
+  icon?: string;
+  /** Optional initial geometry; missing fields fall back to a cascade default. */
+  bounds?: Partial<WindowBounds>;
 }
