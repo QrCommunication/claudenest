@@ -9,10 +9,14 @@
 
 import React, { type ReactNode } from "react";
 import { ProjectPanel } from "./ProjectPanel";
+import { SettingsPanel } from "./SettingsPanel";
+import { MachineDetailPanel } from "./MachineDetailPanel";
 
 export const NATIVE_PANELS: Record<
   string,
   (params: Record<string, unknown>) => ReactNode
 > = {
   project: (p) => <ProjectPanel projectId={String(p.projectId ?? "")} />,
+  settings: () => <SettingsPanel />,
+  machine: (p) => <MachineDetailPanel machineId={String(p.machineId ?? "")} />,
 };
