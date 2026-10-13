@@ -21,7 +21,7 @@ jobs:
   # ============================================
   build:
     name: Build Assets
-    runs-on: [self-hosted, linux, x64, hetzner, qrcom]
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: ${{ env.PACKAGE_PATH }}
@@ -46,7 +46,7 @@ jobs:
   # ============================================
   deploy:
     name: Deploy Server
-    runs-on: [self-hosted, linux, x64, hetzner, qrcom]
+    runs-on: ubuntu-24.04
     needs: build
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment: production
