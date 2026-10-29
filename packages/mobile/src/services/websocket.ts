@@ -11,7 +11,7 @@
  * REST API — Reverb is receive-only for clients.
  */
 
-import Echo from "laravel-echo";
+import Echo, { type EchoOptions } from "laravel-echo";
 import * as PusherModule from "pusher-js";
 import { api } from "./api";
 
@@ -79,7 +79,7 @@ class WebSocketService {
     this.token = token;
     this.connectionState = "connecting";
 
-    this.echo = new Echo({
+    this.echo = new Echo<"reverb">({
       broadcaster: "reverb",
       // Pass the Pusher class explicitly: React Native has no `window.Pusher`.
       Pusher,
@@ -93,7 +93,7 @@ class WebSocketService {
       bearerToken: token,
       // `Pusher` and `bearerToken` are valid runtime options for the Reverb
       // connector but are not part of laravel-echo's exported option types.
-    } as unknown as ConstructorParameters<typeof Echo>[0]);
+    } as unknown as EchoOptions<"reverb"> & { broadcaster: "reverb" });
 
     this.bindConnectionState();
   }

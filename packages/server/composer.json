@@ -5,30 +5,30 @@
     "keywords": ["laravel", "claude", "ai", "orchestration", "websocket"],
     "license": "MIT",
     "require": {
-        "php": "^8.3",
+        "php": "^8.4",
         "bacon/bacon-qr-code": "^3.1",
-        "darkaonline/l5-swagger": "^11.0",
-        "guzzlehttp/guzzle": "^7.8",
-        "laravel/framework": "^13.0",
-        "laravel/reverb": "^1.0",
-        "laravel/sanctum": "^4.0",
-        "laravel/socialite": "^5.12",
-        "laravel/tinker": "^3",
-        "nesbot/carbon": "^3.0",
+        "darkaonline/l5-swagger": "^11.2",
+        "guzzlehttp/guzzle": "^7.16",
+        "laravel/framework": "^13.39",
+        "laravel/reverb": "^1.12",
+        "laravel/sanctum": "^4.3",
+        "laravel/socialite": "^5.31",
+        "laravel/tinker": "^3.0",
+        "nesbot/carbon": "^3.15",
         "pbmedia/laravel-ffmpeg": "^8.5",
-        "pragmarx/google2fa": "^9.0",
-        "predis/predis": "^3",
-        "react/http": "^1.11",
-        "symfony/process": "^7.0"
+        "pragmarx/google2fa": "^9.1",
+        "predis/predis": "^3.7",
+        "react/http": "^1.11.1",
+        "symfony/process": "^8.1"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
-        "laravel/pint": "^1.13",
-        "laravel/sail": "^1.28",
-        "mockery/mockery": "^1.6",
-        "nunomaduro/collision": "^8.1",
-        "phpunit/phpunit": "^12",
-        "spatie/laravel-ignition": "^2.4"
+        "laravel/pint": "^1.32",
+        "laravel/sail": "^1.69",
+        "mockery/mockery": "^1.6.15",
+        "nunomaduro/collision": "^8.9",
+        "phpunit/phpunit": "^13.4",
+        "spatie/laravel-ignition": "^2.12"
     },
     "autoload": {
         "psr-4": {
@@ -76,7 +76,7 @@
             "php-http/discovery": true
         },
         "platform": {
-            "php": "8.3.30"
+            "php": "8.4.27"
         }
     },
     "minimum-stability": "stable",
